@@ -1,0 +1,58 @@
+.lawyer-workspace {
+  --workspace-bg: oklch(0.965 0.008 230);
+  background: var(--workspace-bg);
+  min-height: calc(100vh - 8rem);
+}
+
+.lawyer-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1.25rem;
+  padding-block: 2rem;
+}
+
+.lawyer-sidebar {
+  position: sticky;
+  top: 5rem;
+  align-self: start;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.lawyer-sidebar h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin: 0 0 0.75rem;
+}
+
+.lawyer-sidebar nav {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.lawyer-sidebar a {
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+}
+
+.lawyer-sidebar a.on,
+.lawyer-sidebar a:hover {
+  background: oklch(0.94 0.02 210);
+  color: var(--brand-deep);
+}
+
+.lawyer-main { min-width: 0; }
+
+@media (max-width: 860px) {
+  .lawyer-grid { grid-template-columns: 1fr; }
+  .lawyer-sidebar { position: static; }
+}

@@ -1,0 +1,157 @@
+:root {
+  /* Scene: quiet Quito evening desk — ink teal legal trust, not navy-gold cliché */
+  --ink: oklch(0.22 0.035 230);
+  --ink-soft: oklch(0.35 0.03 230);
+  --paper: oklch(0.97 0.008 220);
+  --surface: oklch(0.99 0.004 220);
+  --line: oklch(0.88 0.02 230);
+  --brand: oklch(0.42 0.09 210);
+  --brand-deep: oklch(0.32 0.08 210);
+  --accent: oklch(0.62 0.14 55);
+  --ok: oklch(0.55 0.12 150);
+  --warn: oklch(0.72 0.14 85);
+  --bad: oklch(0.52 0.16 25);
+  --shadow: 0 18px 50px oklch(0.22 0.035 230 / 0.12);
+  --radius: 14px;
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: "Sora", system-ui, sans-serif;
+  --max: 1120px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, oklch(0.88 0.04 210 / 0.55), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, oklch(0.9 0.05 55 / 0.35), transparent 55%),
+    linear-gradient(180deg, var(--paper), var(--surface));
+  min-height: 100vh;
+  line-height: 1.55;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+p {
+  text-wrap: pretty;
+  margin: 0 0 1rem;
+}
+
+a {
+  color: var(--brand-deep);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+button, .btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.4rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: white;
+  box-shadow: 0 10px 24px oklch(0.42 0.09 210 / 0.35);
+}
+
+.btn-primary:hover {
+  background: var(--brand-deep);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+input, select, textarea {
+  font: inherit;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--ink);
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: var(--ink-soft);
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.shell {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.badge-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: oklch(0.92 0.04 55);
+  color: oklch(0.4 0.08 55);
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

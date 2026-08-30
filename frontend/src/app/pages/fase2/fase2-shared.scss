@@ -1,0 +1,77 @@
+.fase2-layout {
+  --fase2-bg: oklch(0.96 0.012 230);
+  background: var(--fase2-bg);
+  min-height: calc(100vh - 8rem);
+}
+
+.fase2-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+  padding-block: 2rem;
+}
+
+.fase2-sidebar {
+  position: sticky;
+  top: 5rem;
+  align-self: start;
+  background: white;
+  border: 1px dashed oklch(0.75 0.04 210);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.fase2-sidebar h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin: 0 0 0.75rem;
+}
+
+.fase2-sidebar nav {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.fase2-sidebar a {
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+}
+
+.fase2-sidebar a.on,
+.fase2-sidebar a:hover {
+  background: oklch(0.94 0.02 210);
+  color: var(--brand-deep);
+}
+
+.fase2-main {
+  min-width: 0;
+}
+
+.fase2-preview-card {
+  border: 1px dashed oklch(0.78 0.03 210);
+  background: white;
+}
+
+.fase2-section {
+  margin-top: 1.5rem;
+}
+
+.fase2-section h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 860px) {
+  .fase2-grid {
+    grid-template-columns: 1fr;
+  }
+  .fase2-sidebar {
+    position: static;
+  }
+}

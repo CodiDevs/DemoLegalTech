@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Minuta — Divorcio360</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 720px; margin: 2rem auto; line-height: 1.6; color: #1a2a33; }
+    h1 { font-size: 1.5rem; border-bottom: 2px solid #2a5a6a; padding-bottom: 0.5rem; }
+    .meta { color: #555; font-size: 0.95rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    td { padding: 0.4rem 0; border-bottom: 1px solid #ddd; }
+    td:first-child { font-weight: 600; width: 45%; }
+    footer { margin-top: 2rem; font-size: 0.85rem; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>Minuta de divorcio notarial por mutuo consentimiento</h1>
+  <p class="meta">LegalStation · Divorcio360 · {{.Date}}</p>
+  <p><strong>Cliente:</strong> {{.ClientName}} · <strong>Ciudad:</strong> {{.City}}</p>
+  <p><strong>Honorarios profesionales:</strong> ${{.AmountUSD}} USD</p>
+  <table>
+    <tr><td>Ambos desean divorciarse</td><td>{{.BothDivorce}}</td></tr>
+    <tr><td>Matrimonio registrado en Ecuador</td><td>{{.MarriageEC}}</td></tr>
+    <tr><td>Tienen hijos</td><td>{{.HaveChildren}}</td></tr>
+    <tr><td>Bienes durante matrimonio</td><td>{{.HaveAssets}}</td></tr>
+    <tr><td>Identificación vigente</td><td>{{.IDsValid}}</td></tr>
+  </table>
+  <p>El presente documento constituye borrador de minuta para trámite notarial simplificado, sujeto a revisión del abogado patrocinador y requisitos de la notaría competente.</p>
+  <footer>Documento generado automáticamente (demo mock) — no tiene validez legal hasta firma y protocolización.</footer>
+</body>
+</html>

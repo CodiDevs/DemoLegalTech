@@ -1,0 +1,12 @@
+---
+description: Document every demo goal when a vertical slice ships
+alwaysApply: true
+---
+
+# Demo goals log
+
+Whenever a vertical slice of the Divorcio360 demo ships (auth, questionnaire, payments, panels, Fase 2 mock, etc.):
+
+1. Append an entry to `docs/DEMO_GOALS.md` with: goal name, date, how to demo it.
+2. Keep entries short and actionable for a client walkthrough.
+3. Do not consider the slice done until `docs/DEMO_GOALS.md` is updated.

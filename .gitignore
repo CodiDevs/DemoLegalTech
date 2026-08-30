@@ -1,0 +1,7 @@
+data/
+uploads/
+*.db
+*.exe
+.DS_Store
+backend/data/
+backend/uploads/

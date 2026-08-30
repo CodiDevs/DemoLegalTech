@@ -1,0 +1,14 @@
+---
+description: Never stack failed patches; revert and try a different approach
+alwaysApply: true
+---
+
+# No patch stacking
+
+When a fix fails:
+
+1. Revert or delete that patch completely.
+2. Re-read the relevant code and identify the root cause.
+3. Try a different approach — do not layer another patch on top of a broken one.
+
+One attempt → fail → clean undo → rethink → next attempt.
