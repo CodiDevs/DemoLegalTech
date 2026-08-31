@@ -24,7 +24,8 @@ export interface ProgressStep {
     .steps { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 1rem; }
     .step {
       display: flex; align-items: center; gap: 0.35rem;
-      padding: 0.35rem 0.65rem; border-radius: 999px;
+      padding: 0.5rem 0.75rem; border-radius: 999px;
+      min-height: 44px; flex: 1 1 auto; min-width: 0;
       border: 1px solid var(--line); font-size: 0.78rem; font-weight: 600;
       color: var(--ink-soft); background: white;
     }
@@ -33,11 +34,14 @@ export interface ProgressStep {
     .dot {
       width: 1.25rem; height: 1.25rem; border-radius: 50%;
       display: grid; place-items: center; font-size: 0.7rem;
-      background: var(--line);
+      background: var(--line); flex-shrink: 0;
     }
     .step.done .dot { background: var(--ok); color: white; }
     .step.active .dot { background: var(--brand); color: white; }
-    .label { white-space: nowrap; }
+    .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 520px) {
+      .step { flex: 1 1 calc(50% - 0.35rem); }
+    }
   `]
 })
 export class ProgressStepsComponent {

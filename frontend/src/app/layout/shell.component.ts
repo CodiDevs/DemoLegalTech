@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
+import { Title } from '@angular/platform-browser';
+import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
@@ -13,6 +15,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
+    <a class="skip-link" href="#main">Saltar al contenido</a>
     @if (isLegalStationMarketing) {
       <header class="mk-header">
         <div class="mk-bar">
@@ -39,7 +42,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
               <button type="button" class="mk-signin" (click)="auth.logout()">Salir</button>
             } @else {
               <a [routerLink]="['/auth']" [queryParams]="{ returnUrl: '/' }" class="mk-signin">Ingresar</a>
-              <a href="/#catalogo" (click)="goToSection($event, '/', 'catalogo')" class="mk-cta">Comenzar</a>
+              <a routerLink="/cuestionario" class="mk-cta">Comenzar</a>
             }
           </div>
         </div>
@@ -76,7 +79,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
         </div>
       </header>
     } @else if (isTrasladoMarketing || isBienraizMarketing) {
-      <header class="mk-header ps-header" [style.--ps-accent]="productSite?.accent" [style.--ps-accent-deep]="productSite?.accentDeep">
+      <header class="mk-header ps-header">
         <div class="mk-bar">
           <a [routerLink]="productHome" class="mk-brand ps-brand">
             <span class="mk-logo ps-logo" aria-hidden="true">360</span>
@@ -233,20 +236,32 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
         </div>
       </header>
     }
-    <main>
+    <main id="main">
       <router-outlet />
     </main>
-    <footer class="foot" [class.marketing-foot]="isLegalStationMarketing || isDivorcioMarketing || isTrasladoMarketing || isBienraizMarketing" [class.d360-foot]="isDivorcioFlow || isDivorcioMarketing" [class.ps-foot]="isTrasladoMarketing || isBienraizMarketing">
+    <footer
+      class="foot"
+      [class.marketing-foot]="isLegalStationMarketing || isDivorcioMarketing || isTrasladoMarketing || isBienraizMarketing"
+      [class.d360-foot]="isDivorcioFlow || isDivorcioMarketing"
+      [class.ps-foot]="isTrasladoMarketing || isBienraizMarketing"
+      [class.compact-foot]="isCompactFoot"
+    >
+      @if (isCompactFoot) {
+        <div class="shell foot-bottom">
+          <span>© 2026 CodiDevs · Demo LegalStation</span>
+          <a href="mailto:demo@codidevs.ec">demo&#64;codidevs.ec</a>
+        </div>
+      } @else {
       <div class="shell foot-grid">
         <div class="foot-col brand-col">
           @if (isDivorcioFlow || isDivorcioMarketing) {
             <strong class="foot-logo">Divorcio360</strong>
             <p class="foot-by">por LegalStation</p>
-            <p>Al mismo costo, sin filas ni trámites — divorcio notarial con intake, consulta y firma demo.</p>
+            <p>Al mismo costo, sin filas ni trámites. Divorcio notarial con intake, consulta y firma demo.</p>
           } @else if (isTrasladoMarketing || isBienraizMarketing) {
             <strong class="foot-logo">{{ productDisplayName }}</strong>
             <p class="foot-by">por LegalStation</p>
-            <p>Trámite con pago único — sin membresía. Servicios jurídicos al mismo costo, sin filas ni trámites.</p>
+            <p>Trámite con pago único, sin membresía. Servicios jurídicos al mismo costo, sin filas ni trámites.</p>
           } @else {
             <strong class="foot-logo">LegalStation</strong>
             <p>Servicios jurídicos al mismo costo, sin filas ni trámites. Plataforma legal ops para Latinoamérica.</p>
@@ -289,6 +304,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
           <span class="foot-muted">Divorcio360 es el producto en vivo de esta demo.</span>
         }
       </div>
+      }
     </footer>
   `,
   styles: [`
@@ -296,10 +312,10 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       position: sticky;
       top: 0;
       z-index: 30;
-      background: rgb(253 252 250 / 0.94);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgb(58 52 47 / 0.06);
-      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      font-family: var(--font-body);
+      overflow-x: clip;
     }
 
     .d360-header {
@@ -316,6 +332,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       margin: 0 auto;
       padding: 0 clamp(1.25rem, 3vw, 2.5rem);
       min-height: 4.5rem;
+      min-width: 0;
     }
 
     .mk-brand {
@@ -326,18 +343,18 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       font-size: 1.12rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      color: #3a342f;
+      color: var(--ink);
       text-decoration: none;
     }
 
-    .d360-brand { color: #2a4542; }
+    .d360-brand { color: var(--ink); }
 
     .mk-by {
       display: block;
       font-size: 0.68rem;
       font-weight: 500;
       letter-spacing: 0.04em;
-      color: #6b9088;
+      color: var(--ink-soft);
       margin-top: 0.1rem;
     }
 
@@ -345,16 +362,16 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       width: 1.65rem;
       height: 1.65rem;
       border-radius: 999px;
-      background: #eef0fb;
-      color: #4455c4;
+      background: oklch(0.94 0.03 190);
+      color: var(--brand);
       display: grid;
       place-items: center;
       font-size: 0.85rem;
     }
 
     .d360-logo {
-      background: #e8f6f4;
-      color: #4a9e96;
+      background: oklch(0.94 0.03 190);
+      color: var(--brand);
       font-size: 0.62rem;
       font-weight: 800;
     }
@@ -371,16 +388,16 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
     .mk-nav a {
       font-size: 0.92rem;
       font-weight: 500;
-      color: #6b635c;
+      color: var(--ink-soft);
       text-decoration: none;
       white-space: nowrap;
       cursor: pointer;
     }
 
     .mk-nav a:hover,
-    .mk-nav a.on { color: #3a342f; }
+    .mk-nav a.on { color: var(--ink); }
 
-    .d360-header .mk-nav a:hover { color: #4a9e96; }
+    .d360-header .mk-nav a:hover { color: var(--brand); }
 
     .mk-actions {
       justify-self: end;
@@ -392,7 +409,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
     .mk-signin {
       font-size: 0.92rem;
       font-weight: 500;
-      color: #3a342f;
+      color: var(--ink);
       text-decoration: none;
       background: none;
       border: 0;
@@ -401,65 +418,66 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       padding: 0.35rem 0.25rem;
     }
 
-    .mk-signin:hover { color: #4455c4; }
-    .d360-header .mk-signin:hover { color: #4a9e96; }
+    .mk-signin:hover { color: var(--brand); }
+    .d360-header .mk-signin:hover { color: var(--brand-deep); }
 
     .mk-cta {
       display: inline-flex;
       align-items: center;
       padding: 0.62rem 1.25rem;
       border-radius: 999px;
-      background: #4455c4;
+      background: var(--brand);
       color: white;
       font-size: 0.92rem;
       font-weight: 600;
       text-decoration: none;
-      box-shadow: 0 8px 20px rgb(68 85 196 / 0.28);
+      box-shadow: 0 8px 20px oklch(0.42 0.09 210 / 0.28);
       transition: background 0.15s ease, transform 0.15s ease;
     }
 
     .mk-cta:hover {
-      background: #3344a8;
+      background: var(--brand-deep);
       transform: translateY(-1px);
     }
 
     .d360-header .mk-cta {
-      background: #4a9e96;
-      box-shadow: 0 8px 20px rgb(74 158 150 / 0.28);
+      background: var(--brand);
+      box-shadow: 0 8px 20px oklch(0.42 0.09 210 / 0.28);
     }
 
-    .d360-header .mk-cta:hover { background: #3a827b; }
+    .d360-header .mk-cta:hover { background: var(--brand-deep); }
 
+    /* ponytail: product-site chrome uses brand tokens — per-product accents stay data-only */
     .ps-header {
-      background: rgb(245 249 252 / 0.96);
-      border-bottom-color: rgb(74 126 184 / 0.12);
+      background: color-mix(in srgb, var(--paper) 96%, white);
+      border-bottom-color: color-mix(in srgb, var(--brand) 12%, var(--line));
     }
 
-    .ps-brand { color: var(--ps-accent-deep, #3a6599); }
+    .ps-brand { color: var(--brand-deep); }
 
     .ps-logo {
-      background: var(--ps-accent-soft, #e8f0f8);
-      color: var(--ps-accent-deep, #3a6599);
+      background: oklch(0.94 0.03 190);
+      color: var(--brand-deep);
       font-size: 0.62rem;
       font-weight: 800;
     }
 
-    .ps-header .mk-nav a:hover { color: var(--ps-accent, #4a7eb8); }
+    .ps-header .mk-nav a:hover { color: var(--brand); }
 
     .ps-cta {
-      background: var(--ps-accent, #4a7eb8) !important;
-      box-shadow: 0 8px 20px rgb(74 126 184 / 0.28) !important;
+      background: var(--brand) !important;
+      box-shadow: 0 8px 20px oklch(0.42 0.09 210 / 0.28) !important;
     }
 
     .ps-flow-top {
-      background: oklch(0.99 0.008 240 / 0.94);
-      border-bottom-color: oklch(0.88 0.04 240);
+      background: color-mix(in srgb, var(--paper) 94%, white);
+      border-bottom-color: var(--line);
     }
 
     .mk-user {
       font-size: 0.82rem;
       font-weight: 600;
-      color: #6b635c;
+      color: var(--ink-soft);
     }
 
     .top {
@@ -488,19 +506,18 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
 
     .brand span { color: var(--brand); }
 
-    .d360-brand-inline span { color: #4a9e96; }
+    .d360-brand-inline span { color: var(--brand); }
 
     .by-ls {
       font-size: 0.65rem;
       font-weight: 500;
-      color: #6b9088;
-      letter-spacing: 0.03em;
+      color: var(--ink-soft);
     }
 
     nav { display: flex; flex-wrap: wrap; gap: 0.85rem; align-items: center; }
     nav a { text-decoration: none; color: var(--ink-soft); font-size: 0.92rem; font-weight: 500; }
     nav a.on, nav a:hover { color: var(--brand-deep); }
-    .nav-back { color: #4a9e96 !important; font-weight: 600 !important; }
+    .nav-back { color: var(--brand) !important; font-weight: 600 !important; }
     .nav-cta { color: white !important; }
     .user-chip {
       font-size: 0.82rem; font-weight: 600; opacity: 0.85;
@@ -515,6 +532,11 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
     .notif-drop {
       position: absolute; top: 100%; right: 0; width: min(320px, 90vw);
       margin-top: 0.5rem; padding: 0.5rem; z-index: 30; max-height: 360px; overflow: auto;
+      animation: notif-in 0.18s ease;
+    }
+    @keyframes notif-in {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: none; }
     }
     .notif-item {
       display: grid; gap: 0.15rem; width: 100%; text-align: left;
@@ -530,7 +552,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
     .notif-mark-all { width: 100%; font-size: 0.85rem; justify-content: center; }
     .notif-empty { margin: 0; padding: 0.85rem 0.5rem; font-size: 0.88rem; text-align: center; }
     .notif-item span { font-size: 0.82rem; }
-    main { min-height: calc(100vh - 12rem); }
+    main { min-height: calc(100dvh - 12rem); }
 
     .foot {
       margin-top: 0;
@@ -542,27 +564,29 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
     }
 
     .foot.marketing-foot {
-      background: #f5f3ef;
-      border-top-color: #e5e1da;
-      color: #6b635c;
-      font-family: 'Inter', system-ui, sans-serif;
+      background: oklch(0.95 0.01 210);
+      border-top-color: var(--line);
+      color: var(--ink-soft);
+    }
+
+    .foot.compact-foot {
+      padding-top: 0;
     }
 
     .foot.d360-foot {
-      background: #f0f9f7;
+      background: oklch(0.95 0.012 190);
       border-top-color: rgb(74 158 150 / 0.15);
     }
 
     .foot-by {
       margin: -0.2rem 0 0.35rem;
       font-size: 0.78rem;
-      color: #6b9088;
-      font-weight: 600;
+      color: var(--ink-soft);
     }
 
-    .marketing-foot .foot-col h4 { color: #3a342f; }
-    .marketing-foot .foot-logo { color: #3a342f; }
-    .d360-foot .foot-logo { color: #2a4542; }
+    .marketing-foot .foot-col h4 { color: var(--ink); }
+    .marketing-foot .foot-logo { color: var(--ink); }
+    .d360-foot .foot-logo { color: var(--ink); }
     .foot-grid {
       display: grid;
       grid-template-columns: 1.4fr 1fr 1fr 1fr;
@@ -587,39 +611,44 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       border-top: 1px solid var(--line);
       font-size: 0.82rem;
     }
-    .marketing-foot .foot-bottom { border-top-color: #e5e1da; }
-    .marketing-foot .foot-col a:hover { color: #4455c4; }
-    .d360-foot .foot-col a:hover { color: #4a9e96; }
+    .marketing-foot .foot-bottom { border-top-color: var(--line); }
+    .marketing-foot .foot-col a:hover { color: var(--brand); }
+    .d360-foot .foot-col a:hover { color: var(--brand-deep); }
 
     .ps-foot {
-      background: #f5f9fc;
-      border-top-color: rgb(74 126 184 / 0.15);
+      background: var(--paper);
+      border-top-color: var(--line);
     }
 
-    .ps-foot .foot-logo { color: #3a6599; }
-    .ps-foot .foot-col a:hover { color: #4a7eb8; }
+    .ps-foot .foot-logo { color: var(--brand-deep); }
+    .ps-foot .foot-col a:hover { color: var(--brand); }
 
     @media (max-width: 860px) {
       .foot-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 720px) {
       .mk-bar {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
           "brand actions"
           "nav nav";
         padding-block: 0.75rem;
-        row-gap: 0.65rem;
+        padding-inline: 0.85rem;
+        row-gap: 0.5rem;
+        column-gap: 0.5rem;
       }
-      .mk-brand { grid-area: brand; }
-      .mk-actions { grid-area: actions; }
-      .mk-nav { grid-area: nav; justify-self: stretch; }
+      .mk-brand { grid-area: brand; font-size: 1rem; min-width: 0; }
+      .mk-actions { grid-area: actions; gap: 0.4rem; }
+      .mk-nav { grid-area: nav; justify-self: stretch; gap: 0.65rem; }
+      .mk-nav a { font-size: 0.85rem; }
+      .mk-cta { padding: 0.5rem 0.85rem; font-size: 0.85rem; }
+      .mk-user { display: none; }
       .bar { flex-direction: column; align-items: flex-start; padding-block: 0.75rem; }
       .foot-grid { grid-template-columns: 1fr; }
     }
   `]
 })
-export class ShellComponent implements OnInit {
+export class ShellComponent implements OnInit, OnDestroy {
   isLegalStationMarketing = false;
   isDivorcioMarketing = false;
   isTrasladoMarketing = false;
@@ -632,6 +661,8 @@ export class ShellComponent implements OnInit {
   notifications: any[] = [];
   unreadCount = 0;
   showNotifs = false;
+  private notifTimer?: ReturnType<typeof setInterval>;
+  private navSub?: Subscription;
 
   get userFirstName(): string {
     return this.auth.user()?.full_name?.split(' ')[0] ?? 'Usuario';
@@ -656,20 +687,30 @@ export class ShellComponent implements OnInit {
     return this.notifications.filter((n: any) => !n.read);
   }
 
+  get isCompactFoot(): boolean {
+    return this.isAuthPage || (
+      this.isDivorcioFlow &&
+      !this.isDivorcioMarketing &&
+      !this.isTrasladoMarketing &&
+      !this.isBienraizMarketing
+    );
+  }
+
   constructor(
     public auth: AuthService,
     private router: Router,
     private api: ApiService,
     private viewport: ViewportScroller,
+    private title: Title,
   ) {}
 
   ngOnInit(): void {
     this.applyMode(this.router.url);
     if (this.auth.isLoggedIn) this.loadNotifs();
-    setInterval(() => {
+    this.notifTimer = setInterval(() => {
       if (this.auth.isLoggedIn) this.loadNotifs();
     }, 20000);
-    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e: NavigationEnd) => {
+    this.navSub = this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e: NavigationEnd) => {
       this.applyMode(e.urlAfterRedirects);
       if (this.auth.isLoggedIn) this.loadNotifs();
       const path = this.cleanPath(e.urlAfterRedirects);
@@ -681,6 +722,11 @@ export class ShellComponent implements OnInit {
         setTimeout(() => this.scrollToId(fragment), 50);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.notifTimer) clearInterval(this.notifTimer);
+    this.navSub?.unsubscribe();
   }
 
   goToSection(event: Event, path: string, id: string): void {
@@ -713,7 +759,6 @@ export class ShellComponent implements OnInit {
 
     this.isAuthPage = path === '/auth';
     this.isDivorcioAuth = this.isAuthPage && (params.get('next') === 'checkout' || params.get('product') === 'divorcio360');
-    this.isLegalStationMarketing = (path === '/' || path === '') && !this.isAuthPage;
     this.isDivorcioMarketing = path.startsWith('/productos/divorcio360');
     this.isTrasladoMarketing = path === '/productos/traslado360';
     this.isBienraizMarketing = path === '/productos/bienraiz360';
@@ -733,10 +778,35 @@ export class ShellComponent implements OnInit {
       path.startsWith('/reunion-notarial')
     );
 
+    const isPanel =
+      path.startsWith('/abogado') ||
+      path.startsWith('/notario') ||
+      path.startsWith('/fase2');
+    this.isLegalStationMarketing = !this.isAuthPage && (
+      path === '/' ||
+      path === '' ||
+      (!this.isDivorcioMarketing && !this.isTrasladoMarketing && !this.isBienraizMarketing && !this.isDivorcioFlow && !isPanel)
+    );
+
     document.body.classList.toggle('saas-mode', this.isLegalStationMarketing || (this.isAuthPage && !this.isDivorcioAuth));
     document.body.classList.toggle('product-landing-mode', this.isDivorcioMarketing || this.isDivorcioAuth || this.isTrasladoMarketing || this.isBienraizMarketing);
     document.body.classList.toggle('divorcio-flow-mode', this.isDivorcioFlow || this.isDivorcioMarketing || this.isDivorcioAuth || this.isTrasladoMarketing || this.isBienraizMarketing);
     document.body.classList.toggle('product-mode', !this.isLegalStationMarketing && !this.isDivorcioMarketing && !this.isDivorcioFlow && !this.isAuthPage && !this.isTrasladoMarketing && !this.isBienraizMarketing);
+    this.title.setTitle(this.titleFor(path));
+  }
+
+  private titleFor(path: string): string {
+    if (path === '/' || path === '') return 'LegalStation';
+    if (path.startsWith('/productos/divorcio360')) return 'Divorcio360';
+    if (path.startsWith('/productos/traslado360')) return 'Traslado360';
+    if (path.startsWith('/productos/bienraiz360')) return 'BienRaiz360';
+    if (path.startsWith('/cuestionario')) return 'Cuestionario · Divorcio360';
+    if (path === '/auth') return 'Ingresar · LegalStation';
+    if (path.startsWith('/cliente')) return 'Mi expediente · LegalStation';
+    if (path.startsWith('/abogado')) return 'Panel operador · LegalStation';
+    if (path.startsWith('/notario')) return 'Panel notario · LegalStation';
+    if (path.startsWith('/fase2')) return 'Fase 2 · LegalStation';
+    return 'LegalStation';
   }
 
   loadNotifs(): void {

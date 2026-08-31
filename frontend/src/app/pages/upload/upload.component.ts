@@ -47,7 +47,7 @@ interface DocRow {
             }
           </ul>
           <div class="up-progress">
-            <div class="up-progress-bar" [style.width.%]="progressPct"></div>
+            <div class="up-progress-bar" [style.--p]="progressPct / 100"></div>
           </div>
           <p class="pf-muted">{{ uploadedCount }}/{{ slots.length }} cargados</p>
           <p class="pf-muted" style="margin-top:1rem;font-size:0.82rem">

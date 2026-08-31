@@ -1,26 +1,17 @@
 :root {
-  --saas-ink: oklch(0.18 0.02 260);
-  --saas-ink-soft: oklch(0.45 0.02 260);
-  --saas-accent: oklch(0.55 0.18 264);
-  --saas-accent-deep: oklch(0.42 0.16 264);
-  --saas-surface: #ffffff;
-  --saas-muted: oklch(0.55 0.02 260);
-  --saas-hero-bg: oklch(0.16 0.025 260);
-  --saas-card: oklch(0.22 0.03 260);
+  --saas-ink: var(--ink);
+  --saas-ink-soft: var(--ink-soft);
+  --saas-accent: var(--brand);
+  --saas-accent-deep: var(--brand-deep);
+  --saas-surface: var(--surface);
+  --saas-muted: var(--ink-soft);
+  --saas-hero-bg: var(--ink);
+  --saas-card: var(--brand-deep);
 }
 
-body.saas-mode {
-  background: #fdfcfa;
-  color: #3a342f;
-}
-
-body.product-landing-mode {
-  background: #f7fcfb;
-  color: #2a4542;
-}
-
+body.saas-mode,
+body.product-landing-mode,
 body.divorcio-flow-mode {
-  background:
-    radial-gradient(900px 500px at 10% -5%, oklch(0.92 0.04 190 / 0.45), transparent 55%),
-    linear-gradient(180deg, #f7fcfb, #ffffff);
+  background: var(--paper);
+  color: var(--ink);
 }

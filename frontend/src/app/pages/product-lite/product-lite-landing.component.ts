@@ -8,8 +8,13 @@ import { AuthService } from '../../core/auth.service';
   imports: [RouterLink],
   styleUrls: ['../../../styles/landing-shared.scss'],
   styles: [`
-    .traslado-landing { --lp-accent: #4a7eb8; --lp-accent-deep: #3a6599; --lp-accent-soft: #e8f0f8; }
-    .bienraiz-landing { --lp-accent: #8b6b4a; --lp-accent-deep: #705539; --lp-accent-soft: #f5efe8; }
+    /* ponytail: lite landings unused in routes; if revived, inherit token teal */
+    .traslado-landing,
+    .bienraiz-landing {
+      --lp-accent: var(--brand);
+      --lp-accent-deep: var(--brand-deep);
+      --lp-accent-soft: oklch(0.94 0.03 190);
+    }
   `],
   template: `
     <div class="landing-page" [class]="themeClass">

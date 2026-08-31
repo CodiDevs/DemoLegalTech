@@ -49,7 +49,7 @@ export interface LogoCloudClient {
   `,
   styles: [`
     .clc {
-      --clc-accent: #4455c4;
+      --clc-accent: var(--brand);
       width: 100%;
       min-height: 360px;
       display: flex;
@@ -57,7 +57,7 @@ export interface LogoCloudClient {
       padding: 1.5rem 0;
     }
 
-    .clc.theme-divorcio { --clc-accent: #4a9e96; }
+    .clc.theme-divorcio { --clc-accent: var(--brand); }
 
     .clc-grid {
       display: grid;
@@ -107,7 +107,7 @@ export interface LogoCloudClient {
     }
 
     .tone-bold span { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; }
-    .tone-serif span { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.92rem; }
+    .tone-serif span { font-family: var(--font-body); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.92rem; }
     .tone-wide span { font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.82rem; }
     .tone-accent span { color: var(--clc-accent); font-weight: 800; }
     .tone-lowercase span { font-weight: 500; text-transform: lowercase; font-size: 1.05rem; }

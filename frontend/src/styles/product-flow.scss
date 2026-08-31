@@ -1,33 +1,18 @@
 @use './landing-shared';
 
 .landing-page.product-flow {
-  min-height: calc(100vh - 4rem);
+  min-height: calc(100dvh - 4rem);
   padding-bottom: 3rem;
 
-  &.theme-divorcio {
-    --lp-accent: #4a9e96;
-    --lp-accent-deep: #3a827b;
-    --lp-accent-soft: #e8f6f4;
-    --lp-bg: #f7fcfb;
-    --lp-bg-soft: #eef8f6;
-  }
-
-  &.theme-legalstation {
-    --lp-accent: #4455c4;
-    --lp-accent-deep: #3344a8;
-    --lp-accent-soft: #eef0fb;
-  }
-
-  &.theme-traslado {
-    --lp-accent: #4a7eb8;
-    --lp-accent-deep: #3a6599;
-    --lp-accent-soft: #e8f0f8;
-  }
-
+  &.theme-legalstation,
+  &.theme-divorcio,
+  &.theme-traslado,
   &.theme-bienraiz {
-    --lp-accent: #8b6b4a;
-    --lp-accent-deep: #705539;
-    --lp-accent-soft: #f5efe8;
+    --lp-accent: var(--brand);
+    --lp-accent-deep: var(--brand-deep);
+    --lp-accent-soft: oklch(0.94 0.03 190);
+    --lp-bg: var(--paper);
+    --lp-bg-soft: oklch(0.94 0.012 210);
   }
 }
 
@@ -218,9 +203,12 @@
 
 .up-progress-bar {
   height: 100%;
+  width: 100%;
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
   background: linear-gradient(90deg, var(--lp-accent), var(--lp-accent-deep));
   border-radius: inherit;
-  transition: width 0.35s ease;
+  transition: transform 0.35s ease;
 }
 
 .up-slots {

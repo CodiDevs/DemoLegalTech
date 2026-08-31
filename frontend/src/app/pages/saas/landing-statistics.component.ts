@@ -32,16 +32,16 @@ export interface StatItem {
   `,
   styles: [`
     .ls-stats {
-      --ls-accent: var(--lp-accent, #4455c4);
-      --ls-accent-soft: var(--lp-accent-soft, #eef0fb);
+      --ls-accent: var(--lp-accent, var(--brand));
+      --ls-accent-soft: var(--lp-accent-soft, oklch(0.94 0.03 190));
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
     }
 
     .ls-stats.theme-divorcio {
-      --ls-accent: var(--lp-accent, #4a9e96);
-      --ls-accent-soft: var(--lp-accent-soft, #e8f6f4);
+      --ls-accent: var(--lp-accent, var(--brand));
+      --ls-accent-soft: var(--lp-accent-soft, oklch(0.94 0.03 190));
     }
 
     .ls-stat {
@@ -76,15 +76,15 @@ export interface StatItem {
       font-size: clamp(1.75rem, 3vw, 2.25rem);
       font-weight: 800;
       letter-spacing: -0.03em;
-      color: #2a3148;
+      color: var(--ink);
       line-height: 1;
     }
 
     .ls-trend {
       font-size: 0.78rem;
       font-weight: 700;
-      color: #3d9a6a;
-      background: #e8f5ee;
+      color: var(--ok);
+      background: oklch(0.94 0.04 150);
       padding: 0.2rem 0.45rem;
       border-radius: 999px;
     }
@@ -93,14 +93,14 @@ export interface StatItem {
       margin: 0;
       font-size: 0.95rem;
       font-weight: 700;
-      color: #2a3148;
+      color: var(--ink);
     }
 
     .ls-stat p {
       margin: 0;
       font-size: 0.88rem;
       line-height: 1.55;
-      color: #6b7280;
+      color: var(--ink-soft);
     }
 
     @media (max-width: 960px) {

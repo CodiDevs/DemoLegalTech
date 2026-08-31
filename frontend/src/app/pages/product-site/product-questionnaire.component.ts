@@ -34,7 +34,7 @@ import { getProductSite, ProductSiteConfig, QuestionField, setActiveProduct } fr
               <li>Reunión notarial virtual</li>
             </ul>
             <div class="pq-progress">
-              <div class="pq-progress-bar" [style.width.%]="progressPct"></div>
+              <div class="pq-progress-bar" [style.--p]="progressPct / 100"></div>
             </div>
             <p class="pf-muted">Paso {{ step }} de {{ totalSteps }}</p>
           </aside>
@@ -133,8 +133,11 @@ import { getProductSite, ProductSiteConfig, QuestionField, setActiveProduct } fr
 
     .pq-progress-bar {
       height: 100%;
+      width: 100%;
+      transform: scaleX(var(--p, 0));
+      transform-origin: left center;
       background: var(--lp-accent);
-      transition: width 0.2s;
+      transition: transform 0.2s ease;
     }
 
     .pq-actions {

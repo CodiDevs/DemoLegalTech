@@ -23,6 +23,7 @@ import { Fase2AiComponent } from './pages/fase2/ai-agent/ai-agent.component';
 import { Fase2SatjeComponent } from './pages/fase2/satje/satje.component';
 import { Fase2BillingComponent } from './pages/fase2/b2b-billing/b2b-billing.component';
 import { Fase2MobileComponent } from './pages/fase2/mobile-note/mobile-note.component';
+import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { authGuard, roleGuard, clienteOrGuestGuard } from './core/guards';
 
 export const routes: Routes = [
@@ -69,7 +70,7 @@ export const routes: Routes = [
           { path: 'mobile', component: Fase2MobileComponent },
         ],
       },
+      { path: '**', component: NotFoundComponent },
     ],
   },
-  { path: '**', redirectTo: '' },
 ];

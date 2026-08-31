@@ -1,7 +1,7 @@
 .fase2-layout {
   --fase2-bg: oklch(0.96 0.012 230);
   background: var(--fase2-bg);
-  min-height: calc(100vh - 8rem);
+  min-height: calc(100dvh - 8rem);
 }
 
 .fase2-grid {

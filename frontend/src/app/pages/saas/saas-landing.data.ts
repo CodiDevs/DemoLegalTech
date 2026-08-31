@@ -2,12 +2,10 @@ import { GalleryItem } from './elastic-gallery.component';
 import { StatItem } from './landing-statistics.component';
 
 export const LEGALSTATION_PLATFORM_STATS: StatItem[] = [
-  { label: 'Productos conectados', value: '6', detail: 'Verticales demo en un solo ecosistema.', trend: '+6', icon: 'folder' },
-  { label: 'Firmas demo', value: '120+', detail: 'Organizaciones usando LegalStation en walkthrough.', icon: 'users' },
-  { label: 'Estados por expediente', value: '10', detail: 'Trazabilidad intake → cierre en Divorcio360.', icon: 'file' },
-  { label: 'SLA operador', value: '3 días', detail: 'Alertas cuando un caso se detiene.', icon: 'shield' },
-  { label: 'Firma integrada', value: '1 flujo', detail: 'SignDesk conectado al expediente.', icon: 'pen' },
-  { label: 'Multi-tenant', value: 'Demo', detail: 'JWT compartido entre productos LegalStation.', icon: 'building' },
+  { label: 'Trámites en vivo', value: '3', detail: 'Divorcio360, Traslado360 y BienRaiz360.', icon: 'folder' },
+  { label: 'Estados por expediente', value: '10', detail: 'Intake hasta cierre en un timeline.', icon: 'file' },
+  { label: 'Honorario Divorcio360', value: '$349', detail: 'Pago único de demostración, sin membresía.', icon: 'scale' },
+  { label: 'Roles demo', value: '3', detail: 'Cliente, operador y notario.', icon: 'users' },
 ];
 
 export const LEGALSTATION_CLIENT_GALLERY: GalleryItem[] = [

@@ -1,7 +1,7 @@
 .lawyer-workspace {
   --workspace-bg: oklch(0.965 0.008 230);
   background: var(--workspace-bg);
-  min-height: calc(100vh - 8rem);
+  min-height: calc(100dvh - 8rem);
 }
 
 .lawyer-grid {

@@ -15,11 +15,6 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         class="landing-page ps-landing"
         [class.traslado360-landing]="site.slug === 'traslado360'"
         [class.bienraiz360-landing]="site.slug === 'bienraiz360'"
-        [style.--lp-accent]="site.accent"
-        [style.--lp-accent-deep]="site.accentDeep"
-        [style.--lp-accent-soft]="site.accentSoft"
-        [style.--lp-bg]="site.bg"
-        [style.--lp-bg-soft]="site.bgSoft"
       >
         <p class="lp-shell lp-crumb">
           <a routerLink="/">LegalStation</a> › {{ site.name }}
@@ -32,19 +27,18 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="ps-hero lp-section soft">
           <div class="lp-shell ps-hero-grid">
             <div class="ps-hero-copy">
-              <p class="lp-eyebrow">{{ site.name }} · pago único</p>
               <h1>{{ site.heroTitle }} <span class="lp-highlight">{{ site.heroHighlight }}</span></h1>
               <p class="ps-lede">{{ site.heroLede }}</p>
               <span class="ps-badge">Pago único · sin suscripción</span>
               <div class="ps-cta-row">
-                <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-btn lp-btn-primary">Iniciar trámite →</a>
+                <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-btn lp-btn-primary">Comenzar</a>
                 <a href="#flujo" class="lp-btn lp-btn-outline">Ver flujo</a>
               </div>
             </div>
             <div class="ps-mock-ui lp-lift">
               <div class="ps-mock-bar">
                 <span></span><span></span><span></span>
-                <strong>{{ site.name }} — expediente demo</strong>
+                <strong>{{ site.name }} · expediente demo</strong>
               </div>
               <div class="ps-mock-body">
                 @for (s of site.workflow.slice(0, 4); track s.n) {
@@ -65,9 +59,8 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="lp-section" id="flujo">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">Flujo completo</p>
               <h2>Seis pasos conectados. <span class="lp-highlight">Un expediente.</span></h2>
-              <p>Mismo recorrido que Divorcio360 — diseño y experiencia elevados para {{ site.name }}.</p>
+              <p>Mismo recorrido que Divorcio360, con el mismo expediente demo para {{ site.name }}.</p>
             </div>
             <div class="ps-timeline">
               @for (s of site.workflow; track s.n) {
@@ -83,8 +76,7 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
             </div>
             @if (previewStep) {
               <div class="ps-preview lp-lift">
-                <p class="lp-eyebrow">Vista previa · paso {{ previewStep.n }}</p>
-                <h3>{{ previewStep.title }} — {{ previewStep.screen }}</h3>
+                <h3>{{ previewStep.title }} · {{ previewStep.screen }}</h3>
                 <p>{{ previewStep.desc }}</p>
               </div>
             }
@@ -94,8 +86,7 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="lp-section soft">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">En números</p>
-              <h2>Confianza <span class="lp-highlight">medible.</span></h2>
+              <h2>Números del <span class="lp-highlight">trámite demo.</span></h2>
             </div>
             <app-landing-statistics theme="divorcio" [stats]="site.stats" />
           </div>
@@ -104,8 +95,8 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="lp-section">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">Producto en acción</p>
-              <h2>Pantallas reales <span class="lp-highlight">del flujo.</span></h2>
+              <h2>Contexto visual <span class="lp-highlight">del trámite.</span></h2>
+              <p>Fotos de referencia. No son capturas del producto.</p>
             </div>
             <app-elastic-gallery theme="divorcio" [items]="site.gallery" />
           </div>
@@ -129,7 +120,7 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
             <div class="lp-section-head">
               <p class="lp-eyebrow">Pago por trámite</p>
               <h2>Honorarios claros <span class="lp-highlight">sin membresía.</span></h2>
-              <p>Un solo cobro al cliente — la licencia LegalStation es solo para bufetes.</p>
+              <p>Un solo cobro al cliente. La licencia LegalStation es solo para bufetes.</p>
             </div>
             <div class="lp-pricing">
               @for (plan of site.plans; track plan.name) {
@@ -142,7 +133,7 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
                     @for (item of plan.items; track item) { <li>{{ item }}</li> }
                   </ul>
                   @if (plan.featured) {
-                    <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-btn lp-btn-primary">Comenzar trámite</a>
+                    <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-btn lp-btn-primary">Comenzar</a>
                   } @else {
                     <button type="button" class="lp-btn lp-btn-outline" disabled>Evaluación previa</button>
                   }
@@ -155,11 +146,10 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="lp-cta-panel">
           <div class="lp-shell">
             <div class="lp-cta-inner">
-              <p class="lp-cta-eyebrow">{{ site.name }} listo</p>
               <h2>{{ site.slug === 'bienraiz360' ? '¿Listo para tu traslado de inmueble?' : '¿Listo para tu traslado?' }}</h2>
               <p>Cuestionario en minutos → registro → pago único → documentos → consulta → firma → notaría.</p>
               <div class="lp-cta-buttons">
-                <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-cta-primary">Iniciar cuestionario</a>
+                <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-cta-primary">Comenzar</a>
                 <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
               </div>
             </div>

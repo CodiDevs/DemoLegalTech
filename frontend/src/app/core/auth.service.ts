@@ -69,7 +69,7 @@ export class AuthService {
       return throwError(() => ({
         status: 0,
         error: {
-          error: 'El servidor tardó demasiado. Reinicia la API (puerto 8080) e intenta de nuevo.',
+          error: 'El servidor tardó demasiado. Inténtalo de nuevo en un momento.',
         },
       }));
     }

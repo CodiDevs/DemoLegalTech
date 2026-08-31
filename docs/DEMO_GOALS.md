@@ -19,6 +19,9 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Firma virtual + flujo operador | notify sin cambio estado; confirm solo con firma en 05; can_sign autónomo cliente | 2026-08-30 |
 | done | Flujo documental multi-producto | Traslado360 carro: upload matrícula+acuerdo → abogado aprueba → minuta → firma; blockers por etapa | 2026-08-30 |
 | done | Upload documentos UX | Checklist + dropzone por producto; reemplazar sin borrar; abogado ve solo última versión | 2026-08-30 |
+| done | Identidad teal unificada | `/` + `/productos/divorcio360` + `/auth` + `/cuestionario`: Sora/teal, 404, skip-link | 2026-08-31 |
+| done | P1 distill/quieter/harden | `/` Comenzar → cuestionario; hero Divorcio H1+CTA; wizard Atrás + Sí/No iguales | 2026-08-31 |
+| done | Distill catalog + quieter Traslado + harden/adapt | `/` 3 trámites; Traslado sin “Pantallas reales”; auth aria; header 390 | 2026-08-31 |
 
 ## Entries
 
@@ -155,3 +158,24 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 **Demo notificaciones:** campana → «Marcar todas como leídas».
 
 **Verificación:** `backend/scripts/verify-flow.ps1`.
+
+### 2026-08-31 — Identidad legal-ops teal
+Marketing y producto usan Sora + tokens teal (se fue Inter/Fraunces/indigo). Skip-link, labels en `/auth`, 404 real, título por ruta, footer corto en wizard/auth. Hero Divorcio360 ya no es isla negra.
+
+**Demo:** `/` CTA teal → `/productos/divorcio360` hero claro → `/cuestionario` footer corto → `/ruta-falsa` 404.
+
+### 2026-08-31 — Tres P1 (distill / quieter / harden)
+Un **Comenzar** en `/` va a `/cuestionario`. Catálogo distingue 3 live vs 4 demo. Hero Divorcio360 es H1 + CTA above the fold (sin pin GSAP). Cuestionario tiene Atrás y Sí/No con el mismo peso. Auth envía con Enter.
+
+**Demo:** `/` Comenzar → pregunta 1 → Atrás → Sí/No iguales. `/productos/divorcio360` CTA visible sin scrollear teatro. `/auth` Enter en correo+clave.
+
+### 2026-08-31 — Polish
+Stats de `/` son 3 trámites / 10 estados / $349 / 3 roles (sin 120+). Hex de isla CTA y footer producto → tokens. Traslado CTA = Comenzar. Hints en sociedad conyugal y acta. startCase con error.
+
+**Demo:** `/` scroll stats; `/productos/traslado360` Comenzar; cuestionario hasta sociedad conyugal (hint).
+
+### 2026-08-31 — Distill + quieter + harden + adapt
+`/` muestra 3 trámites (pills + cards), no 7 módulos. Traslado/BienRaiz: eyebrows fuera salvo precios; gallery dice “fotos de referencia”. Divorcio: 3 stats honestas, sin logo cloud. Auth: `required` + `aria-invalid` / `aria-live`. Header y pills wizard caben a 390.
+
+**Demo:** `/#catalogo` cuenta 3 cards. `/productos/traslado360` no dice “Pantallas reales”. `/productos/divorcio360` stats 10 / 5 min / $349. `/auth` submit vacío. Mobile 390: header sin scroll horizontal.
+

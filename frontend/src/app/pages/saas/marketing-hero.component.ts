@@ -1,18 +1,17 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
-import { LandingIconComponent, LandingIconName } from './landing-icon.component';
 
 export interface HeroStat {
   value: string;
   label: string;
-  icon: LandingIconName;
+  icon: string;
 }
 
 @Component({
   selector: 'app-marketing-hero',
   standalone: true,
-  imports: [RouterLink, LandingIconComponent],
+  imports: [RouterLink],
   template: `
     <section class="mk-hero" [class.theme-divorcio]="theme === 'divorcio'">
       <div class="mk-hero-shell">
@@ -58,17 +57,6 @@ export interface HeroStat {
               }
             }
           </div>
-          <div class="mk-stats">
-            @for (s of stats; track s.label) {
-              <div class="mk-stat">
-                <span class="mk-stat-icon"><app-landing-icon [name]="s.icon" [size]="18" /></span>
-                <div>
-                  <strong>{{ s.value }}</strong>
-                  <span>{{ s.label }}</span>
-                </div>
-              </div>
-            }
-          </div>
         </div>
         <div class="mk-collage" aria-hidden="true">
           <img class="img-a" [src]="images[0]" alt="" loading="eager" />
@@ -81,25 +69,26 @@ export interface HeroStat {
   styles: [`
     :host {
       display: block;
-      --mk-accent: #4455c4;
-      --mk-accent-deep: #3344a8;
-      --mk-accent-soft: #eef0fb;
+      --mk-accent: var(--brand);
+      --mk-accent-deep: var(--brand-deep);
+      --mk-accent-soft: oklch(0.94 0.03 190);
     }
 
     :host(.theme-divorcio), .theme-divorcio {
-      --mk-accent: #4a9e96;
-      --mk-accent-deep: #3a827b;
-      --mk-accent-soft: #e8f6f4;
+      --mk-accent: var(--brand);
+      --mk-accent-deep: var(--brand-deep);
+      --mk-accent-soft: oklch(0.94 0.03 190);
     }
 
     .mk-hero {
-      background: #fdfcfa;
+      overflow-x: clip;
+      background: var(--paper);
       padding: clamp(2rem, 5vw, 4rem) 0 clamp(2.5rem, 4vw, 3.5rem);
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: var(--font-body);
     }
 
     .theme-divorcio.mk-hero {
-      background: linear-gradient(180deg, #f7fcfb 0%, #ffffff 100%);
+      background: linear-gradient(180deg, var(--paper) 0%, white 100%);
     }
 
     .mk-hero-shell {
@@ -117,7 +106,7 @@ export interface HeroStat {
       font-weight: 700;
       line-height: 1.05;
       letter-spacing: -0.04em;
-      color: #2a3148;
+      color: var(--ink);
       margin: 0 0 1rem;
     }
 
@@ -126,14 +115,14 @@ export interface HeroStat {
     .mk-sub {
       font-size: clamp(1.05rem, 2vw, 1.25rem);
       font-weight: 700;
-      color: #2a3148;
+      color: var(--ink);
       margin: 0 0 0.85rem;
     }
 
     .mk-lede {
       font-size: 1.05rem;
       line-height: 1.65;
-      color: #5c6478;
+      color: var(--ink-soft);
       max-width: 52ch;
       margin: 0 0 1.75rem;
     }
@@ -168,8 +157,8 @@ export interface HeroStat {
 
     .mk-btn-outline {
       background: transparent;
-      color: #2a3148;
-      border: 1.5px solid #d8d2ca;
+      color: var(--ink);
+      border: 1.5px solid var(--line);
     }
 
     .mk-btn-outline:hover { border-color: var(--mk-accent); color: var(--mk-accent); }
@@ -199,17 +188,18 @@ export interface HeroStat {
     .mk-stat strong {
       display: block;
       font-size: 1rem;
-      color: #2a3148;
+      color: var(--ink);
     }
 
     .mk-stat span {
       font-size: 0.82rem;
-      color: #8a827a;
+      color: var(--ink-soft);
     }
 
     .mk-collage {
       position: relative;
       min-height: 420px;
+      overflow: hidden;
     }
 
     .mk-collage img {
@@ -245,7 +235,12 @@ export interface HeroStat {
 
     @media (max-width: 960px) {
       .mk-hero-shell { grid-template-columns: 1fr; }
-      .mk-collage { min-height: 300px; max-width: 420px; margin: 0 auto; }
+      .mk-collage { min-height: 280px; max-width: min(420px, 100%); margin: 0 auto; }
+    }
+
+    @media (max-width: 480px) {
+      .mk-hero-copy h1 { font-size: clamp(1.85rem, 9vw, 2.5rem); }
+      .mk-collage { min-height: 200px; }
     }
   `],
 })

@@ -22,39 +22,71 @@ import { ApiService } from '../../core/api.service';
             @if (isDivorcioContext) {
               Accede para continuar tu trámite. La sesión aplica en toda la plataforma.
             } @else {
-              Una cuenta LegalStation para todos los productos — Divorcio360 incluido.
+              Una cuenta LegalStation para todos los productos, Divorcio360 incluido.
             }
           </p>
-          <p class="demo-hint muted">Demo: cliente&#64;demo.ec / abogado&#64;demo.ec — contraseña demo1234</p>
+          <p class="demo-hint muted">Demo: cliente&#64;demo.ec / abogado&#64;demo.ec, contraseña demo1234</p>
 
+          <form (ngSubmit)="submit()">
           @if (mode === 'register') {
             <div class="field">
-              <label>Nombre completo</label>
-              <input [(ngModel)]="fullName" autocomplete="name" />
+              <label for="auth-name">Nombre completo</label>
+              <input
+                id="auth-name"
+                name="fullName"
+                [(ngModel)]="fullName"
+                autocomplete="name"
+                required
+                maxlength="120"
+                [attr.aria-invalid]="error ? 'true' : null"
+                [attr.aria-describedby]="error ? 'auth-error' : null"
+              />
             </div>
             <div class="field">
-              <label>Teléfono</label>
-              <input [(ngModel)]="phone" autocomplete="tel" />
+              <label for="auth-phone">Teléfono</label>
+              <input id="auth-phone" name="phone" [(ngModel)]="phone" autocomplete="tel" maxlength="40" />
             </div>
           }
           <div class="field">
-            <label>Correo</label>
-            <input type="email" [(ngModel)]="email" autocomplete="email" />
+            <label for="auth-email">Correo</label>
+            <input
+              id="auth-email"
+              name="email"
+              type="email"
+              [(ngModel)]="email"
+              autocomplete="email"
+              required
+              [attr.aria-invalid]="error ? 'true' : null"
+              [attr.aria-describedby]="error ? 'auth-error' : null"
+            />
           </div>
           <div class="field">
-            <label>Contraseña</label>
-            <input type="password" [(ngModel)]="password" autocomplete="current-password" />
+            <label for="auth-password">Contraseña</label>
+            <input
+              id="auth-password"
+              name="password"
+              type="password"
+              [(ngModel)]="password"
+              [attr.autocomplete]="mode === 'login' ? 'current-password' : 'new-password'"
+              required
+              minlength="6"
+              [attr.aria-invalid]="error ? 'true' : null"
+              [attr.aria-describedby]="error ? 'auth-error' : null"
+            />
           </div>
-          @if (error) { <p class="err">{{ error }}</p> }
+          @if (error) {
+            <p id="auth-error" class="err" role="alert" aria-live="polite">{{ error }}</p>
+          }
           @if (mode === 'register') {
-            <label class="lopdp">
-              <input type="checkbox" [(ngModel)]="lopdpAccepted" />
+            <label class="lopdp" for="auth-lopdp">
+              <input id="auth-lopdp" type="checkbox" name="lopdp" [(ngModel)]="lopdpAccepted" required />
               Acepto el tratamiento de datos personales según la política LOPDP demo de LegalStation (Ecuador).
             </label>
           }
-          <button class="btn btn-primary" type="button" [disabled]="submitting" (click)="submit()">
+          <button class="btn btn-primary" type="submit" [disabled]="submitting">
             {{ submitting ? 'Procesando…' : (mode === 'login' ? 'Entrar' : 'Registrarme') }}
           </button>
+          </form>
           <p class="switch muted">
             @if (mode === 'login') {
               ¿Nuevo? <button type="button" class="link" (click)="mode='register'">Crear cuenta</button>
@@ -73,27 +105,28 @@ import { ApiService } from '../../core/api.service';
   `,
   styles: [`
     .auth-page {
-      min-height: calc(100vh - 10rem);
-      background: linear-gradient(180deg, #fdfcfa, #f5f3ef);
+      min-height: calc(100dvh - 10rem);
+      background: var(--paper);
       padding-block: 1rem 2rem;
     }
 
     .auth-page.divorcio-auth {
-      background: linear-gradient(180deg, #f7fcfb, #ffffff);
+      background: color-mix(in srgb, var(--paper) 70%, white);
     }
 
     .wrap { max-width: 480px; padding-block: 2rem; }
+    form { display: flex; flex-direction: column; }
     .ls-link {
       display: inline-block;
       font-weight: 700;
       font-size: 0.95rem;
-      color: #4455c4;
+      color: var(--brand);
       text-decoration: none;
       margin-bottom: 0.35rem;
     }
     .by-line { font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; }
     .demo-hint { font-size: 0.82rem; margin-bottom: 1rem; }
-    .err { color: var(--bad); }
+    .err { color: var(--bad); margin: 0 0 0.75rem; }
     .switch { margin-top: 1rem; }
     .back { margin-top: 0.75rem; font-size: 0.88rem; }
     .back a { color: inherit; }
@@ -181,8 +214,8 @@ export class AuthComponent {
       error: (e) => {
         this.submitting = false;
         if (e.status === 0) {
-          this.error = e?.error?.error
-            || 'No se pudo conectar con el servidor. ¿Está corriendo la API en el puerto 8080?';
+          const msg = typeof e?.error?.error === 'string' ? e.error.error : '';
+          this.error = msg || 'No se pudo conectar. Comprueba tu conexión e inténtalo de nuevo.';
           return;
         }
         const body = e?.error;

@@ -28,7 +28,6 @@ export interface GalleryItem {
             <div class="eg-active-copy">
               <span class="eg-tag">{{ item.category }}</span>
               <h3>{{ item.title }}</h3>
-              <span class="eg-cta">Ver más →</span>
             </div>
             <span class="eg-idle-label">{{ item.title }}</span>
           </button>
@@ -38,7 +37,7 @@ export interface GalleryItem {
   `,
   styles: [`
     .eg {
-      --eg-accent: var(--lp-accent, #4455c4);
+      --eg-accent: var(--lp-accent, var(--brand));
       width: 100%;
       max-width: 100%;
       padding: 0.5rem 0 1rem;
@@ -119,8 +118,7 @@ export interface GalleryItem {
       padding: 0.25rem 0.65rem;
       border-radius: 999px;
       border: 1px solid rgb(255 255 255 / 0.35);
-      background: rgb(255 255 255 / 0.12);
-      backdrop-filter: blur(6px);
+      background: rgb(255 255 255 / 0.18);
       font-size: 0.65rem;
       font-weight: 600;
       letter-spacing: 0.08em;
