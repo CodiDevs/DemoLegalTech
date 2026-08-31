@@ -32,16 +32,16 @@ export interface StatItem {
   `,
   styles: [`
     .ls-stats {
-      --ls-accent: #4455c4;
-      --ls-accent-soft: #eef0fb;
+      --ls-accent: var(--lp-accent, #4455c4);
+      --ls-accent-soft: var(--lp-accent-soft, #eef0fb);
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
     }
 
     .ls-stats.theme-divorcio {
-      --ls-accent: #4a9e96;
-      --ls-accent-soft: #e8f6f4;
+      --ls-accent: var(--lp-accent, #4a9e96);
+      --ls-accent-soft: var(--lp-accent-soft, #e8f6f4);
     }
 
     .ls-stat {

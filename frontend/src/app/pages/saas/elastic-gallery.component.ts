@@ -38,19 +38,20 @@ export interface GalleryItem {
   `,
   styles: [`
     .eg {
-      --eg-accent: #4455c4;
+      --eg-accent: var(--lp-accent, #4455c4);
       width: 100%;
+      max-width: 100%;
       padding: 0.5rem 0 1rem;
     }
 
-    .eg.theme-divorcio { --eg-accent: #4a9e96; }
+    .eg.theme-divorcio { --eg-accent: var(--lp-accent, #4a9e96); }
 
     .eg-track {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      height: 500px;
-      max-width: 72rem;
+      height: min(500px, 70vh);
+      max-width: min(72rem, 100%);
       margin: 0 auto;
     }
 
@@ -171,7 +172,7 @@ export interface GalleryItem {
     @media (min-width: 768px) {
       .eg-track {
         flex-direction: row;
-        height: 560px;
+        height: min(560px, 62vh);
         gap: 0.65rem;
       }
 

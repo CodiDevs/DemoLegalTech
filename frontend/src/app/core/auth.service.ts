@@ -9,7 +9,7 @@ export interface User {
   email: string;
   full_name: string;
   phone: string;
-  role: 'cliente' | 'abogado';
+  role: 'cliente' | 'abogado' | 'notario';
 }
 
 interface AuthResponse {

@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   full_name TEXT NOT NULL,
   phone TEXT DEFAULT '',
-  role TEXT NOT NULL CHECK(role IN ('cliente','abogado')),
+  role TEXT NOT NULL CHECK(role IN ('cliente','abogado','notario')),
   created_at TEXT NOT NULL
 );
 
@@ -138,6 +138,7 @@ func (db *DB) migrateColumns() error {
 		`ALTER TABLE cases ADD COLUMN questionnaire_json TEXT NOT NULL DEFAULT '{}'`,
 		`ALTER TABLE cases ADD COLUMN notary_name TEXT DEFAULT ''`,
 		`ALTER TABLE cases ADD COLUMN appointment_at TEXT DEFAULT ''`,
+		`ALTER TABLE cases ADD COLUMN consultation_at TEXT DEFAULT ''`,
 		`ALTER TABLE documents ADD COLUMN review_status TEXT NOT NULL DEFAULT 'pending'`,
 		`ALTER TABLE documents ADD COLUMN review_note TEXT DEFAULT ''`,
 		`ALTER TABLE documents ADD COLUMN reviewed_by INTEGER REFERENCES users(id)`,
@@ -212,6 +213,55 @@ CREATE TABLE IF NOT EXISTS mock_master_template_edits (
 		return err
 	}
 	_, _ = db.Exec(`INSERT OR IGNORE INTO mock_tenant (id, org_name, plan_id, cases_used, cases_limit, updated_at) VALUES (1, 'LegalStation Demo Organization', 'b2b-pro', 18, 50, ?)`, Now())
+	return db.migrateNotarioRole()
+}
+
+func (db *DB) migrateNotarioRole() error {
+	var n int
+	_ = db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='users'`).Scan(&n)
+	if n == 0 {
+		return nil
+	}
+	// Recreate users table if notario role not supported (legacy CHECK).
+	_, err := db.Exec(`INSERT INTO users (email, password_hash, full_name, phone, role, created_at) VALUES ('__role_test__','x','x','','notario','2000-01-01T00:00:00Z')`)
+	if err == nil {
+		_, _ = db.Exec(`DELETE FROM users WHERE email='__role_test__'`)
+		return nil
+	}
+	_, _ = db.Exec(`PRAGMA foreign_keys=off`)
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	stmts := []string{
+		`CREATE TABLE IF NOT EXISTS users_new (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  full_name TEXT NOT NULL,
+  phone TEXT DEFAULT '',
+  role TEXT NOT NULL CHECK(role IN ('cliente','abogado','notario')),
+  created_at TEXT NOT NULL,
+  lopdp_consent_at TEXT DEFAULT '',
+  lopdp_version TEXT DEFAULT 'demo-v1'
+)`,
+		`INSERT INTO users_new (id, email, password_hash, full_name, phone, role, created_at, lopdp_consent_at, lopdp_version)
+ SELECT id, email, password_hash, full_name, phone, role, created_at,
+        COALESCE(lopdp_consent_at,''), COALESCE(lopdp_version,'demo-v1') FROM users`,
+		`DROP TABLE users`,
+		`ALTER TABLE users_new RENAME TO users`,
+	}
+	for _, q := range stmts {
+		if _, err := tx.Exec(q); err != nil {
+			_ = tx.Rollback()
+			_, _ = db.Exec(`PRAGMA foreign_keys=on`)
+			return fmt.Errorf("migrate notario role: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	_, _ = db.Exec(`PRAGMA foreign_keys=on`)
 	return nil
 }
 

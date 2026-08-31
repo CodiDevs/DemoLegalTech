@@ -11,11 +11,11 @@ import (
 
 func Run(db *store.DB, uploadDir string) error {
 	var n int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&n); err != nil {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM users WHERE email='abogado@demo.ec'`).Scan(&n); err != nil {
 		return err
 	}
 	if n > 0 {
-		return nil
+		return ensureNotario(db)
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte("demo1234"), bcrypt.DefaultCost)
 	if err != nil {
@@ -92,5 +92,24 @@ func Run(db *store.DB, uploadDir string) error {
 		caseID, "partida", "partida_matrimonio_demo.txt", "seed_case1_partida.txt", "text/plain", 48, clientID, "pending", now,
 	)
 
-	return nil
+	return ensureNotario(db)
+}
+
+func ensureNotario(db *store.DB) error {
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM users WHERE email='notario@demo.ec'`).Scan(&n); err != nil {
+		return err
+	}
+	if n > 0 {
+		return nil
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte("demo1234"), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(
+		`INSERT INTO users (email, password_hash, full_name, phone, role, created_at) VALUES (?,?,?,?,?,?)`,
+		"notario@demo.ec", string(hash), "Dr. Luis Notario", "0998887766", "notario", store.Now(),
+	)
+	return err
 }

@@ -33,8 +33,8 @@ interface Product {
         theme="legalstation"
         titleLine1="Ahorra horas con"
         titleHighlight="tecnología legal multi-trámite."
-        subtitle="Herramientas enterprise. Precio SaaS accesible."
-        lede="LegalStation conecta intake, expediente, firma y operador en una sola plataforma — seis verticales listas para demo, con Divorcio360 en vivo."
+        subtitle="Servicios jurídicos al mismo costo, sin filas ni trámites."
+        lede="LegalStation conecta intake, expediente, firma y operador en una sola plataforma. El cliente final paga por trámite — sin membresía; tu bufete opera con licencia mensual."
         primaryCta="Comenzar"
         primaryFragment="catalogo"
         [showSecondary]="false"
@@ -155,8 +155,8 @@ interface Product {
               <p>Flujos diseñados con operadores reales: revisión documental, minuta, firma y notaría.</p>
             </article>
             <article class="lp-value lp-lift">
-              <h3>Precio SaaS transparente</h3>
-              <p>Planes por organización sin sorpresas. Ideal para firmas medianas en Latinoamérica.</p>
+              <h3>Licencia para bufetes</h3>
+              <p>Suscripción mensual solo para operadores y firmas — no para el cliente final de cada trámite.</p>
             </article>
             <article class="lp-value lp-lift">
               <h3>Hecho para crecer</h3>
@@ -209,9 +209,9 @@ interface Product {
       <section class="lp-section" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Planes</p>
-            <h2>Soporte legal que <span class="lp-highlight">escala contigo.</span></h2>
-            <p>Membresías demo — precios orientativos para walkthrough con cliente.</p>
+            <p class="lp-eyebrow">Licencia para bufetes</p>
+            <h2>Opera LegalStation con <span class="lp-highlight">tu firma.</span></h2>
+            <p>Solo abogados y operadores — el cliente final paga honorarios por trámite, no esta licencia.</p>
           </div>
           <div class="lp-pricing">
             @for (plan of plans; track plan.name) {
@@ -223,7 +223,7 @@ interface Product {
                 <ul>
                   @for (item of plan.items; track item) { <li>{{ item }}</li> }
                 </ul>
-                <button type="button" class="lp-btn lp-btn-outline" (click)="notify(plan.name)">Elegir plan</button>
+                <a routerLink="/auth" [queryParams]="{ returnUrl: '/fase2/billing' }" class="lp-btn lp-btn-outline">Ver licencia demo</a>
               </article>
             }
           </div>
@@ -343,15 +343,26 @@ export class SaasLandingComponent {
       live: true, route: '/productos/divorcio360',
     },
     {
-      id: 'estate360', name: 'Estate360', icon: 'file',
-      pillDesc: 'Sucesiones e intestados',
-      iconBg: '#ede8f5',
-      showcaseDesc: 'Recepción de herederos, inventario de bienes y timeline sucesorio con checklist documental.',
-      showcaseImage: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Recepción de herederos, inventario y actas sucesorias.',
-      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80',
-      features: ['Árbol genealógico demo', 'Checklist documental', 'Timeline de sucesión'],
-      live: false,
+      id: 'traslado360', name: 'Traslado360', icon: 'file',
+      pillDesc: 'Traslado de vehículo',
+      iconBg: '#e8f4f8',
+      showcaseDesc: 'Mutuo acuerdo, pago único, documentos y reunión virtual con notario — traslado de dominio vehicular demo.',
+      showcaseImage: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1400&q=80',
+      tagline: 'Traslado vehicular con acuerdo mutuo y firma notarial.',
+      image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80',
+      features: ['Sitio producto completo', 'Pago único mock', 'Consulta + notaría virtual'],
+      live: true, route: '/productos/traslado360',
+    },
+    {
+      id: 'bienraiz360', name: 'BienRaiz360', icon: 'building',
+      pillDesc: 'Traslado de inmueble',
+      iconBg: '#f0ebe3',
+      showcaseDesc: 'Traslado de dominio de terreno o inmueble — ambas partes de acuerdo, reunión virtual con notario.',
+      showcaseImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=80',
+      tagline: 'Traslado de bienes inmuebles con comparecencia digital.',
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+      features: ['Sitio producto completo', 'Honorario único', 'Expediente trazable'],
+      live: true, route: '/productos/bienraiz360',
     },
     {
       id: 'signdesk', name: 'SignDesk', icon: 'pen',
@@ -408,9 +419,9 @@ export class SaasLandingComponent {
   ];
 
   plans = [
-    { name: 'Starter', audience: 'Para firmas pequeñas', price: 99, items: ['1 producto activo', '3 usuarios operador', '500 expedientes/año', 'Soporte email demo'], featured: false },
-    { name: 'Professional', audience: 'Para equipos en crecimiento', price: 249, items: ['3 productos', '10 usuarios', 'SLA y notificaciones', 'Fase 2 admin mock', 'SATJE sync demo'], featured: true },
-    { name: 'Enterprise', audience: 'Multi-sede y compliance', price: 599, items: ['Productos ilimitados', 'SSO demo', 'Instancia dedicada', 'SLA prioritario', 'White-label ready'], featured: false },
+    { name: 'Starter', audience: 'Bufete pequeño — licencia operador', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión demo por venta'], featured: false },
+    { name: 'Professional', audience: 'Equipo en crecimiento', price: 249, items: ['3 productos live', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync demo'], featured: true },
+    { name: 'Enterprise', audience: 'Multi-sede', price: 599, items: ['Productos ilimitados', 'SSO demo', 'Comisión negociable', 'White-label ready'], featured: false },
   ];
 
   enterprise = [

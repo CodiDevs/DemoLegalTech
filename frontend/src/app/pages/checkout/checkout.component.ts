@@ -3,44 +3,48 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
+import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
+import { productThemeFromCase } from '../../shared/product-sites.data';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [FormsModule, RouterLink, DecimalPipe],
+  imports: [FormsModule, RouterLink, DecimalPipe, ProductFlowShellComponent],
   template: `
-    <div class="shell wrap">
-      <p class="badge-demo">Payphone mock · sin cobro real</p>
-      <h1>Pago del trámite</h1>
+    <app-product-flow-shell
+      [theme]="theme"
+      [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Pago único' }]"
+      eyebrow="Payphone mock"
+      title="Pago del trámite"
+      subtitle="Un solo cobro — sin suscripción mensual."
+    >
       @if (caseItem) {
-        <div class="panel">
-          <p>Caso #{{ caseItem.id }} · {{ caseItem.status_label }}</p>
-          <p class="amount">\${{ caseItem.amount_cents / 100 | number:'1.2-2' }} USD</p>
-          <div class="field"><label>Titular</label><input [(ngModel)]="holder" /></div>
-          <div class="field"><label>Tarjeta (demo)</label><input [(ngModel)]="card" placeholder="4242 4242 4242 4242" /></div>
-          <div class="row">
-            <div class="field"><label>Vence</label><input [(ngModel)]="exp" placeholder="12/28" /></div>
-            <div class="field"><label>CVV</label><input [(ngModel)]="cvv" placeholder="123" /></div>
+        <div class="pf-card lp-lift">
+          <p class="pf-muted">Caso #{{ caseItem.id }} · {{ caseItem.product }} · {{ caseItem.status_label }}</p>
+          <p class="lp-plan-price" style="font-size:2.4rem;margin:0.75rem 0">\${{ caseItem.amount_cents / 100 | number:'1.2-2' }}<small> USD</small></p>
+          <div class="pf-field"><label>Titular</label><input [(ngModel)]="holder" /></div>
+          <div class="pf-field"><label>Tarjeta (demo)</label><input [(ngModel)]="card" placeholder="4242 4242 4242 4242" /></div>
+          <div class="pf-row">
+            <div class="pf-field"><label>Vence</label><input [(ngModel)]="exp" placeholder="12/28" /></div>
+            <div class="pf-field"><label>CVV</label><input [(ngModel)]="cvv" placeholder="123" /></div>
           </div>
-          @if (error) { <p class="err">{{ error }}</p> }
+          @if (error) { <p class="pf-err">{{ error }}</p> }
           @if (done) {
-            <p class="ok">Pago simulado OK. Referencia: {{ ref }}</p>
-            <a class="btn btn-primary" [routerLink]="['/upload', caseItem.id]">Cargar documentos</a>
+            <div class="pf-receipt">
+              <span class="pf-badge">Pago único confirmado</span>
+              <p class="pf-ok" style="margin-top:0.75rem">Referencia: {{ ref }}</p>
+              <p class="pf-muted">Siguiente paso: cargar documentos y consulta con abogado.</p>
+            </div>
+            <a class="lp-btn lp-btn-primary" [routerLink]="['/upload', caseItem.id]">Cargar documentos →</a>
           } @else {
-            <button class="btn btn-primary" type="button" (click)="pay()" [disabled]="busy">
+            <button class="lp-btn lp-btn-primary" type="button" (click)="pay()" [disabled]="busy">
               {{ busy ? 'Procesando…' : 'Pagar con Payphone (mock)' }}
             </button>
           }
         </div>
       }
-    </div>
+    </app-product-flow-shell>
   `,
-  styles: [`
-    .wrap { max-width: 520px; padding-block: 2.5rem; }
-    .amount { font-family: var(--font-display); font-size: 2.4rem; margin: 0.5rem 0 1.25rem; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .err { color: var(--bad); } .ok { color: var(--ok); font-weight: 600; }
-  `]
 })
 export class CheckoutComponent implements OnInit {
   caseItem: CaseItem | null = null;
@@ -52,19 +56,18 @@ export class CheckoutComponent implements OnInit {
   done = false;
   ref = '';
   error = '';
+  theme = productThemeFromCase();
 
   constructor(private route: ActivatedRoute, private api: ApiService, private router: Router) {}
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.api.getCase(id).subscribe({
-      next: (res) => {
-        this.caseItem = res.case;
-        if (this.caseItem?.paid) {
-          void this.router.navigate(['/upload', id]);
-        }
+      next: (d) => {
+        this.caseItem = d.case;
+        this.theme = productThemeFromCase(d.case?.product);
       },
-      error: () => this.error = 'Caso no encontrado',
+      error: () => this.router.navigate(['/cliente']),
     });
   }
 
@@ -72,16 +75,16 @@ export class CheckoutComponent implements OnInit {
     if (!this.caseItem) return;
     this.busy = true;
     this.error = '';
-    const last4 = this.card.replace(/\D/g, '').slice(-4) || '4242';
-    this.api.mockPay(this.caseItem.id, this.holder, last4).subscribe({
-      next: (res) => {
+    this.api.mockPay(this.caseItem.id, this.holder, this.card.slice(-4)).subscribe({
+      next: (r) => {
         this.busy = false;
         this.done = true;
-        this.ref = res.reference;
+        this.ref = r.reference || 'MOCK-OK';
+        this.caseItem!.paid = true;
       },
       error: (e) => {
         this.busy = false;
-        this.error = e?.error?.error || 'Pago falló';
+        this.error = e?.error?.error || 'Error en pago mock';
       },
     });
   }

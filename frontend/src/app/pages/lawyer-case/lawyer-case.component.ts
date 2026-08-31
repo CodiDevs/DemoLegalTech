@@ -34,7 +34,14 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
   standalone: true,
   imports: [FormsModule, RouterLink, DatePipe, DecimalPipe, StatusBadgeComponent],
   template: `
-    @if (ws) {
+    @if (loadError) {
+      <div class="wrap panel">
+        <p class="err">{{ loadError }}</p>
+        <p><a routerLink="/abogado">← Volver a bandeja</a></p>
+      </div>
+    } @else if (!ws) {
+      <div class="wrap panel"><p class="muted">Cargando expediente…</p></div>
+    } @else {
       <div class="wrap">
         <p class="muted"><a routerLink="/abogado">← Bandeja</a></p>
 
@@ -54,10 +61,14 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
           </div>
         </header>
 
-        @if (ws.blockers.length) {
+            @if (ws.blockers.length) {
           <div class="panel blockers">
-            <strong>Pendientes antes de avanzar</strong>
+            <strong>Pendientes en esta etapa</strong>
+            @if (ws.stage_hint) { <p class="muted flow-hint">{{ ws.stage_hint }}</p> }
             <ul>@for (b of ws.blockers; track b) { <li>{{ b }}</li> }</ul>
+            @if (ws.case.status === '03') {
+              <p class="muted flow-hint">Orden: 1) Aprobar documentos → 2) Aprobar y preparar minuta → 3) Generar minuta → 4) Cliente firma → 5) Confirmar firma.</p>
+            }
           </div>
         }
 
@@ -99,16 +110,12 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
             @if (tab === 'docs') {
               <div class="panel">
                 <h2>Documentos del cliente</h2>
-                @for (d of ws.documents; track d.id) {
+                @for (d of latestDocuments; track d.id) {
                   <div class="doc">
                     <div class="doc-info">
-                      @if (d.doc_type === 'cedula') {
-                        <div class="thumb cedula" aria-hidden="true">CI</div>
-                      } @else {
-                        <div class="thumb partida" aria-hidden="true">PM</div>
-                      }
+                      <div class="thumb" [class]="d.doc_type" aria-hidden="true">{{ docThumb(d.doc_type) }}</div>
                       <div>
-                        <strong>{{ d.doc_type === 'cedula' ? 'Cédula' : 'Partida' }}</strong> — {{ d.filename }}
+                        <strong>{{ docLabel(d.doc_type) }}</strong> — {{ d.filename }}
                         <app-status-badge [label]="reviewLabel(d.review_status)" [variant]="reviewVariant(d.review_status)" />
                         @if (d.review_note) { <p class="muted">{{ d.review_note }}</p> }
                       </div>
@@ -128,7 +135,12 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
 
             @if (tab === 'minuta') {
               <div class="panel">
-                <h2>Minuta de divorcio</h2>
+                <h2>Minuta del trámite</h2>
+                @if (ws.case.status === '02') {
+                  <p class="muted">El cliente aún debe cargar documentos. Cuando estén en revisión (estado 03), podrás generar la minuta.</p>
+                } @else if (ws.case.status === '03' && hasPendingDocs) {
+                  <p class="muted">Aprueba primero los documentos en la pestaña <strong>Documentos</strong>. Luego usa «Aprobar documentos y preparar minuta» en el panel derecho. Ya puedes generar la minuta mock aquí abajo.</p>
+                }
                 @if (ws.outputs.length) {
                   @for (o of ws.outputs; track o.id) {
                     <p><a [href]="o.url" target="_blank">{{ o.filename }}</a> · {{ o.created_at | date:'short' }}</p>
@@ -136,8 +148,14 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                 } @else {
                   <p class="muted">Minuta no generada.</p>
                 }
-                @if (ws.case.status === '03' || ws.case.status === '04') {
-                  <button type="button" class="btn btn-accent" (click)="confirmGenMinuta()">Generar minuta (mock)</button>
+                @if (minutaOk) { <p class="ok">{{ minutaOk }}</p> }
+                @if (minutaError) { <p class="err">{{ minutaError }}</p> }
+                @if (canGenerateMinuta) {
+                  <button type="button" class="btn btn-accent" (click)="confirmGenMinuta()" [disabled]="minutaBusy">
+                    {{ minutaBusy ? 'Generando…' : 'Generar minuta (mock)' }}
+                  </button>
+                } @else if (ws.case.status !== '02') {
+                  <p class="muted">Generación disponible en revisión jurídica (03) o documentos preparados (04).</p>
                 }
               </div>
             }
@@ -145,12 +163,18 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
             @if (tab === 'firmas') {
               <div class="panel">
                 <h2>Firmas del cliente</h2>
-                @if (!ws.signatures.length) { <p class="muted">Sin firmas aún.</p> }
-                @for (s of ws.signatures; track s.id) {
-                  <div class="sig">
-                    <img [src]="s.image_url" alt="firma" />
-                    <p class="muted">IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
-                  </div>
+                @if (ws.signatures.length) {
+                  <p class="muted">Revisa la firma subida antes de confirmar en el panel derecho (estado 05).</p>
+                  @for (s of ws.signatures; track s.id) {
+                    <div class="sig">
+                      <img [src]="s.image_url" alt="firma del cliente" />
+                      <p class="muted">IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
+                    </div>
+                  }
+                } @else if (ws.case.status === '04' || ws.case.status === '05') {
+                  <p class="muted">Sin firma aún. El cliente puede firmar virtualmente desde su expediente; opcionalmente usa «Notificar al cliente».</p>
+                } @else {
+                  <p class="muted">Sin firmas aún.</p>
                 }
               </div>
             }
@@ -199,6 +223,15 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                   <button type="button" class="btn btn-primary" (click)="confirmRunAction(a)" [disabled]="actionBusy">{{ a.label }}</button>
                 </div>
               }
+              @if (ws.case.status === '04' && !ws.signatures.length) {
+                <p class="muted flow-hint">Estado 04: «Notificar al cliente» solo envía aviso — no cambia el estado. Confirma solo cuando veas la firma en la pestaña Firmas (estado 05).</p>
+              }
+              @if (ws.case.status === '05' && !ws.signatures.length) {
+                <p class="muted flow-hint">Esperando firma virtual del cliente. Puede firmar solo desde su expediente.</p>
+              }
+              @if (ws.case.status === '04' && !hasMinutaOutput) {
+                <p class="muted flow-hint">En estado 04: abre la pestaña <strong>Minuta</strong> y pulsa «Generar minuta (mock)». Luego podrás enviar a firma.</p>
+              }
               @if (!ws.next_actions.length && ws.case.status !== '10') {
                 <p class="muted">Completa los pendientes para habilitar la siguiente acción.</p>
               }
@@ -228,6 +261,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .st.cur { background: var(--brand); color: white; }
     .blockers { background: oklch(0.96 0.03 85); margin-bottom: 1rem; }
     .blockers ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+    .flow-hint { margin: 0.75rem 0 0; font-size: 0.88rem; line-height: 1.5; }
     .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
     .tabs .on { background: var(--brand); color: white; border-color: var(--brand); }
     .layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; align-items: start; }
@@ -267,6 +301,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
 })
 export class LawyerCaseComponent implements OnInit {
   ws: any = null;
+  loadError = '';
   noteBody = '';
   noteVisibleToClient = false;
   satjeLinks: any[] = [];
@@ -274,6 +309,9 @@ export class LawyerCaseComponent implements OnInit {
   appointmentAt = '';
   actionBusy = false;
   actionError = '';
+  minutaBusy = false;
+  minutaError = '';
+  minutaOk = '';
   qOpen = true;
   tab: Tab = 'resumen';
   qRows: { key: string; label: string; value: string }[] = [];
@@ -289,19 +327,80 @@ export class LawyerCaseComponent implements OnInit {
 
   constructor(private route: ActivatedRoute, private api: ApiService, private confirm: ConfirmService) {}
 
+  get canGenerateMinuta(): boolean {
+    return this.ws?.case?.status === '03' || this.ws?.case?.status === '04';
+  }
+
+  get hasPendingDocs(): boolean {
+    return this.latestDocuments.some((d: any) => d.review_status === 'pending' || d.review_status === 'rejected');
+  }
+
+  /** Solo la versión más reciente por tipo — evita duplicados al reemplazar archivos. */
+  get latestDocuments(): any[] {
+    const docs = this.ws?.documents || [];
+    const byType = new Map<string, any>();
+    for (const d of docs) {
+      const prev = byType.get(d.doc_type);
+      if (!prev || d.id > prev.id) byType.set(d.doc_type, d);
+    }
+    return Array.from(byType.values()).sort((a, b) => a.id - b.id);
+  }
+
+  docThumb(type: string): string {
+    const map: Record<string, string> = {
+      cedula: 'CI', partida: 'PM', matricula: 'MV', titulo: 'TI', acuerdo: 'AC',
+    };
+    return map[type] || type.slice(0, 2).toUpperCase();
+  }
+
+  get hasMinutaOutput(): boolean {
+    return (this.ws?.outputs || []).some((o: any) => o.output_type === 'minuta');
+  }
+
+  docLabel(type: string): string {
+    const fromApi = (this.ws?.required_docs || []).find((d: { type: string; label: string }) => d.type === type);
+    if (fromApi) return fromApi.label;
+    const labels: Record<string, string> = {
+      cedula: 'Cédula', partida: 'Partida', matricula: 'Matrícula', titulo: 'Título', acuerdo: 'Acuerdo mutuo',
+    };
+    return labels[type] || type;
+  }
+
   ngOnInit(): void { this.reload(); }
 
   reload(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.api.getLawyerWorkspace(id).subscribe((w) => {
-      this.ws = w;
-      this.qRows = Object.entries(w.questionnaire || {}).map(([key, val]) => ({
-        key,
-        label: Q_LABELS[key] || key,
-        value: typeof val === 'boolean' ? (val ? 'Sí' : 'No') : String(val ?? '—'),
-      }));
+    this.loadError = '';
+    this.ws = null;
+    this.api.getLawyerWorkspace(id).subscribe({
+      next: (w) => {
+        this.ws = this.normalizeWorkspace(w);
+        this.qRows = Object.entries(this.ws.questionnaire || {}).map(([key, val]) => ({
+          key,
+          label: Q_LABELS[key] || key,
+          value: typeof val === 'boolean' ? (val ? 'Sí' : 'No') : String(val ?? '—'),
+        }));
+      },
+      error: (e) => {
+        this.loadError = e?.error?.error || 'No se pudo cargar el expediente';
+      },
     });
     this.api.mockSatjeLinks(id).subscribe((d) => this.satjeLinks = d.links || []);
+  }
+
+  private normalizeWorkspace(w: any): any {
+    return {
+      ...w,
+      blockers: w.blockers || [],
+      documents: w.documents || [],
+      signatures: w.signatures || [],
+      outputs: w.outputs || [],
+      events: w.events || [],
+      notes: w.notes || [],
+      next_actions: w.next_actions || [],
+      required_docs: w.required_docs || [],
+      stage_hint: w.stage_hint || '',
+    };
   }
 
   async confirmReview(docId: number, status: 'approved' | 'rejected', note = ''): Promise<void> {
@@ -312,7 +411,7 @@ export class LawyerCaseComponent implements OnInit {
 
   review(docId: number, status: 'approved' | 'rejected', note = ''): void {
     this.api.reviewDocument(this.ws.case.id, docId, status, note).subscribe({
-      next: (w) => { this.ws = w; this.actionError = ''; },
+      next: (w) => { this.ws = this.normalizeWorkspace(w); this.actionError = ''; },
       error: (e) => this.actionError = e?.error?.error || 'Error al revisar',
     });
   }
@@ -330,9 +429,20 @@ export class LawyerCaseComponent implements OnInit {
   }
 
   genMinuta(): void {
+    this.minutaBusy = true;
+    this.minutaError = '';
+    this.minutaOk = '';
     this.api.generateMinuta(this.ws.case.id).subscribe({
-      next: () => { this.tab = 'minuta'; this.reload(); },
-      error: (e) => this.actionError = e?.error?.error || 'Error al generar minuta',
+      next: () => {
+        this.minutaBusy = false;
+        this.minutaOk = 'Minuta generada correctamente.';
+        this.tab = 'minuta';
+        this.reload();
+      },
+      error: (e) => {
+        this.minutaBusy = false;
+        this.minutaError = e?.error?.error || 'Error al generar minuta';
+      },
     });
   }
 
@@ -353,7 +463,7 @@ export class LawyerCaseComponent implements OnInit {
     if (action === 'register_notary_send') payload['notary_name'] = this.notaryName;
     if (action === 'register_appointment') payload['appointment_at'] = this.appointmentAt;
     this.api.performCaseAction(this.ws.case.id, action, payload).subscribe({
-      next: (w) => { this.ws = w; this.actionBusy = false; },
+      next: (w) => { this.ws = this.normalizeWorkspace(w); this.actionBusy = false; },
       error: (e) => {
         this.actionBusy = false;
         const err = e?.error;

@@ -11,6 +11,7 @@ import (
 	"github.com/codidevs/divorcio360/internal/cases"
 	"github.com/codidevs/divorcio360/internal/docs"
 	"github.com/codidevs/divorcio360/internal/lawyer"
+	"github.com/codidevs/divorcio360/internal/notary"
 	"github.com/codidevs/divorcio360/internal/notifications"
 	"github.com/codidevs/divorcio360/internal/payments"
 	"github.com/codidevs/divorcio360/internal/questionnaire"
@@ -45,6 +46,7 @@ func main() {
 	paySvc := &payments.Service{DB: db, Cases: caseSvc}
 	sigSvc := &signatures.Service{DB: db, Cases: caseSvc, UploadDir: uploadDir}
 	lawyerSvc := &lawyer.Service{DB: db, Cases: caseSvc, UploadDir: uploadDir}
+	notarySvc := &notary.Service{DB: db, Cases: caseSvc}
 	mockSvc := &adminmock.Service{DB: db}
 
 	r := chi.NewRouter()
@@ -83,11 +85,16 @@ func main() {
 			pr.Post("/cases/{id}/payments/mock", paySvc.MockCheckout)
 			pr.Post("/cases/{id}/signatures", sigSvc.Sign)
 			pr.Get("/cases/{id}/signatures", sigSvc.List)
+			pr.Post("/cases/{id}/appointment", notarySvc.ScheduleAppointment)
+			pr.Post("/cases/{id}/consultation", caseSvc.CompleteConsultation)
 
 			pr.With(authSvc.RequireRole("abogado")).Get("/cases/{id}/workspace", lawyerSvc.Workspace)
 			pr.With(authSvc.RequireRole("abogado")).Post("/cases/{id}/documents/{docId}/review", lawyerSvc.ReviewDocument)
 			pr.With(authSvc.RequireRole("abogado")).Post("/cases/{id}/generate-minuta", lawyerSvc.GenerateMinuta)
 			pr.With(authSvc.RequireRole("abogado")).Post("/cases/{id}/actions", lawyerSvc.PerformAction)
+
+			pr.With(authSvc.RequireRole("notario")).Get("/notary/queue", notarySvc.ListQueue)
+			pr.With(authSvc.RequireRole("notario")).Post("/notary/cases/{id}/actions", notarySvc.PerformAction)
 
 			pr.With(authSvc.RequireRole("abogado")).Get("/mock/admin/metrics", mockSvc.Metrics)
 			pr.With(authSvc.RequireRole("abogado")).Patch("/mock/templates/master/{id}", mockSvc.PatchMasterTemplate)

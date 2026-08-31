@@ -4,8 +4,9 @@ import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
+import { getActiveProduct, getProductSite } from '../shared/product-sites.data';
 
-const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/firma', '/caso'];
+const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/consulta', '/firma', '/reunion-notarial', '/caso', '/intake', '/productos/traslado360/cuestionario', '/productos/bienraiz360/cuestionario'];
 
 @Component({
   selector: 'app-shell',
@@ -74,6 +75,32 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/fi
           </div>
         </div>
       </header>
+    } @else if (isTrasladoMarketing || isBienraizMarketing) {
+      <header class="mk-header ps-header" [style.--ps-accent]="productSite?.accent" [style.--ps-accent-deep]="productSite?.accentDeep">
+        <div class="mk-bar">
+          <a [routerLink]="productHome" class="mk-brand ps-brand">
+            <span class="mk-logo ps-logo" aria-hidden="true">360</span>
+            <span>{{ productSite?.name }}<small class="mk-by">by LegalStation</small></span>
+          </a>
+          <nav class="mk-nav">
+            <a [href]="productHome + '#flujo'" (click)="goToSection($event, productHome, 'flujo')">Flujo</a>
+            <a [href]="productHome + '#precios'" (click)="goToSection($event, productHome, 'precios')">Precios</a>
+            <a routerLink="/">LegalStation</a>
+          </nav>
+          <div class="mk-actions">
+            @if (auth.isLoggedIn) {
+              <span class="mk-user">{{ userFirstName }}</span>
+              @if (auth.user()?.role === 'cliente') {
+                <a routerLink="/cliente" class="mk-cta">Mi expediente</a>
+              }
+              <button type="button" class="mk-signin" (click)="auth.logout()">Salir</button>
+            } @else {
+              <a [routerLink]="['/auth']" [queryParams]="{ product: productSite?.id, returnUrl: productHome }" class="mk-signin">Ingresar</a>
+              <a [routerLink]="productQuestionnaire" class="mk-cta ps-cta">Comenzar</a>
+            }
+          </div>
+        </div>
+      </header>
     } @else if (isAuthPage && isDivorcioAuth) {
       <header class="mk-header d360-header">
         <div class="mk-bar">
@@ -105,20 +132,28 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/fi
         </div>
       </header>
     } @else if (isDivorcioFlow) {
-      <header class="top d360-top">
+      <header class="top" [class.d360-top]="activeProduct === 'divorcio360'" [class.ps-flow-top]="activeProduct !== 'divorcio360'">
         <div class="shell bar">
-          <a routerLink="/productos/divorcio360" class="brand d360-brand-inline">
-            Divorcio<span>360</span>
+          <a [routerLink]="productHome" class="brand" [class.d360-brand-inline]="activeProduct === 'divorcio360'">
+            @if (activeProduct === 'divorcio360') {
+              Divorcio<span>360</span>
+            } @else {
+              {{ productSite?.name }}
+            }
             <small class="by-ls">by LegalStation</small>
           </a>
           <nav>
             @if (auth.user()?.role !== 'abogado') {
-              <a routerLink="/cuestionario" routerLinkActive="on">Cuestionario</a>
+              @if (activeProduct === 'divorcio360') {
+                <a routerLink="/cuestionario" routerLinkActive="on">Cuestionario</a>
+              } @else {
+                <a [routerLink]="productQuestionnaire" routerLinkActive="on">Cuestionario</a>
+              }
             }
             @if (auth.user()?.role === 'cliente') {
               <a routerLink="/cliente" routerLinkActive="on">Mi expediente</a>
             }
-            <a routerLink="/productos/divorcio360" class="nav-back">Volver a Divorcio360</a>
+            <a [routerLink]="productHome" class="nav-back">Volver a {{ productDisplayName }}</a>
             @if (auth.isLoggedIn) {
               <span class="user-chip">{{ userFirstName }}</span>
               <button type="button" class="bell btn btn-ghost" (click)="toggleNotifs()" aria-label="Notificaciones">
@@ -157,6 +192,9 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/fi
               <a routerLink="/abogado" routerLinkActive="on">Panel operador</a>
               <a routerLink="/fase2/admin" routerLinkActive="on">Fase 2</a>
             }
+            @if (auth.user()?.role === 'notario') {
+              <a routerLink="/notario" routerLinkActive="on">Panel notario</a>
+            }
             @if (auth.isLoggedIn) {
               <span class="user-chip">{{ userFirstName }}</span>
               <button type="button" class="bell btn btn-ghost" (click)="toggleNotifs()" aria-label="Notificaciones">
@@ -184,21 +222,27 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/fi
     <main>
       <router-outlet />
     </main>
-    <footer class="foot" [class.marketing-foot]="isLegalStationMarketing || isDivorcioMarketing" [class.d360-foot]="isDivorcioFlow || isDivorcioMarketing">
+    <footer class="foot" [class.marketing-foot]="isLegalStationMarketing || isDivorcioMarketing || isTrasladoMarketing || isBienraizMarketing" [class.d360-foot]="isDivorcioFlow || isDivorcioMarketing" [class.ps-foot]="isTrasladoMarketing || isBienraizMarketing">
       <div class="shell foot-grid">
         <div class="foot-col brand-col">
           @if (isDivorcioFlow || isDivorcioMarketing) {
             <strong class="foot-logo">Divorcio360</strong>
             <p class="foot-by">by LegalStation</p>
-            <p>Divorcio notarial en Ecuador — intake, expediente y firma en un solo flujo demo.</p>
+            <p>Al mismo costo, sin filas ni trámites — divorcio notarial con intake, consulta y firma demo.</p>
+          } @else if (isTrasladoMarketing || isBienraizMarketing) {
+            <strong class="foot-logo">{{ productDisplayName }}</strong>
+            <p class="foot-by">by LegalStation</p>
+            <p>Trámite con pago único — sin membresía. Servicios jurídicos al mismo costo, sin filas ni trámites.</p>
           } @else {
             <strong class="foot-logo">LegalStation</strong>
-            <p>Plataforma legal ops para Latinoamérica. Intake, expedientes, firmas y cumplimiento en un solo lugar.</p>
+            <p>Servicios jurídicos al mismo costo, sin filas ni trámites. Plataforma legal ops para Latinoamérica.</p>
           }
         </div>
         <div class="foot-col">
           <h4>Productos</h4>
           <a routerLink="/productos/divorcio360">Divorcio360</a>
+          <a routerLink="/productos/traslado360">Traslado360</a>
+          <a routerLink="/productos/bienraiz360">BienRaiz360</a>
           <span class="foot-muted">Estate360 · Próximamente</span>
           <span class="foot-muted">SignDesk · Próximamente</span>
         </div>
@@ -372,6 +416,32 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/fi
 
     .d360-header .mk-cta:hover { background: #3a827b; }
 
+    .ps-header {
+      background: rgb(245 249 252 / 0.96);
+      border-bottom-color: rgb(74 126 184 / 0.12);
+    }
+
+    .ps-brand { color: var(--ps-accent-deep, #3a6599); }
+
+    .ps-logo {
+      background: var(--ps-accent-soft, #e8f0f8);
+      color: var(--ps-accent-deep, #3a6599);
+      font-size: 0.62rem;
+      font-weight: 800;
+    }
+
+    .ps-header .mk-nav a:hover { color: var(--ps-accent, #4a7eb8); }
+
+    .ps-cta {
+      background: var(--ps-accent, #4a7eb8) !important;
+      box-shadow: 0 8px 20px rgb(74 126 184 / 0.28) !important;
+    }
+
+    .ps-flow-top {
+      background: oklch(0.99 0.008 240 / 0.94);
+      border-bottom-color: oklch(0.88 0.04 240);
+    }
+
     .mk-user {
       font-size: 0.82rem;
       font-weight: 600;
@@ -500,6 +570,14 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/fi
     .marketing-foot .foot-col a:hover { color: #4455c4; }
     .d360-foot .foot-col a:hover { color: #4a9e96; }
 
+    .ps-foot {
+      background: #f5f9fc;
+      border-top-color: rgb(74 126 184 / 0.15);
+    }
+
+    .ps-foot .foot-logo { color: #3a6599; }
+    .ps-foot .foot-col a:hover { color: #4a7eb8; }
+
     @media (max-width: 860px) {
       .foot-grid { grid-template-columns: 1fr 1fr; }
     }
@@ -523,15 +601,34 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/fi
 export class ShellComponent implements OnInit {
   isLegalStationMarketing = false;
   isDivorcioMarketing = false;
+  isTrasladoMarketing = false;
+  isBienraizMarketing = false;
   isDivorcioFlow = false;
   isAuthPage = false;
   isDivorcioAuth = false;
+  activeProduct = 'divorcio360';
+  productSite = getProductSite('divorcio360');
   notifications: any[] = [];
   unreadCount = 0;
   showNotifs = false;
 
   get userFirstName(): string {
     return this.auth.user()?.full_name?.split(' ')[0] ?? 'Usuario';
+  }
+
+  get productHome(): string {
+    if (this.activeProduct === 'divorcio360') return '/productos/divorcio360';
+    return `/productos/${this.activeProduct}`;
+  }
+
+  get productQuestionnaire(): string {
+    if (this.activeProduct === 'divorcio360') return '/cuestionario';
+    return `/productos/${this.activeProduct}/cuestionario`;
+  }
+
+  get productDisplayName(): string {
+    if (this.activeProduct === 'divorcio360') return 'Divorcio360';
+    return this.productSite?.name || 'LegalStation';
   }
 
   constructor(
@@ -543,8 +640,13 @@ export class ShellComponent implements OnInit {
 
   ngOnInit(): void {
     this.applyMode(this.router.url);
+    if (this.auth.isLoggedIn) this.loadNotifs();
+    setInterval(() => {
+      if (this.auth.isLoggedIn) this.loadNotifs();
+    }, 20000);
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e: NavigationEnd) => {
       this.applyMode(e.urlAfterRedirects);
+      if (this.auth.isLoggedIn) this.loadNotifs();
       const fragment = e.urlAfterRedirects.split('#')[1];
       if (fragment) {
         setTimeout(() => this.scrollToId(fragment), 50);
@@ -584,12 +686,28 @@ export class ShellComponent implements OnInit {
     this.isDivorcioAuth = this.isAuthPage && (params.get('next') === 'checkout' || params.get('product') === 'divorcio360');
     this.isLegalStationMarketing = (path === '/' || path === '') && !this.isAuthPage;
     this.isDivorcioMarketing = path.startsWith('/productos/divorcio360');
-    this.isDivorcioFlow = !this.isAuthPage && DIVORCIO_FLOW.some((p) => path.startsWith(p));
+    this.isTrasladoMarketing = path === '/productos/traslado360';
+    this.isBienraizMarketing = path === '/productos/bienraiz360';
+
+    if (path.includes('traslado360')) this.activeProduct = 'traslado360';
+    else if (path.includes('bienraiz360')) this.activeProduct = 'bienraiz360';
+    else if (path.includes('divorcio360') || path === '/cuestionario') this.activeProduct = 'divorcio360';
+    else this.activeProduct = getActiveProduct();
+
+    this.productSite = getProductSite(this.activeProduct) || getProductSite('divorcio360');
+
+    this.isDivorcioFlow = !this.isAuthPage && (
+      DIVORCIO_FLOW.some((p) => path.startsWith(p)) ||
+      path.startsWith('/productos/traslado360') ||
+      path.startsWith('/productos/bienraiz360') ||
+      path.startsWith('/consulta') ||
+      path.startsWith('/reunion-notarial')
+    );
 
     document.body.classList.toggle('saas-mode', this.isLegalStationMarketing || (this.isAuthPage && !this.isDivorcioAuth));
-    document.body.classList.toggle('product-landing-mode', this.isDivorcioMarketing || this.isDivorcioAuth);
-    document.body.classList.toggle('divorcio-flow-mode', this.isDivorcioFlow || this.isDivorcioMarketing || this.isDivorcioAuth);
-    document.body.classList.toggle('product-mode', !this.isLegalStationMarketing && !this.isDivorcioMarketing && !this.isDivorcioFlow && !this.isAuthPage);
+    document.body.classList.toggle('product-landing-mode', this.isDivorcioMarketing || this.isDivorcioAuth || this.isTrasladoMarketing || this.isBienraizMarketing);
+    document.body.classList.toggle('divorcio-flow-mode', this.isDivorcioFlow || this.isDivorcioMarketing || this.isDivorcioAuth || this.isTrasladoMarketing || this.isBienraizMarketing);
+    document.body.classList.toggle('product-mode', !this.isLegalStationMarketing && !this.isDivorcioMarketing && !this.isDivorcioFlow && !this.isAuthPage && !this.isTrasladoMarketing && !this.isBienraizMarketing);
   }
 
   loadNotifs(): void {
@@ -611,7 +729,8 @@ export class ShellComponent implements OnInit {
     this.api.markNotificationRead(n.id).subscribe(() => this.loadNotifs());
     this.showNotifs = false;
     if (n.case_id) {
-      const base = this.auth.user()?.role === 'abogado' ? '/abogado/caso' : '/caso';
+      const base = this.auth.user()?.role === 'abogado' ? '/abogado/caso'
+        : this.auth.user()?.role === 'notario' ? '/caso' : '/caso';
       void this.router.navigate([base, n.case_id]);
     }
   }

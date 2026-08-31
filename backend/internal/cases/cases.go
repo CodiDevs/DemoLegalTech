@@ -9,6 +9,7 @@ import (
 
 	"github.com/codidevs/divorcio360/internal/auth"
 	"github.com/codidevs/divorcio360/internal/notifications"
+	"github.com/codidevs/divorcio360/internal/products"
 	"github.com/codidevs/divorcio360/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -49,12 +50,17 @@ type Case struct {
 	QuestionnaireJSON  string `json:"questionnaire_json,omitempty"`
 	NotaryName         string `json:"notary_name,omitempty"`
 	AppointmentAt      string `json:"appointment_at,omitempty"`
+	ConsultationAt     string `json:"consultation_at,omitempty"`
 	CreatedAt          string `json:"created_at"`
 	UpdatedAt          string `json:"updated_at"`
 	ClientName         string `json:"client_name,omitempty"`
 	ClientEmail        string `json:"client_email,omitempty"`
 	DaysInStatus       int    `json:"days_in_status,omitempty"`
 	SLAWarning         bool   `json:"sla_warning,omitempty"`
+	HasMinuta          bool   `json:"has_minuta,omitempty"`
+	HasSignature       bool   `json:"has_signature,omitempty"`
+	CanSign            bool   `json:"can_sign,omitempty"`
+	SignHint           string `json:"sign_hint,omitempty"`
 }
 
 type Event struct {
@@ -82,6 +88,7 @@ func (s *Service) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Result        string          `json:"result"`
 		City          string          `json:"city"`
+		Product       string          `json:"product"`
 		Questionnaire json.RawMessage `json:"questionnaire"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -98,14 +105,12 @@ func (s *Service) Create(w http.ResponseWriter, r *http.Request) {
 	now := store.Now()
 	var lawyerID sql.NullInt64
 	_ = s.DB.QueryRow(`SELECT id FROM users WHERE role='abogado' ORDER BY id LIMIT 1`).Scan(&lawyerID)
-	amount := 34900
-	if body.Result == "evaluacion" {
-		amount = 74900
-	}
+	product := products.ResolveProduct(body.Product, qJSON)
+	amount := productAmount(product, body.Result)
 	res, err := s.DB.Exec(
 		`INSERT INTO cases (client_id, lawyer_id, status, result, city, paid, amount_cents, product, questionnaire_json, created_at, updated_at)
 		 VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-		u.ID, nullInt(lawyerID), "00", body.Result, body.City, 0, amount, "divorcio360", qJSON, now, now,
+		u.ID, nullInt(lawyerID), "00", body.Result, body.City, 0, amount, product, qJSON, now, now,
 	)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "no se pudo crear caso")
@@ -127,14 +132,22 @@ func (s *Service) ListMine(w http.ResponseWriter, r *http.Request) {
 	if u.Role == "abogado" {
 		rows, err = s.DB.Query(`
 			SELECT c.id, c.client_id, c.lawyer_id, c.status, c.result, c.city, c.paid, c.amount_cents,
-			       c.product, c.questionnaire_json, c.notary_name, c.appointment_at,
+			       c.product, c.questionnaire_json, c.notary_name, c.appointment_at, c.consultation_at,
 			       c.created_at, c.updated_at, u.full_name, u.email
 			FROM cases c JOIN users u ON u.id = c.client_id
+			ORDER BY c.updated_at DESC`)
+	} else if u.Role == "notario" {
+		rows, err = s.DB.Query(`
+			SELECT c.id, c.client_id, c.lawyer_id, c.status, c.result, c.city, c.paid, c.amount_cents,
+			       c.product, c.questionnaire_json, c.notary_name, c.appointment_at, c.consultation_at,
+			       c.created_at, c.updated_at, u.full_name, u.email
+			FROM cases c JOIN users u ON u.id = c.client_id
+			WHERE c.status IN ('06','07','08') OR c.appointment_at != ''
 			ORDER BY c.updated_at DESC`)
 	} else {
 		rows, err = s.DB.Query(`
 			SELECT c.id, c.client_id, c.lawyer_id, c.status, c.result, c.city, c.paid, c.amount_cents,
-			       c.product, c.questionnaire_json, c.notary_name, c.appointment_at,
+			       c.product, c.questionnaire_json, c.notary_name, c.appointment_at, c.consultation_at,
 			       c.created_at, c.updated_at, u.full_name, u.email
 			FROM cases c JOIN users u ON u.id = c.client_id
 			WHERE c.client_id = ?
@@ -152,7 +165,7 @@ func (s *Service) ListMine(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, http.StatusInternalServerError, "scan error")
 			return
 		}
-		list = append(list, enrichCaseSLA(s, c))
+		list = append(list, enrichCaseMeta(s, c))
 	}
 	writeJSON(w, http.StatusOK, list)
 }
@@ -160,6 +173,31 @@ func (s *Service) ListMine(w http.ResponseWriter, r *http.Request) {
 func enrichCaseSLA(s *Service, c Case) Case {
 	c.DaysInStatus = s.daysInStatus(c.ID, c.Status, c.UpdatedAt)
 	c.SLAWarning = c.Status == "03" && c.DaysInStatus >= 2
+	return c
+}
+
+func enrichCaseMeta(s *Service, c Case) Case {
+	c = enrichCaseSLA(s, c)
+	return enrichSigning(s, c)
+}
+
+func enrichSigning(s *Service, c Case) Case {
+	var minuta, sig int
+	_ = s.DB.QueryRow(`SELECT COUNT(*) FROM case_outputs WHERE case_id=? AND output_type='minuta'`, c.ID).Scan(&minuta)
+	_ = s.DB.QueryRow(`SELECT COUNT(*) FROM signatures WHERE case_id=?`, c.ID).Scan(&sig)
+	c.HasMinuta = minuta > 0
+	c.HasSignature = sig > 0
+	c.CanSign = c.HasMinuta && (c.Status == "03" || c.Status == "04" || c.Status == "05")
+	switch {
+	case c.CanSign && c.HasSignature:
+		c.SignHint = "Firma registrada — puedes volver a firmar si lo necesitas (100% virtual)"
+	case c.CanSign:
+		c.SignHint = "Minuta lista — firma virtual desde tu expediente, sin ir presencialmente"
+	case c.HasMinuta && c.Status < "03":
+		c.SignHint = "Tu abogado prepara la minuta — te avisaremos cuando puedas firmar"
+	case !c.HasMinuta && (c.Status == "03" || c.Status == "04" || c.Status == "05"):
+		c.SignHint = "Esperando minuta del abogado"
+	}
 	return c
 }
 
@@ -195,9 +233,14 @@ func (s *Service) Get(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusForbidden, "acceso denegado")
 		return
 	}
+	if u.Role == "notario" && c.Status < "05" {
+		writeErr(w, http.StatusForbidden, "acceso denegado")
+		return
+	}
 	events, _ := s.listEvents(id)
 	notes, _ := s.listNotes(id)
 	clientMsgs, _ := s.listClientMessages(id)
+	c = enrichCaseMeta(s, c)
 	payload := map[string]any{
 		"case":            c,
 		"events":          events,
@@ -264,6 +307,32 @@ func (s *Service) GetCasePublic(id int64) (Case, error) {
 	return s.getCase(id)
 }
 
+func (s *Service) CompleteConsultation(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFrom(r.Context())
+	caseID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	c, err := s.getCase(caseID)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "caso no encontrado")
+		return
+	}
+	if u.Role == "cliente" && c.ClientID != u.ID {
+		writeErr(w, http.StatusForbidden, "acceso denegado")
+		return
+	}
+	now := store.Now()
+	_, _ = s.DB.Exec(`UPDATE cases SET consultation_at=? WHERE id=?`, now, caseID)
+	note := "Consulta con abogado completada (videollamada demo)"
+	_, _ = s.DB.Exec(
+		`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
+		caseID, c.Status, note, u.ID, now,
+	)
+	if c.LawyerID != nil {
+		notifications.NotifyUser(s.DB, *c.LawyerID, caseID, "consultation", "Consulta completada", note)
+	}
+	c2, _ := s.getCase(caseID)
+	writeJSON(w, http.StatusOK, c2)
+}
+
 func (s *Service) ListEventsPublic(caseID int64) ([]Event, error) {
 	return s.listEvents(caseID)
 }
@@ -275,7 +344,7 @@ func (s *Service) ListNotesPublic(caseID int64) ([]Note, error) {
 func (s *Service) getCase(id int64) (Case, error) {
 	row := s.DB.QueryRow(`
 		SELECT c.id, c.client_id, c.lawyer_id, c.status, c.result, c.city, c.paid, c.amount_cents,
-		       c.product, c.questionnaire_json, c.notary_name, c.appointment_at,
+		       c.product, c.questionnaire_json, c.notary_name, c.appointment_at, c.consultation_at,
 		       c.created_at, c.updated_at, u.full_name, u.email
 		FROM cases c JOIN users u ON u.id = c.client_id WHERE c.id = ?`, id)
 	return scanCase(row)
@@ -290,7 +359,7 @@ func scanCase(row scanner) (Case, error) {
 	var lid sql.NullInt64
 	var paid int
 	err := row.Scan(&c.ID, &c.ClientID, &lid, &c.Status, &c.Result, &c.City, &paid, &c.AmountCents,
-		&c.Product, &c.QuestionnaireJSON, &c.NotaryName, &c.AppointmentAt,
+		&c.Product, &c.QuestionnaireJSON, &c.NotaryName, &c.AppointmentAt, &c.ConsultationAt,
 		&c.CreatedAt, &c.UpdatedAt, &c.ClientName, &c.ClientEmail)
 	if err != nil {
 		return c, err
@@ -379,6 +448,20 @@ func nullInt(n sql.NullInt64) any {
 		return n.Int64
 	}
 	return nil
+}
+
+func productAmount(product, result string) int {
+	switch product {
+	case "traslado360":
+		return 19900
+	case "bienraiz360":
+		return 29900
+	default:
+		if result == "evaluacion" {
+			return 74900
+		}
+		return 34900
+	}
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

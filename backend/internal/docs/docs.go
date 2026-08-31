@@ -13,6 +13,7 @@ import (
 	"github.com/codidevs/divorcio360/internal/auth"
 	"github.com/codidevs/divorcio360/internal/cases"
 	"github.com/codidevs/divorcio360/internal/notifications"
+	"github.com/codidevs/divorcio360/internal/products"
 	"github.com/codidevs/divorcio360/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -54,8 +55,13 @@ func (s *Service) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	docType := r.FormValue("doc_type")
-	if docType != "cedula" && docType != "partida" {
-		writeErr(w, http.StatusBadRequest, "doc_type debe ser cedula o partida")
+	cFull, err := s.loadCaseFull(caseID)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "caso no encontrado")
+		return
+	}
+	if !validDocType(cFull.Product, docType) {
+		writeErr(w, http.StatusBadRequest, "doc_type no válido para este producto")
 		return
 	}
 	file, hdr, err := r.FormFile("file")
@@ -98,8 +104,8 @@ func (s *Service) Upload(w http.ResponseWriter, r *http.Request) {
 	id, _ := res.LastInsertId()
 
 	// If both docs present and status 01/02, move to 02 then 03 pending review
-	hasCedula, hasPartida := s.hasDocs(caseID)
-	if hasCedula && hasPartida && (c.Status == "01" || c.Status == "02" || c.Status == "00") {
+	hasDoc1, hasDoc2 := s.hasRequiredDocs(caseID, cFull.Product)
+	if hasDoc1 && hasDoc2 && (c.Status == "01" || c.Status == "02" || c.Status == "00") {
 		_ = s.Cases.SetStatus(caseID, "02", "Documentos cargados; pendientes de revisión", &u.ID)
 		_ = s.Cases.SetStatus(caseID, "03", "Documentos completos — revisión jurídica", &u.ID)
 	} else if c.Status == "01" {
@@ -163,19 +169,35 @@ func (s *Service) ServeFile(w http.ResponseWriter, r *http.Request) {
 type caseRow struct {
 	ClientID int64
 	Status   string
+	Product  string
 }
 
 func (s *Service) loadCase(id int64) (caseRow, error) {
 	var c caseRow
-	err := s.DB.QueryRow(`SELECT client_id, status FROM cases WHERE id=?`, id).Scan(&c.ClientID, &c.Status)
+	err := s.DB.QueryRow(`SELECT client_id, status, COALESCE(product,'divorcio360') FROM cases WHERE id=?`, id).Scan(&c.ClientID, &c.Status, &c.Product)
 	return c, err
 }
 
-func (s *Service) hasDocs(caseID int64) (bool, bool) {
-	var cedula, partida int
-	_ = s.DB.QueryRow(`SELECT COUNT(*) FROM documents WHERE case_id=? AND doc_type='cedula'`, caseID).Scan(&cedula)
-	_ = s.DB.QueryRow(`SELECT COUNT(*) FROM documents WHERE case_id=? AND doc_type='partida'`, caseID).Scan(&partida)
-	return cedula > 0, partida > 0
+func (s *Service) loadCaseFull(id int64) (caseRow, error) {
+	return s.loadCase(id)
+}
+
+func validDocType(product, docType string) bool {
+	types := products.ValidDocTypes(product)
+	for _, t := range types {
+		if t == docType {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Service) hasRequiredDocs(caseID int64, product string) (bool, bool) {
+	type1, type2 := products.RequiredPair(product)
+	var a, b int
+	_ = s.DB.QueryRow(`SELECT COUNT(*) FROM documents WHERE case_id=? AND doc_type=?`, caseID, type1).Scan(&a)
+	_ = s.DB.QueryRow(`SELECT COUNT(*) FROM documents WHERE case_id=? AND doc_type=?`, caseID, type2).Scan(&b)
+	return a > 0, b > 0
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

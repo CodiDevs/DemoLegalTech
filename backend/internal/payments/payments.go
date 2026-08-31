@@ -8,6 +8,7 @@ import (
 
 	"github.com/codidevs/divorcio360/internal/auth"
 	"github.com/codidevs/divorcio360/internal/cases"
+	"github.com/codidevs/divorcio360/internal/products"
 	"github.com/codidevs/divorcio360/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -23,7 +24,8 @@ func (s *Service) MockCheckout(w http.ResponseWriter, r *http.Request) {
 	var clientID int64
 	var paid int
 	var amount int
-	err := s.DB.QueryRow(`SELECT client_id, paid, amount_cents FROM cases WHERE id=?`, caseID).Scan(&clientID, &paid, &amount)
+	var product string
+	err := s.DB.QueryRow(`SELECT client_id, paid, amount_cents, COALESCE(product,'divorcio360') FROM cases WHERE id=?`, caseID).Scan(&clientID, &paid, &amount, &product)
 	if err != nil {
 		writeErr(w, http.StatusNotFound, "caso no encontrado")
 		return
@@ -56,7 +58,7 @@ func (s *Service) MockCheckout(w http.ResponseWriter, r *http.Request) {
 	}
 	_, _ = s.DB.Exec(`UPDATE cases SET paid=1, updated_at=? WHERE id=?`, now, caseID)
 	_ = s.Cases.SetStatus(caseID, "01", fmt.Sprintf("Pago mock Payphone confirmado (%s) — ****%s", ref, body.CardLast4), &u.ID)
-	_ = s.Cases.SetStatus(caseID, "02", "En espera de carga de cédula y partida de matrimonio", &u.ID)
+	_ = s.Cases.SetStatus(caseID, "02", products.UploadStatusMessage(product), &u.ID)
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":        "paid",

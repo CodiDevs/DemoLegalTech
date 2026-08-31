@@ -4,19 +4,22 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
+import { getProductSite, productThemeFromCase } from '../../shared/product-sites.data';
 
 @Component({
   selector: 'app-case-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe],
+  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe, ProductFlowShellComponent],
   template: `
     @if (data) {
-      <div class="shell wrap">
-        <p class="muted">
-          <a [routerLink]="auth.user()?.role === 'abogado' ? '/abogado' : '/cliente'">← Volver</a>
-        </p>
-        <h1>Expediente #{{ data.case.id }}</h1>
-        <p class="lede">{{ data.case.client_name }} · <strong>{{ data.case.status_label }}</strong></p>
+      <app-product-flow-shell
+        [theme]="theme"
+        [crumb]="crumb"
+        eyebrow="Expediente digital"
+        [title]="'Caso #' + data.case.id"
+        [subtitle]="data.case.client_name + ' · ' + data.case.status_label"
+      >
 
         @if (data.case.status === '03' && auth.user()?.role === 'cliente') {
           <div class="banner">Tu expediente está en revisión del abogado. Te notificaremos cuando avance.</div>
@@ -24,8 +27,8 @@ import { DatePipe, DecimalPipe } from '@angular/common';
         @if (data.case.status === '02' && hasRejectedDoc) {
           <div class="banner warn">Un documento fue rechazado. Vuelve a cargarlo desde Documentos.</div>
         }
-        @if (data.case.status === '05' && auth.user()?.role === 'cliente') {
-          <div class="banner">Tu minuta está lista. Por favor firma electrónicamente.</div>
+        @if (data.case.sign_hint && auth.user()?.role === 'cliente') {
+          <div class="banner" [class.warn]="!data.case.can_sign">{{ data.case.sign_hint }}</div>
         }
 
         <div class="layout">
@@ -42,6 +45,46 @@ import { DatePipe, DecimalPipe } from '@angular/common';
           </section>
 
           <section class="stack">
+            @if (data.case.status >= '03' && auth.user()?.role === 'cliente' && !data.case.consultation_at) {
+              <div class="pf-card lp-lift" style="margin-top:1rem">
+                <h2>Consulta con abogado</h2>
+                <p class="pf-muted">Videollamada mock para revisar documentos antes de firmar.</p>
+                <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', data.case.id]">Unirse a consulta virtual</a>
+              </div>
+            }
+            @if (data.case.consultation_at) {
+              <div class="pf-receipt" style="margin-top:1rem">
+                <p class="pf-ok">Consulta completada: {{ data.case.consultation_at | date:'short' }}</p>
+              </div>
+            }
+
+            @if (data.case.status >= '05' && auth.user()?.role === 'cliente' && !data.case.appointment_at) {
+              <div class="pf-card lp-lift" style="margin-top:1rem">
+                <h2>Agendar reunión notarial virtual</h2>
+                <p class="pf-muted">100% en línea — sin ir presencialmente a la notaría.</p>
+                <div class="pf-field"><label>Fecha y hora</label><input type="datetime-local" [(ngModel)]="apptAt" /></div>
+                <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+                  <button type="button" class="lp-btn lp-btn-primary" (click)="schedule()" [disabled]="!apptAt || apptBusy">
+                    {{ apptBusy ? 'Agendando…' : 'Confirmar cita' }}
+                  </button>
+                  @if (apptAt) {
+                    <a class="lp-btn lp-btn-outline" [routerLink]="['/reunion-notarial', data.case.id]">Ir a sala virtual</a>
+                  }
+                </div>
+              </div>
+            }
+            @if (data.case.appointment_at) {
+              <div class="pf-receipt" style="margin-top:1rem">
+                <p class="pf-ok">Cita: {{ data.case.appointment_at }}</p>
+                @if (data.case.notary_name) { <p class="pf-muted">{{ data.case.notary_name }}</p> }
+                @if (auth.user()?.role === 'cliente') {
+                  <a class="lp-btn lp-btn-primary" style="margin-top:0.75rem;display:inline-flex" [routerLink]="['/reunion-notarial', data.case.id]">
+                    Entrar a reunión notarial
+                  </a>
+                }
+              </div>
+            }
+
             <div class="panel">
               <h2>Acciones</h2>
               <div class="actions">
@@ -49,8 +92,14 @@ import { DatePipe, DecimalPipe } from '@angular/common';
                   <a class="btn btn-accent" [routerLink]="['/checkout', data.case.id]">Pagar</a>
                 }
                 <a class="btn btn-ghost" [routerLink]="['/upload', data.case.id]">Documentos</a>
-                @if (data.case.status >= '04' || outputs.length) {
-                  <a class="btn btn-ghost" [routerLink]="['/firma', data.case.id]">Firmar</a>
+                @if (data.case.can_sign && auth.user()?.role === 'cliente') {
+                  <a class="btn btn-accent" [routerLink]="['/firma', data.case.id]">{{ data.case.has_signature ? 'Volver a firmar' : 'Firmar minuta' }}</a>
+                }
+                @if (data.case.status >= '03' && auth.user()?.role === 'cliente') {
+                  <a class="btn btn-ghost" [routerLink]="['/consulta', data.case.id]">Consulta</a>
+                }
+                @if (data.case.appointment_at && auth.user()?.role === 'cliente') {
+                  <a class="btn btn-ghost" [routerLink]="['/reunion-notarial', data.case.id]">Notaría</a>
                 }
               </div>
               <p class="muted">Monto: \${{ data.case.amount_cents / 100 | number:'1.2-2' }} · {{ data.case.paid ? 'Pagado' : 'Sin pago' }}</p>
@@ -61,7 +110,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
               @if (!docs.length) { <p class="muted">Sin documentos cargados.</p> }
               @for (d of docs; track d.id) {
                 <div class="doc-row">
-                  <span>{{ d.doc_type === 'cedula' ? 'Cédula' : 'Partida' }} — {{ d.filename }}</span>
+                  <span>{{ docLabel(d.doc_type) }} — {{ d.filename }}</span>
                   <span class="pill" [class]="d.review_status">{{ reviewLabel(d.review_status) }}</span>
                   @if (d.review_note && d.review_status === 'rejected') {
                     <p class="muted">{{ d.review_note }}</p>
@@ -130,7 +179,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
             }
           </section>
         </div>
-      </div>
+      </app-product-flow-shell>
     }
   `,
   styles: [`
@@ -168,8 +217,20 @@ export class CaseDetailComponent implements OnInit {
   signatures: any[] = [];
   clientMessages: any[] = [];
   stateKeys = ['01','02','03','04','05','06','07','08','09','10'];
+  apptAt = '';
+  apptBusy = false;
+  theme = productThemeFromCase();
 
   constructor(private route: ActivatedRoute, private api: ApiService, public auth: AuthService) {}
+
+  get crumb(): { label: string; link?: string }[] {
+    const site = getProductSite(this.data?.case?.product || '');
+    const base = [{ label: 'LegalStation', link: '/' }];
+    if (site) {
+      return [...base, { label: site.name, link: '/productos/' + site.slug }, { label: 'Expediente #' + this.data.case.id }];
+    }
+    return [...base, { label: 'Expediente #' + (this.data?.case?.id || '') }];
+  }
 
   ngOnInit(): void { this.reload(); }
 
@@ -177,6 +238,7 @@ export class CaseDetailComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.api.getCase(id).subscribe((d) => {
       this.data = d;
+      this.theme = productThemeFromCase(d.case?.product);
       this.clientMessages = d.client_messages || [];
     });
     this.api.listDocs(id).subscribe((d) => this.docs = d);
@@ -188,7 +250,27 @@ export class CaseDetailComponent implements OnInit {
     return this.docs.some((d) => d.review_status === 'rejected');
   }
 
+  get hasSignature(): boolean {
+    return this.data?.case?.has_signature || this.signatures.length > 0;
+  }
+
   reviewLabel(s: string): string {
     return { pending: 'En revisión', approved: 'Aprobado', rejected: 'Rechazado' }[s] || s;
+  }
+
+  docLabel(type: string): string {
+    const labels: Record<string, string> = {
+      cedula: 'Cédula', partida: 'Partida', matricula: 'Matrícula', titulo: 'Título', acuerdo: 'Acuerdo mutuo',
+    };
+    return labels[type] || type;
+  }
+
+  schedule(): void {
+    if (!this.data?.case?.id || !this.apptAt) return;
+    this.apptBusy = true;
+    this.api.scheduleAppointment(this.data.case.id, new Date(this.apptAt).toISOString()).subscribe({
+      next: () => { this.apptBusy = false; this.reload(); },
+      error: () => { this.apptBusy = false; },
+    });
   }
 }

@@ -53,6 +53,28 @@ func NotifyClient(db *store.DB, clientID, caseID int64, kind, title, body string
 	Notify(db, clientID, caseID, kind, title, body)
 }
 
+func NotifyUser(db *store.DB, userID, caseID int64, kind, title, body string) {
+	Notify(db, userID, caseID, kind, title, body)
+}
+
+func NotifyNotaries(db *store.DB, caseID int64, kind, title, body string) {
+	rows, err := db.Query(`SELECT id FROM users WHERE role='notario'`)
+	if err != nil {
+		return
+	}
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if rows.Scan(&id) == nil {
+			ids = append(ids, id)
+		}
+	}
+	_ = rows.Close()
+	for _, id := range ids {
+		Notify(db, id, caseID, kind, title, body)
+	}
+}
+
 func List(w http.ResponseWriter, r *http.Request, db *store.DB) {
 	u := auth.UserFrom(r.Context())
 	rows, err := db.Query(

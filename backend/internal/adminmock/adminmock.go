@@ -175,9 +175,16 @@ func (s *Service) SatjeLinks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) BillingRecurring(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFrom(r.Context())
 	tenant := s.loadTenant()
+	planID, _ := tenant["plan"].(string)
+	tenant["plan_label"] = planLabel(planID)
+	tenant["referral_link"] = "http://localhost:4200/productos/divorcio360?ref=abogado" + strconv.FormatInt(u.ID, 10)
+	tenant["commission_pct"] = 15
+	tenant["platform_pct"] = 85
+	tenant["suggested_client_price_usd"] = 349
 	write(w, map[string]any{
-		"demo": true, "note": "Pasarela recurrente B2B — LegalStation demo",
+		"demo": true, "note": "Licencia LegalStation para bufetes — el cliente final paga honorarios por trámite, no esta suscripción.",
 		"current_tenant": tenant,
 		"plans": defaultPlans(),
 		"invoices": []map[string]any{
@@ -208,7 +215,20 @@ func (s *Service) loadTenant() map[string]any {
 		plan = "b2b-pro"
 		used, limit = 18, 50
 	}
-	return map[string]any{"name": name, "plan": plan, "cases_used": used, "cases_limit": limit}
+	return map[string]any{"name": name, "plan": plan, "plan_label": planLabel(plan), "cases_used": used, "cases_limit": limit}
+}
+
+func planLabel(planID string) string {
+	switch planID {
+	case "b2b-basic":
+		return "Starter"
+	case "b2b-pro":
+		return "Professional"
+	case "b2b-enterprise":
+		return "Enterprise"
+	default:
+		return planID
+	}
 }
 
 func (s *Service) loadMasterTemplates() []map[string]any {

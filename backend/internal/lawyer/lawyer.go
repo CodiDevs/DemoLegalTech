@@ -15,6 +15,7 @@ import (
 	"github.com/codidevs/divorcio360/internal/auth"
 	"github.com/codidevs/divorcio360/internal/cases"
 	"github.com/codidevs/divorcio360/internal/notifications"
+	"github.com/codidevs/divorcio360/internal/products"
 	"github.com/codidevs/divorcio360/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -32,16 +33,18 @@ type ActionDef struct {
 }
 
 type Workspace struct {
-	Case         cases.Case       `json:"case"`
-	Events       []cases.Event    `json:"events"`
-	Notes        []cases.Note     `json:"notes"`
-	Documents    []Document       `json:"documents"`
-	Signatures   []Signature    `json:"signatures"`
-	Outputs      []Output         `json:"outputs"`
-	States       map[string]string `json:"states"`
-	NextActions  []ActionDef      `json:"next_actions"`
-	Blockers     []string         `json:"blockers"`
-	Questionnaire map[string]any  `json:"questionnaire"`
+	Case          cases.Case              `json:"case"`
+	Events        []cases.Event           `json:"events"`
+	Notes         []cases.Note            `json:"notes"`
+	Documents     []Document              `json:"documents"`
+	Signatures    []Signature             `json:"signatures"`
+	Outputs       []Output                `json:"outputs"`
+	States        map[string]string       `json:"states"`
+	NextActions   []ActionDef             `json:"next_actions"`
+	Blockers      []string                `json:"blockers"`
+	Questionnaire map[string]any          `json:"questionnaire"`
+	RequiredDocs  []products.RequiredDoc  `json:"required_docs"`
+	StageHint     string                  `json:"stage_hint"`
 }
 
 type Document struct {
@@ -161,6 +164,10 @@ func (s *Service) GenerateMinuta(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusNotFound, "caso no encontrado")
 		return
 	}
+	if b := s.docBlockers(c, true, false, false); len(b) > 0 {
+		writeJSON(w, http.StatusConflict, map[string]any{"error": "documentos incompletos", "blockers": b})
+		return
+	}
 	var q map[string]any
 	_ = json.Unmarshal([]byte(c.QuestionnaireJSON), &q)
 	data := map[string]any{
@@ -175,6 +182,10 @@ func (s *Service) GenerateMinuta(w http.ResponseWriter, r *http.Request) {
 		"IDsValid":    boolLabel(q, "ids_valid"),
 	}
 	tmplPath := filepath.Join(s.UploadDir, "..", "internal", "lawyer", "templates", "minuta.html")
+	if _, err := os.Stat(tmplPath); err != nil {
+		// Fallback when API cwd is repo root instead of backend/
+		tmplPath = filepath.Join(s.UploadDir, "..", "backend", "internal", "lawyer", "templates", "minuta.html")
+	}
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
 		tmpl = template.Must(template.New("minuta").Parse(minutaFallback))
@@ -192,7 +203,8 @@ func (s *Service) GenerateMinuta(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	now := store.Now()
-	filename := fmt.Sprintf("Minuta_Divorcio360_Caso%d.html", caseID)
+	productLabel := minutaProductLabel(c.Product)
+	filename := fmt.Sprintf("Minuta_%s_Caso%d.html", productLabel, caseID)
 	res, err := s.DB.Exec(
 		`INSERT INTO case_outputs (case_id, output_type, filename, stored_path, generated_by, created_at) VALUES (?,?,?,?,?,?)`,
 		caseID, "minuta", filename, stored, u.ID, now,
@@ -204,8 +216,13 @@ func (s *Service) GenerateMinuta(w http.ResponseWriter, r *http.Request) {
 	outID, _ := res.LastInsertId()
 	_, _ = s.DB.Exec(
 		`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
-		caseID, c.Status, "Minuta de divorcio generada (mock)", u.ID, now,
+		caseID, c.Status, "Minuta generada (mock) — "+productLabel, u.ID, now,
 	)
+	if c.Status == "03" {
+		_ = s.Cases.SetStatus(caseID, "04", "Minuta generada — lista para firma virtual", &u.ID)
+	}
+	notifications.NotifyClient(s.DB, c.ClientID, caseID, "status", "Minuta lista para firmar",
+		"Firma virtual desde tu expediente — sin trámites presenciales.")
 	writeJSON(w, http.StatusCreated, Output{
 		ID: outID, OutputType: "minuta", Filename: filename,
 		URL: "/api/v1/files/" + stored, CreatedAt: now,
@@ -228,8 +245,7 @@ func (s *Service) PerformAction(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusNotFound, "caso no encontrado")
 		return
 	}
-	blockers := s.computeBlockers(c)
-	if b := blockersForAction(body.Action, blockers); len(b) > 0 {
+	if b := blockersForAction(body.Action, c, s); len(b) > 0 {
 		writeJSON(w, http.StatusConflict, map[string]any{"error": "acción bloqueada", "blockers": b})
 		return
 	}
@@ -242,18 +258,43 @@ func (s *Service) PerformAction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		next, note = "04", "Documentos aprobados — minuta en preparación"
-	case "send_for_signature":
-		if c.Status != "04" {
-			writeErr(w, http.StatusBadRequest, "acción solo con documentos preparados")
+	case "notify_client_sign", "send_for_signature":
+		if c.Status != "04" && c.Status != "05" {
+			writeErr(w, http.StatusBadRequest, "acción solo con minuta preparada (estados 04–05)")
 			return
 		}
-		next, note = "05", "Minuta enviada al cliente para firma electrónica"
+		if s.hasSignature(c.ID) {
+			writeJSON(w, http.StatusConflict, map[string]any{
+				"error":    "El cliente ya firmó",
+				"blockers": []string{"Revisa la pestaña Firmas y usa «Confirmar firma recibida»"},
+			})
+			return
+		}
+		now := store.Now()
+		notifications.NotifyClient(s.DB, c.ClientID, caseID, "status", "Tu minuta está lista",
+			"Entra a tu expediente y firma virtualmente — sin filas ni trámites presenciales.")
+		_, _ = s.DB.Exec(
+			`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
+			caseID, c.Status, "Cliente notificado para firma virtual", u.ID, now,
+		)
+		ws, _ := s.buildWorkspace(caseID)
+		writeJSON(w, http.StatusOK, ws)
+		return
 	case "confirm_signature":
 		if c.Status != "05" {
-			writeErr(w, http.StatusBadRequest, "acción solo en estado firmas")
+			writeErr(w, http.StatusBadRequest, "acción solo cuando el cliente ya firmó (estado 05)")
 			return
 		}
-		next, note = "06", "Firma del cliente confirmada — listo para notaría"
+		if !s.hasSignature(c.ID) {
+			writeJSON(w, http.StatusConflict, map[string]any{
+				"error":    "Sin firma del cliente",
+				"blockers": []string{"El cliente debe subir su firma antes de confirmar"},
+			})
+			return
+		}
+		next, note = "06", "Firma del cliente confirmada — listo para notaría virtual"
+		c2, _ := s.Cases.GetCasePublic(caseID)
+		notifications.NotifyNotaries(s.DB, caseID, "notary", "Expediente listo para notaría", "Caso #"+strconv.FormatInt(caseID, 10)+" — "+c2.ClientName)
 	case "register_notary_send":
 		if c.Status != "06" {
 			writeErr(w, http.StatusBadRequest, "acción solo en enviado a notaría")
@@ -265,7 +306,7 @@ func (s *Service) PerformAction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		_, _ = s.DB.Exec(`UPDATE cases SET notary_name=? WHERE id=?`, name, caseID)
-		next, note = "07", "Expediente enviado a notaría: "+name
+		next, note = "07", "Reunión notarial virtual agendada: "+name
 	case "register_appointment":
 		if c.Status != "07" {
 			writeErr(w, http.StatusBadRequest, "acción solo en comparecencia")
@@ -277,7 +318,7 @@ func (s *Service) PerformAction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		_, _ = s.DB.Exec(`UPDATE cases SET appointment_at=? WHERE id=?`, at, caseID)
-		next, note = "08", "Comparecencia registrada: "+at
+		next, note = "08", "Comparecencia virtual registrada: "+at
 	case "register_acta":
 		if c.Status != "08" {
 			writeErr(w, http.StatusBadRequest, "acción solo tras acta pendiente")
@@ -334,55 +375,76 @@ func (s *Service) buildWorkspace(caseID int64) (Workspace, error) {
 	next := s.nextActions(c, blockers)
 	var q map[string]any
 	_ = json.Unmarshal([]byte(c.QuestionnaireJSON), &q)
+	if q == nil {
+		q = map[string]any{}
+	}
 	return Workspace{
 		Case: c, Events: events, Notes: notes, Documents: docs,
 		Signatures: sigs, Outputs: outs, States: cases.StatusLabels,
 		NextActions: next, Blockers: blockers, Questionnaire: q,
+		RequiredDocs: products.RequiredDocs(c.Product),
+		StageHint:    products.StageHint(c.Status, c.Product),
 	}, nil
 }
 
 func (s *Service) computeBlockers(c cases.Case) []string {
+	switch c.Status {
+	case "01", "02", "06", "07", "08", "09", "10":
+		return []string{}
+	case "03":
+		return s.docBlockers(c, true, false, false)
+	case "04":
+		return s.docBlockers(c, false, true, false)
+	case "05":
+		return s.docBlockers(c, false, false, true)
+	default:
+		return []string{}
+	}
+}
+
+func (s *Service) docBlockers(c cases.Case, includeDocs, includeMinuta, includeSignature bool) []string {
+	req := products.DocRequirement(c.Product)
 	var b []string
-	cedula, partida := s.latestDocReview(c.ID, "cedula"), s.latestDocReview(c.ID, "partida")
-	if cedula == "" {
-		b = append(b, "Falta cédula del cliente")
-	} else if cedula != "approved" {
-		b = append(b, "Cédula pendiente de aprobación")
+	if includeDocs {
+		d1 := s.latestDocReview(c.ID, req.Type1)
+		d2 := s.latestDocReview(c.ID, req.Type2)
+		if d1 == "" {
+			b = append(b, "Falta "+req.Label1)
+		} else if d1 != "approved" {
+			b = append(b, req.Label1+" pendiente de aprobación")
+		}
+		if d2 == "" {
+			b = append(b, "Falta "+req.Label2)
+		} else if d2 != "approved" {
+			b = append(b, req.Label2+" pendiente de aprobación")
+		}
 	}
-	if partida == "" {
-		b = append(b, "Falta partida de matrimonio")
-	} else if partida != "approved" {
-		b = append(b, "Partida pendiente de aprobación")
-	}
-	if !s.hasMinuta(c.ID) {
+	if includeMinuta && !s.hasMinuta(c.ID) {
 		b = append(b, "Minuta no generada")
 	}
-	if !s.hasSignature(c.ID) {
+	if includeSignature && !s.hasSignature(c.ID) {
 		b = append(b, "Sin firma del cliente")
+	}
+	if len(b) == 0 {
+		return []string{}
 	}
 	return b
 }
 
-func blockersForAction(action string, all []string) []string {
-	need := map[string][]string{
-		"approve_and_prepare":   {"Falta cédula del cliente", "Falta partida de matrimonio", "Cédula pendiente de aprobación", "Partida pendiente de aprobación"},
-		"send_for_signature":    {"Minuta no generada"},
-		"confirm_signature":     {"Sin firma del cliente"},
-		"register_notary_send":  {},
-		"register_appointment":  {},
-		"register_acta":         {},
-		"register_civil_registry": {},
-	}
-	req := need[action]
-	var out []string
-	for _, b := range all {
-		for _, r := range req {
-			if b == r {
-				out = append(out, b)
-			}
+func blockersForAction(action string, c cases.Case, s *Service) []string {
+	switch action {
+	case "approve_and_prepare":
+		return s.docBlockers(c, true, false, false)
+	case "send_for_signature", "notify_client_sign":
+		if !s.hasMinuta(c.ID) {
+			return []string{"Minuta no generada"}
+		}
+	case "confirm_signature":
+		if !s.hasSignature(c.ID) {
+			return []string{"Sin firma del cliente"}
 		}
 	}
-	return out
+	return nil
 }
 
 func (s *Service) nextActions(c cases.Case, blockers []string) []ActionDef {
@@ -398,14 +460,31 @@ func (s *Service) nextActions(c cases.Case, blockers []string) []ActionDef {
 	}
 	switch c.Status {
 	case "03":
-		return []ActionDef{{ID: "approve_and_prepare", Label: "Aprobar documentos y preparar minuta", Description: "Pasa a Documentos preparados cuando cédula y partida estén aprobados"}}
+		return []ActionDef{{ID: "approve_and_prepare", Label: "Aprobar documentos y preparar minuta", Description: products.ApproveActionDescription(c.Product)}}
 	case "04":
 		if hasBlock("Minuta no generada") {
 			return revertAction(c.Status)
 		}
-		return append(revertAction(c.Status), ActionDef{ID: "send_for_signature", Label: "Enviar a firma del cliente", Description: "Notifica al cliente que puede firmar"})
+		actions := revertAction(c.Status)
+		return append(actions, ActionDef{
+			ID:          "notify_client_sign",
+			Label:       "Notificar al cliente",
+			Description: "Aviso de firma virtual — el cliente también puede firmar solo desde su expediente",
+		})
 	case "05":
-		return append(revertAction(c.Status), ActionDef{ID: "confirm_signature", Label: "Confirmar firma recibida", Description: "Valida firma y envía a notaría"})
+		actions := revertAction(c.Status)
+		if !s.hasSignature(c.ID) {
+			return append(actions, ActionDef{
+				ID:          "notify_client_sign",
+				Label:       "Notificar al cliente",
+				Description: "Aún sin firma — reenvía el aviso para firma virtual",
+			})
+		}
+		return append(actions, ActionDef{
+			ID:          "confirm_signature",
+			Label:       "Confirmar firma recibida",
+			Description: "Revisa la firma en la pestaña Firmas y valida para continuar a notaría virtual",
+		})
 	case "06":
 		return append(revertAction(c.Status), ActionDef{ID: "register_notary_send", Label: "Registrar envío a notaría", Description: "Indica notaría seleccionada"})
 	case "07":
@@ -513,6 +592,17 @@ func (s *Service) listOutputs(caseID int64) ([]Output, error) {
 		out = append(out, o)
 	}
 	return out, nil
+}
+
+func minutaProductLabel(product string) string {
+	switch product {
+	case "traslado360":
+		return "Traslado360"
+	case "bienraiz360":
+		return "BienRaiz360"
+	default:
+		return "Divorcio360"
+	}
 }
 
 func boolLabel(q map[string]any, key string) string {

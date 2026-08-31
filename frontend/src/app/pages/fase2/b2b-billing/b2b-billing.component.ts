@@ -8,20 +8,27 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
   standalone: true,
   imports: [DataTableComponent, StatusBadgeComponent],
   template: `
-    <h1>Pagos recurrentes B2B</h1>
-    <p class="muted">{{ data?.note || 'Pasarela recurrente para bufetes.' }}</p>
+    <h1>Licencia LegalStation para bufetes</h1>
+    <p class="muted">{{ data?.note }}</p>
 
     @if (data?.current_tenant) {
-      <div class="panel fase2-preview-card tenant">
+      <div class="panel fase2-preview-card tenant lp-lift">
         <div>
           <h2>{{ data.current_tenant.name }}</h2>
-          <p class="muted">Plan actual: {{ data.current_tenant.plan }}</p>
+          <p class="muted">Plan actual: <strong>{{ data.current_tenant.plan_label || data.current_tenant.plan }}</strong></p>
+          <p class="muted">Comisión demo: {{ data.current_tenant.commission_pct }}% abogado · {{ data.current_tenant.platform_pct }}% plataforma</p>
         </div>
         <div class="usage">
           <strong>{{ data.current_tenant.cases_used }} / {{ data.current_tenant.cases_limit }}</strong>
           <span class="muted">casos este mes</span>
           <div class="bar"><span [style.width.%]="usagePct"></span></div>
         </div>
+      </div>
+      <div class="panel fase2-preview-card link-card lp-lift">
+        <h2>Tu link para clientes</h2>
+        <p class="muted">Comparte este enlace — el cliente paga honorarios por trámite (pago único), no la licencia SaaS.</p>
+        <code class="ref-link">{{ data.current_tenant.referral_link }}</code>
+        <p class="muted">Precio sugerido al cliente: \${{ data.current_tenant.suggested_client_price_usd }} por trámite Divorcio360.</p>
       </div>
     }
 
@@ -84,6 +91,8 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
       display: grid; place-items: center; z-index: 50; padding: 1rem;
     }
     .modal { max-width: 420px; width: 100%; }
+    .ref-link { display: block; padding: 0.75rem; background: var(--line); border-radius: 8px; word-break: break-all; font-size: 0.85rem; margin: 0.75rem 0; }
+    .link-card { margin-top: 1rem; }
     @media (max-width: 900px) { .plans { grid-template-columns: 1fr; } }
   `]
 })

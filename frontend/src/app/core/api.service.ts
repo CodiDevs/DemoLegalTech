@@ -42,6 +42,14 @@ export interface CaseItem {
   client_email?: string;
   days_in_status?: number;
   sla_warning?: boolean;
+  product?: string;
+  notary_name?: string;
+  appointment_at?: string;
+  consultation_at?: string;
+  has_minuta?: boolean;
+  has_signature?: boolean;
+  can_sign?: boolean;
+  sign_hint?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -52,8 +60,8 @@ export class ApiService {
     return this.http.post<QuestionnaireResult>('/api/v1/questionnaire', answers);
   }
 
-  createCase(result: string, city: string, questionnaire?: QuestionnaireAnswers): Observable<CaseItem> {
-    return this.http.post<CaseItem>('/api/v1/cases', { result, city, questionnaire: questionnaire || {} });
+  createCase(result: string, city: string, questionnaire?: QuestionnaireAnswers | Record<string, unknown>, product = 'divorcio360'): Observable<CaseItem> {
+    return this.http.post<CaseItem>('/api/v1/cases', { result, city, questionnaire: questionnaire || {}, product });
   }
 
   listCases(): Observable<CaseItem[]> {
@@ -154,5 +162,21 @@ export class ApiService {
 
   mockBilling(): Observable<any> {
     return this.http.get('/api/v1/mock/billing/recurring');
+  }
+
+  scheduleAppointment(caseId: number, appointmentAt: string, notaryName = ''): Observable<any> {
+    return this.http.post(`/api/v1/cases/${caseId}/appointment`, { appointment_at: appointmentAt, notary_name: notaryName });
+  }
+
+  completeConsultation(caseId: number): Observable<any> {
+    return this.http.post(`/api/v1/cases/${caseId}/consultation`, {});
+  }
+
+  notaryAction(caseId: number, action: string): Observable<any> {
+    return this.http.post(`/api/v1/notary/cases/${caseId}/actions`, { action });
+  }
+
+  notaryQueue(): Observable<any[]> {
+    return this.http.get<any[]>('/api/v1/notary/queue');
   }
 }

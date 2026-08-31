@@ -115,6 +115,7 @@ export class AuthComponent {
   qResult = 'apto';
   city = '';
   returnUrl = '/';
+  product = 'divorcio360';
   isDivorcioContext = false;
 
   constructor(
@@ -128,6 +129,7 @@ export class AuthComponent {
       this.qResult = q.get('result') || 'apto';
       this.city = q.get('city') || '';
       this.returnUrl = q.get('returnUrl') || '/';
+      this.product = q.get('product') || 'divorcio360';
       this.isDivorcioContext = this.next === 'checkout' || q.get('product') === 'divorcio360';
       const mode = q.get('mode');
       if (mode === 'login') {
@@ -203,7 +205,7 @@ export class AuthComponent {
           questionnaire = p.answers || {};
         } catch { /* ignore */ }
       }
-      this.api.createCase(result, city, questionnaire).subscribe({
+      this.api.createCase(result, city, questionnaire, this.product).subscribe({
         next: (c) => void this.router.navigate(['/checkout', c.id]),
         error: () => void this.router.navigateByUrl('/cliente'),
       });
@@ -216,6 +218,9 @@ export class AuthComponent {
       return;
     }
 
-    void this.router.navigateByUrl(role === 'abogado' ? '/abogado' : '/', { replaceUrl: true });
+    void this.router.navigateByUrl(
+      role === 'abogado' ? '/abogado' : role === 'notario' ? '/notario' : '/',
+      { replaceUrl: true },
+    );
   }
 }

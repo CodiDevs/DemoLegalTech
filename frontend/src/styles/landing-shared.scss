@@ -38,6 +38,35 @@
     padding: 0 1.5rem;
   }
 
+  .lp-crumb {
+    padding-top: 1rem;
+    font-size: 0.88rem;
+    color: var(--lp-ink-muted);
+  }
+
+  .lp-crumb a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .lp-crumb a:hover { color: var(--lp-accent); }
+
+  .lp-slogan-band {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.7rem 0;
+    background: var(--lp-accent-soft);
+    color: var(--lp-accent-deep);
+  }
+
+  .lp-slogan-band .lp-shell {
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--lp-accent-deep);
+    line-height: 1.4;
+  }
+
   .lp-eyebrow {
     display: inline-block;
     font-size: 0.78rem;

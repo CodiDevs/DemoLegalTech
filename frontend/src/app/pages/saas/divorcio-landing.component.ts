@@ -14,6 +14,10 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
     <div class="landing-page divorcio-landing">
       <p class="lp-shell lp-crumb"><a routerLink="/">LegalStation</a> › Divorcio360</p>
 
+      <div class="lp-slogan-band">
+        <p class="lp-shell">Servicios jurídicos al mismo costo, sin filas ni trámites.</p>
+      </div>
+
       <app-hero-scroll-video-pin-reveal />
 
       <section class="lp-tools-band">
@@ -99,8 +103,9 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
       <section class="lp-section soft" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Precios orientativos</p>
-            <h2>Honorarios claros <span class="lp-highlight">según calificación.</span></h2>
+            <p class="lp-eyebrow">Pago por trámite</p>
+            <h2>Honorarios claros <span class="lp-highlight">sin suscripción.</span></h2>
+            <p>Un solo pago por caso — no hay membresía mensual para el cliente final.</p>
           </div>
           <div class="lp-pricing">
             @for (plan of plans; track plan.name) {
@@ -143,19 +148,6 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
       --lp-bg-soft: #eef8f6;
     }
 
-    .lp-crumb {
-      padding-top: 1rem;
-      font-size: 0.88rem;
-      color: var(--lp-ink-muted);
-    }
-
-    .lp-crumb a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .lp-crumb a:hover { color: var(--lp-accent); }
-
     .lp-muted { color: var(--lp-ink-muted); font-size: 0.9rem; margin: 0; }
 
     .lp-tools-band {
@@ -192,10 +184,11 @@ export class DivorcioLandingComponent {
 
   workflow = [
     { n: 1, title: 'Calificar', desc: '12–15 preguntas con resultado verde, amarillo o rojo.' },
-    { n: 2, title: 'Pagar', desc: 'Honorarios mock tras aptitud notarial.' },
+    { n: 2, title: 'Pagar', desc: 'Honorarios mock tras aptitud notarial — pago único, sin suscripción.' },
     { n: 3, title: 'Cargar', desc: 'Cédula y partida con revisión del operador.' },
-    { n: 4, title: 'Firmar', desc: 'Minuta generada y firma con evidencia IP.' },
-    { n: 5, title: 'Cerrar', desc: 'Notaría, registro y expediente finalizado.' },
+    { n: 4, title: 'Consultar', desc: 'Videollamada mock con tu abogado para revisar el expediente.' },
+    { n: 5, title: 'Firmar', desc: 'Minuta generada y firma con evidencia IP.' },
+    { n: 6, title: 'Notaría', desc: 'Reunión notarial virtual y cierre del expediente.' },
   ];
 
   values = [

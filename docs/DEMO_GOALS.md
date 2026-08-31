@@ -14,6 +14,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Panel abogado creíble | `/abogado` filtros → `/abogado/caso/1` revisar docs, minuta, acciones | 2026-08-29 |
 | done | Fase 2 pulida + UX por rol | Abogado sin cuestionario; Fase 2 shell rico; bandeja/workspace pro; cuestionario onboarding | 2026-08-29 |
 | done | LegalStation UI Talking Tree + hero scroll | `/` hero SVG scroll, header 3 cols, carrusel, español | 2026-08-29 |
+| done | Demo audio: por uso + 3 roles + productos lite | Walkthrough 12 min — licencia bufete, Traslado360/BienRaiz360, notario, UI unificada | 2026-08-30 |
+| done | Audio gaps: slogan + sitios producto + reuniones | Walkthrough 15 min — Traslado360/BienRaiz360 completos, consulta/notaría mock | 2026-08-30 |
+| done | Firma virtual + flujo operador | notify sin cambio estado; confirm solo con firma en 05; can_sign autónomo cliente | 2026-08-30 |
+| done | Flujo documental multi-producto | Traslado360 carro: upload matrícula+acuerdo → abogado aprueba → minuta → firma; blockers por etapa | 2026-08-30 |
+| done | Upload documentos UX | Checklist + dropzone por producto; reemplazar sin borrar; abogado ve solo última versión | 2026-08-30 |
 
 ## Entries
 
@@ -74,3 +79,61 @@ Workspace abogado con revisión docs (aprobar/rechazar), generación minuta HTML
 - Divorcio360: hero roadmap (hero-section-5), galería elástica, statistics cards; auth contextual solo post-cuestionario.
 - Cómo demo: LegalStation → Ingresar (cliente@demo.ec / demo1234) → volver a `/` logueado → Divorcio360 → mismo login.
 - Regla: `.cursor/rules/frontend-design-angular.mdc`.
+
+### 2026-08-30 — Demo audio (por uso, 3 roles, productos lite, UI unificada)
+- **Pricing story:** LegalStation `#precios` = licencia bufete ($/mes); Divorcio360 = honorario único sin suscripción.
+- **B2B:** `/fase2/billing` — link cliente, comisión 15% demo, plan con nombre humano.
+- **Productos live:** Traslado360 (`/productos/traslado360` → `/intake/traslado360`) y BienRaiz360 — pago único mock.
+- **Rol notario:** `notario@demo.ec` → `/notario` — aprueba docs, comparecencia, acta.
+- **Cliente:** agendar reunión notarial en expediente; checkout con recibo; upload dropzone; firma con preview minuta.
+- **UI:** `ProductFlowShell` + `product-flow.scss` — mismo look landing → flujo demo.
+
+**Demo 12 min:**
+1. `/` LegalStation — licencia bufete (no suscripción cliente) → catálogo con 3 productos live.
+2. Divorcio360 → cuestionario → pago único → docs → firma → agendar notaría.
+3. Abogado → caso #1 → minuta/firma → Fase 2 billing (link + comisión).
+4. Notario → bandeja → aprobar/comparecencia/acta.
+5. Traslado360 lite — intake → pago → docs.
+
+**Reset DB:** borrar `backend/data/divorcio360.db` y reiniciar API (migración rol `notario`).
+
+### 2026-08-30 — Audio gaps: slogan, sitios producto completos, reuniones virtuales
+- **Slogan canónico:** *Servicios jurídicos al mismo costo, sin filas ni trámites* — LegalStation hero, Divorcio360 hero band, shell footer, flujos producto.
+- **Membresía:** cliente = pago único por trámite; bufete = licencia mensual en `#precios` LegalStation y Fase 2 B2B.
+- **Reuniones mock:** `/consulta/:caseId` (abogado) y `/reunion-notarial/:caseId` (notario) — videollamada simulada + chat; CTAs en expediente, upload y post-firma.
+- **Traslado360 / BienRaiz360 sitios completos:** `/productos/{slug}` marketing (hero mock UI, timeline, stats, galería, precios) → `/productos/{slug}/cuestionario` (wizard 5–8 preguntas + sidebar expediente) → checkout → docs → consulta → firma → notaría.
+- **Plataforma UI:** `ProductSiteShell`, `product-sites.data.ts`, `ProductLandingComponent`, `ProductQuestionnaireComponent`; rutas `/intake/*` redirigen a cuestionario.
+- **Backend:** `consultation_at` + `POST /cases/{id}/consultation`; doc types `matricula`/`titulo`/`acuerdo` por producto.
+
+**Demo 15 min:**
+1. `/` — slogan completo + licencia bufete vs pago único cliente.
+2. **Traslado360** sitio completo → cuestionario → registro → pago $199 → docs → consulta virtual → firma → agendar/entrar reunión notarial.
+3. **Divorcio360** — mismo flujo con consulta + notaría visible en expediente.
+4. Abogado + notario en paralelo (caso seed / nuevo caso producto).
+
+**Reset DB:** borrar `backend/data/divorcio360.db` y reiniciar API (columna `consultation_at`).
+
+### 2026-08-30 — Firma virtual + panel operador (bugs demo)
+- **`notify_client_sign`:** «Notificar al cliente» — solo aviso, **no cambia estado** (sigue en 04).
+- **`confirm_signature`:** solo en **05** y solo si hay fila en `signatures` — revisar tab Firmas antes de confirmar.
+- **Cliente autónomo:** flags API `can_sign`, `has_minuta`, `has_signature`, `sign_hint`; CTAs en `/cliente`, expediente, upload, firma.
+- **Al firmar:** reemplaza firma anterior (mock); avanza caso a **05**.
+- **Fix pantalla blanca abogado:** `blockers: null` en JSON → normalizar arrays + loading/error en `lawyer-case`.
+- **Productos:** gates abogado por `matricula`/`acuerdo`/`titulo`; minuta `Minuta_{Producto}_CasoN.html`.
+
+**Demo firma (5 min):**
+1. Abogado genera minuta → estado 04.
+2. Cliente firma solo desde `/cliente` (sin notificación).
+3. Abogado ve estado 05 + imagen en Firmas → confirmar → notaría virtual.
+
+Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
+
+### 2026-08-30 — Flujo documental multi-producto alineado
+- **`internal/products`:** fuente única de docs requeridos (divorcio360 / traslado360 / bienraiz360).
+- **Blockers por etapa:** estado 03 = solo docs; 04 = minuta; 05 = firma; sin mezclar pendientes futuros.
+- **Gates:** `GenerateMinuta` y firma cliente exigen docs aprobados; no saltar revisión.
+- **Producto en casos:** `ResolveProduct` desde body o `questionnaire.product`; auth pasa `product` al crear caso.
+- **Workspace abogado:** `required_docs`, `stage_hint`, panel «Pendientes en esta etapa».
+- **Demo Traslado360 (carro):** `/productos/traslado360/cuestionario` → pago $199 → upload matrícula + acuerdo → abogado `/abogado/caso/:id` aprueba → minuta → cliente firma → confirmar.
+- **Reset DB:** borrar `backend/data/divorcio360.db` y reiniciar API (seed caso #1 divorcio en 03).
+- **Verificación:** `backend/scripts/verify-flow.ps1` con API en `:8080`.

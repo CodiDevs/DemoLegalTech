@@ -1,74 +1,256 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
+import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
+import { ProgressStep } from '../../shared/progress-steps.component';
+import { getProductFlowMeta, productThemeFromCase } from '../../shared/product-sites.data';
+
+interface DocRow {
+  id: number;
+  doc_type: string;
+  filename: string;
+  review_status?: string;
+  review_note?: string;
+  url?: string;
+}
 
 @Component({
   selector: 'app-upload',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ProductFlowShellComponent],
   template: `
-    <div class="shell wrap">
-      <h1>Documentos del trámite</h1>
-      <p class="muted">Sube cédula y partida de matrimonio (PDF o imagen). Caso #{{ caseId }}</p>
-      <div class="grid">
-        <div class="panel">
-          <h2>Cédula</h2>
-          <input type="file" accept=".pdf,image/*" (change)="onFile($event, 'cedula')" />
-          @if (msg['cedula']) { <p class="ok">{{ msg['cedula'] }}</p> }
+    <app-product-flow-shell
+      [theme]="theme"
+      [crumb]="crumb"
+      eyebrow="Carga documental"
+      title="Documentos del trámite"
+      subtitle="Sube los archivos requeridos. Puedes reemplazar cualquier documento cuando quieras — no necesitas borrar el anterior."
+      [steps]="flowSteps"
+      [activeStep]="docsStepIndex"
+    >
+      @if (hasRejected) {
+        <div class="up-banner">
+          Un documento fue rechazado por el abogado. Sube una versión corregida en el recuadro correspondiente.
         </div>
-        <div class="panel">
-          <h2>Partida de matrimonio</h2>
-          <input type="file" accept=".pdf,image/*" (change)="onFile($event, 'partida')" />
-          @if (msg['partida']) { <p class="ok">{{ msg['partida'] }}</p> }
-        </div>
-      </div>
-      @if (error) { <p class="err">{{ error }}</p> }
-      <div class="actions">
-        <a class="btn btn-ghost" [routerLink]="['/caso', caseId]">Ver expediente</a>
-        <a class="btn btn-primary" [routerLink]="['/firma', caseId]">Ir a firma</a>
-      </div>
-      @if (docs.length) {
-        <ul class="docs">
-          @for (d of docs; track d.id) {
-            <li>{{ d.doc_type }} — {{ d.filename }}</li>
-          }
-        </ul>
       }
-    </div>
+
+      <div class="up-layout">
+        <aside class="up-side lp-lift">
+          <h3>Tu checklist</h3>
+          <p class="pf-muted">Solo necesitas <strong>{{ slots.length }} documentos</strong> para continuar.</p>
+          <ul class="up-checklist">
+            @for (slot of slots; track slot.type) {
+              <li [class.done]="slotUploaded(slot.type)">
+                <span class="up-check-icon">{{ slotUploaded(slot.type) ? '✓' : '' }}</span>
+                <span>{{ slot.label }}</span>
+              </li>
+            }
+          </ul>
+          <div class="up-progress">
+            <div class="up-progress-bar" [style.width.%]="progressPct"></div>
+          </div>
+          <p class="pf-muted">{{ uploadedCount }}/{{ slots.length }} cargados</p>
+          <p class="pf-muted" style="margin-top:1rem;font-size:0.82rem">
+            Formatos: PDF, JPG, PNG · máx. 10 MB
+          </p>
+        </aside>
+
+        <div class="up-slots">
+          @for (slot of slots; track slot.type) {
+            <div class="pf-card lp-lift up-slot">
+              <div class="up-slot-head">
+                <h2>{{ slot.label }}</h2>
+                <span class="up-slot-badge" [class]="slotBadgeClass(slot.type)">{{ slotBadgeLabel(slot.type) }}</span>
+              </div>
+
+              @if (latestDoc(slot.type); as doc) {
+                <div class="up-file-row">
+                  <span class="pf-muted" style="overflow:hidden;text-overflow:ellipsis">
+                    <strong>Archivo actual:</strong> {{ doc.filename }}
+                  </span>
+                  @if (doc.url) {
+                    <a [href]="doc.url" target="_blank" rel="noopener">Ver</a>
+                  }
+                </div>
+              }
+
+              <label class="up-dropzone"
+                [class.drag]="drag === slot.type"
+                [class.busy]="uploading === slot.type"
+                (dragover)="onDragOver($event, slot.type)"
+                (dragleave)="onDragLeave($event, slot.type)"
+                (drop)="onDrop($event, slot.type)">
+                <input type="file" accept=".pdf,image/*" (change)="onFile($event, slot.type)" />
+                <div class="up-drop-icon">↑</div>
+                <p style="margin:0;font-weight:600">
+                  {{ latestDoc(slot.type) ? 'Arrastra para reemplazar' : 'Arrastra o haz clic para subir' }}
+                </p>
+                <p class="pf-muted" style="margin:0.35rem 0 0;font-size:0.85rem">
+                  {{ uploading === slot.type ? 'Subiendo…' : 'El archivo anterior queda en historial; el abogado revisa el más reciente.' }}
+                </p>
+              </label>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (error) { <p class="pf-err" style="margin-top:1rem">{{ error }}</p> }
+
+      <div class="up-footer">
+        <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Ver expediente</a>
+        @if (canContinue) {
+          <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', caseId]">Consulta con abogado</a>
+        } @else {
+          <span class="pf-muted">Completa los {{ slots.length }} documentos para continuar.</span>
+        }
+        @if (canSign) {
+          <a class="lp-btn lp-btn-primary" [routerLink]="['/firma', caseId]">{{ hasSignature ? 'Volver a firmar' : 'Firmar minuta' }}</a>
+        } @else if (signHint) {
+          <span class="pf-muted">{{ signHint }}</span>
+        }
+      </div>
+    </app-product-flow-shell>
   `,
-  styles: [`
-    .wrap { padding-block: 2.5rem; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0; }
-    .ok { color: var(--ok); font-weight: 600; } .err { color: var(--bad); }
-    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-    .docs { margin-top: 1.5rem; color: var(--ink-soft); }
-    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
-  `]
 })
 export class UploadComponent implements OnInit {
   caseId = 0;
-  docs: any[] = [];
-  msg: Record<string, string> = {};
+  product = 'divorcio360';
+  productName = 'Divorcio360';
+  docs: DocRow[] = [];
   error = '';
+  drag = '';
+  uploading = '';
+  theme = productThemeFromCase();
+  canSign = false;
+  hasSignature = false;
+  signHint = '';
+  flowSteps: ProgressStep[] = [];
+  docsStepIndex = 2;
+  crumb: { label: string; link?: string }[] = [{ label: 'LegalStation', link: '/' }, { label: 'Documentos' }];
+
+  slots = [
+    { type: 'cedula', label: 'Cédula de identidad' },
+    { type: 'partida', label: 'Partida de matrimonio' },
+  ];
 
   constructor(private route: ActivatedRoute, private api: ApiService) {}
 
   ngOnInit(): void {
     this.caseId = Number(this.route.snapshot.paramMap.get('id'));
+    this.api.getCase(this.caseId).subscribe((d) => {
+      this.product = d.case?.product || 'divorcio360';
+      this.theme = productThemeFromCase(this.product);
+      this.canSign = !!d.case?.can_sign;
+      this.hasSignature = !!d.case?.has_signature;
+      this.signHint = d.case?.sign_hint || '';
+      const meta = getProductFlowMeta(this.product);
+      this.slots = meta.docTypes.map((dt) => ({ type: dt.type, label: dt.label }));
+      this.flowSteps = meta.flowSteps;
+      this.productName = meta.name;
+      this.docsStepIndex = Math.max(0, meta.flowSteps.findIndex((s) => s.id === 'docs'));
+      this.crumb = [
+        { label: 'LegalStation', link: '/' },
+        ...(meta.productHome ? [{ label: meta.name, link: meta.productHome }] : []),
+        { label: 'Documentos' },
+      ];
+    });
     this.reload();
+  }
+
+  get uploadedCount(): number {
+    return this.slots.filter((s) => this.slotUploaded(s.type)).length;
+  }
+
+  get progressPct(): number {
+    if (!this.slots.length) return 0;
+    return Math.round((this.uploadedCount / this.slots.length) * 100);
+  }
+
+  get canContinue(): boolean {
+    return this.slots.every((s) => this.slotUploaded(s.type));
+  }
+
+  get hasRejected(): boolean {
+    return this.slots.some((s) => this.latestDoc(s.type)?.review_status === 'rejected');
+  }
+
+  slotUploaded(type: string): boolean {
+    return this.docs.some((d) => d.doc_type === type);
+  }
+
+  latestDoc(type: string): DocRow | undefined {
+    const matches = this.docs.filter((d) => d.doc_type === type);
+    if (!matches.length) return undefined;
+    return matches.reduce((a, b) => (a.id > b.id ? a : b));
+  }
+
+  slotBadgeLabel(type: string): string {
+    const doc = this.latestDoc(type);
+    if (!doc) return 'Pendiente';
+    switch (doc.review_status) {
+      case 'approved': return 'Aprobado';
+      case 'rejected': return 'Rechazado';
+      default: return 'En revisión';
+    }
+  }
+
+  slotBadgeClass(type: string): string {
+    const doc = this.latestDoc(type);
+    if (!doc) return '';
+    switch (doc.review_status) {
+      case 'approved': return 'ok';
+      case 'rejected': return 'err';
+      default: return 'warn';
+    }
   }
 
   onFile(ev: Event, docType: string): void {
     const input = ev.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (file) this.uploadFile(file, docType);
+    input.value = '';
+  }
+
+  onDragOver(e: DragEvent, docType: string): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.drag = docType;
+  }
+
+  onDragLeave(e: DragEvent, docType: string): void {
+    e.preventDefault();
+    if (this.drag === docType) this.drag = '';
+  }
+
+  onDrop(e: DragEvent, docType: string): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.drag = '';
+    const file = e.dataTransfer?.files?.[0];
+    if (file) this.uploadFile(file, docType);
+  }
+
+  private uploadFile(file: File, docType: string): void {
     this.error = '';
+    this.uploading = docType;
     this.api.uploadDoc(this.caseId, docType, file).subscribe({
       next: () => {
-        this.msg[docType] = 'Cargado';
+        this.uploading = '';
         this.reload();
+        this.refreshSigning();
       },
-      error: (e) => this.error = e?.error?.error || 'Error al subir',
+      error: (e) => {
+        this.uploading = '';
+        this.error = e?.error?.error || 'Error al subir';
+      },
+    });
+  }
+
+  private refreshSigning(): void {
+    this.api.getCase(this.caseId).subscribe((d) => {
+      this.canSign = !!d.case?.can_sign;
+      this.hasSignature = !!d.case?.has_signature;
+      this.signHint = d.case?.sign_hint || '';
     });
   }
 

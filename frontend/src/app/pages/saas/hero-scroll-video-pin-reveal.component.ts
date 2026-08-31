@@ -27,7 +27,7 @@ export interface HeroTagItem {
     <div class="hsvr-root" #root>
       <section class="hsvr-intro">
         <p class="hsvr-intro-eyebrow">Divorcio360 · by LegalStation</p>
-        <p class="hsvr-intro-line">Un trámite notarial claro, trazable y sin fricción.</p>
+        <p class="hsvr-intro-line">Al mismo costo que presencial — sin filas ni trámites.</p>
       </section>
 
       <section class="hsvr-benefit" #benefitRef>
@@ -378,7 +378,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
     returnUrl: '/productos/divorcio360',
   };
   @Input() subText =
-    'Calificación inteligente, expediente trazable y firma — sin fricción para firmas y clientes.';
+    'Servicios jurídicos al mismo costo, sin filas ni trámites — cuestionario, expediente, consulta y firma en un solo flujo.';
 
   @ViewChild('root') rootRef?: ElementRef<HTMLElement>;
   @ViewChild('benefitRef') benefitRef?: ElementRef<HTMLElement>;

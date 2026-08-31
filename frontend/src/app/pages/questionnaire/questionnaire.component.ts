@@ -39,9 +39,10 @@ const Q_LABELS: Record<string, string> = {
   selector: 'app-questionnaire',
   standalone: true,
   imports: [FormsModule, RouterLink, ProgressStepsComponent],
+  styleUrls: ['../../../styles/landing-shared.scss', '../../../styles/product-flow.scss'],
   template: `
-    <div class="q-layout">
-      <div class="shell wrap">
+    <div class="landing-page product-flow theme-divorcio">
+      <div class="lp-shell wrap">
         @if (!result && !reviewMode) {
           <app-progress-steps [steps]="groups" [activeIndex]="activeGroup" />
           <p class="legal muted">Evaluación orientativa — no constituye asesoría legal.</p>
@@ -122,10 +123,6 @@ const Q_LABELS: Record<string, string> = {
     </div>
   `,
   styles: [`
-    .q-layout {
-      min-height: calc(100vh - 8rem);
-      background: linear-gradient(180deg, oklch(0.98 0.015 190), var(--paper));
-    }
     .wrap { padding-block: 2rem 3rem; max-width: 640px; }
     .legal { font-size: 0.82rem; margin-bottom: 1rem; }
     .q-card { text-align: center; padding: 2rem 1.5rem; animation: rise 0.45s ease both; }
