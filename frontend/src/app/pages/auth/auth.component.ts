@@ -13,7 +13,7 @@ import { ApiService } from '../../core/api.service';
       <div class="shell wrap">
         <div class="panel">
           @if (isDivorcioContext) {
-            <p class="by-line muted">Divorcio360 · by LegalStation</p>
+            <p class="by-line muted">Divorcio360 · por LegalStation</p>
           } @else {
             <a routerLink="/" class="ls-link">LegalStation</a>
           }

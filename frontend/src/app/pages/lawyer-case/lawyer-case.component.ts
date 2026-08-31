@@ -67,7 +67,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
             @if (ws.stage_hint) { <p class="muted flow-hint">{{ ws.stage_hint }}</p> }
             <ul>@for (b of ws.blockers; track b) { <li>{{ b }}</li> }</ul>
             @if (ws.case.status === '03') {
-              <p class="muted flow-hint">Orden: 1) Aprobar documentos → 2) Aprobar y preparar minuta → 3) Generar minuta → 4) Cliente firma → 5) Confirmar firma.</p>
+              <p class="muted flow-hint">Orden: 1) Ver y aprobar cada documento → 2) Subir minuta del notario → 3) Cliente sube documento firmado → 4) Confirmar firma.</p>
             }
           </div>
         }
@@ -121,9 +121,12 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                       </div>
                     </div>
                     <div class="doc-actions">
-                      <a class="btn btn-ghost" [href]="d.url" target="_blank">Ver</a>
+                      <a class="btn btn-ghost" [href]="d.url" target="_blank" (click)="markDocViewed(d.id)">Ver</a>
                       @if (d.review_status === 'pending') {
-                      <button type="button" class="btn btn-primary" (click)="confirmReview(d.id, 'approved')">Aprobar</button>
+                      <button type="button" class="btn btn-primary"
+                        [disabled]="!isDocViewed(d.id)"
+                        [title]="!isDocViewed(d.id) ? 'Debes abrir el documento antes de aprobar' : ''"
+                        (click)="confirmReview(d.id, 'approved')">Aprobar</button>
                       <button type="button" class="btn btn-ghost" (click)="rejectDoc(d)">Rechazar</button>
                       }
                     </div>
@@ -137,44 +140,49 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
               <div class="panel">
                 <h2>Minuta del trámite</h2>
                 @if (ws.case.status === '02') {
-                  <p class="muted">El cliente aún debe cargar documentos. Cuando estén en revisión (estado 03), podrás generar la minuta.</p>
+                  <p class="muted">El cliente aún debe cargar documentos. Cuando estén en revisión (estado 03), podrás subir la minuta del notario.</p>
                 } @else if (ws.case.status === '03' && hasPendingDocs) {
-                  <p class="muted">Aprueba primero los documentos en la pestaña <strong>Documentos</strong>. Luego usa «Aprobar documentos y preparar minuta» en el panel derecho. Ya puedes generar la minuta mock aquí abajo.</p>
+                  <p class="muted">Aprueba primero los documentos en la pestaña <strong>Documentos</strong>. Al aprobar el último, el expediente pasará automáticamente a estado 04.</p>
                 }
                 @if (ws.outputs.length) {
                   @for (o of ws.outputs; track o.id) {
                     <p><a [href]="o.url" target="_blank">{{ o.filename }}</a> · {{ o.created_at | date:'short' }}</p>
                   }
                 } @else {
-                  <p class="muted">Minuta no generada.</p>
+                  <p class="muted">Minuta del notario no cargada.</p>
                 }
                 @if (minutaOk) { <p class="ok">{{ minutaOk }}</p> }
                 @if (minutaError) { <p class="err">{{ minutaError }}</p> }
-                @if (canGenerateMinuta) {
-                  <button type="button" class="btn btn-accent" (click)="confirmGenMinuta()" [disabled]="minutaBusy">
-                    {{ minutaBusy ? 'Generando…' : 'Generar minuta (mock)' }}
-                  </button>
+                @if (canUploadMinuta) {
+                  <label class="minuta-drop">
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onMinutaFile($event)" [disabled]="minutaBusy" hidden />
+                    <span>{{ minutaBusy ? 'Subiendo…' : 'Subir minuta del notario (PDF)' }}</span>
+                  </label>
                 } @else if (ws.case.status !== '02') {
-                  <p class="muted">Generación disponible en revisión jurídica (03) o documentos preparados (04).</p>
+                  <p class="muted">Subida disponible en revisión jurídica (03) o documentos preparados (04), con todos los documentos aprobados.</p>
                 }
               </div>
             }
 
             @if (tab === 'firmas') {
               <div class="panel">
-                <h2>Firmas del cliente</h2>
+                <h2>Documentos firmados del cliente</h2>
                 @if (ws.signatures.length) {
-                  <p class="muted">Revisa la firma subida antes de confirmar en el panel derecho (estado 05).</p>
+                  <p class="muted">Revisa el documento subido antes de confirmar en el panel derecho (estado 05).</p>
                   @for (s of ws.signatures; track s.id) {
                     <div class="sig">
-                      <img [src]="s.image_url" alt="firma del cliente" />
+                      @if (isPdfSig(s.image_url)) {
+                        <a class="btn btn-ghost" [href]="s.image_url" target="_blank">Ver documento firmado</a>
+                      } @else {
+                        <img [src]="s.image_url" alt="documento firmado del cliente" />
+                      }
                       <p class="muted">IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
                     </div>
                   }
                 } @else if (ws.case.status === '04' || ws.case.status === '05') {
-                  <p class="muted">Sin firma aún. El cliente puede firmar virtualmente desde su expediente; opcionalmente usa «Notificar al cliente».</p>
+                  <p class="muted">Sin documento firmado aún. El cliente puede subirlo desde su expediente; opcionalmente usa «Notificar al cliente».</p>
                 } @else {
-                  <p class="muted">Sin firmas aún.</p>
+                  <p class="muted">Sin documentos firmados aún.</p>
                 }
               </div>
             }
@@ -230,7 +238,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                 <p class="muted flow-hint">Esperando firma virtual del cliente. Puede firmar solo desde su expediente.</p>
               }
               @if (ws.case.status === '04' && !hasMinutaOutput) {
-                <p class="muted flow-hint">En estado 04: abre la pestaña <strong>Minuta</strong> y pulsa «Generar minuta (mock)». Luego podrás enviar a firma.</p>
+                <p class="muted flow-hint">En estado 04: abre la pestaña <strong>Minuta</strong> y sube el PDF del notario. Luego podrás enviar a firma.</p>
               }
               @if (!ws.next_actions.length && ws.case.status !== '10') {
                 <p class="muted">Completa los pendientes para habilitar la siguiente acción.</p>
@@ -284,6 +292,12 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .thumb.partida { background: var(--accent); color: var(--ink); }
     .doc-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
     .sig img { max-width: 180px; border: 1px solid var(--line); border-radius: 8px; background: white; }
+    .minuta-drop {
+      display: inline-flex; margin-top: 1rem; padding: 1rem 1.25rem;
+      border: 2px dashed var(--line); border-radius: 10px; cursor: pointer;
+      font-weight: 600; color: var(--brand);
+    }
+    .minuta-drop:hover { border-color: var(--brand); background: oklch(0.97 0.02 200); }
     .action-block { border-top: 1px solid var(--line); padding-top: 0.75rem; margin-top: 0.75rem; }
     .timeline { list-style: none; padding: 0; margin: 0; }
     .timeline li { display: flex; gap: 0.75rem; padding: 0.65rem 0; border-top: 1px solid var(--line); }
@@ -314,6 +328,7 @@ export class LawyerCaseComponent implements OnInit {
   minutaOk = '';
   qOpen = true;
   tab: Tab = 'resumen';
+  viewedDocIds = new Set<number>();
   qRows: { key: string; label: string; value: string }[] = [];
   STATE_KEYS = STATE_KEYS;
   STATE_LABELS = STATE_LABELS;
@@ -327,8 +342,11 @@ export class LawyerCaseComponent implements OnInit {
 
   constructor(private route: ActivatedRoute, private api: ApiService, private confirm: ConfirmService) {}
 
-  get canGenerateMinuta(): boolean {
-    return this.ws?.case?.status === '03' || this.ws?.case?.status === '04';
+  get canUploadMinuta(): boolean {
+    if (!this.ws) return false;
+    const st = this.ws.case?.status;
+    if (st !== '03' && st !== '04') return false;
+    return !this.hasPendingDocs;
   }
 
   get hasPendingDocs(): boolean {
@@ -403,6 +421,41 @@ export class LawyerCaseComponent implements OnInit {
     };
   }
 
+  markDocViewed(docId: number): void {
+    this.viewedDocIds.add(docId);
+  }
+
+  isDocViewed(docId: number): boolean {
+    return this.viewedDocIds.has(docId);
+  }
+
+  isPdfSig(url: string): boolean {
+    return /\.pdf(\?|$)/i.test(url || '');
+  }
+
+  onMinutaFile(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.minutaBusy = true;
+    this.minutaError = '';
+    this.minutaOk = '';
+    this.api.uploadMinuta(this.ws.case.id, file).subscribe({
+      next: () => {
+        this.minutaBusy = false;
+        this.minutaOk = 'Minuta del notario cargada correctamente.';
+        this.tab = 'minuta';
+        input.value = '';
+        this.reload();
+      },
+      error: (e) => {
+        this.minutaBusy = false;
+        input.value = '';
+        this.minutaError = e?.error?.error || e?.error?.blockers?.join(' · ') || 'Error al subir minuta';
+      },
+    });
+  }
+
   async confirmReview(docId: number, status: 'approved' | 'rejected', note = ''): Promise<void> {
     const ok = await this.confirm.confirm('¿Aprobar este documento?', 'Confirmar aprobación');
     if (!ok) return;
@@ -411,7 +464,11 @@ export class LawyerCaseComponent implements OnInit {
 
   review(docId: number, status: 'approved' | 'rejected', note = ''): void {
     this.api.reviewDocument(this.ws.case.id, docId, status, note).subscribe({
-      next: (w) => { this.ws = this.normalizeWorkspace(w); this.actionError = ''; },
+      next: (w) => {
+        this.ws = this.normalizeWorkspace(w);
+        this.actionError = '';
+        if (status === 'approved') this.viewedDocIds.add(docId);
+      },
       error: (e) => this.actionError = e?.error?.error || 'Error al revisar',
     });
   }
@@ -420,30 +477,6 @@ export class LawyerCaseComponent implements OnInit {
     const note = await this.confirm.prompt('Describe el motivo del rechazo.', 'Rechazar documento');
     if (!note?.trim()) return;
     this.review(d.id, 'rejected', note.trim());
-  }
-
-  async confirmGenMinuta(): Promise<void> {
-    const ok = await this.confirm.confirm('¿Generar minuta mock para este expediente?', 'Generar minuta');
-    if (!ok) return;
-    this.genMinuta();
-  }
-
-  genMinuta(): void {
-    this.minutaBusy = true;
-    this.minutaError = '';
-    this.minutaOk = '';
-    this.api.generateMinuta(this.ws.case.id).subscribe({
-      next: () => {
-        this.minutaBusy = false;
-        this.minutaOk = 'Minuta generada correctamente.';
-        this.tab = 'minuta';
-        this.reload();
-      },
-      error: (e) => {
-        this.minutaBusy = false;
-        this.minutaError = e?.error?.error || 'Error al generar minuta';
-      },
-    });
   }
 
   async confirmRunAction(a: { id: string; label: string }): Promise<void> {

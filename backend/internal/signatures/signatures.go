@@ -1,9 +1,9 @@
 package signatures
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -64,33 +64,40 @@ func (s *Service) Sign(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "Los documentos del trámite deben estar aprobados antes de firmar")
 		return
 	}
-	var body struct {
-		ImageData string `json:"image_data"` // data:image/png;base64,...
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.ImageData == "" {
-		writeErr(w, http.StatusBadRequest, "image_data requerido")
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		writeErr(w, http.StatusBadRequest, "formulario inválido (máx 10MB)")
 		return
 	}
-	raw := body.ImageData
-	if i := strings.Index(raw, ","); i >= 0 {
-		raw = raw[i+1:]
-	}
-	bin, err := base64.StdEncoding.DecodeString(raw)
+	file, hdr, err := r.FormFile("file")
 	if err != nil {
-		writeErr(w, http.StatusBadRequest, "base64 inválido")
+		writeErr(w, http.StatusBadRequest, "file requerido")
+		return
+	}
+	defer file.Close()
+	ext := strings.ToLower(filepath.Ext(hdr.Filename))
+	okExt := map[string]bool{".pdf": true, ".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+	if !okExt[ext] {
+		writeErr(w, http.StatusBadRequest, "solo PDF o imagen")
 		return
 	}
 	if err := s.clearSignatures(caseID); err != nil {
-		writeErr(w, http.StatusInternalServerError, "no se pudo reemplazar firma anterior")
+		writeErr(w, http.StatusInternalServerError, "no se pudo reemplazar documento anterior")
 		return
 	}
 	_ = os.MkdirAll(s.UploadDir, 0o755)
-	name := fmt.Sprintf("sig_case%d_user%d_%d.png", caseID, u.ID, store.NowUnix())
+	name := fmt.Sprintf("sig_case%d_user%d_%d%s", caseID, u.ID, store.NowUnix(), ext)
 	path := filepath.Join(s.UploadDir, name)
-	if err := os.WriteFile(path, bin, 0o644); err != nil {
-		writeErr(w, http.StatusInternalServerError, "no se pudo guardar firma")
+	dst, err := os.Create(path)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "no se pudo guardar documento")
 		return
 	}
+	if _, err := io.Copy(dst, file); err != nil {
+		_ = dst.Close()
+		writeErr(w, http.StatusInternalServerError, "error al guardar archivo")
+		return
+	}
+	_ = dst.Close()
 	ip := clientIP(r)
 	ua := r.UserAgent()
 	now := store.Now()
@@ -103,15 +110,15 @@ func (s *Service) Sign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id, _ := res.LastInsertId()
-	note := fmt.Sprintf("Firma electrónica mock registrada — IP %s — %s", ip, now)
+	note := fmt.Sprintf("Documento firmado recibido — IP %s — %s", ip, now)
 	_, _ = s.DB.Exec(
 		`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
 		caseID, status, note, u.ID, now,
 	)
 	if status == "03" || status == "04" {
-		_ = s.Cases.SetStatus(caseID, "05", "Firma del cliente recibida — pendiente confirmación del abogado", &u.ID)
+		_ = s.Cases.SetStatus(caseID, "05", "Documento firmado recibido — pendiente confirmación del abogado", &u.ID)
 	}
-	notifications.NotifyLawyersForCase(s.DB, caseID, "signature", "Firma recibida", fmt.Sprintf("Cliente firmó expediente #%d", caseID))
+	notifications.NotifyLawyersForCase(s.DB, caseID, "signature", "Documento firmado recibido", fmt.Sprintf("Cliente subió documento firmado — expediente #%d", caseID))
 	writeJSON(w, http.StatusCreated, Signature{
 		ID: id, CaseID: caseID, SignerID: u.ID, ImageURL: "/api/v1/files/" + name,
 		IP: ip, UserAgent: ua, SignedAt: now,

@@ -168,7 +168,7 @@ export class DivorcioLandingComponent {
     { name: 'Corporativo EC', tone: 'bold' },
     { name: 'Alfaro Abogados', tone: 'default' },
     { name: 'PayPhone demo', tone: 'wide' },
-    { name: 'SATJE mock', tone: 'serif' },
+    { name: 'SATJE de demostración', tone: 'serif' },
     { name: 'SignDesk', tone: 'default' },
     { name: 'CodiDevs', tone: 'accent' },
   ];
@@ -184,9 +184,9 @@ export class DivorcioLandingComponent {
 
   workflow = [
     { n: 1, title: 'Calificar', desc: '12–15 preguntas con resultado verde, amarillo o rojo.' },
-    { n: 2, title: 'Pagar', desc: 'Honorarios mock tras aptitud notarial — pago único, sin suscripción.' },
+    { n: 2, title: 'Pagar', desc: 'Honorarios de demostración tras aptitud notarial — pago único, sin suscripción.' },
     { n: 3, title: 'Cargar', desc: 'Cédula y partida con revisión del operador.' },
-    { n: 4, title: 'Consultar', desc: 'Videollamada mock con tu abogado para revisar el expediente.' },
+    { n: 4, title: 'Consultar', desc: 'Videollamada de demostración con tu abogado para revisar el expediente.' },
     { n: 5, title: 'Firmar', desc: 'Minuta generada y firma con evidencia IP.' },
     { n: 6, title: 'Notaría', desc: 'Reunión notarial virtual y cierre del expediente.' },
   ];
@@ -198,7 +198,7 @@ export class DivorcioLandingComponent {
   ];
 
   plans = [
-    { name: 'Apto notarial', audience: 'Mutuo consentimiento sin conflictos', price: 349, items: ['Cuestionario verde', 'Flujo completo demo', 'Expediente trazable', 'Firma incluida mock'], featured: true },
+    { name: 'Apto notarial', audience: 'Mutuo consentimiento sin conflictos', price: 349, items: ['Cuestionario verde', 'Flujo completo de demostración', 'Expediente trazable', 'Firma documental incluida'], featured: true },
     { name: 'Evaluación', audience: 'Casos con complejidad media', price: 749, items: ['Resultado amarillo', 'Revisión humana', 'Plan personalizado', 'Agenda demo'], featured: false },
     { name: 'Derivación', audience: 'No apto vía simplificada', price: 0, items: ['Resultado rojo', 'Orientación jurídica', 'Sin cobro automático', 'Contacto operador'], featured: false },
   ];

@@ -26,7 +26,7 @@ export interface HeroTagItem {
   template: `
     <div class="hsvr-root" #root>
       <section class="hsvr-intro">
-        <p class="hsvr-intro-eyebrow">Divorcio360 · by LegalStation</p>
+        <p class="hsvr-intro-eyebrow">Divorcio360 · por LegalStation</p>
         <p class="hsvr-intro-line">Al mismo costo que presencial — sin filas ni trámites.</p>
       </section>
 
@@ -57,7 +57,7 @@ export interface HeroTagItem {
               <a routerLink="/cliente" class="hsvr-btn hsvr-btn-primary">Mi expediente</a>
               <a routerLink="/productos/divorcio360" class="hsvr-btn hsvr-btn-outline">Volver a Divorcio360</a>
             } @else if (auth.isLoggedIn) {
-              <a routerLink="/abogado" class="hsvr-btn hsvr-btn-primary">Panel operador</a>
+              <a routerLink="/abogado" class="hsvr-btn hsvr-btn-primary">Panel del operador</a>
             } @else {
               <a routerLink="/cuestionario" class="hsvr-btn hsvr-btn-primary">Comenzar cuestionario</a>
               <a routerLink="/auth" [queryParams]="authQuery" class="hsvr-btn hsvr-btn-outline">Ingresar</a>
@@ -90,7 +90,7 @@ export interface HeroTagItem {
                 </p>
               </div>
               <div class="hsvr-video-caption">
-                <span>Expediente demo · 10 estados · firma mock</span>
+                <span>Expediente de demostración · 10 estados · firma documental</span>
               </div>
             </div>
           </div>
@@ -425,7 +425,10 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
 
     // Defer until layout is stable (pin-spacer math needs real dimensions).
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => this.initGsap());
+      requestAnimationFrame(() => {
+        this.initGsap();
+        setTimeout(() => ScrollTrigger.refresh(), 100);
+      });
     });
   }
 

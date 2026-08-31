@@ -77,9 +77,9 @@ func StageHint(status, product string) string {
 	case "01", "02":
 		return "El cliente debe subir los documentos del trámite"
 	case "03":
-		return "Revisa y aprueba los documentos del cliente"
+		return "Aprueba cada documento en la pestaña Documentos"
 	case "04":
-		return "Genera la minuta y notifica al cliente para firma virtual"
+		return "Sube la minuta del notario y notifica al cliente para firma"
 	case "05":
 		return "Espera la firma del cliente y confírmala en la pestaña Firmas"
 	default:

@@ -51,7 +51,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
             <span class="mk-logo d360-logo" aria-hidden="true">360</span>
             <span>
               Divorcio360
-              <small class="mk-by">by LegalStation</small>
+              <small class="mk-by">por LegalStation</small>
             </span>
           </a>
           <nav class="mk-nav">
@@ -80,7 +80,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
         <div class="mk-bar">
           <a [routerLink]="productHome" class="mk-brand ps-brand">
             <span class="mk-logo ps-logo" aria-hidden="true">360</span>
-            <span>{{ productSite?.name }}<small class="mk-by">by LegalStation</small></span>
+            <span>{{ productSite?.name }}<small class="mk-by">por LegalStation</small></span>
           </a>
           <nav class="mk-nav">
             <a [href]="productHome + '#flujo'" (click)="goToSection($event, productHome, 'flujo')">Flujo</a>
@@ -106,7 +106,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
         <div class="mk-bar">
           <a routerLink="/productos/divorcio360" class="mk-brand d360-brand">
             <span class="mk-logo d360-logo" aria-hidden="true">360</span>
-            <span>Divorcio360<small class="mk-by">by LegalStation</small></span>
+            <span>Divorcio360<small class="mk-by">por LegalStation</small></span>
           </a>
           <nav class="mk-nav">
             <a routerLink="/productos/divorcio360">Inicio producto</a>
@@ -140,7 +140,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
             } @else {
               {{ productSite?.name }}
             }
-            <small class="by-ls">by LegalStation</small>
+            <small class="by-ls">por LegalStation</small>
           </a>
           <nav>
             @if (auth.user()?.role !== 'abogado') {
@@ -160,13 +160,20 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
                 🔔
                 @if (unreadCount) { <span class="count">{{ unreadCount }}</span> }
               </button>
-              @if (showNotifs && notifications.length) {
+              @if (showNotifs) {
                 <div class="notif-drop panel">
-                  @for (n of notifications.slice(0, 8); track n.id) {
-                    <button type="button" class="notif-item" (click)="openNotif(n)">
-                      <strong>{{ n.title }}</strong>
-                      <span class="muted">{{ n.body }}</span>
-                    </button>
+                  @if (unreadNotifications.length) {
+                    @for (n of unreadNotifications.slice(0, 8); track n.id) {
+                      <button type="button" class="notif-item" (click)="openNotif(n)">
+                        <strong>{{ n.title }}</strong>
+                        <span class="muted">{{ n.body }}</span>
+                      </button>
+                    }
+                    <div class="notif-footer">
+                      <button type="button" class="btn btn-ghost notif-mark-all" (click)="markAllRead($event)">Marcar todas como leídas</button>
+                    </div>
+                  } @else {
+                    <p class="notif-empty muted">No hay notificaciones nuevas</p>
                   }
                 </div>
               }
@@ -201,13 +208,20 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
                 🔔
                 @if (unreadCount) { <span class="count">{{ unreadCount }}</span> }
               </button>
-              @if (showNotifs && notifications.length) {
+              @if (showNotifs) {
                 <div class="notif-drop panel">
-                  @for (n of notifications.slice(0, 8); track n.id) {
-                    <button type="button" class="notif-item" (click)="openNotif(n)">
-                      <strong>{{ n.title }}</strong>
-                      <span class="muted">{{ n.body }}</span>
-                    </button>
+                  @if (unreadNotifications.length) {
+                    @for (n of unreadNotifications.slice(0, 8); track n.id) {
+                      <button type="button" class="notif-item" (click)="openNotif(n)">
+                        <strong>{{ n.title }}</strong>
+                        <span class="muted">{{ n.body }}</span>
+                      </button>
+                    }
+                    <div class="notif-footer">
+                      <button type="button" class="btn btn-ghost notif-mark-all" (click)="markAllRead($event)">Marcar todas como leídas</button>
+                    </div>
+                  } @else {
+                    <p class="notif-empty muted">No hay notificaciones nuevas</p>
                   }
                 </div>
               }
@@ -227,11 +241,11 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
         <div class="foot-col brand-col">
           @if (isDivorcioFlow || isDivorcioMarketing) {
             <strong class="foot-logo">Divorcio360</strong>
-            <p class="foot-by">by LegalStation</p>
+            <p class="foot-by">por LegalStation</p>
             <p>Al mismo costo, sin filas ni trámites — divorcio notarial con intake, consulta y firma demo.</p>
           } @else if (isTrasladoMarketing || isBienraizMarketing) {
             <strong class="foot-logo">{{ productDisplayName }}</strong>
-            <p class="foot-by">by LegalStation</p>
+            <p class="foot-by">por LegalStation</p>
             <p>Trámite con pago único — sin membresía. Servicios jurídicos al mismo costo, sin filas ni trámites.</p>
           } @else {
             <strong class="foot-logo">LegalStation</strong>
@@ -270,7 +284,7 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       <div class="shell foot-bottom">
         <span>© 2026 CodiDevs · Demo LegalStation</span>
         @if (isDivorcioFlow || isDivorcioMarketing) {
-          <span class="foot-muted">Divorcio360 by LegalStation</span>
+          <span class="foot-muted">Divorcio360 por LegalStation</span>
         } @else {
           <span class="foot-muted">Divorcio360 es el producto en vivo de esta demo.</span>
         }
@@ -508,6 +522,13 @@ const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/co
       padding: 0.65rem 0.5rem; cursor: pointer; font: inherit;
     }
     .notif-item:last-child { border-bottom: 0; }
+    .notif-footer {
+      border-top: 1px solid var(--line);
+      padding: 0.35rem 0.25rem 0;
+      margin-top: 0.25rem;
+    }
+    .notif-mark-all { width: 100%; font-size: 0.85rem; justify-content: center; }
+    .notif-empty { margin: 0; padding: 0.85rem 0.5rem; font-size: 0.88rem; text-align: center; }
     .notif-item span { font-size: 0.82rem; }
     main { min-height: calc(100vh - 12rem); }
 
@@ -631,6 +652,10 @@ export class ShellComponent implements OnInit {
     return this.productSite?.name || 'LegalStation';
   }
 
+  get unreadNotifications(): any[] {
+    return this.notifications.filter((n: any) => !n.read);
+  }
+
   constructor(
     public auth: AuthService,
     private router: Router,
@@ -647,6 +672,10 @@ export class ShellComponent implements OnInit {
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e: NavigationEnd) => {
       this.applyMode(e.urlAfterRedirects);
       if (this.auth.isLoggedIn) this.loadNotifs();
+      const path = this.cleanPath(e.urlAfterRedirects);
+      if (path.startsWith('/productos/divorcio360') && !e.urlAfterRedirects.includes('#')) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+      }
       const fragment = e.urlAfterRedirects.split('#')[1];
       if (fragment) {
         setTimeout(() => this.scrollToId(fragment), 50);
@@ -725,13 +754,29 @@ export class ShellComponent implements OnInit {
     if (this.showNotifs) this.loadNotifs();
   }
 
-  openNotif(n: any): void {
-    this.api.markNotificationRead(n.id).subscribe(() => this.loadNotifs());
+	openNotif(n: any): void {
+    this.api.markNotificationRead(n.id).subscribe(() => {
+      n.read = true;
+      this.unreadCount = this.unreadNotifications.length;
+    });
     this.showNotifs = false;
     if (n.case_id) {
       const base = this.auth.user()?.role === 'abogado' ? '/abogado/caso'
         : this.auth.user()?.role === 'notario' ? '/caso' : '/caso';
       void this.router.navigate([base, n.case_id]);
     }
+  }
+
+  markAllRead(event?: Event): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+    this.api.markAllNotificationsRead().subscribe({
+      next: () => {
+        this.notifications = this.notifications.map((n: any) => ({ ...n, read: true }));
+        this.unreadCount = 0;
+        this.showNotifs = false;
+      },
+      error: () => {},
+    });
   }
 }

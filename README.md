@@ -4,7 +4,7 @@ Demo de plataforma jurídica virtual para walkthrough con stakeholder. Marca UI:
 
 > *Servicios jurídicos al mismo costo, sin filas ni trámites.*
 
-**Stack:** Go (chi + JWT + SQLite) + Angular 19. Pagos Payphone y firma electrónica son **mocks**. Sin WhatsApp.
+**Stack:** Go (chi + JWT + SQLite) + Angular 19. Pagos Payphone y firma documental son **demostraciones**. Sin WhatsApp.
 
 Documentación extendida: [`docs/HANDOFF.md`](docs/HANDOFF.md) · Metas demo: [`docs/DEMO_GOALS.md`](docs/DEMO_GOALS.md) · Alcance PRD: [`docs/PRD_SCOPE.md`](docs/PRD_SCOPE.md)
 
@@ -99,7 +99,7 @@ Cuestionario → Registro + LOPDP → Pago mock → Upload docs
 2. Cuestionario → registro/login → checkout Payphone mock  
 3. **Documentos** (`/upload/:id`) — checklist, drag & drop, reemplazar sin borrar  
 4. Consulta virtual (`/consulta/:id`)  
-5. Firma virtual (`/firma/:id`) — enviar firma → confirmación → opcional «Firmar de nuevo»  
+5. Firma virtual (`/firma/:id`) — revisar minuta → subir documento firmado → confirmación → opcional «Firmar de nuevo»  
 6. Reunión notarial (`/reunion-notarial/:id`)
 
 ### Abogado
@@ -107,7 +107,7 @@ Cuestionario → Registro + LOPDP → Pago mock → Upload docs
 - Bandeja: `/abogado` (filtros por estado)  
 - Workspace: **`/abogado/caso/:id`** (no usar `/caso/:id` como operador)  
 - Tabs: Resumen · Documentos · Minuta · Firmas · Historial  
-- Orden: aprobar docs → «Aprobar documentos y preparar minuta» → generar minuta → (opcional) notificar cliente → confirmar firma en tab Firmas  
+- Orden: ver y aprobar cada doc (auto pasa a 04) → subir minuta del notario (PDF) → (opcional) notificar cliente → cliente sube documento firmado → confirmar en tab Firmas  
 
 **Blockers por etapa:** en 03 solo docs; en 04 solo minuta; en 05 solo firma — no se mezclan pendientes futuros.
 
@@ -120,13 +120,13 @@ Cuestionario → Registro + LOPDP → Pago mock → Upload docs
 1. `/` — catálogo LegalStation  
 2. `/productos/divorcio360` → cuestionario → registro → pago $349  
 3. Upload cédula + partida → consulta → firma  
-4. Abogado: `/abogado/caso/1` → aprobar → minuta → confirmar firma → notaría hasta estado 10  
+4. Abogado: `/abogado/caso/1` → ver/aprobar docs → subir minuta notario → cliente sube doc firmado → confirmar → notaría hasta estado 10  
 
 ### Traslado360 (carro)
 
 1. `/productos/traslado360/cuestionario` → registro → pago $199  
 2. Upload matrícula + acuerdo  
-3. Abogado aprueba ambos → minuta → cliente firma → confirmar  
+3. Abogado aprueba ambos (auto 04) → sube minuta PDF → cliente sube documento firmado → confirmar  
 
 ### Fase 2 (mock)
 
@@ -174,7 +174,7 @@ docs/
 | Área | Demo | Producción (PRD) |
 |------|------|------------------|
 | Pagos | Payphone mock UI | Payphone real |
-| Firma | Canvas + IP/fecha | ECI / firma en la nube |
+| Firma | Upload PDF/imagen + IP/fecha | ECI / firma en la nube |
 | WhatsApp | Excluido | FR-09 en PRD |
 | Notaría | Videollamada mock | Comparecencia virtual real |
 

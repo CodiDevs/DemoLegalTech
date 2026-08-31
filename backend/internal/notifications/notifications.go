@@ -104,7 +104,13 @@ func List(w http.ResponseWriter, r *http.Request, db *store.DB) {
 func MarkRead(w http.ResponseWriter, r *http.Request, db *store.DB) {
 	u := auth.UserFrom(r.Context())
 	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-	_, _ = db.Exec(`UPDATE notifications SET read=1 WHERE id=? AND user_id=?`, id, u.ID)
+	_, _ = db.Exec(`UPDATE notifications SET "read"=1 WHERE id=? AND user_id=?`, id, u.ID)
+	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
+func MarkAllRead(w http.ResponseWriter, r *http.Request, db *store.DB) {
+	u := auth.UserFrom(r.Context())
+	_, _ = db.Exec(`UPDATE notifications SET "read"=1 WHERE user_id=? AND "read"=0`, u.ID)
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 

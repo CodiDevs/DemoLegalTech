@@ -41,7 +41,7 @@ const STATE_KEYS = ['01','02','03','04','05','06','07','08','09','10'];
           <div class="table-head">
             <span>Cliente</span>
             <span>Estado</span>
-            <span>Pipeline</span>
+            <span>Cola de casos</span>
             <span>Ciudad</span>
             <span>Días</span>
             <span></span>

@@ -80,8 +80,10 @@ export class ApiService {
     return this.http.post(`/api/v1/cases/${caseId}/documents/${docId}/review`, { status, note });
   }
 
-  generateMinuta(caseId: number): Observable<any> {
-    return this.http.post(`/api/v1/cases/${caseId}/generate-minuta`, {});
+  uploadMinuta(caseId: number, file: File): Observable<any> {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post(`/api/v1/cases/${caseId}/minuta/upload`, fd);
   }
 
   performCaseAction(caseId: number, action: string, payload: Record<string, string> = {}): Observable<any> {
@@ -98,6 +100,10 @@ export class ApiService {
 
   markNotificationRead(id: number): Observable<any> {
     return this.http.post(`/api/v1/notifications/${id}/read`, {});
+  }
+
+  markAllNotificationsRead(): Observable<any> {
+    return this.http.post('/api/v1/notifications/read-all', {});
   }
 
   mockSatjeLink(caseId: number, causeNo: string, court: string, confidence: number): Observable<any> {
@@ -136,8 +142,10 @@ export class ApiService {
     return this.http.post(`/api/v1/cases/${id}/documents`, fd);
   }
 
-  sign(id: number, image_data: string): Observable<any> {
-    return this.http.post(`/api/v1/cases/${id}/signatures`, { image_data });
+  sign(id: number, file: File): Observable<any> {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post(`/api/v1/cases/${id}/signatures`, fd);
   }
 
   listSignatures(id: number): Observable<any[]> {

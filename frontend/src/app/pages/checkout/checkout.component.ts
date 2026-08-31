@@ -14,7 +14,7 @@ import { productThemeFromCase } from '../../shared/product-sites.data';
     <app-product-flow-shell
       [theme]="theme"
       [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Pago único' }]"
-      eyebrow="Payphone mock"
+      eyebrow="Pago de demostración (Payphone)"
       title="Pago del trámite"
       subtitle="Un solo cobro — sin suscripción mensual."
     >
@@ -38,7 +38,7 @@ import { productThemeFromCase } from '../../shared/product-sites.data';
             <a class="lp-btn lp-btn-primary" [routerLink]="['/upload', caseItem.id]">Cargar documentos →</a>
           } @else {
             <button class="lp-btn lp-btn-primary" type="button" (click)="pay()" [disabled]="busy">
-              {{ busy ? 'Procesando…' : 'Pagar con Payphone (mock)' }}
+              {{ busy ? 'Procesando…' : 'Pagar con Payphone (demostración)' }}
             </button>
           }
         </div>
@@ -84,7 +84,7 @@ export class CheckoutComponent implements OnInit {
       },
       error: (e) => {
         this.busy = false;
-        this.error = e?.error?.error || 'Error en pago mock';
+        this.error = e?.error?.error || 'Error en el pago de demostración';
       },
     });
   }

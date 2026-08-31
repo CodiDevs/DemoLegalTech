@@ -74,6 +74,7 @@ func main() {
 			pr.Use(authSvc.Middleware)
 			pr.Get("/me", authSvc.Me)
 			pr.Get("/notifications", func(w http.ResponseWriter, r *http.Request) { notifications.List(w, r, db) })
+			pr.Post("/notifications/read-all", func(w http.ResponseWriter, r *http.Request) { notifications.MarkAllRead(w, r, db) })
 			pr.Post("/notifications/{id}/read", func(w http.ResponseWriter, r *http.Request) { notifications.MarkRead(w, r, db) })
 			pr.Get("/cases", caseSvc.ListMine)
 			pr.Post("/cases", caseSvc.Create)
@@ -90,7 +91,7 @@ func main() {
 
 			pr.With(authSvc.RequireRole("abogado")).Get("/cases/{id}/workspace", lawyerSvc.Workspace)
 			pr.With(authSvc.RequireRole("abogado")).Post("/cases/{id}/documents/{docId}/review", lawyerSvc.ReviewDocument)
-			pr.With(authSvc.RequireRole("abogado")).Post("/cases/{id}/generate-minuta", lawyerSvc.GenerateMinuta)
+			pr.With(authSvc.RequireRole("abogado")).Post("/cases/{id}/minuta/upload", lawyerSvc.UploadMinutaNotarial)
 			pr.With(authSvc.RequireRole("abogado")).Post("/cases/{id}/actions", lawyerSvc.PerformAction)
 
 			pr.With(authSvc.RequireRole("notario")).Get("/notary/queue", notarySvc.ListQueue)

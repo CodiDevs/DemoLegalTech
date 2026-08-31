@@ -137,3 +137,21 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 - **Demo Traslado360 (carro):** `/productos/traslado360/cuestionario` → pago $199 → upload matrícula + acuerdo → abogado `/abogado/caso/:id` aprueba → minuta → cliente firma → confirmar.
 - **Reset DB:** borrar `backend/data/divorcio360.db` y reiniciar API (seed caso #1 divorcio en 03).
 - **Verificación:** `backend/scripts/verify-flow.ps1` con API en `:8080`.
+
+### 2026-08-30 — Flujo realista + UX español
+- **Notificaciones:** `POST /notifications/read-all` + botón «Marcar todas como leídas» en campana del shell.
+- **Abogado docs:** ver antes de aprobar (UI); sin acción bulk `approve_and_prepare`; auto **03→04** al aprobar último doc.
+- **Minuta:** abogado sube PDF del notario (`POST /cases/{id}/minuta/upload`) → `case_outputs`; ya no HTML mock.
+- **Firma cliente:** multipart documento (PDF/imagen), no canvas; tab Firmas abogado muestra enlace si es PDF.
+- **Divorcio360 landing:** scroll a `(0,0)` al entrar + `ScrollTrigger.refresh()`.
+- **Español:** copy visible (demostración, Cola de casos, por LegalStation, etc.).
+
+**Demo abogado (5 min):**
+1. `/abogado/caso/1` → tab Documentos: **Ver** cada doc → **Aprobar** (expediente pasa a 04 solo).
+2. Tab Minuta → subir PDF del notario.
+3. Cliente en `/firma/1` → sube documento firmado.
+4. Abogado tab Firmas → «Confirmar firma recibida» → notaría virtual.
+
+**Demo notificaciones:** campana → «Marcar todas como leídas».
+
+**Verificación:** `backend/scripts/verify-flow.ps1`.

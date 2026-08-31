@@ -1,11 +1,11 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { productThemeFromCase } from '../../shared/product-sites.data';
 
-type SignMode = 'draw' | 'done';
+type SignMode = 'upload' | 'done';
 
 @Component({
   selector: 'app-sign',
@@ -17,7 +17,7 @@ type SignMode = 'draw' | 'done';
       [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Firma virtual' }]"
       eyebrow="Firma electrónica"
       title="Firma tu minuta"
-      subtitle="Revisa el documento, firma en el lienzo y envía — 100% virtual, con evidencia de fecha e IP."
+      subtitle="Revisa el documento del notario y sube tu documento firmado — 100% virtual, con evidencia de fecha e IP."
     >
       @if (signBlocked) {
         <div class="pf-card lp-lift sign-blocked">
@@ -28,7 +28,7 @@ type SignMode = 'draw' | 'done';
       } @else {
         <ol class="sign-steps">
           <li [class.active]="true" [class.done]="mode === 'done'">Revisar minuta</li>
-          <li [class.active]="mode === 'draw'" [class.done]="mode === 'done'">Firmar</li>
+          <li [class.active]="mode === 'upload'" [class.done]="mode === 'done'">Subir documento firmado</li>
           <li [class.active]="mode === 'done'" [class.done]="mode === 'done'">Confirmación</li>
         </ol>
 
@@ -44,26 +44,26 @@ type SignMode = 'draw' | 'done';
             </section>
           }
 
-          @if (mode === 'draw') {
-            <section class="pf-card lp-lift sign-pad-wrap">
+          @if (mode === 'upload') {
+            <section class="pf-card lp-lift sign-upload-wrap">
               <div class="sign-section-head">
                 <span class="pf-badge">Paso 2</span>
-                <h2>Tu firma</h2>
+                <h2>Sube tu documento firmado</h2>
               </div>
-              <p class="pf-muted">Dibuja tu firma con el mouse o el dedo en el recuadro.</p>
-              <div class="sign-pad-box" [class.has-ink]="hasInk">
-                @if (!hasInk) {
-                  <span class="sign-pad-hint">Firma aquí</span>
+              <p class="pf-muted">Adjunta el PDF o imagen del documento ya firmado (escaneado o firmado digitalmente).</p>
+              <label class="up-dropzone" [class.has-file]="!!selectedFile">
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onFile($event)" hidden />
+                @if (selectedFile) {
+                  <strong>{{ selectedFile.name }}</strong>
+                  <span class="pf-muted">Toca para cambiar archivo</span>
+                } @else {
+                  <strong>Arrastra o elige un archivo</strong>
+                  <span class="pf-muted">PDF o imagen · máx. 10 MB</span>
                 }
-                <canvas #pad width="640" height="200"
-                  (mousedown)="start($event)" (mousemove)="draw($event)"
-                  (mouseup)="stop()" (mouseleave)="stop()"
-                  (touchstart)="touchStart($event)" (touchmove)="touchMove($event)" (touchend)="stop()"></canvas>
-              </div>
+              </label>
               <div class="sign-actions">
-                <button class="lp-btn lp-btn-outline" type="button" (click)="clearPad()">Limpiar lienzo</button>
-                <button class="lp-btn lp-btn-primary" type="button" (click)="submit()" [disabled]="busy || !hasInk">
-                  {{ busy ? 'Enviando…' : 'Enviar firma' }}
+                <button class="lp-btn lp-btn-primary" type="button" (click)="submit()" [disabled]="busy || !selectedFile">
+                  {{ busy ? 'Enviando…' : 'Enviar documento firmado' }}
                 </button>
               </div>
               @if (error) { <p class="pf-err sign-feedback">{{ error }}</p> }
@@ -72,15 +72,19 @@ type SignMode = 'draw' | 'done';
             <section class="pf-card lp-lift sign-done">
               <div class="sign-section-head">
                 <span class="pf-badge">Paso 3</span>
-                <h2>Firma registrada</h2>
+                <h2>Documento enviado</h2>
               </div>
               <div class="pf-receipt sign-receipt">
-                <p class="pf-ok">Tu firma fue enviada correctamente.</p>
-                <p class="pf-muted">El abogado la revisará y confirmará para continuar a notaría virtual.</p>
+                <p class="pf-ok">Tu documento firmado fue enviado correctamente.</p>
+                <p class="pf-muted">El abogado lo revisará y confirmará para continuar a notaría virtual.</p>
               </div>
               @if (signature) {
                 <div class="sign-evidence">
-                  <img [src]="signature.image_url" alt="Tu firma" class="sign-thumb" />
+                  @if (isPdf(signature.image_url)) {
+                    <a class="lp-btn lp-btn-outline" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
+                  } @else {
+                    <img [src]="signature.image_url" alt="Documento firmado" class="sign-thumb" />
+                  }
                   <dl class="sign-meta">
                     <div><dt>Fecha</dt><dd>{{ signature.signed_at }}</dd></div>
                     <div><dt>IP</dt><dd>{{ signature.ip }}</dd></div>
@@ -88,10 +92,10 @@ type SignMode = 'draw' | 'done';
                 </div>
               }
               <div class="sign-actions">
-                <button class="lp-btn lp-btn-outline" type="button" (click)="startRedraw()">Firmar de nuevo</button>
+                <button class="lp-btn lp-btn-outline" type="button" (click)="startReupload()">Firmar de nuevo</button>
                 <a class="lp-btn lp-btn-primary" [routerLink]="['/caso', caseId]">Volver al expediente</a>
               </div>
-              <p class="pf-muted sign-note">Al firmar de nuevo, la firma anterior se reemplaza (mock demo).</p>
+              <p class="pf-muted sign-note">Al subir de nuevo, el documento anterior se reemplaza.</p>
             </section>
           }
         </div>
@@ -151,38 +155,6 @@ type SignMode = 'draw' | 'done';
       min-height: 360px;
       margin-top: 0.75rem;
     }
-    .sign-pad-box {
-      position: relative;
-      margin-top: 0.75rem;
-      border: 2px dashed var(--lp-border, #d0d0d0);
-      border-radius: var(--lp-radius-sm, 10px);
-      background: linear-gradient(180deg, #fafafa, #fff);
-      overflow: hidden;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .sign-pad-box.has-ink {
-      border-color: var(--lp-accent);
-      border-style: solid;
-      box-shadow: inset 0 0 0 1px var(--lp-accent-soft);
-    }
-    .sign-pad-hint {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--lp-ink-muted, #999);
-      font-size: 1.1rem;
-      pointer-events: none;
-      user-select: none;
-    }
-    .sign-pad-box canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      cursor: crosshair;
-      touch-action: none;
-    }
     .sign-actions {
       display: flex;
       gap: 0.75rem;
@@ -227,20 +199,17 @@ type SignMode = 'draw' | 'done';
     .sign-blocked .lp-btn { margin-top: 1rem; display: inline-flex; }
   `],
 })
-export class SignComponent implements OnInit, AfterViewInit {
-  @ViewChild('pad') padRef!: ElementRef<HTMLCanvasElement>;
+export class SignComponent implements OnInit {
   caseId = 0;
   minutaUrl: SafeResourceUrl | null = null;
-  private ctx!: CanvasRenderingContext2D;
-  private drawing = false;
   busy = false;
   error = '';
   signature: any = null;
   theme = productThemeFromCase();
   signBlocked = '';
   signHint = '';
-  mode: SignMode = 'draw';
-  hasInk = false;
+  mode: SignMode = 'upload';
+  selectedFile: File | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -271,87 +240,36 @@ export class SignComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {
-    this.initCanvas();
-  }
-
-  private initCanvas(): void {
-    if (!this.padRef?.nativeElement) return;
-    const canvas = this.padRef.nativeElement;
-    this.ctx = canvas.getContext('2d')!;
-    this.ctx.strokeStyle = '#1a2a33';
-    this.ctx.lineWidth = 2.5;
-    this.ctx.lineCap = 'round';
-  }
-
-  start(e: MouseEvent): void {
-    this.drawing = true;
-    this.hasInk = true;
-    this.ctx.beginPath();
-    this.ctx.moveTo(e.offsetX, e.offsetY);
-  }
-
-  draw(e: MouseEvent): void {
-    if (!this.drawing) return;
-    this.hasInk = true;
-    this.ctx.lineTo(e.offsetX, e.offsetY);
-    this.ctx.stroke();
-  }
-
-  stop(): void { this.drawing = false; }
-
-  touchStart(e: TouchEvent): void {
-    e.preventDefault();
-    this.hasInk = true;
-    const p = this.touchPos(e);
-    this.drawing = true;
-    this.ctx.beginPath();
-    this.ctx.moveTo(p.x, p.y);
-  }
-
-  touchMove(e: TouchEvent): void {
-    e.preventDefault();
-    if (!this.drawing) return;
-    this.hasInk = true;
-    const p = this.touchPos(e);
-    this.ctx.lineTo(p.x, p.y);
-    this.ctx.stroke();
-  }
-
-  private touchPos(e: TouchEvent): { x: number; y: number } {
-    const rect = this.padRef.nativeElement.getBoundingClientRect();
-    const t = e.touches[0];
-    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
-  }
-
-  clearPad(): void {
-    const c = this.padRef.nativeElement;
-    this.ctx.clearRect(0, 0, c.width, c.height);
-    this.hasInk = false;
+  onFile(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    this.selectedFile = input.files?.[0] ?? null;
     this.error = '';
   }
 
-  startRedraw(): void {
-    this.mode = 'draw';
+  isPdf(url: string): boolean {
+    return /\.pdf(\?|$)/i.test(url || '');
+  }
+
+  startReupload(): void {
+    this.mode = 'upload';
+    this.selectedFile = null;
     this.error = '';
-    setTimeout(() => this.initCanvas());
   }
 
   submit(): void {
-    if (!this.hasInk) return;
+    if (!this.selectedFile) return;
     this.busy = true;
     this.error = '';
-    const data = this.padRef.nativeElement.toDataURL('image/png');
-    this.api.sign(this.caseId, data).subscribe({
+    this.api.sign(this.caseId, this.selectedFile).subscribe({
       next: (res) => {
         this.busy = false;
         this.signature = res;
         this.mode = 'done';
-        this.hasInk = false;
+        this.selectedFile = null;
       },
       error: (e) => {
         this.busy = false;
-        this.error = e?.error?.error || 'Error al enviar la firma';
+        this.error = e?.error?.error || 'Error al enviar el documento';
       },
     });
   }

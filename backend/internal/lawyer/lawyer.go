@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -146,14 +147,95 @@ func (s *Service) ReviewDocument(w http.ResponseWriter, r *http.Request) {
 		_ = s.Cases.SetStatus(caseID, "02", label+" — cliente debe volver a cargar", &u.ID)
 	} else {
 		var status string
-		_ = s.DB.QueryRow(`SELECT status FROM cases WHERE id=?`, caseID).Scan(&status)
+		var product string
+		_ = s.DB.QueryRow(`SELECT status, COALESCE(product,'divorcio360') FROM cases WHERE id=?`, caseID).Scan(&status, &product)
 		_, _ = s.DB.Exec(
 			`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
 			caseID, status, label, u.ID, now,
 		)
+		if products.RequiredDocsApproved(s.DB.DB, caseID, product) && status == "03" {
+			_ = s.Cases.SetStatus(caseID, "04", "Documentos aprobados — sube la minuta del notario", &u.ID)
+		}
 	}
 	ws, _ := s.buildWorkspace(caseID)
 	writeJSON(w, http.StatusOK, ws)
+}
+
+func (s *Service) UploadMinutaNotarial(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFrom(r.Context())
+	caseID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	c, err := s.Cases.GetCasePublic(caseID)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "caso no encontrado")
+		return
+	}
+	if c.Status != "03" && c.Status != "04" {
+		writeErr(w, http.StatusBadRequest, "subida de minuta solo en revisión o documentos preparados")
+		return
+	}
+	if b := s.docBlockers(c, true, false, false); len(b) > 0 {
+		writeJSON(w, http.StatusConflict, map[string]any{"error": "documentos incompletos", "blockers": b})
+		return
+	}
+	if c.Status == "03" {
+		_ = s.Cases.SetStatus(caseID, "04", "Documentos aprobados — sube la minuta del notario", &u.ID)
+		c.Status = "04"
+	}
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		writeErr(w, http.StatusBadRequest, "formulario inválido (máx 10MB)")
+		return
+	}
+	file, hdr, err := r.FormFile("file")
+	if err != nil {
+		writeErr(w, http.StatusBadRequest, "file requerido")
+		return
+	}
+	defer file.Close()
+	ext := strings.ToLower(filepath.Ext(hdr.Filename))
+	okExt := map[string]bool{".pdf": true, ".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+	if !okExt[ext] {
+		writeErr(w, http.StatusBadRequest, "solo PDF o imagen")
+		return
+	}
+	_ = os.MkdirAll(s.UploadDir, 0o755)
+	stored := fmt.Sprintf("minuta_case%d_%d%s", caseID, store.NowUnix(), ext)
+	path := filepath.Join(s.UploadDir, stored)
+	dst, err := os.Create(path)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "no se pudo guardar minuta")
+		return
+	}
+	if _, err := io.Copy(dst, file); err != nil {
+		_ = dst.Close()
+		writeErr(w, http.StatusInternalServerError, "error al guardar archivo")
+		return
+	}
+	_ = dst.Close()
+	now := store.Now()
+	productLabel := minutaProductLabel(c.Product)
+	filename := hdr.Filename
+	if strings.TrimSpace(filename) == "" {
+		filename = fmt.Sprintf("Minuta_%s_Caso%d%s", productLabel, caseID, ext)
+	}
+	res, err := s.DB.Exec(
+		`INSERT INTO case_outputs (case_id, output_type, filename, stored_path, generated_by, created_at) VALUES (?,?,?,?,?,?)`,
+		caseID, "minuta", filename, stored, u.ID, now,
+	)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "db error")
+		return
+	}
+	outID, _ := res.LastInsertId()
+	_, _ = s.DB.Exec(
+		`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
+		caseID, c.Status, "Minuta del notario cargada — "+productLabel, u.ID, now,
+	)
+	notifications.NotifyClient(s.DB, c.ClientID, caseID, "status", "Minuta del notario disponible",
+		"Revisa y sube tu documento firmado desde tu expediente.")
+	writeJSON(w, http.StatusCreated, Output{
+		ID: outID, OutputType: "minuta", Filename: filename,
+		URL: "/api/v1/files/" + stored, CreatedAt: now,
+	})
 }
 
 func (s *Service) GenerateMinuta(w http.ResponseWriter, r *http.Request) {
@@ -252,12 +334,6 @@ func (s *Service) PerformAction(w http.ResponseWriter, r *http.Request) {
 	note := ""
 	next := ""
 	switch body.Action {
-	case "approve_and_prepare":
-		if c.Status != "03" {
-			writeErr(w, http.StatusBadRequest, "acción solo en revisión jurídica")
-			return
-		}
-		next, note = "04", "Documentos aprobados — minuta en preparación"
 	case "notify_client_sign", "send_for_signature":
 		if c.Status != "04" && c.Status != "05" {
 			writeErr(w, http.StatusBadRequest, "acción solo con minuta preparada (estados 04–05)")
@@ -420,7 +496,7 @@ func (s *Service) docBlockers(c cases.Case, includeDocs, includeMinuta, includeS
 		}
 	}
 	if includeMinuta && !s.hasMinuta(c.ID) {
-		b = append(b, "Minuta no generada")
+		b = append(b, "Minuta del notario no cargada")
 	}
 	if includeSignature && !s.hasSignature(c.ID) {
 		b = append(b, "Sin firma del cliente")
@@ -433,11 +509,9 @@ func (s *Service) docBlockers(c cases.Case, includeDocs, includeMinuta, includeS
 
 func blockersForAction(action string, c cases.Case, s *Service) []string {
 	switch action {
-	case "approve_and_prepare":
-		return s.docBlockers(c, true, false, false)
 	case "send_for_signature", "notify_client_sign":
 		if !s.hasMinuta(c.ID) {
-			return []string{"Minuta no generada"}
+			return []string{"Minuta del notario no cargada"}
 		}
 	case "confirm_signature":
 		if !s.hasSignature(c.ID) {
@@ -460,9 +534,9 @@ func (s *Service) nextActions(c cases.Case, blockers []string) []ActionDef {
 	}
 	switch c.Status {
 	case "03":
-		return []ActionDef{{ID: "approve_and_prepare", Label: "Aprobar documentos y preparar minuta", Description: products.ApproveActionDescription(c.Product)}}
+		return revertAction(c.Status)
 	case "04":
-		if hasBlock("Minuta no generada") {
+		if hasBlock("Minuta del notario no cargada") {
 			return revertAction(c.Status)
 		}
 		actions := revertAction(c.Status)
