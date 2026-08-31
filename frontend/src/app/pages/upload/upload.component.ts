@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { ProgressStep } from '../../shared/progress-steps.component';
+import { IconComponent } from '../../shared/icon.component';
 import { getProductFlowMeta, productThemeFromCase } from '../../shared/product-sites.data';
 
 interface DocRow {
@@ -17,7 +18,7 @@ interface DocRow {
 @Component({
   selector: 'app-upload',
   standalone: true,
-  imports: [RouterLink, ProductFlowShellComponent],
+  imports: [RouterLink, ProductFlowShellComponent, IconComponent],
   template: `
     <app-product-flow-shell
       [theme]="theme"
@@ -41,7 +42,9 @@ interface DocRow {
           <ul class="up-checklist">
             @for (slot of slots; track slot.type) {
               <li [class.done]="slotUploaded(slot.type)">
-                <span class="up-check-icon">{{ slotUploaded(slot.type) ? '✓' : '' }}</span>
+                <span class="up-check-icon">
+                  @if (slotUploaded(slot.type)) { <app-icon name="check" [size]="16" /> }
+                </span>
                 <span>{{ slot.label }}</span>
               </li>
             }
@@ -65,12 +68,22 @@ interface DocRow {
 
               @if (latestDoc(slot.type); as doc) {
                 <div class="up-file-row">
-                  <span class="pf-muted" style="overflow:hidden;text-overflow:ellipsis">
+                  <span class="up-file-name pf-muted">
                     <strong>Archivo actual:</strong> {{ doc.filename }}
                   </span>
-                  @if (doc.url) {
-                    <a [href]="doc.url" target="_blank" rel="noopener">Ver</a>
-                  }
+                  <div class="up-file-actions">
+                    @if (doc.url) {
+                      <a [href]="doc.url" target="_blank" rel="noopener">Ver</a>
+                    }
+                    <button
+                      type="button"
+                      class="up-delete-btn"
+                      [disabled]="deleting === doc.id"
+                      (click)="deleteDoc(doc)"
+                    >
+                      {{ deleting === doc.id ? 'Eliminando…' : 'Eliminar archivo' }}
+                    </button>
+                  </div>
                 </div>
               }
 
@@ -81,7 +94,7 @@ interface DocRow {
                 (dragleave)="onDragLeave($event, slot.type)"
                 (drop)="onDrop($event, slot.type)">
                 <input type="file" accept=".pdf,image/*" (change)="onFile($event, slot.type)" />
-                <div class="up-drop-icon">↑</div>
+                <div class="up-drop-icon"><app-icon name="upload" [size]="24" /></div>
                 <p style="margin:0;font-weight:600">
                   {{ latestDoc(slot.type) ? 'Arrastra para reemplazar' : 'Arrastra o haz clic para subir' }}
                 </p>
@@ -97,9 +110,9 @@ interface DocRow {
       @if (error) { <p class="pf-err" style="margin-top:1rem">{{ error }}</p> }
 
       <div class="up-footer">
-        <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Ver expediente</a>
+          <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Ver expediente</a>
         @if (canContinue) {
-          <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', caseId]">Consulta con abogado</a>
+          <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', caseId]">Agendar consulta</a>
         } @else {
           <span class="pf-muted">Completa los {{ slots.length }} documentos para continuar.</span>
         }
@@ -120,6 +133,7 @@ export class UploadComponent implements OnInit {
   error = '';
   drag = '';
   uploading = '';
+  deleting = 0;
   theme = productThemeFromCase();
   canSign = false;
   hasSignature = false;
@@ -256,5 +270,22 @@ export class UploadComponent implements OnInit {
 
   private reload(): void {
     this.api.listDocs(this.caseId).subscribe((d) => this.docs = d);
+  }
+
+  deleteDoc(doc: DocRow): void {
+    if (!confirm('¿Eliminar este archivo? Podrás subir uno nuevo después.')) return;
+    this.error = '';
+    this.deleting = doc.id;
+    this.api.deleteDoc(this.caseId, doc.id).subscribe({
+      next: () => {
+        this.deleting = 0;
+        this.reload();
+        this.refreshSigning();
+      },
+      error: (e) => {
+        this.deleting = 0;
+        this.error = e?.error?.error || 'No se pudo eliminar el archivo';
+      },
+    });
   }
 }

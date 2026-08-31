@@ -107,7 +107,7 @@ export interface LogoCloudClient {
     }
 
     .tone-bold span { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; }
-    .tone-serif span { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.92rem; }
+    .tone-serif span { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.92rem; }
     .tone-wide span { font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.82rem; }
     .tone-accent span { color: var(--clc-accent); font-weight: 800; }
     .tone-lowercase span { font-weight: 500; text-transform: lowercase; font-size: 1.05rem; }
@@ -138,7 +138,7 @@ export interface LogoCloudClient {
       padding: 0.85rem 1.25rem;
       border-radius: 999px;
       border: 1px solid rgb(58 52 47 / 0.1);
-      background: white;
+      background: var(--surface);
     }
 
     @keyframes clc-reveal {

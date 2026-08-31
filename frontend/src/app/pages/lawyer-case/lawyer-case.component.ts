@@ -5,6 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
 import { ConfirmService } from '../../core/confirm.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
+import { IconComponent } from '../../shared/icon.component';
 
 const Q_LABELS: Record<string, string> = {
   both_want_divorce: 'Ambos desean divorciarse',
@@ -32,18 +33,18 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
 @Component({
   selector: 'app-lawyer-case',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, DecimalPipe, StatusBadgeComponent],
+  imports: [FormsModule, RouterLink, DatePipe, DecimalPipe, StatusBadgeComponent, IconComponent],
   template: `
     @if (loadError) {
       <div class="wrap panel">
         <p class="err">{{ loadError }}</p>
-        <p><a routerLink="/abogado">← Volver a bandeja</a></p>
+        <p><a class="back-link" routerLink="/abogado"><app-icon name="arrow-left" [size]="16" />Volver a bandeja</a></p>
       </div>
     } @else if (!ws) {
       <div class="wrap panel"><p class="muted">Cargando expediente…</p></div>
     } @else {
       <div class="wrap">
-        <p class="muted"><a routerLink="/abogado">← Bandeja</a></p>
+        <p class="muted"><a class="back-link" routerLink="/abogado"><app-icon name="arrow-left" [size]="16" />Bandeja</a></p>
 
         <header class="case-header panel">
           <div class="case-title">
@@ -67,7 +68,12 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
             @if (ws.stage_hint) { <p class="muted flow-hint">{{ ws.stage_hint }}</p> }
             <ul>@for (b of ws.blockers; track b) { <li>{{ b }}</li> }</ul>
             @if (ws.case.status === '03') {
-              <p class="muted flow-hint">Orden: 1) Ver y aprobar cada documento → 2) Subir minuta del notario → 3) Cliente sube documento firmado → 4) Confirmar firma.</p>
+              <p class="muted flow-hint">
+                Orden: 1) Ver y aprobar cada documento <app-icon name="arrow-right" [size]="14" />
+                2) Subir minuta del notario <app-icon name="arrow-right" [size]="14" />
+                3) Cliente sube documento firmado <app-icon name="arrow-right" [size]="14" />
+                4) Confirmar firma.
+              </p>
             }
           </div>
         }
@@ -83,7 +89,8 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
             @if (tab === 'resumen') {
               <div class="panel">
                 <button type="button" class="accordion" (click)="qOpen = !qOpen">
-                  Cuestionario del cliente {{ qOpen ? '▾' : '▸' }}
+                  Cuestionario del cliente
+                  <app-icon [name]="qOpen ? 'chevron-down' : 'chevron-right'" [size]="16" />
                 </button>
                 @if (qOpen) {
                   <table class="qtable">
@@ -138,9 +145,13 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
 
             @if (tab === 'minuta') {
               <div class="panel">
-                <h2>Minuta del trámite</h2>
+                <h2>Minuta y acta notarial</h2>
+                <p class="muted flow-note">
+                  La notaría envía la minuta y el acta al abogado por fuera de la plataforma.
+                  <strong>Tú, como abogado, subes aquí el PDF</strong> para que el cliente pueda revisarlo y firmar.
+                </p>
                 @if (ws.case.status === '02') {
-                  <p class="muted">El cliente aún debe cargar documentos. Cuando estén en revisión (estado 03), podrás subir la minuta del notario.</p>
+                  <p class="muted">El cliente aún debe cargar documentos. Cuando estén en revisión (estado 03), podrás subir la minuta recibida de la notaría.</p>
                 } @else if (ws.case.status === '03' && hasPendingDocs) {
                   <p class="muted">Aprueba primero los documentos en la pestaña <strong>Documentos</strong>. Al aprobar el último, el expediente pasará automáticamente a estado 04.</p>
                 }
@@ -149,14 +160,14 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                     <p><a [href]="o.url" target="_blank">{{ o.filename }}</a> · {{ o.created_at | date:'short' }}</p>
                   }
                 } @else {
-                  <p class="muted">Minuta del notario no cargada.</p>
+                  <p class="muted">Minuta / acta notarial no cargada aún.</p>
                 }
                 @if (minutaOk) { <p class="ok">{{ minutaOk }}</p> }
                 @if (minutaError) { <p class="err">{{ minutaError }}</p> }
                 @if (canUploadMinuta) {
                   <label class="minuta-drop">
                     <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onMinutaFile($event)" [disabled]="minutaBusy" hidden />
-                    <span>{{ minutaBusy ? 'Subiendo…' : 'Subir minuta del notario (PDF)' }}</span>
+                    <span>{{ minutaBusy ? 'Subiendo…' : 'Subir minuta o acta (PDF)' }}</span>
                   </label>
                 } @else if (ws.case.status !== '02') {
                   <p class="muted">Subida disponible en revisión jurídica (03) o documentos preparados (04), con todos los documentos aprobados.</p>
@@ -258,10 +269,11 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .case-header { display: grid; gap: 1rem; margin-bottom: 1rem; }
     .case-title h1 { margin: 0; font-size: 1.6rem; }
     .case-title p { margin: 0.25rem 0 0; color: var(--ink-soft); }
-    .mono { font-family: ui-monospace, monospace; }
+    .mono { font-variant-numeric: tabular-nums; }
+    .back-link { display: inline-flex; align-items: center; gap: var(--space-2); }
     .state-bar { display: flex; flex-wrap: wrap; gap: 0.25rem; }
     .st {
-      font-family: ui-monospace, monospace; font-size: 0.68rem; font-weight: 700;
+      font-variant-numeric: tabular-nums; font-size: 0.68rem; font-weight: 700;
       width: 1.65rem; height: 1.65rem; display: grid; place-items: center;
       border-radius: 6px; background: var(--line); color: var(--ink-soft);
     }
@@ -270,6 +282,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .blockers { background: oklch(0.96 0.03 85); margin-bottom: 1rem; }
     .blockers ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
     .flow-hint { margin: 0.75rem 0 0; font-size: 0.88rem; line-height: 1.5; }
+    .flow-hint app-icon { vertical-align: -0.2em; }
     .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
     .tabs .on { background: var(--brand); color: white; border-color: var(--brand); }
     .layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; align-items: start; }
@@ -277,7 +290,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .sticky { position: sticky; top: 5.5rem; }
     .accordion {
       width: 100%; text-align: left; background: none; border: 0; font-weight: 600;
-      font-size: 1rem; cursor: pointer; padding: 0; font-family: var(--font-display);
+      font-size: 1rem; cursor: pointer; padding: 0;
     }
     .qtable { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin-top: 0.75rem; }
     .qtable td { padding: 0.35rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -291,7 +304,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .thumb.cedula { background: var(--brand); }
     .thumb.partida { background: var(--accent); color: var(--ink); }
     .doc-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-    .sig img { max-width: 180px; border: 1px solid var(--line); border-radius: 8px; background: white; }
+    .sig img { max-width: 180px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
     .minuta-drop {
       display: inline-flex; margin-top: 1rem; padding: 1rem 1.25rem;
       border: 2px dashed var(--line); border-radius: 10px; cursor: pointer;

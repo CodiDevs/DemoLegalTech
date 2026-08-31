@@ -28,7 +28,7 @@ export interface GalleryItem {
             <div class="eg-active-copy">
               <span class="eg-tag">{{ item.category }}</span>
               <h3>{{ item.title }}</h3>
-              <span class="eg-cta">Ver más →</span>
+              <span class="eg-cta">Ver más</span>
             </div>
             <span class="eg-idle-label">{{ item.title }}</span>
           </button>

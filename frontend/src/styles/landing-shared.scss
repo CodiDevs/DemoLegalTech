@@ -1,21 +1,22 @@
 /* Talking Tree–inspired marketing layout (Inter, cream canvas, pill CTAs) */
 
 .landing-page {
-  --lp-bg: #fdfcfa;
-  --lp-bg-soft: #f5f3ef;
-  --lp-bg-muted: #ebe8e2;
-  --lp-ink: #3a342f;
-  --lp-ink-soft: #6b635c;
-  --lp-ink-muted: #8a827a;
-  --lp-accent: var(--lp-accent, #4a6741);
-  --lp-accent-deep: var(--lp-accent-deep, #3d5536);
-  --lp-accent-soft: var(--lp-accent-soft, #e8efe6);
-  --lp-border: #e5e1da;
-  --lp-radius: 20px;
-  --lp-radius-sm: 14px;
-  --lp-shadow: 0 24px 64px rgb(58 52 47 / 0.08);
-  --lp-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --lp-max: 1180px;
+  /* Alias del sistema canónico (styles/tokens.scss) */
+  --lp-bg: var(--bg);
+  --lp-bg-soft: var(--bg-subtle);
+  --lp-bg-muted: var(--bg-muted);
+  --lp-ink: var(--text);
+  --lp-ink-soft: var(--text-secondary);
+  --lp-ink-muted: var(--text-muted);
+  --lp-accent: var(--primary);
+  --lp-accent-deep: var(--primary-hover);
+  --lp-accent-soft: var(--primary-subtle);
+  --lp-border: var(--border);
+  --lp-radius: var(--radius-xl);
+  --lp-radius-sm: var(--radius-lg);
+  --lp-shadow: var(--shadow-md);
+  --lp-font: var(--font-sans);
+  --lp-max: var(--container-max);
 
   font-family: var(--lp-font);
   color: var(--lp-ink);
@@ -39,8 +40,12 @@
   }
 
   .lp-crumb {
-    padding-top: 1rem;
-    font-size: 0.88rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    font-size: var(--text-sm);
     color: var(--lp-ink-muted);
   }
 
@@ -147,51 +152,68 @@
   }
 
   .lp-list-check li::before {
-    content: '✓';
-    width: auto;
-    height: auto;
-    background: none;
-    color: var(--lp-accent);
-    font-weight: 700;
-    font-size: 0.85rem;
-    top: 0.5rem;
+    content: '';
+    top: 0.72rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    border-radius: 0;
+    background: var(--lp-accent);
+    -webkit-mask: var(--icon-check) center / contain no-repeat;
+    mask: var(--icon-check) center / contain no-repeat;
   }
 
+  /* Misma geometría que los botones de app (tokens.scss) */
   .lp-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    padding: 0.9rem 1.55rem;
-    border-radius: 999px;
+    gap: var(--space-2);
+    min-height: var(--control-height);
+    padding: 0 var(--space-5);
+    border-radius: var(--radius-md);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
+    line-height: 1;
     text-decoration: none;
-    border: 0;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    transition:
+      background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
   }
 
-  .lp-btn:hover { transform: translateY(-1px); }
+  .lp-btn svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex-shrink: 0;
+  }
 
   .lp-btn-primary {
     background: var(--lp-accent);
-    color: white;
-    box-shadow: 0 12px 28px color-mix(in srgb, var(--lp-accent) 35%, transparent);
+    border-color: var(--lp-accent);
+    color: #fff;
   }
 
   .lp-btn-primary:hover {
     background: var(--lp-accent-deep);
+    border-color: var(--lp-accent-deep);
   }
 
   .lp-btn-outline {
-    background: transparent;
+    background: var(--surface);
     color: var(--lp-accent);
-    border: 1.5px solid var(--lp-accent);
+    border-color: var(--lp-accent);
   }
 
   .lp-btn-outline:hover {
     background: var(--lp-accent-soft);
+  }
+
+  .lp-btn-lg {
+    min-height: var(--control-height-lg);
+    padding: 0 var(--space-6);
+    font-size: var(--text-base);
   }
 
   .lp-trust {
@@ -209,30 +231,39 @@
     font-weight: 700;
   }
 
-  /* Tool cards — Talking Tree horizontal pills, 3×2 grid for 6 products */
+  /* Tool cards — grid uniforme para 7 productos */
   .lp-tool-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.85rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+
+  /* Centra el último ítem cuando la fila final tiene uno solo (7 productos) */
+  .lp-tool-card:last-child:nth-child(3n + 1) {
+    grid-column: 2;
   }
 
   .lp-tool-card {
-    display: flex;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
     align-items: center;
-    gap: 0.85rem;
+    gap: var(--space-3);
     width: 100%;
-    padding: 1rem 1.15rem;
-    background: #ffffff;
-    border: 1px solid rgb(58 52 47 / 0.08);
-    border-radius: 16px;
-    box-shadow:
-      0 1px 2px rgb(58 52 47 / 0.04),
-      0 8px 24px rgb(58 52 47 / 0.07);
+    min-height: 4.5rem;
+    padding: var(--space-4);
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, rgb(58 52 47 / 0.08));
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: var(--shadow-sm);
     text-align: left;
     font: inherit;
     color: inherit;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform var(--dur-fast, 0.15s) var(--ease, ease),
+      box-shadow var(--dur-fast, 0.15s) var(--ease, ease),
+      border-color var(--dur-fast, 0.15s) var(--ease, ease);
   }
 
   .lp-tool-card:not(button) {
@@ -247,11 +278,8 @@
   }
 
   .lp-tool-card.active {
-    border-color: color-mix(in srgb, var(--lp-accent) 35%, white);
-    box-shadow:
-      0 2px 4px rgb(58 52 47 / 0.06),
-      0 16px 40px color-mix(in srgb, var(--lp-accent) 18%, transparent);
-    outline: 2px solid color-mix(in srgb, var(--lp-accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--lp-accent) 45%, white);
+    box-shadow: var(--shadow-md);
   }
 
   .lp-tool-icon {
@@ -317,12 +345,16 @@
   }
 
   .lp-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 0;
     background: none;
     border: 0;
     padding: 0;
     font: inherit;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
     color: var(--lp-accent);
     cursor: pointer;
     text-decoration: none;
@@ -349,23 +381,35 @@
 
   .lp-carousel-nav {
     pointer-events: auto;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 999px;
-    border: 1px solid var(--lp-border);
-    background: white;
-    color: var(--lp-ink);
-    font-size: 1.35rem;
-    line-height: 1;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-strong);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    color: var(--text);
     cursor: pointer;
-    box-shadow: 0 4px 16px rgb(58 52 47 / 0.12);
+    box-shadow: var(--shadow-md);
     display: grid;
     place-items: center;
-    transition: background 0.15s ease;
+    transition:
+      background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
 
   .lp-carousel-nav:hover {
-    background: var(--lp-bg-soft);
+    background: var(--surface);
+    border-color: var(--lp-accent);
+    transform: scale(1.04);
+  }
+
+  .lp-carousel-nav:focus-visible {
+    outline: 2px solid var(--lp-accent);
+    outline-offset: 2px;
+  }
+
+  .lp-carousel-nav:active {
+    transform: scale(0.98);
   }
 
   .lp-carousel-frame {
@@ -486,8 +530,9 @@
 
   .lp-product-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    align-items: stretch;
   }
 
   .lp-product-card {
@@ -497,6 +542,8 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    min-height: 100%;
     box-shadow: 0 8px 32px rgb(58 52 47 / 0.06);
   }
 
@@ -512,15 +559,34 @@
   }
 
   .lp-product-body {
-    padding: 1.35rem 1.35rem 1.5rem;
+    padding: var(--space-5);
     display: flex;
     flex-direction: column;
     flex: 1;
-    gap: 0.75rem;
+    gap: var(--space-3);
   }
 
   .lp-product-body h3 {
     font-size: 1.08rem;
+    margin: 0;
+    min-height: 1.4em;
+  }
+
+  .lp-product-body p {
+    margin: 0;
+    flex: 1;
+    color: var(--lp-ink-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .lp-product-body .lp-list-tt {
+    flex: 1;
+  }
+
+  .lp-product-body .lp-btn {
+    margin-top: auto;
+    align-self: flex-start;
   }
 
   .lp-product-body ul {
@@ -725,11 +791,15 @@
   }
 
   .lp-plan li::before {
-    content: '✓';
+    content: '';
     position: absolute;
     left: 0;
-    color: var(--lp-accent);
-    font-weight: 700;
+    top: 0.6rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    background: var(--lp-accent);
+    -webkit-mask: var(--icon-check) center / contain no-repeat;
+    mask: var(--icon-check) center / contain no-repeat;
   }
 
   .lp-cta-panel {
@@ -855,24 +925,28 @@
 
   .lp-cta-primary {
     display: inline-flex;
-    padding: 0.85rem 1.55rem;
-    border-radius: 999px;
+    align-items: center;
+    min-height: var(--control-height-lg);
+    padding: 0 var(--space-6);
+    border-radius: var(--radius-md);
     background: white;
     color: #3a5248;
     font-weight: 600;
     text-decoration: none;
-    transition: transform 0.15s ease;
+    transition: background var(--dur-fast) var(--ease);
   }
 
-  .lp-cta-primary:hover { transform: translateY(-1px); }
+  .lp-cta-primary:hover { background: rgb(255 255 255 / 0.88); }
 
   &.divorcio-landing .lp-cta-primary { color: #3d7a74; }
 
   .lp-cta-ghost {
     display: inline-flex;
-    padding: 0.85rem 1.55rem;
-    border-radius: 999px;
-    border: 1.5px solid rgb(255 255 255 / 0.55);
+    align-items: center;
+    min-height: var(--control-height-lg);
+    padding: 0 var(--space-6);
+    border-radius: var(--radius-md);
+    border: 1px solid rgb(255 255 255 / 0.55);
     color: white;
     font-weight: 600;
     text-decoration: none;

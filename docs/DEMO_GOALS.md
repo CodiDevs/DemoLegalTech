@@ -155,3 +155,55 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 **Demo notificaciones:** campana → «Marcar todas como leídas».
 
 **Verificación:** `backend/scripts/verify-flow.ps1`.
+
+### 2026-08-31 — UX LegalStation: header, documentos, reuniones, Fase 2
+- **Header:** «Evaluar mi caso» y «Mis expedientes» (logueado) siempre visibles; selector de productos alineado con la nav.
+- **Landing `/`:** carrusel manual (sin auto-play); dots clicables.
+- **Upload:** badge con más aire; botón rojo «Eliminar archivo» junto a «Ver» (`DELETE /cases/{id}/documents/{docId}`).
+- **Reuniones:** solo agendar fecha/hora (días pasados bloqueados); popup «Su fecha se registró, espere el link…»; sin «Unirse a consulta virtual».
+- **Cuestionario no_aplica:** bloque de agendamiento inline; login preserva `returnUrl=/cuestionario?resume=result`.
+- **Fase 2:** nav en lenguaje llano; Admin/Plantillas/IA/SATJE ocultos para notario; copy minuta/acta: notaría envía → abogado sube.
+
+**Demo cliente (5 min):**
+1. `/` → header: Productos, Evaluar mi caso; login → «Mis expedientes» visible en cualquier página.
+2. `/cuestionario` → respuestas → **no_aplica** → agendar reunión (si no hay sesión: login → vuelve al resultado).
+3. Caso con docs → `/upload/{id}` → Eliminar archivo → resubir.
+4. Expediente → agendar consulta/notaría → popup de confirmación.
+
+**Demo abogado Fase 2:** `/fase2/admin` — menú lateral con descripciones claras; minuta en workspace explica flujo notaría→abogado.
+
+### 2026-08-31 — Fase 2 comercial + agendamiento + pagos premium
+- **Agendamiento:** popup funcional (z-index 10000); tarjeta persistente «Cita agendada»; persistencia sessionStorage; flujo auth con `d360_pending_meeting`; visible en cuestionario no_aplica y Mis expedientes.
+- **Notaría eliminada:** ruta `/notario`, `/reunion-notarial`, login demo notaría, guards y nav; reunión notarial virtual removida del expediente cliente.
+- **Checkout:** animación tarjeta procesando + factura generándose (CSS puro).
+- **Dashboard bufete:** grid hero (ingresos + casos activos destacados), embudo, ingresos por producto, CTA «Ir a mis casos».
+- **Plantillas:** variables `{{}}` → chips legibles («Nombre del cliente», etc.).
+- **Notificaciones:** fix escalera (block layout); leídas vs no leídas con opacidad.
+- **SATJE:** lenguaje legal natural («Sincronizar expediente judicial»).
+
+**Demo agendamiento:** `/cuestionario` → no_aplica → confirmar → popup → tarjeta verde; `/cliente` muestra la misma cita.
+**Demo pago:** `/checkout/{id}` → animación tarjeta → factura → subir documentos.
+
+### 2026-08-31 — Pulido producción: acciones, notificaciones, copy
+- **Acciones expediente:** botones centrados; acción única = CTA grande con color del producto (`--lp-accent`); todas las acciones son botones visibles.
+- **Notificaciones:** layout flex robusto, sin alturas fijas; fechas ISO formateadas; textos con `break-words`.
+- **Copy:** eliminado "demo/demostración" de checkout, footer, Fase 2, intake y flujos de producto.
+
+**Demo acciones:** `/caso/{id}` — solo "Subir documentos" aparece como botón sólido centrado.
+**Demo notificaciones:** campana → textos alineados, fechas legibles.
+- **Citas (fix crítico):** `MeetingScheduler` autónomo con `[saveFn]`; modal en `document.body`; funciona en cuestionario no_aplica, expediente y Mis expedientes.
+- **Notificaciones:** más padding/gap; solo no leídas; clic individual las quita; «Marcar todas» cierra el panel; copy sin referencias a notaría.
+- **Checkout 2 columnas:** formulario izquierda; resumen del pedido derecha; post-pago → `AnimatedTicket` (recibo con confetti).
+- **Fase 2 minimal:** Admin, SATJE, Plantillas y Asistente sin párrafos explicativos — solo títulos, métricas y acciones.
+
+**Demo citas:** `/cuestionario` → no_aplica → «Confirmar reunión con abogado» → popup; `/cliente` → agendar si no hay cita.
+**Demo pago:** `/checkout/{id}` → pagar → overlay oscuro → loader centrado → recibo en modal → «Subir mis documentos».
+**Demo notificaciones:** campana → leer una (desaparece) o «Marcar todas» (panel se cierra).
+**Demo Fase 2:** `/fase2/admin` — escaneable en 2 s, sin bloques de texto.
+
+### 2026-08-31 — AdvancedStats dashboard Fase 2
+- **Resumen del bufete** reemplazado por dashboard visual: gráfico de área animado, KPIs del bufete, tarjeta de objetivo y crecimiento de clientes.
+- Datos conectados a `/mock/admin/metrics` (ingresos, casos activos, tiempo de resolución, tasa de finalización).
+- Animaciones de entrada escalonadas al scroll (sin dependencias React).
+
+**Demo:** login abogado → Fase 2 → Resumen del bufete → gráfico + 4 KPIs + progreso trámites digitales.

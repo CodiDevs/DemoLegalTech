@@ -1,162 +1,247 @@
-import { Component } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, QuestionnaireAnswers, QuestionnaireResult } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { ProgressStepsComponent, ProgressStep } from '../../shared/progress-steps.component';
+import { IconComponent, IconName } from '../../shared/icon.component';
+import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
+import { setActiveProduct } from '../../shared/product-sites.data';
+import { Observable } from 'rxjs';
 
-interface Q {
-  key: keyof QuestionnaireAnswers;
+type AnswerKey = keyof QuestionnaireAnswers;
+
+interface Question {
+  key: AnswerKey;
   text: string;
-  icon: string;
-  group: number;
+  /** Explicación en lenguaje llano de por qué se pregunta. */
+  hint: string;
+  icon: IconName;
+  /** Resumen corto para la pantalla de revisión. */
+  summary: string;
   showIf?: () => boolean;
 }
-
-const GROUPS: ProgressStep[] = [
-  { id: 'g0', label: 'Elegibilidad' },
-  { id: 'g1', label: 'Menores' },
-  { id: 'g2', label: 'Bienes' },
-  { id: 'g3', label: 'Identidad' },
-];
-
-const Q_LABELS: Record<string, string> = {
-  both_want_divorce: 'Ambos desean divorciarse',
-  marriage_in_ecuador: 'Matrimonio en Ecuador',
-  have_children: 'Tienen hijos',
-  minor_dependents: 'Hijos menores',
-  custody_regulated: 'Alimentos/tenencia regulados',
-  has_mediation_acta: 'Acta mediación/judicial',
-  someone_abroad: 'Residencia fuera EC',
-  have_assets: 'Bienes en matrimonio',
-  conjugal_society: 'Sociedad conyugal',
-  ids_valid: 'IDs vigentes',
-  want_liquidate_assets: 'Liquidar bienes',
-  city: 'Ciudad',
-};
 
 @Component({
   selector: 'app-questionnaire',
   standalone: true,
-  imports: [FormsModule, RouterLink, ProgressStepsComponent],
-  styleUrls: ['../../../styles/landing-shared.scss', '../../../styles/product-flow.scss'],
+  imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
-      <div class="lp-shell wrap">
-        @if (!result && !reviewMode) {
-          <app-progress-steps [steps]="groups" [activeIndex]="activeGroup" />
-          <p class="legal muted">Evaluación orientativa — no constituye asesoría legal.</p>
+      <div class="ob">
 
-          <div class="panel q-card">
-            <div class="icon" aria-hidden="true">{{ current.icon }}</div>
-            <p class="step muted">Pregunta {{ visibleIndex + 1 }} de {{ visibleQuestions.length }}</p>
-            <h1>{{ current.text }}</h1>
+        <!-- ============ Preguntas ============ -->
+        @if (stage === 'questions') {
+          <div class="ob-progress">
+            <div class="ob-track" role="presentation">
+              <div class="ob-fill" [style.width.%]="progressPercent"></div>
+            </div>
+            <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
+          </div>
 
-            @if (current.key === 'city') {
-              <div class="field">
-                <label for="city">Ciudad</label>
-                <input id="city" [(ngModel)]="answers.city" placeholder="Ej. Quito" />
-              </div>
-              <button class="btn btn-primary" type="button" [disabled]="!answers.city" (click)="nextCity()">Continuar</button>
+          <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
+          @for (q of [current]; track q.key) {
+            <section class="ob-card" [class.is-back]="direction === -1">
+              <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
+
+              <h1>{{ q.text }}</h1>
+              <p class="ob-hint">{{ q.hint }}</p>
+
+              @if (q.key === 'city') {
+                <div class="ob-field">
+                  <label for="city">Ciudad</label>
+                  <input
+                    #cityInput
+                    id="city"
+                    name="city"
+                    type="text"
+                    placeholder="Quito"
+                    autocomplete="address-level2"
+                    [(ngModel)]="answers.city"
+                    (keyup.enter)="submitCity()"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-lg btn-block"
+                  [disabled]="!answers.city.trim()"
+                  (click)="submitCity()"
+                >Continuar</button>
+              } @else {
+                <div class="ob-choices">
+                  <button #firstChoice type="button" class="ob-choice" (click)="answer(true)">
+                    <span>Sí</span>
+                    <app-icon name="chevron-right" [size]="17" />
+                  </button>
+                  <button type="button" class="ob-choice" (click)="answer(false)">
+                    <span>No</span>
+                    <app-icon name="chevron-right" [size]="17" />
+                  </button>
+                </div>
+              }
+            </section>
+          }
+
+          <div class="ob-foot">
+            @if (canGoBack) {
+              <button type="button" class="btn btn-ghost btn-sm" (click)="back()">
+                <app-icon name="arrow-left" [size]="16" />
+                Atrás
+              </button>
             } @else {
-              <div class="yesno">
-                <button class="btn btn-primary" type="button" (click)="answer(true)">Sí</button>
-                <button class="btn btn-ghost" type="button" (click)="answer(false)">No</button>
-              </div>
+              <a routerLink="/productos/divorcio360" class="btn btn-ghost btn-sm">
+                <app-icon name="arrow-left" [size]="16" />
+                Salir
+              </a>
             }
+            <p class="ob-note">Orientativo. No sustituye una consulta legal.</p>
           </div>
         }
 
-        @if (!result && reviewMode) {
-          <div class="panel q-card">
+        <!-- ============ Revisión ============ -->
+        @if (stage === 'review') {
+          <section class="ob-card">
+            <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
             <h1>Revisa tus respuestas</h1>
-            <p class="muted">Confirma antes de obtener el resultado de elegibilidad.</p>
-            <ul class="review-list">
+            <p class="ob-hint">Toca cualquier respuesta si quieres cambiarla.</p>
+
+            <ul class="ob-review">
               @for (row of reviewRows; track row.key) {
-                <li><span>{{ row.label }}</span><strong>{{ row.value }}</strong></li>
+                <li>
+                  <button type="button" class="ob-review-row" (click)="editAnswer(row.key)">
+                    <span class="ob-review-label">{{ row.label }}</span>
+                    <span class="ob-review-value">
+                      {{ row.value }}
+                      <app-icon name="pen" [size]="14" />
+                    </span>
+                  </button>
+                </li>
               }
             </ul>
-            <div class="yesno">
-              <button class="btn btn-ghost" type="button" (click)="reviewMode = false">Editar</button>
-              <button class="btn btn-primary" type="button" (click)="submit()">Confirmar y ver resultado</button>
-            </div>
+
+            @if (submitError) {
+              <div class="ob-alert" role="alert">
+                <app-icon name="alert-triangle" [size]="18" />
+                <span>{{ submitError }}</span>
+              </div>
+            }
+
+            <button
+              type="button"
+              class="btn btn-primary btn-lg btn-block"
+              [disabled]="submitting"
+              (click)="submit()"
+            >
+              @if (submitting) {
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Comprobando</span>
+              } @else {
+                <span>Ver mi resultado</span>
+              }
+            </button>
+          </section>
+
+          <div class="ob-foot">
+            <button type="button" class="btn btn-ghost btn-sm" (click)="backToQuestions()">
+              <app-icon name="arrow-left" [size]="16" />
+              Atrás
+            </button>
           </div>
         }
 
-        @if (result) {
-          <div class="panel result-card" [class]="result.code">
-            <div class="result-icon" aria-hidden="true">{{ resultIcon }}</div>
-            <p class="badge-demo">Resultado automático</p>
-            <h1>{{ result.title }}</h1>
-            <p class="message">{{ result.message }}</p>
-            @if (result.price_usd > 0) {
-              <p class="price">\${{ result.price_usd }} <span class="muted">· {{ result.product }}</span></p>
-            }
-            <p class="legal muted">Evaluación orientativa LegalStation — no sustituye consulta legal.</p>
+        <!-- ============ Resultado ============ -->
+        @if (stage === 'result' && result) {
+          <section class="ob-card" [class]="'ob-card is-' + result.code">
+            <span class="ob-icon"><app-icon [name]="resultIcon" [size]="26" /></span>
 
-            @if (result.code === 'apto') {
-              <div class="actions stack-actions">
-                @if (auth.isLoggedIn && auth.user()?.role === 'cliente') {
-                  <button class="btn btn-primary" type="button" (click)="startCase()">{{ result.cta }}</button>
-                } @else if (!auth.isLoggedIn) {
-                  <a class="btn btn-primary" routerLink="/auth" [queryParams]="{next:'checkout', result: result.code, city: answers.city, product:'divorcio360', returnUrl:'/productos/divorcio360'}">Crear cuenta</a>
-                  <a class="btn btn-ghost" routerLink="/auth" [queryParams]="{mode:'login', product:'divorcio360', returnUrl:'/productos/divorcio360'}">Ya tengo cuenta</a>
-                }
+            <h1>{{ result.title }}</h1>
+            <p class="ob-message">{{ result.message }}</p>
+
+            @if (result.price_usd > 0) {
+              <div class="ob-price">
+                <span class="ob-price-value">\${{ result.price_usd }}</span>
+                <span class="ob-price-note">Pago único, todo incluido</span>
               </div>
-            } @else if (result.code === 'evaluacion') {
-              <p class="muted">En la versión completa se agenda evaluación. Demo: flujo \$749+.</p>
-              <div class="actions stack-actions">
-                @if (auth.isLoggedIn && auth.user()?.role === 'cliente') {
-                  <button class="btn btn-accent" type="button" (click)="startCase()">{{ result.cta }}</button>
-                } @else if (!auth.isLoggedIn) {
-                  <a class="btn btn-accent" routerLink="/auth" [queryParams]="{next:'checkout', result: result.code, city: answers.city, product:'divorcio360', returnUrl:'/productos/divorcio360'}">Crear cuenta</a>
-                  <a class="btn btn-ghost" routerLink="/auth" [queryParams]="{mode:'login', product:'divorcio360', returnUrl:'/productos/divorcio360'}">Ya tengo cuenta</a>
-                }
-              </div>
-            } @else {
-              <p class="muted">Derivación al área jurídica tradicional (fuera del flujo digital de pago).</p>
-              <a class="btn btn-ghost" routerLink="/productos/divorcio360">Volver a Divorcio360</a>
             }
-          </div>
+
+            @if (result.code === 'apto' || result.code === 'evaluacion') {
+              <div class="ob-actions">
+                @if (auth.isLoggedIn && auth.user()?.role === 'cliente') {
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-lg btn-block"
+                    [disabled]="submitting"
+                    (click)="startCase()"
+                  >
+                    @if (submitting) {
+                      <span class="spinner" aria-hidden="true"></span>
+                      <span>Preparando tu expediente</span>
+                    } @else {
+                      <span>{{ result.cta }}</span>
+                    }
+                  </button>
+                } @else if (!auth.isLoggedIn) {
+                  <a
+                    class="btn btn-primary btn-lg btn-block"
+                    routerLink="/auth"
+                    [queryParams]="{ next: 'checkout', result: result.code, city: answers.city, product: 'divorcio360' }"
+                  >Continuar y crear mi cuenta</a>
+                  <a
+                    class="btn btn-secondary btn-block"
+                    routerLink="/auth"
+                    [queryParams]="{ mode: 'login', product: 'divorcio360' }"
+                  >Ya tengo cuenta</a>
+                }
+              </div>
+
+              @if (submitError) {
+                <div class="ob-alert" role="alert">
+                  <app-icon name="alert-triangle" [size]="18" />
+                  <span>{{ submitError }}</span>
+                </div>
+              }
+            } @else {
+              <div class="ob-schedule-block">
+                <h2>Agendar reunión con un abogado</h2>
+                <p>
+                  Tu caso necesita la vía judicial. Elige fecha y hora para una consulta virtual;
+                  te enviaremos el enlace por correo.
+                </p>
+                <app-meeting-scheduler
+                  #noAplicaScheduler
+                  storageKey="ls_meeting_no_aplica"
+                  confirmLabel="Confirmar reunión con abogado"
+                  scheduledSubtitle="Consulta con abogado · vía judicial"
+                  [requireLogin]="true"
+                  authReturnUrl="/cuestionario?resume=result"
+                  authProduct="divorcio360"
+                  [saveFn]="noAplicaSaveFn"
+                />
+              </div>
+              <div class="ob-actions">
+                <a class="btn btn-ghost btn-block" routerLink="/productos/divorcio360">Volver a Divorcio360</a>
+              </div>
+            }
+
+            <p class="ob-note is-centered">Evaluación orientativa. No sustituye una consulta legal.</p>
+          </section>
         }
       </div>
     </div>
   `,
-  styles: [`
-    .wrap { padding-block: 2rem 3rem; max-width: 640px; }
-    .legal { font-size: 0.82rem; margin-bottom: 1rem; }
-    .q-card { text-align: center; padding: 2rem 1.5rem; animation: rise 0.45s ease both; }
-    .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-    .q-card h1 { font-size: 1.45rem; margin-bottom: 1.25rem; }
-    .yesno { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; }
-    .review-list { list-style: none; padding: 0; text-align: left; margin: 1.25rem 0; }
-    .review-list li {
-      display: flex; justify-content: space-between; gap: 1rem;
-      padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 0.92rem;
-    }
-    .review-list span { color: var(--ink-soft); }
-    .result-card { text-align: center; padding: 2rem 1.5rem; animation: pop 0.45s ease both; }
-    .result-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-    .result-card.apto { outline: 2px solid oklch(0.55 0.12 150 / 0.35); }
-    .result-card.evaluacion { outline: 2px solid oklch(0.72 0.14 85 / 0.45); }
-    .result-card.no_aplica { outline: 2px solid oklch(0.52 0.16 25 / 0.35); }
-    .message { font-size: 1.05rem; max-width: 42ch; margin: 0 auto 1rem; }
-    .price { font-family: var(--font-display); font-size: 2rem; color: var(--brand-deep); margin: 0.5rem 0 1rem; }
-    .actions { margin-top: 1.25rem; }
-    .stack-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: none; }
-    }
-    @keyframes pop {
-      from { opacity: 0; transform: scale(0.98) translateY(8px); }
-      to { opacity: 1; transform: none; }
-    }
-  `]
 })
-export class QuestionnaireComponent {
-  groups = GROUPS;
-  reviewMode = false;
+export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterViewInit {
+  @ViewChild('firstChoice') firstChoice?: ElementRef<HTMLButtonElement>;
+  @ViewChild('cityInput') cityInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('noAplicaScheduler') noAplicaScheduler?: MeetingSchedulerComponent;
+
+  stage: 'questions' | 'review' | 'result' = 'questions';
+  direction: 1 | -1 = 1;
+  submitting = false;
+  submitError = '';
+  result: QuestionnaireResult | null = null;
+
+  noAplicaSaveFn = (at: string): Observable<unknown> =>
+    this.api.requestMeeting(at, 'divorcio360', 'no_aplica');
 
   answers: QuestionnaireAnswers = {
     both_want_divorce: false,
@@ -173,83 +258,294 @@ export class QuestionnaireComponent {
     city: '',
   };
 
-  all: Q[] = [
-    { key: 'both_want_divorce', text: '¿Ambos desean divorciarse?', icon: '🤝', group: 0 },
-    { key: 'marriage_in_ecuador', text: '¿Su matrimonio está registrado en Ecuador?', icon: '🇪🇨', group: 0 },
-    { key: 'have_children', text: '¿Tienen hijos?', icon: '👨‍👩‍👧', group: 1 },
-    { key: 'minor_dependents', text: '¿Existen hijos menores o dependientes?', icon: '👶', group: 1, showIf: () => this.answers.have_children },
-    { key: 'custody_regulated', text: '¿Están regulados alimentos, tenencia y visitas?', icon: '⚖️', group: 1, showIf: () => this.answers.have_children && this.answers.minor_dependents },
-    { key: 'has_mediation_acta', text: '¿Existe acta de mediación o resolución judicial?', icon: '📋', group: 1, showIf: () => this.answers.have_children && this.answers.minor_dependents },
-    { key: 'someone_abroad', text: '¿Alguno reside fuera del Ecuador?', icon: '✈️', group: 0 },
-    { key: 'have_assets', text: '¿Tienen bienes adquiridos durante el matrimonio?', icon: '🏠', group: 2 },
-    { key: 'conjugal_society', text: '¿Existe sociedad conyugal?', icon: '📊', group: 2 },
-    { key: 'ids_valid', text: '¿Ambos cuentan con documentos de identificación vigentes?', icon: '🪪', group: 3 },
-    { key: 'want_liquidate_assets', text: '¿Desean liquidar también los bienes?', icon: '💼', group: 2 },
-    { key: 'city', text: '¿En qué ciudad se encuentran?', icon: '📍', group: 3 },
+  readonly all: Question[] = [
+    {
+      key: 'both_want_divorce',
+      text: '¿Los dos quieren divorciarse?',
+      hint: 'Si están de acuerdo, el trámite se resuelve en notaría y es mucho más rápido.',
+      icon: 'users',
+      summary: 'Ambos de acuerdo',
+    },
+    {
+      key: 'marriage_in_ecuador',
+      text: '¿Se casaron en Ecuador?',
+      hint: 'Lo necesitamos para pedir el acta de matrimonio correcta.',
+      icon: 'flag',
+      summary: 'Matrimonio en Ecuador',
+    },
+    {
+      key: 'someone_abroad',
+      text: '¿Alguno de los dos vive fuera del país?',
+      hint: 'Se puede firmar igual desde el extranjero, solo cambian algunos pasos.',
+      icon: 'plane',
+      summary: 'Alguien vive fuera',
+    },
+    {
+      key: 'have_children',
+      text: '¿Tienen hijos en común?',
+      hint: 'De esto depende qué documentos hacen falta.',
+      icon: 'baby',
+      summary: 'Tienen hijos',
+    },
+    {
+      key: 'minor_dependents',
+      text: '¿Alguno es menor de edad o depende de ustedes?',
+      hint: 'Cuenta cualquier hijo menor de 18 años o que dependa económicamente de ustedes.',
+      icon: 'calendar',
+      summary: 'Hijos menores o dependientes',
+      showIf: () => this.answers.have_children,
+    },
+    {
+      key: 'custody_regulated',
+      text: '¿Ya acordaron manutención, con quién viven y las visitas?',
+      hint: 'Es decir, si ya está definido cuánto se paga, dónde viven y cada cuánto se visitan.',
+      icon: 'scale',
+      summary: 'Manutención y visitas acordadas',
+      showIf: () => this.answers.have_children && this.answers.minor_dependents,
+    },
+    {
+      key: 'has_mediation_acta',
+      text: '¿Tienen ese acuerdo por escrito y firmado?',
+      hint: 'Un acta de mediación o una resolución de un juez donde consta lo acordado.',
+      icon: 'file-text',
+      summary: 'Acuerdo por escrito',
+      showIf: () => this.answers.have_children && this.answers.minor_dependents,
+    },
+    {
+      key: 'have_assets',
+      text: '¿Compraron bienes mientras estuvieron casados?',
+      hint: 'Casas, terrenos, vehículos o cuentas que consiguieron durante el matrimonio.',
+      icon: 'home',
+      summary: 'Bienes en el matrimonio',
+    },
+    {
+      key: 'conjugal_society',
+      text: '¿Sus bienes están en sociedad conyugal?',
+      hint: 'Es lo habitual en Ecuador, salvo que firmaran separación de bienes ante notario.',
+      icon: 'chart',
+      summary: 'Sociedad conyugal',
+      showIf: () => this.answers.have_assets,
+    },
+    {
+      key: 'want_liquidate_assets',
+      text: '¿Quieren repartir los bienes ahora?',
+      hint: 'También pueden divorciarse primero y repartir más adelante.',
+      icon: 'briefcase',
+      summary: 'Repartir bienes ahora',
+      showIf: () => this.answers.have_assets,
+    },
+    {
+      key: 'ids_valid',
+      text: '¿Los dos tienen la cédula o el pasaporte vigente?',
+      hint: 'Sin documentos vigentes la notaría no puede firmar.',
+      icon: 'id-card',
+      summary: 'Documentos vigentes',
+    },
+    {
+      key: 'city',
+      text: '¿En qué ciudad están?',
+      hint: 'Para asignarles una notaría cercana.',
+      icon: 'map-pin',
+      summary: 'Ciudad',
+    },
   ];
 
-  visibleIndex = 0;
-  result: QuestionnaireResult | null = null;
+  /** Índice en `all` de la pregunta actual. */
+  private cursor = 0;
+  /** Preguntas ya contestadas, para volver atrás en el orden real recorrido. */
+  private trail: number[] = [];
+  /** Marca para enfocar el control principal tras cambiar de paso. */
+  private pendingFocus = true;
 
-  constructor(private api: ApiService, public auth: AuthService, private router: Router) {}
+  constructor(
+    private api: ApiService,
+    public auth: AuthService,
+    private router: Router,
+    private route: ActivatedRoute,
+  ) {}
 
-  get visibleQuestions(): Q[] {
+  ngOnInit(): void {
+    setActiveProduct('divorcio360');
+    if (this.route.snapshot.queryParamMap.get('resume') === 'result') {
+      this.restoreResult();
+    }
+  }
+
+  private restoreResult(): void {
+    const cached = sessionStorage.getItem('d360_q_result');
+    if (!cached) return;
+    try {
+      const p = JSON.parse(cached);
+      if (p.answers) this.answers = { ...this.answers, ...p.answers };
+      this.api.evaluate(this.answers).subscribe({
+        next: (res) => {
+          this.result = res;
+          this.stage = 'result';
+          setTimeout(() => this.tryPendingMeeting(), 0);
+        },
+      });
+    } catch { /* ignore */ }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.stage === 'result') this.tryPendingMeeting();
+  }
+
+  private tryPendingMeeting(): void {
+    this.noAplicaScheduler?.tryPendingSave((at) => this.api.requestMeeting(at, 'divorcio360', 'no_aplica'));
+  }
+
+  ngAfterViewChecked(): void {
+    if (!this.pendingFocus) return;
+    const el = this.cityInput?.nativeElement ?? this.firstChoice?.nativeElement;
+    if (el) {
+      this.pendingFocus = false;
+      el.focus();
+    }
+  }
+
+  get visibleQuestions(): Question[] {
     return this.all.filter((q) => !q.showIf || q.showIf());
   }
 
-  get current(): Q {
-    return this.visibleQuestions[this.visibleIndex];
+  get current(): Question {
+    return this.all[this.cursor];
   }
 
-  get activeGroup(): number {
-    return this.current?.group ?? 0;
+  get position(): number {
+    return this.visibleQuestions.findIndex((q) => q.key === this.current.key) + 1;
   }
 
-  get reviewRows(): { key: string; label: string; value: string }[] {
+  get progressPercent(): number {
+    const total = this.visibleQuestions.length;
+    if (!total) return 0;
+    return Math.round(((this.position - 1) / total) * 100);
+  }
+
+  get canGoBack(): boolean {
+    return this.trail.length > 0;
+  }
+
+  get reviewRows(): { key: AnswerKey; label: string; value: string }[] {
     return this.visibleQuestions.map((q) => ({
       key: q.key,
-      label: Q_LABELS[q.key] || q.text,
+      label: q.summary,
       value: q.key === 'city'
-        ? this.answers.city
-        : typeof (this.answers as any)[q.key] === 'boolean'
-          ? ((this.answers as any)[q.key] ? 'Sí' : 'No')
-          : String((this.answers as any)[q.key] ?? '—'),
+        ? (this.answers.city || 'Sin indicar')
+        : ((this.answers as any)[q.key] ? 'Sí' : 'No'),
     }));
   }
 
-  get resultIcon(): string {
-    if (!this.result) return '';
-    return { apto: '✅', evaluacion: '⚠️', no_aplica: '⛔' }[this.result.code] || '';
+  get resultIcon(): IconName {
+    if (!this.result) return 'info';
+    if (this.result.code === 'apto') return 'check-circle';
+    if (this.result.code === 'evaluacion') return 'alert-triangle';
+    return 'x-circle';
   }
 
-  answer(val: boolean): void {
-    (this.answers as any)[this.current.key] = val;
-    this.advance();
+  /* ---------- Navegación entre pasos ---------- */
+
+  answer(value: boolean): void {
+    (this.answers as any)[this.current.key] = value;
+    this.goForward();
   }
 
-  nextCity(): void {
-    this.advance();
+  submitCity(): void {
+    if (!this.answers.city.trim()) return;
+    this.answers.city = this.answers.city.trim();
+    this.goForward();
   }
 
-  private advance(): void {
-    if (this.visibleIndex < this.visibleQuestions.length - 1) {
-      this.visibleIndex++;
+  private goForward(): void {
+    const next = this.nextVisibleAfter(this.cursor);
+    this.direction = 1;
+
+    if (next === -1) {
+      this.stage = 'review';
       return;
     }
-    this.reviewMode = true;
+
+    this.trail.push(this.cursor);
+    this.cursor = next;
+    this.pendingFocus = true;
   }
 
+  back(): void {
+    const previous = this.trail.pop();
+    if (previous === undefined) return;
+    this.direction = -1;
+    this.cursor = previous;
+    this.pendingFocus = true;
+  }
+
+  backToQuestions(): void {
+    this.direction = -1;
+    this.stage = 'questions';
+    this.pendingFocus = true;
+  }
+
+  /** Vuelve a una pregunta concreta desde la pantalla de revisión. */
+  editAnswer(key: AnswerKey): void {
+    const index = this.all.findIndex((q) => q.key === key);
+    if (index === -1) return;
+
+    const visiblePos = this.visibleQuestions.findIndex((q) => q.key === key);
+    this.trail = this.visibleQuestions
+      .slice(0, visiblePos)
+      .map((q) => this.all.findIndex((item) => item.key === q.key));
+
+    this.cursor = index;
+    this.direction = -1;
+    this.stage = 'questions';
+    this.pendingFocus = true;
+  }
+
+  /** Primera pregunta visible después de `from`, o -1 si no queda ninguna. */
+  private nextVisibleAfter(from: number): number {
+    for (let i = from + 1; i < this.all.length; i++) {
+      const q = this.all[i];
+      if (!q.showIf || q.showIf()) return i;
+    }
+    return -1;
+  }
+
+  /* ---------- Envío ---------- */
+
   submit(): void {
-    this.api.evaluate(this.answers).subscribe((res) => {
-      this.result = res;
-      this.reviewMode = false;
-      sessionStorage.setItem('d360_q_result', JSON.stringify({ result: res.code, city: this.answers.city, answers: this.answers }));
+    if (this.submitting) return;
+    this.submitting = true;
+    this.submitError = '';
+
+    this.api.evaluate(this.answers).subscribe({
+      next: (res) => {
+        this.submitting = false;
+        this.result = res;
+        this.stage = 'result';
+        this.direction = 1;
+        sessionStorage.setItem('d360_q_result', JSON.stringify({
+          result: res.code,
+          city: this.answers.city,
+          answers: this.answers,
+        }));
+      },
+      error: () => {
+        this.submitting = false;
+        this.submitError = 'No pudimos calcular tu resultado. Revisa tu conexión e inténtalo de nuevo.';
+      },
     });
   }
 
   startCase(): void {
-    this.api.createCase(this.result!.code, this.answers.city, this.answers).subscribe((c) => {
-      void this.router.navigate(['/checkout', c.id]);
+    if (!this.result || this.submitting) return;
+    this.submitting = true;
+    this.submitError = '';
+
+    this.api.createCase(this.result.code, this.answers.city, this.answers).subscribe({
+      next: (c) => void this.router.navigate(['/checkout', c.id]),
+      error: () => {
+        this.submitting = false;
+        this.submitError = 'No pudimos crear tu expediente. Inténtalo de nuevo en unos segundos.';
+      },
     });
   }
 }

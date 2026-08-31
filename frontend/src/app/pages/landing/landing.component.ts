@@ -28,7 +28,7 @@ import { AuthService } from '../../core/auth.service';
           }
         </div>
         @if (auth.user()?.role !== 'abogado') {
-          <p class="price muted">Desde <strong>$349</strong> si tu caso califica · Demo sin cobro real</p>
+          <p class="price muted">Desde <strong>$349</strong> si tu caso califica · Pago único</p>
         } @else {
           <p class="price muted">Vista operador · bandeja de casos y roadmap Fase 2</p>
         }
@@ -76,8 +76,8 @@ import { AuthService } from '../../core/auth.service';
     .price strong { color: var(--brand-deep); }
     .visual { position: relative; min-height: 320px; }
     .sheet {
-      position: absolute; border-radius: 18px; border: 1px solid var(--line);
-      background: white; box-shadow: var(--shadow);
+      position: absolute; border-radius: 18px; border: 1px solid var(--border);
+      background: var(--surface); box-shadow: var(--shadow);
     }
     .s1 { inset: 40px 40px auto auto; width: 70%; height: 70%; background: oklch(0.94 0.02 210); animation: float 5s ease-in-out infinite; }
     .s2 { inset: 80px auto auto 10%; width: 55%; height: 55%; background: oklch(0.95 0.03 55); animation: float 6s ease-in-out 0.4s infinite; }
@@ -85,7 +85,7 @@ import { AuthService } from '../../core/auth.service';
       inset: auto 8% 10% 18%; padding: 1.5rem; display: grid; gap: 0.35rem;
       animation: float 7s ease-in-out 0.8s infinite;
     }
-    .s3 span { font-family: var(--font-display); font-size: 1.4rem; }
+    .s3 span { font-weight: 650; font-size: 1.4rem; }
     .s3 em { font-style: normal; color: var(--ink-soft); font-size: 0.9rem; }
     .benefits { padding-block: 2rem 4rem; }
     .benefits h2 { margin-bottom: 1.25rem; font-size: 1.8rem; }

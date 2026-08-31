@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { getProductSite, ProductSiteConfig, setActiveProduct, CANONICAL_SLOGAN } from '../../shared/product-sites.data';
+import { getProductSite, ProductSiteConfig, setActiveProduct, CANONICAL_SLOGAN, getProductQuestionnairePath } from '../../shared/product-sites.data';
+import { AuthService } from '../../core/auth.service';
 import { ElasticGalleryComponent } from '../saas/elastic-gallery.component';
 import { LandingStatisticsComponent } from '../saas/landing-statistics.component';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-product-landing',
   standalone: true,
-  imports: [RouterLink, ElasticGalleryComponent, LandingStatisticsComponent],
-  styleUrls: ['../../../styles/landing-shared.scss'],
+  imports: [RouterLink, ElasticGalleryComponent, LandingStatisticsComponent, IconComponent],
   template: `
     @if (site) {
       <div
@@ -21,9 +22,11 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         [style.--lp-bg]="site.bg"
         [style.--lp-bg-soft]="site.bgSoft"
       >
-        <p class="lp-shell lp-crumb">
-          <a routerLink="/">LegalStation</a> › {{ site.name }}
-        </p>
+        <nav class="lp-shell lp-crumb crumb-row" aria-label="Dónde estás">
+          <a routerLink="/">LegalStation</a>
+          <app-icon name="chevron-right" [size]="14" />
+          <span aria-current="page">{{ site.name }}</span>
+        </nav>
 
         <div class="lp-slogan-band">
           <p class="lp-shell">{{ slogan }}</p>
@@ -32,19 +35,22 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="ps-hero lp-section soft">
           <div class="lp-shell ps-hero-grid">
             <div class="ps-hero-copy">
-              <p class="lp-eyebrow">{{ site.name }} · pago único</p>
+              <p class="lp-eyebrow">{{ site.name }} · pagas una sola vez</p>
               <h1>{{ site.heroTitle }} <span class="lp-highlight">{{ site.heroHighlight }}</span></h1>
               <p class="ps-lede">{{ site.heroLede }}</p>
-              <span class="ps-badge">Pago único · sin suscripción</span>
+              <span class="ps-badge">Un solo pago · sin cuotas mensuales</span>
               <div class="ps-cta-row">
-                <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-btn lp-btn-primary">Iniciar trámite →</a>
-                <a href="#flujo" class="lp-btn lp-btn-outline">Ver flujo</a>
+                <a href="#" (click)="startEvaluation($event)" class="lp-btn lp-btn-primary">
+                  Evaluar mi caso
+                  <app-icon name="arrow-right" [size]="16" />
+                </a>
+                <a href="#flujo" class="lp-btn lp-btn-outline">Ver cómo funciona</a>
               </div>
             </div>
             <div class="ps-mock-ui lp-lift">
               <div class="ps-mock-bar">
                 <span></span><span></span><span></span>
-                <strong>{{ site.name }} — expediente demo</strong>
+                <strong>{{ site.name }} — expediente de ejemplo</strong>
               </div>
               <div class="ps-mock-body">
                 @for (s of site.workflow.slice(0, 4); track s.n) {
@@ -65,9 +71,9 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="lp-section" id="flujo">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">Flujo completo</p>
-              <h2>Seis pasos conectados. <span class="lp-highlight">Un expediente.</span></h2>
-              <p>Mismo recorrido que Divorcio360 — diseño y experiencia elevados para {{ site.name }}.</p>
+              <p class="lp-eyebrow">Así funciona</p>
+              <h2>Seis pasos, <span class="lp-highlight">un solo expediente.</span></h2>
+              <p>El mismo recorrido de Divorcio360, adaptado a {{ site.name }}.</p>
             </div>
             <div class="ps-timeline">
               @for (s of site.workflow; track s.n) {
@@ -105,7 +111,7 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
           <div class="lp-shell">
             <div class="lp-section-head">
               <p class="lp-eyebrow">Producto en acción</p>
-              <h2>Pantallas reales <span class="lp-highlight">del flujo.</span></h2>
+              <h2>Pantallas reales <span class="lp-highlight">del trámite.</span></h2>
             </div>
             <app-elastic-gallery theme="divorcio" [items]="site.gallery" />
           </div>
@@ -127,9 +133,9 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
         <section class="lp-section" id="precios">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">Pago por trámite</p>
-              <h2>Honorarios claros <span class="lp-highlight">sin membresía.</span></h2>
-              <p>Un solo cobro al cliente — la licencia LegalStation es solo para bufetes.</p>
+              <p class="lp-eyebrow">Pagas una sola vez</p>
+              <h2>Precios claros <span class="lp-highlight">sin cuotas mensuales.</span></h2>
+              <p>Pagas un solo importe por tu trámite. La licencia LegalStation es solo para bufetes.</p>
             </div>
             <div class="lp-pricing">
               @for (plan of site.plans; track plan.name) {
@@ -137,14 +143,14 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
                   @if (plan.featured) { <span class="lp-plan-tag">Recomendado</span> }
                   <h3>{{ plan.name }}</h3>
                   <p class="lp-muted">{{ plan.audience }}</p>
-                  <div class="lp-plan-price">\${{ plan.price }}<small> único</small></div>
+                  <div class="lp-plan-price">\${{ plan.price }}<small> pago único</small></div>
                   <ul>
                     @for (item of plan.items; track item) { <li>{{ item }}</li> }
                   </ul>
                   @if (plan.featured) {
-                    <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-btn lp-btn-primary">Comenzar trámite</a>
+                    <a href="#" (click)="startEvaluation($event)" class="lp-btn lp-btn-primary">Evaluar mi caso</a>
                   } @else {
-                    <button type="button" class="lp-btn lp-btn-outline" disabled>Evaluación previa</button>
+                    <button type="button" class="lp-btn lp-btn-outline" disabled>Necesita revisión previa</button>
                   }
                 </article>
               }
@@ -157,9 +163,9 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
             <div class="lp-cta-inner">
               <p class="lp-cta-eyebrow">{{ site.name }} listo</p>
               <h2>{{ site.slug === 'bienraiz360' ? '¿Listo para tu traslado de inmueble?' : '¿Listo para tu traslado?' }}</h2>
-              <p>Cuestionario en minutos → registro → pago único → documentos → consulta → firma → notaría.</p>
+              <p>Contestas el cuestionario en minutos, creas tu cuenta, haces un solo pago, subes tus documentos, hablas con tu abogado, firmas y cierras en la notaría.</p>
               <div class="lp-cta-buttons">
-                <a [routerLink]="['/productos', site.slug, 'cuestionario']" class="lp-cta-primary">Iniciar cuestionario</a>
+                <a href="#" (click)="startEvaluation($event)" class="lp-cta-primary">Evaluar mi caso</a>
                 <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
               </div>
             </div>
@@ -173,15 +179,22 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
       overflow-x: hidden;
     }
 
+    .crumb-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
     .ps-badge {
       display: inline-block;
-      margin-top: 0.75rem;
-      font-size: 0.72rem;
+      margin-top: var(--space-3);
+      font-size: var(--text-xs);
       font-weight: 700;
-      letter-spacing: 0.04em;
+      letter-spacing: var(--tracking-wide);
       text-transform: uppercase;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-full);
       background: var(--lp-accent-soft);
       color: var(--lp-accent-deep);
     }
@@ -189,7 +202,7 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
     .ps-hero-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-      gap: clamp(1.5rem, 4vw, 2.5rem);
+      gap: clamp(var(--space-5), 4vw, var(--space-7));
       align-items: center;
     }
 
@@ -198,30 +211,30 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
     }
 
     .ps-hero-copy h1 {
-      font-size: clamp(1.65rem, 3.2vw, 2.45rem);
-      margin: 0.5rem 0;
+      font-size: clamp(var(--text-2xl), 3.2vw, var(--text-4xl));
+      margin: var(--space-2) 0;
       max-width: 16ch;
     }
 
     .ps-lede {
-      color: var(--lp-ink-muted);
-      line-height: 1.6;
+      color: var(--text-muted);
+      line-height: var(--leading-normal);
       max-width: 38ch;
     }
 
     .ps-cta-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
+      gap: var(--space-3);
+      margin-top: var(--space-5);
     }
 
     .ps-mock-ui {
       position: relative;
-      border-radius: var(--lp-radius);
+      border-radius: var(--radius-xl);
       overflow: hidden;
-      border: 1px solid var(--lp-border);
-      background: white;
+      border: 1px solid var(--border);
+      background: var(--surface);
       min-height: 280px;
       max-height: 420px;
       width: 100%;
@@ -231,25 +244,25 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
     .ps-mock-bar {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.65rem 1rem;
-      background: var(--lp-bg-soft);
-      border-bottom: 1px solid var(--lp-border);
-      font-size: 0.78rem;
+      gap: var(--space-1);
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+      font-size: var(--text-xs);
       flex-wrap: wrap;
     }
 
     .ps-mock-bar strong {
       margin-left: auto;
-      font-size: 0.72rem;
+      font-size: var(--text-xs);
       font-weight: 600;
-      color: var(--lp-ink-muted);
+      color: var(--text-muted);
     }
 
     .ps-mock-bar span {
       width: 0.55rem;
       height: 0.55rem;
-      border-radius: 50%;
+      border-radius: var(--radius-full);
       background: var(--lp-accent);
       opacity: 0.45;
     }
@@ -257,20 +270,20 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
     .ps-mock-body {
       position: relative;
       z-index: 1;
-      padding: 1rem;
+      padding: var(--space-4);
       display: grid;
-      gap: 0.5rem;
+      gap: var(--space-2);
     }
 
     .ps-mock-step {
       display: grid;
       grid-template-columns: 2rem 1fr;
-      gap: 0.65rem;
+      gap: var(--space-3);
       align-items: center;
-      padding: 0.55rem 0.75rem;
-      border-radius: var(--lp-radius-sm);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-lg);
       background: rgb(255 255 255 / 0.92);
-      border: 1px solid var(--lp-border);
+      border: 1px solid var(--border);
     }
 
     .ps-mock-step.active {
@@ -281,16 +294,20 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
     .ps-mock-num {
       width: 1.75rem;
       height: 1.75rem;
-      border-radius: 50%;
+      border-radius: var(--radius-full);
       display: grid;
       place-items: center;
-      font-size: 0.75rem;
+      font-size: var(--text-xs);
       font-weight: 700;
       background: var(--lp-accent-soft);
       color: var(--lp-accent-deep);
     }
 
-    .ps-mock-step small { display: block; color: var(--lp-ink-muted); font-size: 0.75rem; }
+    .ps-mock-step small {
+      display: block;
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+    }
 
     .ps-mock-bg {
       position: absolute;
@@ -305,36 +322,38 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
     .ps-timeline {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem;
+      gap: var(--space-3);
     }
 
     .ps-timeline-item {
       text-align: left;
-      border: 1px solid var(--lp-border);
-      border-radius: var(--lp-radius);
-      padding: 1rem;
-      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      background: var(--surface);
       cursor: pointer;
       font: inherit;
       display: grid;
       grid-template-columns: 2.5rem minmax(0, 1fr);
-      gap: 0.75rem;
+      gap: var(--space-3);
       align-items: start;
       width: 100%;
       min-width: 0;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition:
+        border-color var(--dur-fast) var(--ease),
+        box-shadow var(--dur-fast) var(--ease);
     }
 
     .ps-timeline-item.active,
     .ps-timeline-item:hover {
       border-color: var(--lp-accent);
-      box-shadow: var(--lp-shadow);
+      box-shadow: var(--shadow-md);
     }
 
     .ps-timeline-num {
       width: 2.25rem;
       height: 2.25rem;
-      border-radius: 50%;
+      border-radius: var(--radius-full);
       display: grid;
       place-items: center;
       font-weight: 700;
@@ -342,48 +361,66 @@ import { LandingStatisticsComponent } from '../saas/landing-statistics.component
       color: var(--lp-accent-deep);
     }
 
-    .ps-timeline-item h3 { margin: 0 0 0.25rem; font-size: 0.95rem; }
-    .ps-timeline-item p { margin: 0; font-size: 0.82rem; color: var(--lp-ink-muted); line-height: 1.45; }
+    .ps-timeline-item h3 {
+      margin: 0 0 var(--space-1);
+      font-size: var(--text-base);
+    }
+
+    .ps-timeline-item p {
+      margin: 0;
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: var(--leading-snug);
+    }
 
     .ps-preview h3 {
-      font-size: clamp(1.05rem, 2vw, 1.35rem);
-      margin: 0.35rem 0 0.5rem;
+      font-size: clamp(var(--text-lg), 2vw, var(--text-xl));
+      margin: var(--space-1) 0 var(--space-2);
     }
 
     .ps-screen-tag {
       display: inline-block;
-      margin-top: 0.35rem;
-      font-size: 0.72rem;
+      margin-top: var(--space-1);
+      font-size: var(--text-xs);
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: var(--tracking-wide);
       color: var(--lp-accent-deep);
     }
 
     .ps-preview {
-      margin-top: 1.5rem;
-      padding: 1.25rem 1.5rem;
-      border-radius: var(--lp-radius);
-      background: var(--lp-bg-soft);
-      border: 1px solid var(--lp-border);
+      margin-top: var(--space-5);
+      padding: var(--space-5);
+      border-radius: var(--radius-xl);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
     }
 
     .lp-testimonials {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: var(--space-4);
     }
 
     .ps-quote {
       margin: 0;
-      padding: 1.25rem;
-      border-radius: var(--lp-radius);
-      background: white;
-      border: 1px solid var(--lp-border);
+      padding: var(--space-5);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      border: 1px solid var(--border);
     }
 
-    .ps-quote p { margin: 0 0 0.75rem; font-style: italic; line-height: 1.55; }
-    .ps-quote footer { font-size: 0.82rem; color: var(--lp-ink-muted); font-weight: 600; }
+    .ps-quote p {
+      margin: 0 0 var(--space-3);
+      font-style: italic;
+      line-height: var(--leading-normal);
+    }
+
+    .ps-quote footer {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
 
     @media (max-width: 1024px) {
       .ps-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -407,7 +444,11 @@ export class ProductLandingComponent implements OnInit {
   activeStep = 1;
   slogan = CANONICAL_SLOGAN;
 
-  constructor(private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    public auth: AuthService,
+  ) {}
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug') || '';
@@ -425,5 +466,11 @@ export class ProductLandingComponent implements OnInit {
 
   get previewStep() {
     return this.site?.workflow.find((w) => w.n === this.activeStep);
+  }
+
+  startEvaluation(event: Event): void {
+    event.preventDefault();
+    if (!this.site) return;
+    void this.router.navigateByUrl(getProductQuestionnairePath(this.site.slug));
   }
 }

@@ -1,18 +1,23 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { setActiveProduct, getProductQuestionnairePath } from '../../shared/product-sites.data';
 import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
 import { CinematicLogoCloudComponent, LogoCloudClient } from './cinematic-logo-cloud.component';
 import { LandingStatisticsComponent, StatItem } from './landing-statistics.component';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-divorcio-landing',
   standalone: true,
-  imports: [RouterLink, HeroScrollVideoPinRevealComponent, CinematicLogoCloudComponent, LandingStatisticsComponent],
-  styleUrls: ['../../../styles/landing-shared.scss'],
+  imports: [RouterLink, HeroScrollVideoPinRevealComponent, CinematicLogoCloudComponent, LandingStatisticsComponent, IconComponent],
   template: `
     <div class="landing-page divorcio-landing">
-      <p class="lp-shell lp-crumb"><a routerLink="/">LegalStation</a> › Divorcio360</p>
+      <nav class="lp-shell lp-crumb" aria-label="Ruta de navegación">
+        <a routerLink="/">LegalStation</a>
+        <app-icon name="chevron-right" [size]="14" />
+        <span>Divorcio360</span>
+      </nav>
 
       <div class="lp-slogan-band">
         <p class="lp-shell">Servicios jurídicos al mismo costo, sin filas ni trámites.</p>
@@ -28,7 +33,10 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
               <div class="lp-carousel-copy">
                 <h3>Expediente Divorcio360</h3>
                 <p>Timeline del expediente, documentos, firma electrónica y mensajes LegalStation — todo en un solo flujo demo.</p>
-                <a routerLink="/cuestionario" class="lp-link">Empezar cuestionario →</a>
+                <a (click)="startEvaluation($event)" href="#" class="lp-link">
+                  Evaluar mi caso
+                  <app-icon name="arrow-right" [size]="16" />
+                </a>
               </div>
               <div class="lp-carousel-panel">
                 <div class="lp-carousel-frame">
@@ -117,7 +125,7 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
                 <ul>
                   @for (item of plan.items; track item) { <li>{{ item }}</li> }
                 </ul>
-                <a routerLink="/cuestionario" class="lp-btn lp-btn-primary">Evaluar mi caso</a>
+                <a (click)="startEvaluation($event)" href="#" class="lp-btn lp-btn-primary">Evaluar mi caso</a>
               </article>
             }
           </div>
@@ -131,7 +139,7 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
             <h2>¿Listo para iniciar tu trámite?</h2>
             <p>Responde el cuestionario en minutos. Si calificas, continúas con registro, pago y expediente digital.</p>
             <div class="lp-cta-buttons">
-              <a routerLink="/cuestionario" class="lp-cta-primary">Empezar cuestionario</a>
+              <a (click)="startEvaluation($event)" href="#" class="lp-cta-primary">Evaluar mi caso</a>
               <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
             </div>
           </div>
@@ -157,7 +165,7 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
     }
   `]
 })
-export class DivorcioLandingComponent {
+export class DivorcioLandingComponent implements OnInit {
   clientLogos: LogoCloudClient[] = [
     { name: 'LegalStation', tone: 'accent' },
     { name: 'Divorcio360', tone: 'bold' },
@@ -203,5 +211,14 @@ export class DivorcioLandingComponent {
     { name: 'Derivación', audience: 'No apto vía simplificada', price: 0, items: ['Resultado rojo', 'Orientación jurídica', 'Sin cobro automático', 'Contacto operador'], featured: false },
   ];
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, private router: Router) {}
+
+  ngOnInit(): void {
+    setActiveProduct('divorcio360');
+  }
+
+  startEvaluation(event: Event): void {
+    event.preventDefault();
+    void this.router.navigateByUrl(getProductQuestionnairePath('divorcio360'));
+  }
 }

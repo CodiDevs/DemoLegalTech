@@ -3,8 +3,10 @@ package cases
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/codidevs/divorcio360/internal/auth"
@@ -305,6 +307,62 @@ func (s *Service) SetStatus(id int64, status, note string, actorID *int64) error
 
 func (s *Service) GetCasePublic(id int64) (Case, error) {
 	return s.getCase(id)
+}
+
+func (s *Service) ScheduleConsultation(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFrom(r.Context())
+	caseID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	var body struct {
+		ConsultationAt string `json:"consultation_at"`
+	}
+	if json.NewDecoder(r.Body).Decode(&body) != nil {
+		writeErr(w, http.StatusBadRequest, "JSON inválido")
+		return
+	}
+	if strings.TrimSpace(body.ConsultationAt) == "" {
+		writeErr(w, http.StatusBadRequest, "consultation_at requerido")
+		return
+	}
+	c, err := s.getCase(caseID)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "caso no encontrado")
+		return
+	}
+	if u.Role == "cliente" && c.ClientID != u.ID {
+		writeErr(w, http.StatusForbidden, "acceso denegado")
+		return
+	}
+	_, _ = s.DB.Exec(`UPDATE cases SET consultation_at=? WHERE id=?`, body.ConsultationAt, caseID)
+	note := "Cliente agendó consulta con abogado: " + body.ConsultationAt
+	_, _ = s.DB.Exec(
+		`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
+		caseID, c.Status, note, u.ID, store.Now(),
+	)
+	if c.LawyerID != nil {
+		notifications.NotifyUser(s.DB, *c.LawyerID, caseID, "consultation", "Consulta agendada", note)
+	}
+	c2, _ := s.getCase(caseID)
+	writeJSON(w, http.StatusOK, c2)
+}
+
+func (s *Service) RequestMeeting(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFrom(r.Context())
+	var body struct {
+		ScheduledAt string `json:"scheduled_at"`
+		Product     string `json:"product"`
+		Context     string `json:"context"`
+	}
+	if json.NewDecoder(r.Body).Decode(&body) != nil {
+		writeErr(w, http.StatusBadRequest, "JSON inválido")
+		return
+	}
+	if strings.TrimSpace(body.ScheduledAt) == "" {
+		writeErr(w, http.StatusBadRequest, "scheduled_at requerido")
+		return
+	}
+	note := fmt.Sprintf("Solicitud de reunión (%s) — %s · producto %s", body.Context, body.ScheduledAt, body.Product)
+	notifications.NotifyLawyersForCase(s.DB, 0, "meeting_request", "Nueva solicitud de reunión", note+" · cliente #"+strconv.FormatInt(u.ID, 10))
+	writeJSON(w, http.StatusOK, map[string]string{"ok": "true", "message": note})
 }
 
 func (s *Service) CompleteConsultation(w http.ResponseWriter, r *http.Request) {

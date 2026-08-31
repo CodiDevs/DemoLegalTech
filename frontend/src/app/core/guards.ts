@@ -4,19 +4,22 @@ import { AuthService } from './auth.service';
 
 function homeForRole(role?: string): string {
   if (role === 'abogado') return '/abogado';
-  if (role === 'notario') return '/notario';
   return '/cliente';
 }
 
-export const authGuard: CanActivateFn = () => {
+function authRedirectTree(router: Router, attemptedUrl: string) {
+  return router.createUrlTree(['/auth'], { queryParams: { returnUrl: attemptedUrl } });
+}
+
+export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (auth.isLoggedIn) return true;
-  return router.createUrlTree(['/auth']);
+  return authRedirectTree(router, state.url);
 };
 
-export const roleGuard = (role: 'cliente' | 'abogado' | 'notario'): CanActivateFn => {
-  return () => {
+export const roleGuard = (role: 'cliente' | 'abogado'): CanActivateFn => {
+  return (_route, state) => {
     const auth = inject(AuthService);
     const router = inject(Router);
     const u = auth.user();
@@ -24,20 +27,17 @@ export const roleGuard = (role: 'cliente' | 'abogado' | 'notario'): CanActivateF
     if (auth.isLoggedIn) {
       return router.createUrlTree([homeForRole(u?.role)]);
     }
-    return router.createUrlTree(['/auth']);
+    return authRedirectTree(router, state.url);
   };
 };
 
-/** Allows guests and clientes; redirects abogado/notario to their panel. */
+/** Allows guests and clientes; redirects abogado to su panel. */
 export const clienteOrGuestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const u = auth.user();
   if (auth.isLoggedIn && u?.role === 'abogado') {
     return router.createUrlTree(['/abogado']);
-  }
-  if (auth.isLoggedIn && u?.role === 'notario') {
-    return router.createUrlTree(['/notario']);
   }
   return true;
 };

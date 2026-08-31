@@ -1,16 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { DatePipe, DecimalPipe } from '@angular/common';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
+import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
+import { ScheduledMeetingCardComponent } from '../../shared/scheduled-meeting-card.component';
 import { getProductSite, productThemeFromCase } from '../../shared/product-sites.data';
+
+interface CaseAction {
+  label: string;
+  link: (string | number)[];
+  primary: boolean;
+}
 
 @Component({
   selector: 'app-case-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe, ProductFlowShellComponent],
+  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe, ProductFlowShellComponent, MeetingSchedulerComponent, ScheduledMeetingCardComponent],
   template: `
     @if (data) {
       <app-product-flow-shell
@@ -45,64 +54,44 @@ import { getProductSite, productThemeFromCase } from '../../shared/product-sites
           </section>
 
           <section class="stack">
-            @if (data.case.status >= '03' && auth.user()?.role === 'cliente' && !data.case.consultation_at) {
-              <div class="pf-card lp-lift" style="margin-top:1rem">
+            @if (data.case.status >= '03' && auth.user()?.role === 'cliente') {
+              <div class="pf-card lp-lift meet-section">
                 <h2>Consulta con abogado</h2>
-                <p class="pf-muted">Videollamada mock para revisar documentos antes de firmar.</p>
-                <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', data.case.id]">Unirse a consulta virtual</a>
-              </div>
-            }
-            @if (data.case.consultation_at) {
-              <div class="pf-receipt" style="margin-top:1rem">
-                <p class="pf-ok">Consulta completada: {{ data.case.consultation_at | date:'short' }}</p>
-              </div>
-            }
-
-            @if (data.case.status >= '05' && auth.user()?.role === 'cliente' && !data.case.appointment_at) {
-              <div class="pf-card lp-lift" style="margin-top:1rem">
-                <h2>Agendar reunión notarial virtual</h2>
-                <p class="pf-muted">100% en línea — sin ir presencialmente a la notaría.</p>
-                <div class="pf-field"><label>Fecha y hora</label><input type="datetime-local" [(ngModel)]="apptAt" /></div>
-                <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-                  <button type="button" class="lp-btn lp-btn-primary" (click)="schedule()" [disabled]="!apptAt || apptBusy">
-                    {{ apptBusy ? 'Agendando…' : 'Confirmar cita' }}
-                  </button>
-                  @if (apptAt) {
-                    <a class="lp-btn lp-btn-outline" [routerLink]="['/reunion-notarial', data.case.id]">Ir a sala virtual</a>
-                  }
-                </div>
-              </div>
-            }
-            @if (data.case.appointment_at) {
-              <div class="pf-receipt" style="margin-top:1rem">
-                <p class="pf-ok">Cita: {{ data.case.appointment_at }}</p>
-                @if (data.case.notary_name) { <p class="pf-muted">{{ data.case.notary_name }}</p> }
-                @if (auth.user()?.role === 'cliente') {
-                  <a class="lp-btn lp-btn-primary" style="margin-top:0.75rem;display:inline-flex" [routerLink]="['/reunion-notarial', data.case.id]">
-                    Entrar a reunión notarial
-                  </a>
+                @if (data.case.consultation_at) {
+                  <app-scheduled-meeting-card
+                    [scheduledAt]="data.case.consultation_at"
+                    subtitle="Consulta con abogado"
+                  />
+                } @else {
+                  <p class="pf-muted">Elige fecha y hora. Te enviaremos el enlace de la videollamada por correo.</p>
+                  <app-meeting-scheduler
+                    #consultScheduler
+                    [storageKey]="consultStorageKey"
+                    confirmLabel="Confirmar consulta"
+                    scheduledSubtitle="Consulta con abogado"
+                    [saveFn]="consultSaveFn"
+                    (scheduled)="reload()"
+                  />
                 }
               </div>
             }
 
-            <div class="panel">
+            <div class="panel actions-panel">
               <h2>Acciones</h2>
-              <div class="actions">
-                @if (!data.case.paid) {
-                  <a class="btn btn-accent" [routerLink]="['/checkout', data.case.id]">Pagar</a>
-                }
-                <a class="btn btn-ghost" [routerLink]="['/upload', data.case.id]">Documentos</a>
-                @if (data.case.can_sign && auth.user()?.role === 'cliente') {
-                  <a class="btn btn-accent" [routerLink]="['/firma', data.case.id]">{{ data.case.has_signature ? 'Volver a firmar' : 'Firmar minuta' }}</a>
-                }
-                @if (data.case.status >= '03' && auth.user()?.role === 'cliente') {
-                  <a class="btn btn-ghost" [routerLink]="['/consulta', data.case.id]">Consulta</a>
-                }
-                @if (data.case.appointment_at && auth.user()?.role === 'cliente') {
-                  <a class="btn btn-ghost" [routerLink]="['/reunion-notarial', data.case.id]">Notaría</a>
+              <div class="actions-grid" [class.is-solo]="availableActions.length === 1">
+                @for (action of availableActions; track action.label) {
+                  <a
+                    [routerLink]="action.link"
+                    class="lp-btn action-btn"
+                    [class.lp-btn-primary]="action.primary"
+                    [class.lp-btn-outline]="!action.primary"
+                    [class.action-btn-lg]="availableActions.length === 1"
+                  >{{ action.label }}</a>
                 }
               </div>
-              <p class="muted">Monto: \${{ data.case.amount_cents / 100 | number:'1.2-2' }} · {{ data.case.paid ? 'Pagado' : 'Sin pago' }}</p>
+              <p class="actions-meta muted">
+                Monto: \${{ data.case.amount_cents / 100 | number:'1.2-2' }} · {{ data.case.paid ? 'Pagado' : 'Sin pago' }}
+              </p>
             </div>
 
             <div class="panel">
@@ -199,7 +188,38 @@ import { getProductSite, productThemeFromCase } from '../../shared/product-sites
       width: 2rem; height: 2rem; border-radius: 999px; display: grid; place-items: center;
       font-size: 0.75rem; font-weight: 700; background: var(--line);
     }
-    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .actions-panel { text-align: center; }
+    .actions-panel h2 { text-align: left; margin-bottom: var(--space-4); }
+    .actions-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .actions-grid.is-solo {
+      flex-direction: column;
+    }
+    .action-btn {
+      text-decoration: none;
+      min-width: 9rem;
+    }
+    .action-btn-lg {
+      min-width: min(100%, 18rem);
+      padding: 0.9rem 1.75rem;
+      font-size: var(--text-base);
+      font-weight: 600;
+      justify-content: center;
+    }
+    .actions-meta {
+      margin: 0;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border);
+      font-size: var(--text-sm);
+    }
+    .meet-section { margin-top: 1rem; display: grid; gap: var(--space-3); }
+    .meet-section h2 { margin: 0; font-size: var(--text-lg); }
     .events, .note { list-style: none; padding: 0; }
     .events li, .note, .doc-row { border-top: 1px solid var(--line); padding: 0.75rem 0; }
     .sig img { max-width: 200px; border: 1px solid var(--line); border-radius: 8px; background: white; }
@@ -211,15 +231,21 @@ import { getProductSite, productThemeFromCase } from '../../shared/product-sites
   `]
 })
 export class CaseDetailComponent implements OnInit {
+  @ViewChild('consultScheduler') consultScheduler?: MeetingSchedulerComponent;
+
   data: any = null;
   docs: any[] = [];
   outputs: any[] = [];
   signatures: any[] = [];
   clientMessages: any[] = [];
   stateKeys = ['01','02','03','04','05','06','07','08','09','10'];
-  apptAt = '';
-  apptBusy = false;
+  consultStorageKey = '';
   theme = productThemeFromCase();
+
+  consultSaveFn = (at: string): Observable<unknown> => {
+    if (!this.data?.case?.id) return of(null);
+    return this.api.scheduleConsultation(this.data.case.id, at);
+  };
 
   constructor(private route: ActivatedRoute, private api: ApiService, public auth: AuthService) {}
 
@@ -236,6 +262,7 @@ export class CaseDetailComponent implements OnInit {
 
   reload(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.consultStorageKey = `ls_meeting_case_${id}`;
     this.api.getCase(id).subscribe((d) => {
       this.data = d;
       this.theme = productThemeFromCase(d.case?.product);
@@ -244,6 +271,39 @@ export class CaseDetailComponent implements OnInit {
     this.api.listDocs(id).subscribe((d) => this.docs = d);
     this.api.listOutputs(id).subscribe((o) => this.outputs = o);
     this.api.listSignatures(id).subscribe((s) => this.signatures = s);
+  }
+
+  get availableActions(): CaseAction[] {
+    if (!this.data?.case) return [];
+    const c = this.data.case;
+    const isClient = this.auth.user()?.role === 'cliente';
+    const actions: CaseAction[] = [];
+
+    if (!c.paid) {
+      actions.push({ label: 'Pagar trámite', link: ['/checkout', c.id], primary: true });
+    }
+    actions.push({ label: 'Subir documentos', link: ['/upload', c.id], primary: false });
+    if (c.can_sign && isClient) {
+      actions.push({
+        label: c.has_signature ? 'Volver a firmar' : 'Firmar minuta',
+        link: ['/firma', c.id],
+        primary: true,
+      });
+    }
+    if (c.status >= '03' && isClient && !c.consultation_at) {
+      actions.push({ label: 'Agendar consulta', link: ['/consulta', c.id], primary: false });
+    }
+
+    if (actions.length === 1) {
+      actions[0].primary = true;
+    } else {
+      const primaryCount = actions.filter((a) => a.primary).length;
+      if (primaryCount === 0 && actions.length) {
+        actions[0].primary = true;
+      }
+    }
+
+    return actions;
   }
 
   get hasRejectedDoc(): boolean {
@@ -264,13 +324,5 @@ export class CaseDetailComponent implements OnInit {
     };
     return labels[type] || type;
   }
-
-  schedule(): void {
-    if (!this.data?.case?.id || !this.apptAt) return;
-    this.apptBusy = true;
-    this.api.scheduleAppointment(this.data.case.id, new Date(this.apptAt).toISOString()).subscribe({
-      next: () => { this.apptBusy = false; this.reload(); },
-      error: () => { this.apptBusy = false; },
-    });
-  }
 }
+

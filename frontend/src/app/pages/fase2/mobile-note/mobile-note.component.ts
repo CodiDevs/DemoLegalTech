@@ -37,7 +37,7 @@ import { DataTableComponent } from '../../../shared/data-table.component';
         <app-data-table [columns]="compareCols" [rows]="compareRows" />
 
         <div class="panel fase2-preview-card qr">
-          <strong>Abrir en móvil (demo)</strong>
+          <strong>Abrir en móvil</strong>
           <p class="muted mono">http://localhost:4200/cliente</p>
           <p class="muted">Escanea o abre la URL en tu teléfono en la misma red.</p>
         </div>
@@ -54,19 +54,19 @@ import { DataTableComponent } from '../../../shared/data-table.component';
       color: white; text-align: center;
     }
     .notch { width: 60px; height: 8px; border-radius: 99px; background: oklch(0.15 0.02 230); margin: 0 auto 1rem; }
-    .screen-title { font-family: var(--font-display); font-size: 0.95rem; margin: 0 0 0.75rem; }
+    .screen-title { font-weight: 650; font-size: 0.95rem; margin: 0 0 0.75rem; }
     .screen-body { text-align: left; font-size: 0.72rem; opacity: 0.9; }
     .line { padding: 0.35rem 0; border-bottom: 1px solid oklch(1 0 0 / 0.15); }
-    .roadmap { color: var(--ink-soft); }
+    .roadmap { color: var(--text-secondary); }
     .qr { margin-top: 1rem; }
-    .mono { font-family: ui-monospace, monospace; font-size: 0.82rem; }
+    .mono { font-variant-numeric: tabular-nums; font-size: 0.82rem; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
   `]
 })
 export class Fase2MobileComponent {
   screens = [
-    { title: 'Mi expediente', lines: ['Caso #1', 'Revisión jurídica', 'Documentos ✓', 'Timeline 10 estados'] },
-    { title: 'Timeline', lines: ['01 Información recibida', '02 Documentos pendientes', '03 Revisión jurídica ←'] },
+    { title: 'Mi expediente', lines: ['Caso #1', 'Revisión jurídica', 'Documentos aprobados', 'Timeline 10 estados'] },
+    { title: 'Timeline', lines: ['01 Información recibida', '02 Documentos pendientes', '03 Revisión jurídica (actual)'] },
     { title: 'Firma', lines: ['Minuta lista', 'Canvas firma', 'Evidencia IP/fecha'] },
   ];
   roadmap = [

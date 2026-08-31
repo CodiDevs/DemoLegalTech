@@ -4,7 +4,7 @@ import { StatItem } from './landing-statistics.component';
 export const LEGALSTATION_PLATFORM_STATS: StatItem[] = [
   { label: 'Productos conectados', value: '6', detail: 'Verticales demo en un solo ecosistema.', trend: '+6', icon: 'folder' },
   { label: 'Firmas demo', value: '120+', detail: 'Organizaciones usando LegalStation en walkthrough.', icon: 'users' },
-  { label: 'Estados por expediente', value: '10', detail: 'Trazabilidad intake → cierre en Divorcio360.', icon: 'file' },
+  { label: 'Estados por expediente', value: '10', detail: 'Seguimiento completo, desde el alta hasta el cierre.', icon: 'file' },
   { label: 'SLA operador', value: '3 días', detail: 'Alertas cuando un caso se detiene.', icon: 'shield' },
   { label: 'Firma integrada', value: '1 flujo', detail: 'SignDesk conectado al expediente.', icon: 'pen' },
   { label: 'Multi-tenant', value: 'Demo', detail: 'JWT compartido entre productos LegalStation.', icon: 'building' },

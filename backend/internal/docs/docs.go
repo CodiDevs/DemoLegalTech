@@ -123,6 +123,32 @@ func (s *Service) Upload(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *Service) Delete(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFrom(r.Context())
+	caseID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	docID, _ := strconv.ParseInt(chi.URLParam(r, "docId"), 10, 64)
+	c, err := s.loadCase(caseID)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "caso no encontrado")
+		return
+	}
+	if u.Role == "cliente" && c.ClientID != u.ID {
+		writeErr(w, http.StatusForbidden, "acceso denegado")
+		return
+	}
+	var storedPath string
+	err = s.DB.QueryRow(
+		`SELECT stored_path FROM documents WHERE id=? AND case_id=?`, docID, caseID,
+	).Scan(&storedPath)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "documento no encontrado")
+		return
+	}
+	_, _ = s.DB.Exec(`DELETE FROM documents WHERE id=? AND case_id=?`, docID, caseID)
+	_ = os.Remove(filepath.Join(s.UploadDir, storedPath))
+	writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
+}
+
 func (s *Service) List(w http.ResponseWriter, r *http.Request) {
 	u := auth.UserFrom(r.Context())
 	caseID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)

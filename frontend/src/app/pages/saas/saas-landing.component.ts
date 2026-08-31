@@ -1,41 +1,28 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { LEGALSTATION_CATALOG, ProductCatalogEntry, getProductQuestionnairePath, setActiveProduct } from '../../shared/product-sites.data';
 import { MarketingHeroComponent, HeroStat } from './marketing-hero.component';
 import { LandingIconComponent, LandingIconName } from './landing-icon.component';
 import { ElasticGalleryComponent, GalleryItem } from './elastic-gallery.component';
 import { LandingStatisticsComponent, StatItem } from './landing-statistics.component';
 import { LEGALSTATION_CLIENT_GALLERY, LEGALSTATION_PLATFORM_STATS } from './saas-landing.data';
+import { IconComponent } from '../../shared/icon.component';
 
-interface Product {
-  id: string;
-  name: string;
-  tagline: string;
-  image: string;
-  showcaseImage: string;
-  showcaseDesc: string;
-  features: string[];
-  live: boolean;
-  route?: string;
-  icon: LandingIconName;
-  pillDesc: string;
-  iconBg: string;
-}
+interface Product extends ProductCatalogEntry {}
 
 @Component({
   selector: 'app-saas-landing',
   standalone: true,
-  imports: [RouterLink, MarketingHeroComponent, LandingIconComponent, ElasticGalleryComponent, LandingStatisticsComponent],
-  styleUrls: ['../../../styles/landing-shared.scss'],
+  imports: [RouterLink, MarketingHeroComponent, LandingIconComponent, ElasticGalleryComponent, LandingStatisticsComponent, IconComponent],
   template: `
     <div class="landing-page legalstation-landing">
       <app-marketing-hero
         theme="legalstation"
-        titleLine1="Ahorra horas con"
-        titleHighlight="tecnología legal multi-trámite."
-        subtitle="Servicios jurídicos al mismo costo, sin filas ni trámites."
-        lede="LegalStation conecta intake, expediente, firma y operador en una sola plataforma. El cliente final paga por trámite — sin membresía; tu bufete opera con licencia mensual."
-        primaryCta="Comenzar"
+        titleLine1="Tus trámites legales,"
+        titleHighlight="sin filas ni papeleo."
+        subtitle="Divorcios, traslados de vehículo y trámites de inmuebles, resueltos en línea y al mismo costo que hacerlos en persona. Pagas solo por el trámite que necesitas."
+        primaryCta="Ver qué puedo tramitar"
         primaryFragment="catalogo"
         [showSecondary]="false"
         [stats]="heroStats"
@@ -74,27 +61,31 @@ interface Product {
                 <h3>{{ activeProduct.name }}</h3>
                 <p>{{ activeProduct.showcaseDesc }}</p>
                 @if (activeProduct.live && activeProduct.route) {
-                  <a [routerLink]="activeProduct.route" class="lp-link">Explorar {{ activeProduct.name }} →</a>
+                  <button type="button" class="lp-link" (click)="openProduct(activeProduct)">
+                    Explorar {{ activeProduct.name }}
+                    <app-icon name="arrow-right" [size]="16" />
+                  </button>
                 } @else {
-                  <button type="button" class="lp-link" (click)="notify(activeProduct.name)">Solicitar acceso demo →</button>
+                  <button type="button" class="lp-link" (click)="notify(activeProduct.name)">
+                    Solicitar acceso demo
+                    <app-icon name="arrow-right" [size]="16" />
+                  </button>
                 }
               </div>
               <div class="lp-carousel-panel">
-                <div class="lp-carousel-controls">
-                  <button type="button" class="lp-carousel-nav" (click)="prevSlide()" aria-label="Anterior">‹</button>
-                  <button type="button" class="lp-carousel-nav" (click)="nextSlide()" aria-label="Siguiente">›</button>
-                </div>
-                <div class="lp-carousel-frame">
+                <div class="lp-carousel-frame" [class.is-fading]="carouselFading">
                   <img
                     [src]="activeProduct.showcaseImage"
                     [alt]="'Vista demo de ' + activeProduct.name"
                     loading="lazy"
                   />
                 </div>
-                <div class="lp-carousel-dots">
+                <div class="lp-carousel-dots" role="tablist" aria-label="Seleccionar producto">
                   @for (p of products; track p.id; let i = $index) {
                     <button
                       type="button"
+                      role="tab"
+                      [attr.aria-selected]="activeSlide === i"
                       [class.on]="activeSlide === i"
                       (click)="selectSlide(i)"
                       [attr.aria-label]="'Ver ' + p.name"
@@ -128,9 +119,15 @@ interface Product {
                     @for (f of p.features; track f) { <li>{{ f }}</li> }
                   </ul>
                   @if (p.live && p.route) {
-                    <a [routerLink]="p.route" class="lp-btn lp-btn-primary">Abrir producto →</a>
+                    <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(p)">
+                      Abrir producto
+                      <app-icon name="arrow-right" [size]="16" />
+                    </button>
                   } @else {
-                    <button type="button" class="lp-btn lp-btn-outline" (click)="notify(p.name)">Explorar demo →</button>
+                    <button type="button" class="lp-btn lp-btn-outline" (click)="notify(p.name)">
+                      Explorar demo
+                      <app-icon name="arrow-right" [size]="16" />
+                    </button>
                   }
                 </div>
               </article>
@@ -277,6 +274,12 @@ interface Product {
 
     .lp-muted { color: var(--lp-ink-muted); font-size: 0.9rem; margin: 0; }
 
+    .lp-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
     .lp-enterprise {
       display: grid;
       grid-template-columns: 1fr 1.2fr;
@@ -306,11 +309,36 @@ interface Product {
       padding: 2.5rem 0 4rem;
       border-top: 1px solid var(--lp-border);
     }
+
+    .lp-carousel-frame.is-fading img {
+      opacity: 0.4;
+    }
+
+    .lp-carousel-frame img {
+      transition: opacity 0.45s var(--ease-out, ease);
+    }
+
+    .lp-carousel-dots button {
+      width: 0.5rem;
+      height: 0.5rem;
+      padding: 0;
+      border: 0;
+      border-radius: var(--radius-full);
+      background: var(--border-strong);
+      cursor: pointer;
+      transition: width var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
+    }
+
+    .lp-carousel-dots button.on {
+      background: var(--lp-accent);
+      width: 1.25rem;
+    }
   `]
 })
-export class SaasLandingComponent {
+export class SaasLandingComponent implements OnInit, OnDestroy {
   toast = '';
   activeSlide = 0;
+  carouselFading = false;
   platformStats: StatItem[] = LEGALSTATION_PLATFORM_STATS;
   clientGallery: GalleryItem[] = LEGALSTATION_CLIENT_GALLERY;
 
@@ -330,85 +358,7 @@ export class SaasLandingComponent {
     return this.products[this.activeSlide];
   }
 
-  products: Product[] = [
-    {
-      id: 'divorcio360', name: 'Divorcio360', icon: 'scale',
-      pillDesc: 'Contratos de divorcio notarial',
-      iconBg: '#e8efe6',
-      showcaseDesc: 'Intake con cuestionario inteligente, pago, expediente de 10 estados y firma — el flujo completo en vivo.',
-      showcaseImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Mutuo consentimiento con intake, pago y expediente trazable.',
-      image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
-      features: ['Cuestionario inteligente', '10 estados de trámite', 'Firma y minuta mock'],
-      live: true, route: '/productos/divorcio360',
-    },
-    {
-      id: 'traslado360', name: 'Traslado360', icon: 'file',
-      pillDesc: 'Traslado de vehículo',
-      iconBg: '#e8f4f8',
-      showcaseDesc: 'Mutuo acuerdo, pago único, documentos y reunión virtual con notario — traslado de dominio vehicular demo.',
-      showcaseImage: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Traslado vehicular con acuerdo mutuo y firma notarial.',
-      image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80',
-      features: ['Sitio producto completo', 'Pago único mock', 'Consulta + notaría virtual'],
-      live: true, route: '/productos/traslado360',
-    },
-    {
-      id: 'bienraiz360', name: 'BienRaiz360', icon: 'building',
-      pillDesc: 'Traslado de inmueble',
-      iconBg: '#f0ebe3',
-      showcaseDesc: 'Traslado de dominio de terreno o inmueble — ambas partes de acuerdo, reunión virtual con notario.',
-      showcaseImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Traslado de bienes inmuebles con comparecencia digital.',
-      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-      features: ['Sitio producto completo', 'Honorario único', 'Expediente trazable'],
-      live: true, route: '/productos/bienraiz360',
-    },
-    {
-      id: 'signdesk', name: 'SignDesk', icon: 'pen',
-      pillDesc: 'Firma ECI integrada',
-      iconBg: '#f5ebe3',
-      showcaseDesc: 'Sobres de firma, auditoría legal y plantillas reutilizables — hub de firma acreditada para documentos.',
-      showcaseImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Hub de firma electrónica para documentos legales.',
-      image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80',
-      features: ['Sobre de firma', 'Auditoría legal', 'Plantillas reutilizables'],
-      live: false,
-    },
-    {
-      id: 'matterflow', name: 'MatterFlow', icon: 'folder',
-      pillDesc: 'CRM de expedientes',
-      iconBg: '#e3eef5',
-      showcaseDesc: 'Bandeja operador, alertas SLA, pipeline kanban y notas visibles al cliente en un solo panel.',
-      showcaseImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Bandeja, SLA y pipeline para operadores jurídicos.',
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
-      features: ['Vista kanban', 'Alertas SLA', 'Notas al cliente'],
-      live: false,
-    },
-    {
-      id: 'compliancehub', name: 'ComplianceHub', icon: 'shield',
-      pillDesc: 'Cumplimiento LOPDP',
-      iconBg: '#e3f5ef',
-      showcaseDesc: 'Consentimiento en registro, trazas de acceso y exportes de auditoría para cumplimiento demo.',
-      showcaseImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Consentimiento, retención y exportes de cumplimiento.',
-      image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
-      features: ['Registro LOPDP', 'Trazas de acceso', 'Reportes demo'],
-      live: false,
-    },
-    {
-      id: 'notarylink', name: 'NotaryLink', icon: 'building',
-      pillDesc: 'Agenda notarial EC',
-      iconBg: '#f0ebe3',
-      showcaseDesc: 'Directorio de notarías, comparecencia y sync SATJE mock — seguimiento hasta acta emitida.',
-      showcaseImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Agenda, comparecencia y seguimiento de actas.',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-      features: ['Directorio notarías', 'Estado comparecencia', 'Sync SATJE mock'],
-      live: false,
-    },
-  ];
+  products: Product[] = LEGALSTATION_CATALOG as Product[];
 
   workflow = [
     { n: 1, title: 'Intake', desc: 'Cuestionario y clasificación automática del caso.' },
@@ -431,18 +381,26 @@ export class SaasLandingComponent {
     { title: 'SLA y partnership', desc: 'Colaboración con tu equipo de TI y soporte prioritario demo.' },
   ];
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, private router: Router) {}
+
+  ngOnInit(): void {}
+
+  ngOnDestroy(): void {}
+
+  /** Siempre al cuestionario del producto seleccionado. */
+  openProduct(p: Product): void {
+    if (!p.route) return;
+    setActiveProduct(p.id);
+    void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
+  }
 
   selectSlide(i: number): void {
-    this.activeSlide = i;
-  }
-
-  prevSlide(): void {
-    this.activeSlide = (this.activeSlide - 1 + this.products.length) % this.products.length;
-  }
-
-  nextSlide(): void {
-    this.activeSlide = (this.activeSlide + 1) % this.products.length;
+    if (i === this.activeSlide) return;
+    this.carouselFading = true;
+    setTimeout(() => {
+      this.activeSlide = i;
+      this.carouselFading = false;
+    }, 220);
   }
 
   notify(name: string): void {

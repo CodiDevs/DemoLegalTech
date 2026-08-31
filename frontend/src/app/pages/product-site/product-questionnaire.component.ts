@@ -3,171 +3,172 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
-import { getProductSite, ProductSiteConfig, QuestionField, setActiveProduct } from '../../shared/product-sites.data';
+import { IconComponent } from '../../shared/icon.component';
+import {
+  getProductSite,
+  ProductSiteConfig,
+  QuestionField,
+  setActiveProduct,
+  getProductQuestionnairePath,
+} from '../../shared/product-sites.data';
+
+type Stage = 'questions' | 'review' | 'done';
 
 @Component({
   selector: 'app-product-questionnaire',
   standalone: true,
-  imports: [FormsModule, RouterLink, ProductFlowShellComponent],
+  imports: [FormsModule, RouterLink, IconComponent],
   template: `
     @if (site) {
-      <app-product-flow-shell
-        [theme]="site.theme"
-        [crumb]="[{ label: 'LegalStation', link: '/' }, { label: site.name, link: '/productos/' + site.slug }, { label: 'Cuestionario' }]"
-        eyebrow="Cuestionario · pago único"
-        [title]="'Trámite ' + site.name"
-        subtitle="Servicios jurídicos al mismo costo, sin filas ni trámites."
-        [steps]="site.flowSteps"
-        [activeStep]="0"
-      >
-        <div class="pq-layout">
-          <aside class="pq-side lp-lift">
-            <h3>Tu expediente</h3>
-            <p class="pf-muted">Honorario único: <strong>\${{ site.price }}</strong></p>
-            <p class="pf-muted">Sin membresía ni suscripción mensual.</p>
-            <ul class="pq-docs">
-              @for (d of site.docTypes; track d.type) {
-                <li>{{ d.label }}</li>
-              }
-              <li>Consulta con abogado (virtual)</li>
-              <li>Reunión notarial virtual</li>
-            </ul>
-            <div class="pq-progress">
-              <div class="pq-progress-bar" [style.width.%]="progressPct"></div>
-            </div>
-            <p class="pf-muted">Paso {{ step }} de {{ totalSteps }}</p>
-          </aside>
+      <div class="landing-page product-flow" [class]="'theme-' + site.theme">
+        <div class="ob">
+          <header class="pq-top">
+            <a [routerLink]="['/productos', site.slug]" class="btn btn-ghost btn-sm">
+              <app-icon name="arrow-left" [size]="16" />
+              {{ site.name }}
+            </a>
+            <p class="pq-eyebrow">Evaluar mi caso · Paso {{ stepLabel }} de {{ totalSteps }}</p>
+          </header>
 
-          <div class="pf-card lp-lift pq-main">
-            @if (!done) {
-              @if (step <= fieldGroups.length) {
-                <h2>{{ groupTitle }}</h2>
-                @for (field of currentFields; track field.id) {
-                  <div class="pf-field">
-                    <label>{{ field.label }}</label>
-                    @if (field.type === 'text') {
-                      <input [(ngModel)]="answers[field.id]" [placeholder]="field.placeholder || ''" />
-                    } @else if (field.type === 'boolean') {
-                      <select [(ngModel)]="answers[field.id]">
-                        <option [ngValue]="true">Sí</option>
-                        <option [ngValue]="false">No</option>
-                      </select>
-                    } @else if (field.type === 'select') {
-                      <select [(ngModel)]="answers[field.id]">
-                        @for (opt of field.options; track opt.value) {
-                          <option [value]="opt.value">{{ opt.label }}</option>
-                        }
-                      </select>
-                    }
+          @if (stage === 'questions' && currentField) {
+            <div class="ob-progress">
+              <div class="ob-track"><div class="ob-fill" [style.width.%]="progressPct"></div></div>
+            </div>
+
+            @for (f of [currentField]; track f.id) {
+              <section class="ob-card">
+                <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
+                <h1>{{ f.label }}</h1>
+
+                @if (f.type === 'text') {
+                  <div class="ob-field">
+                    <input
+                      [id]="f.id"
+                      type="text"
+                      [(ngModel)]="answers[f.id]"
+                      [placeholder]="f.placeholder || ''"
+                      (keyup.enter)="canContinue && next()"
+                    />
                   </div>
-                }
-                <div class="pq-actions">
-                  @if (step > 1) {
-                    <button type="button" class="lp-btn lp-btn-outline" (click)="prev()">Atrás</button>
-                  }
-                  <button type="button" class="lp-btn lp-btn-primary" [disabled]="!canContinue" (click)="next()">
-                    {{ step < fieldGroups.length ? 'Continuar' : 'Revisar' }}
+                } @else if (f.type === 'boolean') {
+                  <div class="ob-choices">
+                    <button type="button" class="ob-choice" (click)="setBoolean(f.id, true)">
+                      <span>Sí</span><app-icon name="chevron-right" [size]="17" />
+                    </button>
+                    <button type="button" class="ob-choice" (click)="setBoolean(f.id, false)">
+                      <span>No</span><app-icon name="chevron-right" [size]="17" />
+                    </button>
+                  </div>
+                } @else if (f.type === 'select') {
+                  <div class="ob-field">
+                    <select [(ngModel)]="answers[f.id]">
+                      @for (opt of f.options; track opt.value) {
+                        <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="!canContinue" (click)="next()">
+                    Continuar
                   </button>
-                </div>
-              } @else {
-                <h2>Resumen del trámite</h2>
-                <dl class="pq-review">
-                  @for (field of site.questionnaire; track field.id) {
-                    <dt>{{ field.label }}</dt>
-                    <dd>{{ formatAnswer(field) }}</dd>
-                  }
-                </dl>
-                <p class="pf-muted">Honorario demo: <strong>\${{ site.price }}</strong> — pago único al continuar.</p>
-                @if (auth.isLoggedIn) {
-                  <button type="button" class="lp-btn lp-btn-primary" (click)="start()" [disabled]="busy">
-                    {{ busy ? 'Creando expediente…' : 'Iniciar trámite' }}
-                  </button>
-                } @else {
-                  <a [routerLink]="['/auth']" [queryParams]="authParams" class="lp-btn lp-btn-primary" (click)="saveDraft()">Registrarme para continuar</a>
                 }
-                <button type="button" class="lp-btn lp-btn-outline" style="margin-left:0.5rem" (click)="prev()">Editar</button>
-              }
-            } @else {
-              <p class="pf-ok">Expediente creado — continúa con el pago único.</p>
-              <a [routerLink]="['/checkout', caseId]" class="lp-btn lp-btn-primary">Pagar \${{ site.price }} →</a>
+
+                @if (f.type !== 'boolean' && f.type !== 'select') {
+                  <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="!canContinue" (click)="next()">
+                    Continuar
+                  </button>
+                }
+              </section>
             }
-          </div>
+
+            <div class="ob-foot">
+              @if (fieldIndex > 0) {
+                <button type="button" class="btn btn-ghost btn-sm" (click)="prev()">
+                  <app-icon name="arrow-left" [size]="16" /> Atrás
+                </button>
+              }
+            </div>
+          }
+
+          @if (stage === 'review') {
+            <section class="ob-card">
+              <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
+              <h1>Revisa tu información</h1>
+              <p class="ob-hint">Confirma los datos antes de crear tu expediente de {{ site.name }}.</p>
+
+              <ul class="ob-review">
+                @for (field of site.questionnaire; track field.id) {
+                  <li>
+                    <button type="button" class="ob-review-row" (click)="editField(field.id)">
+                      <span class="ob-review-label">{{ field.label }}</span>
+                      <span class="ob-review-value">{{ formatAnswer(field) }}<app-icon name="pen" [size]="14" /></span>
+                    </button>
+                  </li>
+                }
+              </ul>
+
+              <p class="pq-price">Honorario orientativo: <strong>\${{ site.price }}</strong> — pago único.</p>
+
+              @if (auth.isLoggedIn) {
+                <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="busy" (click)="start()">
+                  @if (busy) { <span class="spinner" aria-hidden="true"></span> Creando expediente… }
+                  @else { Crear mi expediente }
+                </button>
+              } @else {
+                <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="saveDraft()">
+                  Registrarme para continuar
+                </a>
+              }
+            </section>
+          }
+
+          @if (stage === 'done') {
+            <section class="ob-card">
+              <span class="ob-icon"><app-icon name="check-circle" [size]="22" /></span>
+              <h1>Expediente creado</h1>
+              <p class="ob-hint">Continúa con el pago único para activar tu trámite de {{ site.name }}.</p>
+              <a [routerLink]="['/checkout', caseId]" class="btn btn-primary btn-lg btn-block">
+                Pagar \${{ site.price }}
+              </a>
+            </section>
+          }
         </div>
-      </app-product-flow-shell>
+      </div>
     }
   `,
   styles: [`
-    .pq-layout {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 1.25rem;
-      align-items: start;
-    }
-
-    .pq-side {
-      padding: 1.25rem;
-      border-radius: var(--lp-radius);
-      background: white;
-      border: 1px solid var(--lp-border);
-    }
-
-    .pq-side h3 { margin: 0 0 0.5rem; font-size: 1rem; }
-
-    .pq-docs {
-      margin: 1rem 0;
-      padding-left: 1.1rem;
-      font-size: 0.85rem;
-      color: var(--lp-ink-muted);
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .pq-progress {
-      height: 6px;
-      background: var(--lp-border);
-      border-radius: 999px;
-      overflow: hidden;
-      margin: 0.75rem 0 0.35rem;
-    }
-
-    .pq-progress-bar {
-      height: 100%;
-      background: var(--lp-accent);
-      transition: width 0.2s;
-    }
-
-    .pq-actions {
+    .pq-top {
       display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin-top: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+      width: 100%;
+      max-width: 28rem;
+      margin-inline: auto;
     }
-
-    .pq-review {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.35rem 1rem;
-      margin: 1rem 0;
+    .pq-eyebrow {
+      margin: 0;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      color: var(--text-muted);
     }
-
-    .pq-review dt { font-weight: 600; font-size: 0.85rem; }
-    .pq-review dd { margin: 0; color: var(--lp-ink-muted); font-size: 0.9rem; }
-
-    @media (max-width: 800px) {
-      .pq-layout { grid-template-columns: 1fr; }
-      .pq-review { grid-template-columns: 1fr; }
+    .pq-price {
+      margin: var(--space-4) 0;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      text-align: center;
     }
   `],
 })
 export class ProductQuestionnaireComponent implements OnInit {
   site: ProductSiteConfig | null = null;
   answers: Record<string, unknown> = {};
-  step = 1;
+  fieldIndex = 0;
+  stage: Stage = 'questions';
   busy = false;
-  done = false;
   caseId = 0;
-  fieldGroups: QuestionField[][] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -178,55 +179,91 @@ export class ProductQuestionnaireComponent implements OnInit {
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug') || '';
+    if (slug === 'divorcio360') {
+      void this.router.navigateByUrl('/cuestionario');
+      return;
+    }
     this.site = getProductSite(slug);
-    if (!this.site) {
+    if (!this.site || !this.site.questionnaire.length) {
       void this.router.navigate(['/']);
       return;
     }
     setActiveProduct(this.site.id);
     this.initAnswers();
     this.restoreDraft();
-    this.fieldGroups = this.buildGroups(this.site.questionnaire);
+  }
+
+  get fields(): QuestionField[] {
+    return this.site?.questionnaire ?? [];
+  }
+
+  get currentField(): QuestionField | null {
+    return this.fields[this.fieldIndex] ?? null;
   }
 
   get totalSteps(): number {
-    return this.fieldGroups.length + 1;
+    return this.fields.length + 1;
+  }
+
+  get stepLabel(): number {
+    if (this.stage === 'review') return this.fields.length + 1;
+    return this.fieldIndex + 1;
   }
 
   get progressPct(): number {
-    return Math.round((this.step / this.totalSteps) * 100);
-  }
-
-  get currentFields(): QuestionField[] {
-    return this.fieldGroups[this.step - 1] || [];
-  }
-
-  get groupTitle(): string {
-    const titles = ['Datos del trámite', 'Partes y acuerdo', 'Preferencias'];
-    return titles[this.step - 1] || 'Información';
+    return Math.round((this.stepLabel / this.totalSteps) * 100);
   }
 
   get canContinue(): boolean {
-    return this.currentFields.every((f) => {
-      if (!f.required) return true;
-      const v = this.answers[f.id];
-      if (f.type === 'boolean') return v === true || v === false;
-      return v !== undefined && v !== null && String(v).trim() !== '';
-    });
+    const f = this.currentField;
+    if (!f) return false;
+    if (!f.required) return true;
+    const v = this.answers[f.id];
+    if (f.type === 'boolean') return v === true || v === false;
+    return v !== undefined && v !== null && String(v).trim() !== '';
   }
 
   get authParams() {
-    return { product: this.site?.id, returnUrl: `/productos/${this.site?.slug}/cuestionario` };
+    return {
+      product: this.site?.id,
+      returnUrl: getProductQuestionnairePath(this.site?.slug || ''),
+      next: 'checkout',
+    };
+  }
+
+  setBoolean(id: string, value: boolean): void {
+    this.answers[id] = value;
+    this.saveDraft();
+    this.next();
   }
 
   next(): void {
-    if (this.step < this.totalSteps) this.step++;
+    if (!this.canContinue) return;
+    if (this.fieldIndex < this.fields.length - 1) {
+      this.fieldIndex++;
+    } else {
+      this.stage = 'review';
+    }
     this.saveDraft();
   }
 
   prev(): void {
-    if (this.step > 1) this.step--;
+    if (this.stage === 'review') {
+      this.stage = 'questions';
+      this.fieldIndex = this.fields.length - 1;
+    } else if (this.fieldIndex > 0) {
+      this.fieldIndex--;
+    }
     this.saveDraft();
+  }
+
+  editField(id: string): void {
+    const idx = this.fields.findIndex((f) => f.id === id);
+    if (idx >= 0) {
+      this.fieldIndex = idx;
+      this.stage = 'questions';
+      this.saveDraft();
+    }
   }
 
   formatAnswer(field: QuestionField): string {
@@ -246,9 +283,10 @@ export class ProductQuestionnaireComponent implements OnInit {
     this.api.createCase('apto', city, q, this.site.id).subscribe({
       next: (c) => {
         this.caseId = c.id;
-        this.done = true;
+        this.stage = 'done';
         this.busy = false;
         setActiveProduct(this.site!.id);
+        sessionStorage.setItem('d360_q_result', JSON.stringify({ result: 'apto', city, answers: q, product: this.site!.id }));
       },
       error: () => { this.busy = false; },
     });
@@ -263,20 +301,11 @@ export class ProductQuestionnaireComponent implements OnInit {
     }
   }
 
-  private buildGroups(fields: QuestionField[]): QuestionField[][] {
-    const chunk = Math.ceil(fields.length / 3);
-    const groups: QuestionField[][] = [];
-    for (let i = 0; i < fields.length; i += chunk) {
-      groups.push(fields.slice(i, i + chunk));
-    }
-    return groups.length ? groups : [fields];
-  }
-
   saveDraft(): void {
     if (!this.site) return;
     sessionStorage.setItem(
       this.storageKey(),
-      JSON.stringify({ answers: this.answers, step: this.step }),
+      JSON.stringify({ answers: this.answers, fieldIndex: this.fieldIndex, stage: this.stage }),
     );
   }
 
@@ -290,7 +319,8 @@ export class ProductQuestionnaireComponent implements OnInit {
     try {
       const p = JSON.parse(raw);
       if (p.answers) this.answers = { ...this.answers, ...p.answers };
-      if (p.step) this.step = p.step;
+      if (typeof p.fieldIndex === 'number') this.fieldIndex = p.fieldIndex;
+      if (p.stage === 'review') this.stage = 'review';
     } catch { /* ignore */ }
   }
 }

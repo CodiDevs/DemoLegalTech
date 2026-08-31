@@ -10,7 +10,6 @@ import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { UploadComponent } from './pages/upload/upload.component';
 import { SignComponent } from './pages/sign/sign.component';
 import { ClientPanelComponent } from './pages/client-panel/client-panel.component';
-import { NotaryPanelComponent } from './pages/notary-panel/notary-panel.component';
 import { LawyerShellComponent } from './pages/lawyer-panel/lawyer-shell.component';
 import { LawyerPanelComponent } from './pages/lawyer-panel/lawyer-panel.component';
 import { LawyerCaseComponent } from './pages/lawyer-case/lawyer-case.component';
@@ -22,7 +21,7 @@ import { Fase2TemplatesComponent } from './pages/fase2/templates/templates.compo
 import { Fase2AiComponent } from './pages/fase2/ai-agent/ai-agent.component';
 import { Fase2SatjeComponent } from './pages/fase2/satje/satje.component';
 import { Fase2BillingComponent } from './pages/fase2/b2b-billing/b2b-billing.component';
-import { Fase2MobileComponent } from './pages/fase2/mobile-note/mobile-note.component';
+import { ProductExpedienteComponent } from './pages/client-panel/product-expediente.component';
 import { authGuard, roleGuard, clienteOrGuestGuard } from './core/guards';
 
 export const routes: Routes = [
@@ -34,12 +33,12 @@ export const routes: Routes = [
       { path: 'productos/divorcio360', component: DivorcioLandingComponent },
       { path: 'productos/:slug', component: ProductLandingComponent },
       { path: 'productos/:slug/cuestionario', component: ProductQuestionnaireComponent, canActivate: [clienteOrGuestGuard] },
+      { path: 'productos/:slug/expediente', component: ProductExpedienteComponent, canActivate: [roleGuard('cliente')] },
       { path: 'intake/traslado360', redirectTo: 'productos/traslado360/cuestionario', pathMatch: 'full' },
       { path: 'intake/bienraiz360', redirectTo: 'productos/bienraiz360/cuestionario', pathMatch: 'full' },
       { path: 'cuestionario', component: QuestionnaireComponent, canActivate: [clienteOrGuestGuard] },
       { path: 'auth', component: AuthComponent },
       { path: 'cliente', component: ClientPanelComponent, canActivate: [roleGuard('cliente')] },
-      { path: 'notario', component: NotaryPanelComponent, canActivate: [roleGuard('notario')] },
       {
         path: 'abogado',
         component: LawyerShellComponent,
@@ -53,7 +52,6 @@ export const routes: Routes = [
       { path: 'upload/:id', component: UploadComponent, canActivate: [authGuard] },
       { path: 'consulta/:caseId', component: VirtualMeetingPageComponent, canActivate: [authGuard] },
       { path: 'firma/:id', component: SignComponent, canActivate: [authGuard] },
-      { path: 'reunion-notarial/:caseId', component: VirtualMeetingPageComponent, canActivate: [authGuard] },
       { path: 'caso/:id', component: CaseDetailComponent, canActivate: [authGuard] },
       {
         path: 'fase2',
@@ -66,7 +64,6 @@ export const routes: Routes = [
           { path: 'ai', component: Fase2AiComponent },
           { path: 'satje', component: Fase2SatjeComponent },
           { path: 'billing', component: Fase2BillingComponent },
-          { path: 'mobile', component: Fase2MobileComponent },
         ],
       },
     ],
