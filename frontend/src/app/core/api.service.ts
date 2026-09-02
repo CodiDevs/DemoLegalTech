@@ -14,6 +14,8 @@ export interface QuestionnaireAnswers {
   conjugal_society: boolean;
   ids_valid: boolean;
   want_liquidate_assets: boolean;
+  country: string;
+  province: string;
   city: string;
 }
 
@@ -50,6 +52,7 @@ export interface CaseItem {
   has_signature?: boolean;
   can_sign?: boolean;
   sign_hint?: string;
+  questionnaire_json?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -182,6 +185,13 @@ export class ApiService {
 
   scheduleConsultation(caseId: number, consultationAt: string): Observable<any> {
     return this.http.post(`/api/v1/cases/${caseId}/consultation/schedule`, { consultation_at: consultationAt });
+  }
+
+  requestConsultation(caseId: number): Observable<any> {
+    return this.http.post(`/api/v1/cases/${caseId}/consultation/schedule`, {
+      request_only: true,
+      consultation_at: 'requested',
+    });
   }
 
   requestMeeting(scheduledAt: string, product: string, context: string): Observable<any> {

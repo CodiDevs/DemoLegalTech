@@ -7,13 +7,21 @@ import { DatePipe } from '@angular/common';
   imports: [DatePipe],
   template: `
     <div class="scheduled-card" role="status">
-      <p class="scheduled-title">
-        Cita agendada: {{ scheduledAt | date:'short' }}
-      </p>
-      @if (subtitle) {
-        <p class="scheduled-sub">{{ subtitle }}</p>
+      @if (pendingRequest) {
+        <p class="scheduled-title">Consulta solicitada</p>
+        @if (subtitle) {
+          <p class="scheduled-sub">{{ subtitle }}</p>
+        }
+        <p class="scheduled-note">Tu abogado te contactará por correo para coordinar fecha y enlace de la videollamada.</p>
+      } @else {
+        <p class="scheduled-title">
+          Cita agendada: {{ scheduledAt | date:'short' }}
+        </p>
+        @if (subtitle) {
+          <p class="scheduled-sub">{{ subtitle }}</p>
+        }
+        <p class="scheduled-note">Recibirás el enlace en tu correo antes de la cita.</p>
       }
-      <p class="scheduled-note">Recibirás el enlace en tu correo antes de la cita.</p>
     </div>
   `,
   styles: [`
@@ -48,4 +56,5 @@ import { DatePipe } from '@angular/common';
 export class ScheduledMeetingCardComponent {
   @Input({ required: true }) scheduledAt!: string;
   @Input() subtitle = '';
+  @Input() pendingRequest = false;
 }

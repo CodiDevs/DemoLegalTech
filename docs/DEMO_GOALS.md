@@ -19,6 +19,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Firma virtual + flujo operador | notify sin cambio estado; confirm solo con firma en 05; can_sign autónomo cliente | 2026-08-30 |
 | done | Flujo documental multi-producto | Traslado360 carro: upload matrícula+acuerdo → abogado aprueba → minuta → firma; blockers por etapa | 2026-08-30 |
 | done | Upload documentos UX | Checklist + dropzone por producto; reemplazar sin borrar; abogado ve solo última versión | 2026-08-30 |
+| done | Cuestionario UX progreso estático | `/cuestionario` — barra superior quieta; preguntas entran desde abajo | 2026-09-02 |
 
 ## Entries
 
@@ -207,3 +208,40 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 - Animaciones de entrada escalonadas al scroll (sin dependencias React).
 
 **Demo:** login abogado → Fase 2 → Resumen del bufete → gráfico + 4 KPIs + progreso trámites digitales.
+
+### 2026-09-02 — Cuestionario UX progreso lateral
+- **Barra de progreso estática:** vuelve arriba del formulario (flujo normal, no fija al viewport); no se mueve ni se acorta al animar la card.
+- **Animación de preguntas:** cada tarjeta entra desde abajo; al retroceder, desde arriba.
+- **Slot fijo:** `ob-card-slot` con altura mínima para que el layout no salte entre preguntas.
+- Mismo patrón en cuestionarios de otros productos (`product-questionnaire`).
+
+**Demo:** `/cuestionario` → responder Sí/No; la barra superior permanece quieta mientras la pregunta sube desde abajo.
+
+### 2026-09-02 — Cuestionario pantalla completa
+- **Sin footer** en rutas de flujo Divorcio360 (`/cuestionario`, checkout, cliente, etc.).
+- **Formulario arriba** bajo el header, sin pie de página.
+
+**Demo:** `/cuestionario` → header + formulario alineado arriba, sin footer.
+
+### 2026-09-02 — Ubicación con selects
+- **País, provincia y ciudad** como tres `<select>` en el último paso del cuestionario (Ecuador + países frecuentes).
+- Texto actualizado sin referencia a notaría cercana.
+
+**Demo:** `/cuestionario` → último paso → elegir país, provincia y ciudad.
+
+### 2026-09-02 — Checkout carrito desglosado
+- **Resumen tipo carrito:** valor del trámite + valor del notario ($20 ref.) + extras según cuestionario (hijos, bienes, exterior, etc.) marcados como «Incluido».
+
+**Demo:** `/checkout/{id}` → ver líneas del carrito y total según respuestas del cuestionario.
+
+### 2026-09-02 — Consulta virtual tipo upload
+- **Layout** igual que subir documentos: sidebar de progreso + tarjeta principal.
+- **Solicitar consulta** sin elegir fecha; el abogado coordina después.
+
+**Demo:** `/upload/{id}` → documentos → «Solicitar consulta» → botón en zona de carga.
+
+### 2026-09-02 — Panel cliente general
+- **Sin agendar consulta** en `/cliente` — la consulta se solicita desde cada expediente.
+- **Tu cuenta:** expedientes por producto + facturas (pagos) en un panel unificado.
+
+**Demo:** login cliente → `/cliente` → expedientes y facturas de todos los productos.

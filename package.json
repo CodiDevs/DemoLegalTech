@@ -1,0 +1,30 @@
+{
+  "name": "legalstation-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LegalStation - Entorno de desarrollo unificado con Bun",
+  "scripts": {
+    "dev": "bun run scripts/dev.ts",
+    "dev:backend": "bun run scripts/dev.ts --only-backend",
+    "dev:frontend": "bun run scripts/dev.ts --only-frontend",
+    "dev:clean": "bun run scripts/dev.ts --clean-db",
+    "start": "bun run dev",
+    "doctor": "bun run scripts/doctor.ts",
+    "setup": "bun install --cwd frontend && cd backend && go mod download",
+    "db:reset": "bun run scripts/reset-db.ts",
+    "build": "bun run build:backend && bun run build:frontend",
+    "build:frontend": "bun --cwd frontend run build",
+    "build:backend": "cd backend && go build -o ../bin/api ./cmd/api",
+    "test": "bun run test:backend && bun run test:frontend",
+    "test:backend": "cd backend && go test ./...",
+    "test:frontend": "bun --cwd frontend run test -- --watch=false --browsers=ChromeHeadless"
+  },
+  "keywords": [
+    "legalstation",
+    "bun",
+    "angular",
+    "golang"
+  ],
+  "author": "CodiDevs",
+  "license": "ISC"
+}

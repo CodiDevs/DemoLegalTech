@@ -1,7 +1,12 @@
 data/
 uploads/
 *.db
+*.db-wal
+*.db-shm
 *.exe
+bin/
+dist/
 .DS_Store
+node_modules/
 backend/data/
 backend/uploads/

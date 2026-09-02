@@ -553,23 +553,44 @@ export interface ProductFlowMeta {
   productHome?: string;
   docTypes: { type: string; label: string }[];
   flowSteps: ProgressStep[];
+  /** Pasos visibles tras el pago (documentos → consulta → firma). */
+  clientFlowSteps: ProgressStep[];
+}
+
+/** IDs de pasos que el cliente recorre en upload / consulta / firma. */
+export const CLIENT_POST_PAYMENT_STEP_IDS = ['docs', 'call', 'sign'] as const;
+
+export function getClientFlowSteps(steps: ProgressStep[]): ProgressStep[] {
+  const allowed = new Set<string>(CLIENT_POST_PAYMENT_STEP_IDS);
+  return steps.filter((s) => allowed.has(s.id));
+}
+
+export function clientFlowStepIndex(steps: ProgressStep[], stepId: string): number {
+  const client = getClientFlowSteps(steps);
+  const index = client.findIndex((s) => s.id === stepId);
+  return Math.max(0, index);
 }
 
 export function getProductFlowMeta(product?: string): ProductFlowMeta {
   const p = normalizeProductId(product);
   const s = getProductSite(p);
+  const flowSteps = s
+    ? (s.flowSteps.length ? s.flowSteps : DIVORCIO_FLOW_STEPS)
+    : DIVORCIO_FLOW_STEPS;
   if (s) {
     return {
       name: s.name,
       productHome: `/productos/${s.slug}`,
       docTypes: s.docTypes.length ? s.docTypes : DIVORCIO_DOC_TYPES,
-      flowSteps: s.flowSteps.length ? s.flowSteps : DIVORCIO_FLOW_STEPS,
+      flowSteps,
+      clientFlowSteps: getClientFlowSteps(flowSteps),
     };
   }
   return {
     name: 'Divorcio360',
     productHome: '/productos/divorcio360',
     docTypes: DIVORCIO_DOC_TYPES,
-    flowSteps: DIVORCIO_FLOW_STEPS,
+    flowSteps,
+    clientFlowSteps: getClientFlowSteps(flowSteps),
   };
 }

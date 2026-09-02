@@ -223,6 +223,7 @@ interface ProductSwitcherItem {
       <router-outlet />
     </main>
 
+    @if (!isDivorcioFlow) {
     <footer class="site-footer" [class.is-compact]="isAuthPage">
       @if (!isAuthPage) {
       <div class="shell footer-grid">
@@ -267,6 +268,7 @@ interface ProductSwitcherItem {
         <span class="footer-soon">Pagos y firmas procesados de forma segura.</span>
       </div>
     </footer>
+    }
   `,
   styles: [`
     :host {

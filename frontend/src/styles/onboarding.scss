@@ -10,17 +10,45 @@
   gap: var(--space-5);
   width: 100%;
   max-width: 32rem;
-  min-height: calc(100dvh - var(--header-height) - 8rem);
   margin-inline: auto;
   padding: var(--space-6) var(--container-pad);
 }
 
-/* ---------- Progreso ---------- */
+body.divorcio-flow-mode .ob {
+  align-content: start;
+  min-height: auto;
+  padding-block: var(--space-6);
+}
+
+/* ---------- Layout de preguntas (progreso quieto + card animada) ---------- */
+
+.ob-questions {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+  align-content: start;
+}
 
 .ob-progress {
   display: grid;
   gap: var(--space-2);
+  width: 100%;
 }
+
+.ob-stage {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+/* Altura mínima fija: la barra no se acorta al cambiar de pregunta */
+.ob-card-slot {
+  min-height: 18rem;
+  display: grid;
+  align-items: start;
+}
+
+/* ---------- Progreso ---------- */
 
 .ob-track {
   height: 3px;
@@ -50,18 +78,18 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  animation: ob-in var(--dur-base) var(--ease-out) both;
+  animation: ob-in var(--dur-slow) var(--ease-out) both;
 }
 
 .ob-card.is-back { animation-name: ob-in-back; }
 
 @keyframes ob-in {
-  from { opacity: 0; transform: translateX(14px); }
+  from { opacity: 0; transform: translateY(28px); }
   to { opacity: 1; transform: none; }
 }
 
 @keyframes ob-in-back {
-  from { opacity: 0; transform: translateX(-14px); }
+  from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -132,6 +160,16 @@
 }
 
 .ob-field { margin-bottom: var(--space-4); }
+
+.ob-location {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.ob-location select {
+  width: 100%;
+}
 
 /* ---------- Pie del paso ---------- */
 
@@ -309,6 +347,7 @@
 /* ---------- Responsive ---------- */
 
 @media (max-width: 560px) {
+  .ob-card-slot { min-height: 16rem; }
   .ob-card { padding: var(--space-5) var(--space-4); }
   .ob-card h1 { font-size: var(--text-xl); }
   .ob-note { text-align: left; }

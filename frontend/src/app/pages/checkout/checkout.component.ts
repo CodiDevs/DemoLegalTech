@@ -7,6 +7,7 @@ import { ProductFlowShellComponent } from '../../shared/product-flow-shell.compo
 import { getProductDisplayName, productThemeFromCase } from '../../shared/product-sites.data';
 import { IconComponent } from '../../shared/icon.component';
 import { AnimatedTicketComponent } from '../../shared/animated-ticket.component';
+import { buildCheckoutCart, CheckoutCart, parseQuestionnaire } from '../../shared/checkout-cart';
 
 type PaymentStep = 'idle' | 'processing' | 'success';
 
@@ -58,23 +59,44 @@ type PaymentStep = 'idle' | 'processing' | 'success';
 
           <div class="checkout-col checkout-aside">
             <div class="pf-card lp-lift order-summary">
-              <h2>Resumen del pedido</h2>
-              <p class="summary-product">{{ productName }}</p>
-              <ul class="summary-includes">
-                <li>Evaluación y apertura de expediente</li>
-                <li>Revisión jurídica por abogado</li>
-                <li>Gestión documental en línea</li>
-                <li>Consulta virtual con abogado</li>
+              <div class="cart-head">
+                <h2>Resumen del pedido</h2>
+                <span class="cart-badge">{{ productName }}</span>
+              </div>
+
+              <ul class="cart-items" aria-label="Ítems del carrito">
+                @for (line of cart.lines; track line.id) {
+                  <li class="cart-item">
+                    <span class="cart-item-name">{{ line.label }}</span>
+                    <div class="cart-item-price">
+                      @if (line.includedInPackage) {
+                        <span class="cart-included">Incluido</span>
+                        <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
+                      } @else {
+                        <span class="cart-amount">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
+                      }
+                    </div>
+                  </li>
+                }
               </ul>
-              <div class="summary-line">
+
+              @if (cart.discountCents > 0) {
+                <div class="cart-row cart-discount">
+                  <span>Extras incluidos en tu paquete</span>
+                  <span>−\${{ cart.discountCents / 100 | number:'1.2-2' }}</span>
+                </div>
+              }
+
+              <div class="cart-row cart-meta">
                 <span>Expediente #{{ caseItem.id }}</span>
                 <span>{{ caseItem.status_label }}</span>
               </div>
-              <div class="summary-total">
-                <span>Total</span>
-                <strong>\${{ caseItem.amount_cents / 100 | number:'1.2-2' }} USD</strong>
+
+              <div class="cart-total">
+                <span>Total a pagar</span>
+                <strong>\${{ cart.totalCents / 100 | number:'1.2-2' }} USD</strong>
               </div>
-              <p class="pf-muted summary-note">Pago único · Sin suscripción</p>
+              <p class="pf-muted cart-note">Pago único · Sin suscripción</p>
             </div>
           </div>
         </div>
@@ -158,53 +180,116 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       top: calc(var(--header-height) + var(--space-4));
     }
 
-    .order-summary { display: grid; gap: var(--space-3); width: 100%; }
+    .order-summary { display: grid; gap: var(--space-4); width: 100%; }
+
+    .cart-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+
     .order-summary h2 {
       margin: 0;
       font-size: var(--text-lg);
       font-weight: 650;
     }
 
-    .summary-product {
+    .cart-badge {
+      flex-shrink: 0;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-full);
+      background: var(--lp-accent-soft, var(--primary-subtle));
+      color: var(--lp-accent, var(--primary));
+      font-size: var(--text-xs);
+      font-weight: 600;
+    }
+
+    .cart-items {
+      list-style: none;
       margin: 0;
-      font-size: var(--text-base);
+      padding: 0;
+      display: grid;
+      gap: var(--space-3);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding-block: var(--space-3);
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+
+    .cart-item-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text);
+      line-height: var(--leading-snug);
+      min-width: 0;
+    }
+
+    .cart-item-price {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.1rem;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cart-amount {
+      font-size: var(--text-sm);
       font-weight: 600;
       color: var(--text);
     }
 
-    .summary-includes {
-      margin: 0;
-      padding-left: 1.1rem;
-      font-size: var(--text-sm);
-      color: var(--text-secondary);
-      display: grid;
-      gap: var(--space-1);
+    .cart-included {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--success);
     }
 
-    .summary-line {
+    .cart-ref {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .cart-row {
       display: flex;
       justify-content: space-between;
+      gap: var(--space-3);
       font-size: var(--text-sm);
       color: var(--text-secondary);
+    }
+
+    .cart-discount {
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    .cart-meta {
       padding-top: var(--space-2);
       border-top: 1px solid var(--border);
     }
 
-    .summary-total {
+    .cart-total {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      padding: var(--space-3) 0;
-      border-top: 1px solid var(--border);
+      padding-top: var(--space-2);
     }
 
-    .summary-total strong {
+    .cart-total strong {
       font-size: var(--text-2xl);
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
 
-    .summary-note { margin: 0; font-size: var(--text-xs); }
+    .cart-note { margin: 0; font-size: var(--text-xs); }
 
     /* ---------- Overlay modal ---------- */
 
@@ -367,6 +452,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   productName = 'Divorcio360';
   paidAt = new Date();
   cardLast4 = '4242';
+  cart: CheckoutCart = buildCheckoutCart(34900);
 
   constructor(private route: ActivatedRoute, private api: ApiService, private router: Router) {}
 
@@ -385,6 +471,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.caseItem = d.case;
         this.theme = productThemeFromCase(d.case?.product);
         this.productName = getProductDisplayName(d.case?.product || 'divorcio360');
+        this.cart = buildCheckoutCart(
+          d.case?.amount_cents ?? 34900,
+          parseQuestionnaire(d.case?.questionnaire_json),
+        );
         if (d.case?.paid) {
           this.ref = `LS-${d.case.id}`;
           this.paymentStep = 'success';

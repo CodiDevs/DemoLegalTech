@@ -1,72 +1,52 @@
 import { Component, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Observable } from 'rxjs';
 import { ApiService, CaseItem } from '../../core/api.service';
 import {
-  getActiveProduct,
   getProductDisplayName,
-  getProductQuestionnairePath,
   normalizeProductId,
 } from '../../shared/product-sites.data';
 import { PaymentCardComponent } from '../../shared/payment-card.component';
 import { IconComponent } from '../../shared/icon.component';
-import { ScheduledMeetingCardComponent } from '../../shared/scheduled-meeting-card.component';
-import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
 
 interface ProductCaseGroup {
   productId: string;
   name: string;
   cases: CaseItem[];
-  primary: boolean;
+}
+
+interface ClientInvoice {
+  caseId: number;
+  reference: string;
+  productName: string;
+  amountCents: number;
+  paid: boolean;
+  date: string;
 }
 
 @Component({
   selector: 'app-client-panel',
   standalone: true,
-  imports: [RouterLink, PaymentCardComponent, IconComponent, ScheduledMeetingCardComponent, MeetingSchedulerComponent],
+  imports: [RouterLink, PaymentCardComponent, IconComponent, DatePipe],
   template: `
     <div class="shell wrap">
       <header class="head">
-        <h1>Mis expedientes</h1>
+        <h1>Tu cuenta</h1>
         <p class="muted">
-          @if (primaryProductName) {
-            Estás en <strong>{{ primaryProductName }}</strong>. Abajo ves primero sus trámites y después los de otros productos.
-          } @else {
-            Todos tus trámites en LegalStation, organizados por producto.
-          }
+          Expedientes y facturas de todos tus trámites en LegalStation — Divorcio360, Traslado360, BienRaiz360 y más.
         </p>
       </header>
-
-      @if (pendingMeetingAt) {
-        <app-scheduled-meeting-card
-          [scheduledAt]="pendingMeetingAt"
-          subtitle="Consulta con abogado · evaluación previa"
-        />
-      } @else {
-        <div class="panel meet-block">
-          <h2>Agendar consulta con abogado</h2>
-          <app-meeting-scheduler
-            storageKey="ls_meeting_no_aplica"
-            confirmLabel="Confirmar reunión con abogado"
-            scheduledSubtitle="Consulta con abogado"
-            [requireLogin]="true"
-            authReturnUrl="/cliente"
-            [saveFn]="noAplicaSaveFn"
-            (scheduled)="onMeetingScheduled($event)"
-          />
-        </div>
-      }
 
       @if (loading) {
         <div class="panel state-loading" role="status">
           <span class="spinner" aria-hidden="true"></span>
-          <span>Cargando tus trámites…</span>
+          <span>Cargando tu cuenta…</span>
         </div>
       } @else if (error) {
         <div class="panel state-error" role="alert">
           <span class="state-error-icon"><app-icon name="alert-triangle" [size]="20" /></span>
           <div class="state-error-body">
-            <strong>No pudimos cargar tus trámites</strong>
+            <strong>No pudimos cargar tu cuenta</strong>
             <p>Puede ser un problema de conexión. Inténtalo de nuevo en un momento.</p>
           </div>
           <button type="button" class="btn btn-secondary" (click)="load()">Volver a intentar</button>
@@ -75,95 +55,126 @@ interface ProductCaseGroup {
         <div class="panel empty-state">
           <span class="empty-icon"><app-icon name="inbox" [size]="22" /></span>
           <h2>Todavía no tienes trámites</h2>
-          <p>Evalúa tu caso en unos minutos y crea tu primer expediente.</p>
-          <a [routerLink]="questionnairePath" class="btn btn-primary">Evaluar mi caso</a>
+          <p>Explora nuestros productos y crea tu primer expediente cuando estés listo.</p>
+          <a routerLink="/" class="btn btn-primary">Ver productos</a>
         </div>
       } @else {
-        @for (group of groups; track group.productId) {
-          <section class="group" [class.is-primary]="group.primary" [class.is-secondary]="!group.primary">
-            <header class="group-head">
-              <h2>{{ group.name }}</h2>
-              @if (group.primary) {
-                <span class="group-badge">Producto actual</span>
-              } @else {
-                <span class="group-badge muted-badge">Otro producto</span>
-              }
+        <div class="dashboard-grid">
+          <section class="dashboard-section">
+            <header class="section-head">
+              <h2>Expedientes</h2>
+              <span class="section-count">{{ cases.length }}</span>
             </header>
+
+            @for (group of groups; track group.productId) {
+              <div class="group">
+                <h3 class="group-label">{{ group.name }}</h3>
+                <div class="list">
+                  @for (c of group.cases; track c.id) {
+                    <div class="panel item">
+                      <a class="item-link" [routerLink]="['/caso', c.id]">
+                        <app-payment-card
+                          [title]="'Expediente #' + c.id"
+                          [subtitle]="c.status_label + ' · ' + (c.city || '—')"
+                          [amountCents]="c.amount_cents"
+                          [paid]="c.paid"
+                        />
+                      </a>
+                      @if (c.sign_hint) { <p class="hint">{{ c.sign_hint }}</p> }
+                      @if (c.can_sign) {
+                        <a class="btn btn-primary sign-cta" [routerLink]="['/firma', c.id]">
+                          <app-icon name="signature" [size]="16" />
+                          {{ c.has_signature ? 'Volver a firmar la minuta' : 'Firmar la minuta ahora' }}
+                        </a>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </section>
+
+          <section class="dashboard-section">
+            <header class="section-head">
+              <h2>Facturas</h2>
+              <span class="section-count">{{ invoices.length }}</span>
+            </header>
+
             <div class="list">
-              @for (c of group.cases; track c.id) {
-                <div class="panel item">
-                  <a class="item-link" [routerLink]="['/caso', c.id]">
-                    <app-payment-card
-                      [title]="'Expediente #' + c.id"
-                      [subtitle]="c.status_label + ' · ' + (c.city || '—')"
-                      [amountCents]="c.amount_cents"
-                      [paid]="c.paid"
-                    />
-                  </a>
-                  @if (c.sign_hint) { <p class="hint">{{ c.sign_hint }}</p> }
-                  @if (c.can_sign) {
-                    <a class="btn btn-primary sign-cta" [routerLink]="['/firma', c.id]">
-                      <app-icon name="signature" [size]="16" />
-                      {{ c.has_signature ? 'Volver a firmar la minuta' : 'Firmar la minuta ahora' }}
+              @for (inv of invoices; track inv.caseId) {
+                <div class="panel item invoice-item">
+                  <app-payment-card
+                    [title]="inv.reference"
+                    [subtitle]="inv.productName + ' · ' + (inv.date | date:'short')"
+                    [amountCents]="inv.amountCents"
+                    [paid]="inv.paid"
+                  />
+                  @if (!inv.paid) {
+                    <a class="btn btn-primary invoice-cta" [routerLink]="['/checkout', inv.caseId]">
+                      Completar pago
+                    </a>
+                  } @else {
+                    <a class="btn btn-ghost invoice-cta" [routerLink]="['/caso', inv.caseId]">
+                      Ver expediente
                     </a>
                   }
                 </div>
               }
             </div>
           </section>
-        }
+        </div>
       }
     </div>
   `,
   styles: [`
     .wrap { padding-block: var(--space-6) var(--space-7); }
     .head { margin-bottom: var(--space-5); }
-    app-scheduled-meeting-card {
-      display: block;
-      margin-bottom: var(--space-5);
-    }
-    .meet-block {
-      margin-bottom: var(--space-5);
-      display: grid;
-      gap: var(--space-3);
-    }
-    .meet-block h2 {
-      margin: 0;
-      font-size: var(--text-lg);
-      font-weight: 650;
-    }
-    .head p { margin: 0; max-width: 52ch; line-height: var(--leading-snug); }
+    .head h1 { margin: 0 0 var(--space-2); }
+    .head p { margin: 0; max-width: 56ch; line-height: var(--leading-snug); }
 
-    .group { margin-bottom: var(--space-6); }
-    .group-head {
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .dashboard-section { display: grid; gap: var(--space-4); }
+
+    .section-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: var(--space-3);
-      margin-bottom: var(--space-3);
     }
-    .group-head h2 {
+
+    .section-head h2 {
       margin: 0;
       font-size: var(--text-lg);
       font-weight: 650;
     }
-    .group-badge {
+
+    .section-count {
       font-size: var(--text-xs);
       font-weight: 600;
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-full);
-      background: var(--primary-subtle);
-      color: var(--primary);
-      border: 1px solid var(--primary-border);
-      white-space: nowrap;
-    }
-    .group-badge.muted-badge {
       background: var(--bg-subtle);
       color: var(--text-secondary);
-      border-color: var(--border);
+      border: 1px solid var(--border);
     }
-    .is-secondary .group-head h2 {
-      font-size: var(--text-base);
+
+    .group { display: grid; gap: var(--space-3); }
+    .group + .group { margin-top: var(--space-4); }
+
+    .group-label {
+      margin: 0;
+      font-size: var(--text-sm);
+      font-weight: 600;
       color: var(--text-secondary);
     }
 
@@ -176,7 +187,8 @@ interface ProductCaseGroup {
       font-weight: 500;
       font-size: var(--text-sm);
     }
-    .sign-cta { justify-self: start; }
+    .sign-cta,
+    .invoice-cta { justify-self: start; }
 
     .state-loading {
       display: flex;
@@ -231,28 +243,14 @@ interface ProductCaseGroup {
 export class ClientPanelComponent implements OnInit {
   cases: CaseItem[] = [];
   groups: ProductCaseGroup[] = [];
+  invoices: ClientInvoice[] = [];
   loading = false;
   error = false;
-  primaryProductId = 'divorcio360';
-  primaryProductName = '';
-  questionnairePath = '/cuestionario';
-  pendingMeetingAt = '';
-
-  noAplicaSaveFn = (at: string): Observable<unknown> =>
-    this.api.requestMeeting(at, 'divorcio360', 'no_aplica');
 
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
-    this.primaryProductId = getActiveProduct();
-    this.primaryProductName = getProductDisplayName(this.primaryProductId);
-    this.questionnairePath = getProductQuestionnairePath(this.primaryProductId);
-    this.pendingMeetingAt = sessionStorage.getItem('ls_meeting_no_aplica') || '';
     this.load();
-  }
-
-  onMeetingScheduled(at: string): void {
-    this.pendingMeetingAt = at;
   }
 
   load(): void {
@@ -262,6 +260,7 @@ export class ClientPanelComponent implements OnInit {
       next: (c) => {
         this.cases = c;
         this.groups = this.buildGroups(c);
+        this.invoices = this.buildInvoices(c);
         this.loading = false;
       },
       error: () => {
@@ -279,27 +278,25 @@ export class ClientPanelComponent implements OnInit {
       byProduct.get(pid)!.push(c);
     }
 
-    const groups: ProductCaseGroup[] = [];
-    const primary = byProduct.get(this.primaryProductId);
-    if (primary?.length) {
-      groups.push({
-        productId: this.primaryProductId,
-        name: getProductDisplayName(this.primaryProductId),
-        cases: primary,
-        primary: true,
-      });
-    }
-
-    for (const [pid, cases] of byProduct) {
-      if (pid === this.primaryProductId) continue;
-      groups.push({
-        productId: pid,
-        name: getProductDisplayName(pid),
+    return Array.from(byProduct.entries())
+      .map(([productId, cases]) => ({
+        productId,
+        name: getProductDisplayName(productId),
         cases,
-        primary: false,
-      });
-    }
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  }
 
-    return groups;
+  private buildInvoices(all: CaseItem[]): ClientInvoice[] {
+    return all
+      .map((c) => ({
+        caseId: c.id,
+        reference: `LS-${c.id}`,
+        productName: getProductDisplayName(normalizeProductId(c.product)),
+        amountCents: c.amount_cents,
+        paid: c.paid,
+        date: c.updated_at || c.created_at,
+      }))
+      .sort((a, b) => b.caseId - a.caseId);
   }
 }

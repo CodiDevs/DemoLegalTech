@@ -314,14 +314,14 @@ func (s *Service) ScheduleConsultation(w http.ResponseWriter, r *http.Request) {
 	caseID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	var body struct {
 		ConsultationAt string `json:"consultation_at"`
+		RequestOnly    bool   `json:"request_only"`
 	}
 	if json.NewDecoder(r.Body).Decode(&body) != nil {
 		writeErr(w, http.StatusBadRequest, "JSON inválido")
 		return
 	}
-	if strings.TrimSpace(body.ConsultationAt) == "" {
-		writeErr(w, http.StatusBadRequest, "consultation_at requerido")
-		return
+	if body.RequestOnly || strings.TrimSpace(body.ConsultationAt) == "" {
+		body.ConsultationAt = "requested"
 	}
 	c, err := s.getCase(caseID)
 	if err != nil {
@@ -334,6 +334,9 @@ func (s *Service) ScheduleConsultation(w http.ResponseWriter, r *http.Request) {
 	}
 	_, _ = s.DB.Exec(`UPDATE cases SET consultation_at=? WHERE id=?`, body.ConsultationAt, caseID)
 	note := "Cliente agendó consulta con abogado: " + body.ConsultationAt
+	if body.ConsultationAt == "requested" {
+		note = "Cliente solicitó consulta con abogado"
+	}
 	_, _ = s.DB.Exec(
 		`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
 		caseID, c.Status, note, u.ID, store.Now(),

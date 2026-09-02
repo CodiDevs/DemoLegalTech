@@ -19,7 +19,9 @@ const Q_LABELS: Record<string, string> = {
   conjugal_society: 'Sociedad conyugal',
   ids_valid: 'Identificación vigente ambas partes',
   want_liquidate_assets: 'Desean liquidar bienes',
-  city: 'Ciudad',
+  city: 'Ubicación',
+  country: 'País',
+  province: 'Provincia',
 };
 
 const STATE_KEYS = ['01','02','03','04','05','06','07','08','09','10'];

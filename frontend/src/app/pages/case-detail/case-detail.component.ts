@@ -60,6 +60,7 @@ interface CaseAction {
                 @if (data.case.consultation_at) {
                   <app-scheduled-meeting-card
                     [scheduledAt]="data.case.consultation_at"
+                    [pendingRequest]="data.case.consultation_at === 'requested'"
                     subtitle="Consulta con abogado"
                   />
                 } @else {

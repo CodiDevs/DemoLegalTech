@@ -27,16 +27,22 @@ type Stage = 'questions' | 'review' | 'done';
               <app-icon name="arrow-left" [size]="16" />
               {{ site.name }}
             </a>
-            <p class="pq-eyebrow">Evaluar mi caso · Paso {{ stepLabel }} de {{ totalSteps }}</p>
+            <p class="pq-eyebrow">Evaluar mi caso</p>
           </header>
 
           @if (stage === 'questions' && currentField) {
-            <div class="ob-progress">
-              <div class="ob-track"><div class="ob-fill" [style.width.%]="progressPct"></div></div>
-            </div>
+            <div class="ob-questions">
+              <div class="ob-progress">
+                <div class="ob-track" role="presentation">
+                  <div class="ob-fill" [style.width.%]="progressPct"></div>
+                </div>
+                <p class="ob-step-label">Paso {{ stepLabel }} de {{ totalSteps }}</p>
+              </div>
 
-            @for (f of [currentField]; track f.id) {
-              <section class="ob-card">
+              <div class="ob-stage">
+                <div class="ob-card-slot">
+                  @for (f of [currentField]; track f.id) {
+                    <section class="ob-card">
                 <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
                 <h1>{{ f.label }}</h1>
 
@@ -77,15 +83,18 @@ type Stage = 'questions' | 'review' | 'done';
                     Continuar
                   </button>
                 }
-              </section>
-            }
+                    </section>
+                  }
+                </div>
 
-            <div class="ob-foot">
-              @if (fieldIndex > 0) {
-                <button type="button" class="btn btn-ghost btn-sm" (click)="prev()">
-                  <app-icon name="arrow-left" [size]="16" /> Atrás
-                </button>
-              }
+                <div class="ob-foot">
+                  @if (fieldIndex > 0) {
+                    <button type="button" class="btn btn-ghost btn-sm" (click)="prev()">
+                      <app-icon name="arrow-left" [size]="16" /> Atrás
+                    </button>
+                  }
+                </div>
+              </div>
             </div>
           }
 

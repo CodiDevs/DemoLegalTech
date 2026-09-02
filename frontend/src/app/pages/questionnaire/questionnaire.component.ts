@@ -6,6 +6,16 @@ import { AuthService } from '../../core/auth.service';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
 import { setActiveProduct } from '../../shared/product-sites.data';
+import {
+  DEFAULT_CITY,
+  DEFAULT_COUNTRY_ID,
+  DEFAULT_PROVINCE_ID,
+  formatLocation,
+  findCountry,
+  findProvince,
+  GEO_COUNTRIES,
+  GeoProvince,
+} from '../../shared/ecuador-locations.data';
 import { Observable } from 'rxjs';
 
 type AnswerKey = keyof QuestionnaireAnswers;
@@ -31,69 +41,102 @@ interface Question {
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
-          <div class="ob-progress">
-            <div class="ob-track" role="presentation">
-              <div class="ob-fill" [style.width.%]="progressPercent"></div>
+          <div class="ob-questions">
+            <div class="ob-progress">
+              <div class="ob-track" role="presentation">
+                <div class="ob-fill" [style.width.%]="progressPercent"></div>
+              </div>
+              <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
             </div>
-            <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
-          </div>
 
-          <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
-          @for (q of [current]; track q.key) {
-            <section class="ob-card" [class.is-back]="direction === -1">
-              <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
+            <div class="ob-stage">
+              <div class="ob-card-slot">
+                <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
+                @for (q of [current]; track q.key) {
+                  <section class="ob-card" [class.is-back]="direction === -1">
+                <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
 
-              <h1>{{ q.text }}</h1>
-              <p class="ob-hint">{{ q.hint }}</p>
+                <h1>{{ q.text }}</h1>
+                <p class="ob-hint">{{ q.hint }}</p>
 
-              @if (q.key === 'city') {
-                <div class="ob-field">
-                  <label for="city">Ciudad</label>
-                  <input
-                    #cityInput
-                    id="city"
-                    name="city"
-                    type="text"
-                    placeholder="Quito"
-                    autocomplete="address-level2"
-                    [(ngModel)]="answers.city"
-                    (keyup.enter)="submitCity()"
-                  />
-                </div>
-                <button
-                  type="button"
-                  class="btn btn-primary btn-lg btn-block"
-                  [disabled]="!answers.city.trim()"
-                  (click)="submitCity()"
-                >Continuar</button>
-              } @else {
-                <div class="ob-choices">
-                  <button #firstChoice type="button" class="ob-choice" (click)="answer(true)">
-                    <span>Sí</span>
-                    <app-icon name="chevron-right" [size]="17" />
-                  </button>
-                  <button type="button" class="ob-choice" (click)="answer(false)">
-                    <span>No</span>
-                    <app-icon name="chevron-right" [size]="17" />
-                  </button>
-                </div>
-              }
-            </section>
-          }
-
-          <div class="ob-foot">
-            @if (canGoBack) {
-              <button type="button" class="btn btn-ghost btn-sm" (click)="back()">
-                <app-icon name="arrow-left" [size]="16" />
-                Atrás
-              </button>
-            } @else {
-              <a routerLink="/productos/divorcio360" class="btn btn-ghost btn-sm">
-                <app-icon name="arrow-left" [size]="16" />
-                Salir
-              </a>
+                @if (q.key === 'city') {
+                  <div class="ob-location">
+                    <div class="ob-field">
+                      <label for="location-country">País</label>
+                      <select
+                        #locationCountrySelect
+                        id="location-country"
+                        name="location-country"
+                        [(ngModel)]="answers.country"
+                        (ngModelChange)="onCountryChange()"
+                      >
+                        @for (country of geoCountries; track country.id) {
+                          <option [value]="country.id">{{ country.label }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="ob-field">
+                      <label for="location-province">Provincia</label>
+                      <select
+                        id="location-province"
+                        name="location-province"
+                        [(ngModel)]="answers.province"
+                        (ngModelChange)="onProvinceChange()"
+                      >
+                        @for (province of provincesForCountry; track province.id) {
+                          <option [value]="province.id">{{ province.label }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="ob-field">
+                      <label for="location-city">Ciudad</label>
+                      <select
+                        id="location-city"
+                        name="location-city"
+                        [(ngModel)]="answers.city"
+                      >
+                        @for (city of citiesForProvince; track city) {
+                          <option [value]="city">{{ city }}</option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-lg btn-block"
+                    [disabled]="!locationComplete"
+                    (click)="submitCity()"
+                  >Continuar</button>
+                } @else {
+                  <div class="ob-choices">
+                    <button #firstChoice type="button" class="ob-choice" (click)="answer(true)">
+                      <span>Sí</span>
+                      <app-icon name="chevron-right" [size]="17" />
+                    </button>
+                    <button type="button" class="ob-choice" (click)="answer(false)">
+                      <span>No</span>
+                      <app-icon name="chevron-right" [size]="17" />
+                    </button>
+                  </div>
+                }
+              </section>
             }
-            <p class="ob-note">Orientativo. No sustituye una consulta legal.</p>
+              </div>
+
+            <div class="ob-foot">
+              @if (canGoBack) {
+                <button type="button" class="btn btn-ghost btn-sm" (click)="back()">
+                  <app-icon name="arrow-left" [size]="16" />
+                  Atrás
+                </button>
+              } @else {
+                <a routerLink="/productos/divorcio360" class="btn btn-ghost btn-sm">
+                  <app-icon name="arrow-left" [size]="16" />
+                  Salir
+                </a>
+              }
+            </div>
+            </div>
           </div>
         }
 
@@ -183,7 +226,7 @@ interface Question {
                   <a
                     class="btn btn-primary btn-lg btn-block"
                     routerLink="/auth"
-                    [queryParams]="{ next: 'checkout', result: result.code, city: answers.city, product: 'divorcio360' }"
+                    [queryParams]="{ next: 'checkout', result: result.code, city: locationLabel, product: 'divorcio360' }"
                   >Continuar y crear mi cuenta</a>
                   <a
                     class="btn btn-secondary btn-block"
@@ -231,7 +274,7 @@ interface Question {
 })
 export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterViewInit {
   @ViewChild('firstChoice') firstChoice?: ElementRef<HTMLButtonElement>;
-  @ViewChild('cityInput') cityInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('locationCountrySelect') locationCountrySelect?: ElementRef<HTMLSelectElement>;
   @ViewChild('noAplicaScheduler') noAplicaScheduler?: MeetingSchedulerComponent;
 
   stage: 'questions' | 'review' | 'result' = 'questions';
@@ -255,8 +298,12 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     conjugal_society: false,
     ids_valid: false,
     want_liquidate_assets: false,
-    city: '',
+    country: DEFAULT_COUNTRY_ID,
+    province: DEFAULT_PROVINCE_ID,
+    city: DEFAULT_CITY,
   };
+
+  readonly geoCountries = GEO_COUNTRIES;
 
   readonly all: Question[] = [
     {
@@ -343,10 +390,10 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     },
     {
       key: 'city',
-      text: '¿En qué ciudad están?',
-      hint: 'Para asignarles una notaría cercana.',
+      text: '¿Dónde están ubicados?',
+      hint: 'Indica país, provincia y ciudad donde realizan el trámite.',
       icon: 'map-pin',
-      summary: 'Ciudad',
+      summary: 'Ubicación',
     },
   ];
 
@@ -366,6 +413,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
 
   ngOnInit(): void {
     setActiveProduct('divorcio360');
+    this.normalizeLocation();
     if (this.route.snapshot.queryParamMap.get('resume') === 'result') {
       this.restoreResult();
     }
@@ -376,7 +424,10 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     if (!cached) return;
     try {
       const p = JSON.parse(cached);
-      if (p.answers) this.answers = { ...this.answers, ...p.answers };
+      if (p.answers) {
+        this.answers = { ...this.answers, ...p.answers };
+        this.normalizeLocation();
+      }
       this.api.evaluate(this.answers).subscribe({
         next: (res) => {
           this.result = res;
@@ -397,7 +448,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
 
   ngAfterViewChecked(): void {
     if (!this.pendingFocus) return;
-    const el = this.cityInput?.nativeElement ?? this.firstChoice?.nativeElement;
+    const el = this.locationCountrySelect?.nativeElement ?? this.firstChoice?.nativeElement;
     if (el) {
       this.pendingFocus = false;
       el.focus();
@@ -431,7 +482,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
       key: q.key,
       label: q.summary,
       value: q.key === 'city'
-        ? (this.answers.city || 'Sin indicar')
+        ? (this.locationLabel || 'Sin indicar')
         : ((this.answers as any)[q.key] ? 'Sí' : 'No'),
     }));
   }
@@ -450,8 +501,53 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     this.goForward();
   }
 
+  get provincesForCountry(): GeoProvince[] {
+    return findCountry(this.answers.country)?.provinces ?? [];
+  }
+
+  get citiesForProvince(): string[] {
+    return findProvince(this.answers.country, this.answers.province)?.cities ?? [];
+  }
+
+  get locationComplete(): boolean {
+    return Boolean(
+      this.answers.country &&
+      this.answers.province &&
+      this.answers.city.trim(),
+    );
+  }
+
+  get locationLabel(): string {
+    return formatLocation(this.answers.country, this.answers.province, this.answers.city);
+  }
+
+  onCountryChange(): void {
+    const provinces = this.provincesForCountry;
+    const province = provinces[0];
+    this.answers.province = province?.id ?? '';
+    this.answers.city = province?.cities[0] ?? '';
+  }
+
+  onProvinceChange(): void {
+    const cities = this.citiesForProvince;
+    this.answers.city = cities[0] ?? '';
+  }
+
+  private normalizeLocation(): void {
+    if (!findCountry(this.answers.country)) {
+      this.answers.country = DEFAULT_COUNTRY_ID;
+    }
+    if (!findProvince(this.answers.country, this.answers.province)) {
+      const province = findCountry(this.answers.country)?.provinces[0];
+      this.answers.province = province?.id ?? DEFAULT_PROVINCE_ID;
+    }
+    if (!this.citiesForProvince.includes(this.answers.city)) {
+      this.answers.city = this.citiesForProvince[0] ?? DEFAULT_CITY;
+    }
+  }
+
   submitCity(): void {
-    if (!this.answers.city.trim()) return;
+    if (!this.locationComplete) return;
     this.answers.city = this.answers.city.trim();
     this.goForward();
   }
@@ -524,7 +620,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
         this.direction = 1;
         sessionStorage.setItem('d360_q_result', JSON.stringify({
           result: res.code,
-          city: this.answers.city,
+          city: this.locationLabel,
           answers: this.answers,
         }));
       },
@@ -540,7 +636,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     this.submitting = true;
     this.submitError = '';
 
-    this.api.createCase(this.result.code, this.answers.city, this.answers).subscribe({
+    this.api.createCase(this.result.code, this.locationLabel, this.answers).subscribe({
       next: (c) => void this.router.navigate(['/checkout', c.id]),
       error: () => {
         this.submitting = false;

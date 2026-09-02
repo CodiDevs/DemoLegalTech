@@ -17,6 +17,8 @@ type Answers struct {
 	ConjugalSociety      bool   `json:"conjugal_society"`
 	IDsValid             bool   `json:"ids_valid"`
 	WantLiquidateAssets  bool   `json:"want_liquidate_assets"`
+	Country              string `json:"country"`
+	Province             string `json:"province"`
 	City                 string `json:"city"`
 }
 

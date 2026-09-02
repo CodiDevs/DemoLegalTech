@@ -4,7 +4,7 @@ import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { ProgressStep } from '../../shared/progress-steps.component';
 import { IconComponent } from '../../shared/icon.component';
-import { getProductFlowMeta, productThemeFromCase } from '../../shared/product-sites.data';
+import { getProductFlowMeta, productThemeFromCase, clientFlowStepIndex } from '../../shared/product-sites.data';
 
 interface DocRow {
   id: number;
@@ -112,7 +112,7 @@ interface DocRow {
       <div class="up-footer">
           <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Ver expediente</a>
         @if (canContinue) {
-          <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', caseId]">Agendar consulta</a>
+          <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', caseId]">Solicitar consulta</a>
         } @else {
           <span class="pf-muted">Completa los {{ slots.length }} documentos para continuar.</span>
         }
@@ -159,9 +159,8 @@ export class UploadComponent implements OnInit {
       this.signHint = d.case?.sign_hint || '';
       const meta = getProductFlowMeta(this.product);
       this.slots = meta.docTypes.map((dt) => ({ type: dt.type, label: dt.label }));
-      this.flowSteps = meta.flowSteps;
-      this.productName = meta.name;
-      this.docsStepIndex = Math.max(0, meta.flowSteps.findIndex((s) => s.id === 'docs'));
+      this.flowSteps = meta.clientFlowSteps;
+      this.docsStepIndex = clientFlowStepIndex(meta.flowSteps, 'docs');
       this.crumb = [
         { label: 'LegalStation', link: '/' },
         ...(meta.productHome ? [{ label: meta.name, link: meta.productHome }] : []),

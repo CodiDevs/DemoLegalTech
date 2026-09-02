@@ -34,6 +34,11 @@
   a.btn:hover { color: var(--btn-fg); }
 }
 
+body.divorcio-flow-mode .landing-page.product-flow {
+  min-height: calc(100dvh - var(--header-height));
+  padding-bottom: var(--space-6);
+}
+
 .pf-crumb {
   display: flex;
   align-items: center;
@@ -447,6 +452,40 @@
   margin-top: var(--space-5);
   padding-top: var(--space-5);
   border-top: 1px solid var(--border);
+}
+
+.consult-body {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.consult-request-zone {
+  margin: var(--space-4) var(--space-5) var(--space-5);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+  background: linear-gradient(180deg, var(--bg-subtle), var(--surface));
+}
+
+.consult-request-title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.consult-request-hint {
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.consult-request-zone .lp-btn {
+  min-width: 12rem;
+}
+
+.consult-request-zone .pf-err {
+  margin-bottom: var(--space-3);
 }
 
 .up-banner {
