@@ -42,11 +42,33 @@ interface Question {
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
           <div class="ob-questions">
-            <div class="ob-progress">
-              <div class="ob-track" role="presentation">
-                <div class="ob-fill" [style.width.%]="progressPercent"></div>
+            <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + position + ' de ' + visibleQuestions.length">
+              <div class="ob-segments">
+                @for (q of visibleQuestions; track q.key; let i = $index) {
+                  <button
+                    type="button"
+                    class="ob-seg"
+                    [class.is-done]="i + 1 < position"
+                    [class.is-current]="i + 1 === position"
+                    [disabled]="i + 1 > position"
+                    [attr.aria-label]="segLabel(i)"
+                    [attr.title]="i + 1 < position ? 'Volver al paso ' + (i + 1) : null"
+                    [attr.aria-current]="i + 1 === position ? 'step' : null"
+                    (click)="goToStep(i)"
+                  >
+                    <span class="ob-seg-bar" aria-hidden="true"></span>
+                    @if (i + 1 < position) {
+                      <span class="ob-seg-mark" aria-hidden="true">✓</span>
+                    }
+                  </button>
+                }
               </div>
-              <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
+              <div class="ob-progress-meta">
+                <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
+                @if (canGoBack) {
+                  <p class="ob-step-hint">Haz clic en ✓ para regresar</p>
+                }
+              </div>
             </div>
 
             <div class="ob-stage">
@@ -471,6 +493,21 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     const total = this.visibleQuestions.length;
     if (!total) return 0;
     return Math.round(((this.position - 1) / total) * 100);
+  }
+
+  segLabel(visibleIndex: number): string {
+    const n = visibleIndex + 1;
+    if (n < this.position) return `Paso ${n}: volver`;
+    if (n === this.position) return `Paso ${n}: actual`;
+    return `Paso ${n}`;
+  }
+
+  /** Solo pasos ya respondidos (anteriores al actual). */
+  goToStep(visibleIndex: number): void {
+    if (visibleIndex < 0 || visibleIndex >= this.position - 1) return;
+    const q = this.visibleQuestions[visibleIndex];
+    if (!q) return;
+    this.editAnswer(q.key);
   }
 
   get canGoBack(): boolean {

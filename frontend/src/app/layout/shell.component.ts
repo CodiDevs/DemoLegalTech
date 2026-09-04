@@ -39,6 +39,7 @@ interface ProductSwitcherItem {
     <header
       class="site-header"
       [class.on-marketing]="isMarketing"
+      [class.is-scrolled]="headerScrolled"
       [style.--header-accent]="headerAccent"
     >
       <div class="header-bar">
@@ -304,6 +305,97 @@ interface ProductSwitcherItem {
       background: color-mix(in srgb, var(--bg) 88%, transparent);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
+      transition:
+        background 280ms cubic-bezier(0.32, 0.72, 0, 1),
+        border-color 280ms cubic-bezier(0.32, 0.72, 0, 1),
+        padding 280ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    /* Isla flotante en marketing — cambio bien visible */
+    .site-header.on-marketing {
+      background: transparent;
+      border-bottom: none;
+      padding: 0.85rem clamp(0.75rem, 2vw, 1.25rem) 0;
+      pointer-events: none;
+    }
+
+    .site-header.on-marketing .header-bar,
+    .site-header.on-marketing .mobile-menu {
+      pointer-events: auto;
+    }
+
+    .site-header.on-marketing .header-bar {
+      max-width: min(68rem, calc(100% - 0.5rem));
+      min-height: 3.35rem;
+      gap: var(--space-4);
+      padding-inline: 0.85rem 0.55rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      backdrop-filter: blur(18px) saturate(1.35);
+      -webkit-backdrop-filter: blur(18px) saturate(1.35);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 55%, transparent) inset,
+        0 10px 36px color-mix(in srgb, var(--header-accent) 10%, rgb(27 25 23 / 0.08));
+      transition:
+        box-shadow 280ms cubic-bezier(0.32, 0.72, 0, 1),
+        background 280ms cubic-bezier(0.32, 0.72, 0, 1),
+        border-color 280ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .site-header.on-marketing.is-scrolled .header-bar {
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      border-color: color-mix(in srgb, var(--border) 90%, var(--header-accent));
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 40%, transparent) inset,
+        0 14px 40px color-mix(in srgb, var(--header-accent) 14%, rgb(27 25 23 / 0.12));
+    }
+
+    .site-header.on-marketing .brand {
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+
+    .site-header.on-marketing .brand-mark {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--header-accent) 16%, transparent);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--header-accent) 22%, transparent);
+    }
+
+    .site-header.on-marketing .nav-link,
+    .site-header.on-marketing .dropdown-trigger {
+      padding: 0.35rem 0.55rem;
+      border-radius: 999px;
+      transition:
+        color 200ms cubic-bezier(0.32, 0.72, 0, 1),
+        background 200ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .site-header.on-marketing .nav-link:hover,
+    .site-header.on-marketing .nav-link.is-active,
+    .site-header.on-marketing .dropdown-trigger:hover,
+    .site-header.on-marketing .dropdown-trigger[aria-expanded='true'] {
+      color: var(--text);
+      background: color-mix(in srgb, var(--header-accent) 10%, transparent);
+    }
+
+    .site-header.on-marketing .btn-primary {
+      border-radius: 999px;
+      padding-inline: 1.1rem;
+      font-weight: 600;
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--header-accent) 28%, transparent);
+    }
+
+    .site-header.on-marketing .mobile-menu {
+      margin: 0.65rem clamp(0.75rem, 2vw, 1.25rem) 0;
+      border-radius: 1.35rem;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 94%, transparent);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-lg);
     }
 
     .header-bar {
@@ -357,7 +449,7 @@ interface ProductSwitcherItem {
     .header-nav {
       display: flex;
       align-items: center;
-      gap: var(--space-5);
+      gap: var(--space-2);
     }
 
     .nav-link {
@@ -738,6 +830,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   showNotifs = false;
   showMenu = false;
   showProducts = false;
+  headerScrolled = false;
 
   private pollId?: ReturnType<typeof setInterval>;
 
@@ -773,8 +866,9 @@ export class ShellComponent implements OnInit, OnDestroy {
     const links: NavLink[] = [];
 
     if (this.isLegalStationMarketing) {
+      // "Productos" ya está en el switcher — aquí Catálogo evita duplicado
       links.push(
-        { label: 'Productos', path: '/', fragment: 'catalogo' },
+        { label: 'Catálogo', path: '/', fragment: 'catalogo' },
         { label: 'Precios', path: '/', fragment: 'precios' },
       );
     } else if (this.isMarketing) {
@@ -787,9 +881,9 @@ export class ShellComponent implements OnInit, OnDestroy {
       links.push({ label: 'Inicio', path: this.productHome, exact: true });
     }
 
-    links.push({ label: 'Evaluar mi caso', path: getProductQuestionnairePath(this.activeProduct) });
-
+    // Guest ya tiene CTA primary en header-actions — no duplicar
     if (this.auth.isLoggedIn) {
+      links.push({ label: 'Evaluar mi caso', path: getProductQuestionnairePath(this.activeProduct) });
       const role = this.auth.user()?.role;
       if (role === 'cliente') {
         links.push({ label: 'Mis expedientes', path: '/cliente' });
@@ -804,9 +898,9 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   get productSwitcherItems(): ProductSwitcherItem[] {
     return [
-      { id: 'divorcio360', label: 'Divorcio360', path: getProductQuestionnairePath('divorcio360') },
-      { id: 'traslado360', label: 'Traslado360', path: getProductQuestionnairePath('traslado360') },
-      { id: 'bienraiz360', label: 'BienRaiz360', path: getProductQuestionnairePath('bienraiz360') },
+      { id: 'divorcio360', label: 'Divorcio360', path: '/productos/divorcio360' },
+      { id: 'traslado360', label: 'Traslado360', path: '/productos/traslado360' },
+      { id: 'bienraiz360', label: 'BienRaiz360', path: '/productos/bienraiz360' },
       { id: 'legalstation', label: 'LegalStation', path: '/' },
     ];
   }
@@ -918,9 +1012,14 @@ export class ShellComponent implements OnInit, OnDestroy {
     if (this.pollId) clearInterval(this.pollId);
   }
 
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.headerScrolled = (window.scrollY || 0) > 12;
+  }
+
   @HostListener('document:click')
   onDocumentClick(): void {
-    if (this.showNotifs || this.showMenu) this.closeAll();
+    if (this.showNotifs || this.showMenu || this.showProducts) this.closeAll();
   }
 
   @HostListener('document:keydown.escape')

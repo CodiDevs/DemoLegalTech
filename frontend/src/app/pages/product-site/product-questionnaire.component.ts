@@ -32,11 +32,32 @@ type Stage = 'questions' | 'review' | 'done';
 
           @if (stage === 'questions' && currentField) {
             <div class="ob-questions">
-              <div class="ob-progress">
-                <div class="ob-track" role="presentation">
-                  <div class="ob-fill" [style.width.%]="progressPct"></div>
+              <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length">
+                <div class="ob-segments">
+                  @for (f of fields; track f.id; let i = $index) {
+                    <button
+                      type="button"
+                      class="ob-seg"
+                      [class.is-done]="i < fieldIndex"
+                      [class.is-current]="i === fieldIndex"
+                      [disabled]="i > fieldIndex"
+                      [attr.aria-label]="i < fieldIndex ? 'Paso ' + (i + 1) + ': volver' : i === fieldIndex ? 'Paso ' + (i + 1) + ': actual' : 'Paso ' + (i + 1)"
+                      [attr.title]="i < fieldIndex ? 'Volver al paso ' + (i + 1) : null"
+                      [attr.aria-current]="i === fieldIndex ? 'step' : null"
+                      (click)="goToField(i)"
+                    >
+                      <span class="ob-seg-bar" aria-hidden="true"></span>
+                      @if (i < fieldIndex) {
+                        <span class="ob-seg-mark" aria-hidden="true">✓</span>
+                      }
+                    </button>
+                  }
                 </div>
-                <p class="ob-step-label">Paso {{ stepLabel }} de {{ totalSteps }}</p>
+                @if (fieldIndex > 0) {
+                  <div class="ob-progress-meta">
+                    <p class="ob-step-hint">Haz clic en ✓ para regresar</p>
+                  </div>
+                }
               </div>
 
               <div class="ob-stage">
@@ -273,6 +294,14 @@ export class ProductQuestionnaireComponent implements OnInit {
       this.stage = 'questions';
       this.saveDraft();
     }
+  }
+
+  /** Solo pasos ya respondidos (anteriores al actual). */
+  goToField(index: number): void {
+    if (index < 0 || index >= this.fieldIndex) return;
+    this.fieldIndex = index;
+    this.stage = 'questions';
+    this.saveDraft();
   }
 
   formatAnswer(field: QuestionField): string {

@@ -1,4 +1,4 @@
-/* Talking Tree–inspired marketing layout (Inter, cream canvas, pill CTAs) */
+/* Talking Tree–inspired marketing layout (Fraunces display + Inter body, teal canvas) */
 
 .landing-page {
   /* Alias del sistema canónico (styles/tokens.scss) */
@@ -22,8 +22,30 @@
 
   font-family: var(--lp-font);
   color: var(--lp-ink);
-  background: var(--lp-bg);
+  position: relative;
   overflow-x: hidden;
+  background:
+    radial-gradient(ellipse 90% 55% at 8% -8%, color-mix(in srgb, var(--lp-accent) 16%, transparent), transparent 58%),
+    radial-gradient(ellipse 70% 45% at 100% 0%, color-mix(in srgb, var(--lp-accent) 9%, transparent), transparent 52%),
+    var(--lp-bg);
+
+  /* Grain sutil — atmósfera, no flat white */
+  &::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    mix-blend-mode: multiply;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 
   h1, h2 {
     font-family: var(--font-display);
@@ -93,7 +115,7 @@
   }
 
   .lp-section {
-    padding: 5rem 0;
+    padding: 6.25rem 0;
   }
 
   .lp-section.soft {
