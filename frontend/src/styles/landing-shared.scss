@@ -462,24 +462,33 @@
   .lp-carousel-dots {
     display: flex;
     justify-content: center;
-    gap: 0.45rem;
+    gap: 0.15rem;
     margin-top: 1.15rem;
   }
 
   .lp-carousel-dots button {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    border: 0;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
     padding: 0;
-    background: #c8c2ba;
+    border: 0;
+    background: transparent;
     cursor: pointer;
-    transition: background 0.15s ease, transform 0.15s ease;
   }
 
-  .lp-carousel-dots button.on {
+  .lp-carousel-dots button::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+    background: var(--border-strong);
+    transition: width var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
+  }
+
+  .lp-carousel-dots button.on::after {
+    width: 1.25rem;
     background: var(--lp-accent);
-    transform: scale(1.15);
   }
 
   .lp-pill-row {
@@ -565,6 +574,7 @@
   }
 
   .lp-product-card {
+    position: relative;
     background: white;
     border: 1px solid var(--lp-border);
     border-radius: var(--lp-radius);
@@ -576,9 +586,30 @@
     box-shadow: 0 8px 32px rgb(27 25 23 / 0.06);
   }
 
-  .lp-product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 18px 44px rgb(27 25 23 / 0.12);
+  .lp-badge-live,
+  .lp-badge-soon {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 1;
+    padding: 0.25rem 0.55rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+  }
+
+  .lp-badge-live {
+    background: var(--primary);
+    color: var(--text-on-primary);
+    box-shadow: 0 1px 4px rgb(27 25 23 / 0.28);
+  }
+
+  .lp-badge-soon {
+    background: var(--surface);
+    color: var(--text-secondary);
+    box-shadow: 0 1px 4px rgb(27 25 23 / 0.18);
   }
 
   .lp-product-card img {
@@ -654,12 +685,6 @@
     border-radius: var(--lp-radius);
     padding: 1.75rem 1.5rem;
     box-shadow: 0 6px 24px rgb(27 25 23 / 0.05);
-  }
-
-  .lp-plan:hover,
-  .lp-product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 18px 44px rgb(27 25 23 / 0.1);
   }
 
   .lp-value,
@@ -865,46 +890,6 @@
     text-align: center;
     color: var(--text-on-primary);
     box-shadow: var(--shadow-accent);
-  }
-
-  &.legalstation-landing .lp-cta-inner {
-    background: linear-gradient(155deg, #5a6fd8 0%, #4455c4 52%, #3a48ad 100%);
-    color: white;
-  }
-
-  &.legalstation-landing .lp-cta-inner::before,
-  &.legalstation-landing .lp-cta-inner::after {
-    border-color: rgb(255 255 255 / 0.16);
-  }
-
-  &.legalstation-landing .lp-cta-eyebrow {
-    color: rgb(255 255 255 / 0.72);
-  }
-
-  &.legalstation-landing .lp-cta-inner h2 {
-    color: white;
-  }
-
-  &.legalstation-landing .lp-cta-inner > p {
-    color: rgb(255 255 255 / 0.88);
-  }
-
-  &.legalstation-landing .lp-cta-primary {
-    background: white;
-    color: #4455c4;
-  }
-
-  &.legalstation-landing .lp-cta-primary:hover {
-    background: #eef0fb;
-  }
-
-  &.legalstation-landing .lp-cta-ghost {
-    border-color: rgb(255 255 255 / 0.55);
-    color: white;
-  }
-
-  &.legalstation-landing .lp-cta-ghost:hover {
-    background: rgb(255 255 255 / 0.1);
   }
 
   &.divorcio-landing .lp-cta-inner {

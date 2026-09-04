@@ -21,6 +21,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Upload documentos UX | Checklist + dropzone por producto; reemplazar sin borrar; abogado ve solo última versión | 2026-08-30 |
 | done | Cuestionario UX progreso estático | `/cuestionario` — barra superior quieta; preguntas entran desde abajo | 2026-09-02 |
 | done | Marketing UI polish Fase 0+1 | `/productos/divorcio360` Fraunces + teal AA + mock expediente + 6 pasos | 2026-09-03 |
+| done | Marketing UI polish Fase 2 | `/` LegalStation teal inherit, 3 live badges, catalog copy | 2026-09-03 |
 
 ## Entries
 
@@ -253,3 +254,11 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 - **Pricing:** “Sin costo” en Derivación; CTA primary vs tertiary; values asimétricos 1.4fr / 1fr.
 
 **Demo:** `ng serve` → `/productos/divorcio360` (hero pin + mock + 6 pasos + precios). Spot `/` y `/productos/traslado360`.
+
+### 2026-09-03 — Marketing UI polish (Fase 2)
+- **Home accent:** `/` hereda `--primary` teal `#2f6f68`. Sin override índigo `#4455c4`.
+- **Catálogo:** badges En vivo / Próximamente. Copy: Divorcio360, Traslado360 y BienRaiz360 en vivo.
+- **CTA bottom:** teal compartido (sin gradiente índigo).
+- **Dots:** pill activo en `landing-shared.scss`; hit-area 2.25rem.
+
+**Demo:** `ng serve` → `/` — hero collage = 3 productos live; `#catalogo` badges; `#precios` lift hover; CTA final teal no índigo. Spot `/productos/divorcio360` (teal producto `#4a9e96` intacto).

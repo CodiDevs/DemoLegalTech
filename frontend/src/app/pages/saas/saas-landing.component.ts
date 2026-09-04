@@ -1,15 +1,21 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { LEGALSTATION_CATALOG, ProductCatalogEntry, getProductQuestionnairePath, setActiveProduct } from '../../shared/product-sites.data';
-import { MarketingHeroComponent, HeroStat } from './marketing-hero.component';
-import { LandingIconComponent, LandingIconName } from './landing-icon.component';
+import { MarketingHeroComponent } from './marketing-hero.component';
+import { LandingIconComponent } from './landing-icon.component';
 import { ElasticGalleryComponent, GalleryItem } from './elastic-gallery.component';
 import { LandingStatisticsComponent, StatItem } from './landing-statistics.component';
-import { LEGALSTATION_CLIENT_GALLERY, LEGALSTATION_PLATFORM_STATS } from './saas-landing.data';
+import {
+  LEGALSTATION_CLIENT_GALLERY,
+  LEGALSTATION_ENTERPRISE,
+  LEGALSTATION_HERO_IMAGES,
+  LEGALSTATION_HERO_STATS,
+  LEGALSTATION_PLANS,
+  LEGALSTATION_PLATFORM_STATS,
+  LEGALSTATION_WORKFLOW,
+} from './saas-landing.data';
 import { IconComponent } from '../../shared/icon.component';
-
-interface Product extends ProductCatalogEntry {}
 
 @Component({
   selector: 'app-saas-landing',
@@ -105,12 +111,17 @@ interface Product extends ProductCatalogEntry {}
             <h2>Un ecosistema legal. <span class="lp-highlight">Seis productos conectados.</span></h2>
             <p>
               Cada vertical tiene intake, expediente y operador — sin pegar sistemas distintos.
-              Divorcio360 está en vivo; el resto se presenta como producto terminado en esta demo.
+              Divorcio360, Traslado360 y BienRaiz360 están en vivo; el resto se presenta como producto terminado en esta demo.
             </p>
           </div>
           <div class="lp-product-grid">
             @for (p of products; track p.id) {
               <article class="lp-product-card lp-lift">
+                @if (p.live) {
+                  <span class="lp-badge-live">En vivo</span>
+                } @else {
+                  <span class="lp-badge-soon">Próximamente</span>
+                }
                 <img [src]="p.image" [alt]="p.name" loading="lazy" />
                 <div class="lp-product-body">
                   <h3>{{ p.name }}</h3>
@@ -262,18 +273,10 @@ interface Product extends ProductCatalogEntry {}
         </div>
       </section>
 
-      @if (toast) { <div class="lp-toast">{{ toast }}</div> }
+      @if (toast) { <div class="lp-toast" role="status" aria-live="polite">{{ toast }}</div> }
     </div>
   `,
   styles: [`
-    .legalstation-landing {
-      --lp-accent: #4455c4;
-      --lp-accent-deep: #3344a8;
-      --lp-accent-soft: #eef0fb;
-    }
-
-    .lp-muted { color: var(--lp-ink-muted); font-size: 0.9rem; margin: 0; }
-
     .lp-link {
       display: inline-flex;
       align-items: center;
@@ -317,78 +320,29 @@ interface Product extends ProductCatalogEntry {}
     .lp-carousel-frame img {
       transition: opacity 0.45s var(--ease-out, ease);
     }
-
-    .lp-carousel-dots button {
-      width: 0.5rem;
-      height: 0.5rem;
-      padding: 0;
-      border: 0;
-      border-radius: var(--radius-full);
-      background: var(--border-strong);
-      cursor: pointer;
-      transition: width var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
-    }
-
-    .lp-carousel-dots button.on {
-      background: var(--lp-accent);
-      width: 1.25rem;
-    }
   `]
 })
-export class SaasLandingComponent implements OnInit, OnDestroy {
+export class SaasLandingComponent {
   toast = '';
   activeSlide = 0;
   carouselFading = false;
   platformStats: StatItem[] = LEGALSTATION_PLATFORM_STATS;
   clientGallery: GalleryItem[] = LEGALSTATION_CLIENT_GALLERY;
+  heroStats = LEGALSTATION_HERO_STATS;
+  heroImages = LEGALSTATION_HERO_IMAGES;
+  products = LEGALSTATION_CATALOG;
+  workflow = LEGALSTATION_WORKFLOW;
+  plans = LEGALSTATION_PLANS;
+  enterprise = LEGALSTATION_ENTERPRISE;
 
-  heroStats: HeroStat[] = [
-    { value: '6', label: 'Productos conectados', icon: 'folder' },
-    { value: '120+', label: 'Firmas demo', icon: 'users' },
-    { value: '10', label: 'Estados por expediente', icon: 'file' },
-  ];
-
-  heroImages: [string, string, string] = [
-    'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
-  ];
-
-  get activeProduct(): Product {
+  get activeProduct(): ProductCatalogEntry {
     return this.products[this.activeSlide];
   }
 
-  products: Product[] = LEGALSTATION_CATALOG as Product[];
-
-  workflow = [
-    { n: 1, title: 'Intake', desc: 'Cuestionario y clasificación automática del caso.' },
-    { n: 2, title: 'Expediente', desc: 'Documentos, pago y mensajes en un solo lugar.' },
-    { n: 3, title: 'Revisión', desc: 'Operador aprueba, genera minuta y comunica al cliente.' },
-    { n: 4, title: 'Firma', desc: 'Firma electrónica con evidencia y notificaciones.' },
-    { n: 5, title: 'Cierre', desc: 'Notaría, registro y archivo con auditoría completa.' },
-  ];
-
-  plans = [
-    { name: 'Starter', audience: 'Bufete pequeño — licencia operador', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión demo por venta'], featured: false },
-    { name: 'Professional', audience: 'Equipo en crecimiento', price: 249, items: ['3 productos live', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync demo'], featured: true },
-    { name: 'Enterprise', audience: 'Multi-sede', price: 599, items: ['Productos ilimitados', 'SSO demo', 'Comisión negociable', 'White-label ready'], featured: false },
-  ];
-
-  enterprise = [
-    { title: 'Aislamiento completo', desc: 'Infraestructura dedicada — tus datos separados del resto de tenants demo.' },
-    { title: 'En tus términos', desc: 'On-prem o nube privada con SSO, logs y control administrativo.' },
-    { title: 'White-label', desc: 'Marca y flujos adaptados a tu firma o grupo legal.' },
-    { title: 'SLA y partnership', desc: 'Colaboración con tu equipo de TI y soporte prioritario demo.' },
-  ];
-
   constructor(public auth: AuthService, private router: Router) {}
 
-  ngOnInit(): void {}
-
-  ngOnDestroy(): void {}
-
   /** Siempre al cuestionario del producto seleccionado. */
-  openProduct(p: Product): void {
+  openProduct(p: ProductCatalogEntry): void {
     if (!p.route) return;
     setActiveProduct(p.id);
     void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
