@@ -16,7 +16,7 @@ export interface StatItem {
   template: `
     <div class="ls-stats" [class.theme-divorcio]="theme === 'divorcio'">
       @for (s of stats; track s.label) {
-        <article class="ls-stat lp-lift">
+        <article class="ls-stat">
           @if (s.icon) {
             <span class="ls-stat-icon"><app-landing-icon [name]="s.icon" [size]="20" /></span>
           }
@@ -45,11 +45,11 @@ export interface StatItem {
     }
 
     .ls-stat {
-      background: white;
-      border: 1px solid rgb(58 52 47 / 0.08);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 1rem;
       padding: 1.35rem 1.25rem;
-      box-shadow: 0 8px 28px rgb(58 52 47 / 0.06);
+      box-shadow: 0 8px 28px rgb(27 25 23 / 0.06);
       display: grid;
       gap: 0.35rem;
     }
@@ -76,15 +76,15 @@ export interface StatItem {
       font-size: clamp(1.75rem, 3vw, 2.25rem);
       font-weight: 800;
       letter-spacing: -0.03em;
-      color: #2a3148;
+      color: var(--text);
       line-height: 1;
     }
 
     .ls-trend {
       font-size: 0.78rem;
       font-weight: 700;
-      color: #3d9a6a;
-      background: #e8f5ee;
+      color: var(--success);
+      background: var(--success-subtle);
       padding: 0.2rem 0.45rem;
       border-radius: 999px;
     }
@@ -93,14 +93,14 @@ export interface StatItem {
       margin: 0;
       font-size: 0.95rem;
       font-weight: 700;
-      color: #2a3148;
+      color: var(--text);
     }
 
     .ls-stat p {
       margin: 0;
       font-size: 0.88rem;
       line-height: 1.55;
-      color: #6b7280;
+      color: var(--text-muted);
     }
 
     @media (max-width: 960px) {

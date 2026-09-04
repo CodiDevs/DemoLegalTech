@@ -75,7 +75,8 @@ export interface HeroTagItem {
                 muted
                 loop
                 playsinline
-                preload="auto"
+                preload="metadata"
+                [poster]="videoPoster"
                 [src]="videoSrc"
                 aria-label="Recorrido visual Divorcio360"
               ></video>
@@ -373,6 +374,8 @@ export interface HeroTagItem {
 export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestroy {
   @Input() videoSrc =
     'https://res.cloudinary.com/dsuwzuaxp/video/upload/856381-hd_1920_1080_30fps_gsq11b.mp4';
+  @Input() videoPoster =
+    'https://res.cloudinary.com/dsuwzuaxp/video/upload/so_0/856381-hd_1920_1080_30fps_gsq11b.jpg';
   @Input() authQuery: Record<string, string> = {
     product: 'divorcio360',
     returnUrl: '/productos/divorcio360',

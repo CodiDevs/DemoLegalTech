@@ -147,15 +147,15 @@ interface Product extends ProductCatalogEntry {}
             </p>
           </div>
           <div class="lp-values">
-            <article class="lp-value lp-lift">
+            <article class="lp-value">
               <h3>Construido con abogados</h3>
               <p>Flujos diseñados con operadores reales: revisión documental, minuta, firma y notaría.</p>
             </article>
-            <article class="lp-value lp-lift">
+            <article class="lp-value">
               <h3>Licencia para bufetes</h3>
               <p>Suscripción mensual solo para operadores y firmas — no para el cliente final de cada trámite.</p>
             </article>
-            <article class="lp-value lp-lift">
+            <article class="lp-value">
               <h3>Hecho para crecer</h3>
               <p>Multi-tenant, multi-producto y LOPDP demo — sin la complejidad de un ERP legal legacy.</p>
             </article>
@@ -172,7 +172,7 @@ interface Product extends ProductCatalogEntry {}
           </div>
           <div class="lp-steps">
             @for (s of workflow; track s.title) {
-              <article class="lp-step lp-lift">
+              <article class="lp-step">
                 <div class="lp-step-num">{{ s.n }}</div>
                 <h3>{{ s.title }}</h3>
                 <p>{{ s.desc }}</p>
@@ -239,7 +239,7 @@ interface Product extends ProductCatalogEntry {}
           </div>
           <div class="lp-enterprise-grid">
             @for (e of enterprise; track e.title) {
-              <article class="lp-value lp-lift">
+              <article class="lp-value">
                 <h3>{{ e.title }}</h3>
                 <p>{{ e.desc }}</p>
               </article>

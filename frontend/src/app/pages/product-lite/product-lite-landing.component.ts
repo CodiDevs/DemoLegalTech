@@ -39,15 +39,15 @@ import { IconComponent } from '../../shared/icon.component';
             <p>Sin cuotas mensuales. Acuerdo entre las dos partes, tus documentos y la reunión con el notario por videollamada.</p>
           </div>
           <div class="lp-values">
-            <article class="lp-value lp-lift">
+            <article class="lp-value">
               <h3>Formulario corto</h3>
               <p>Contestas unas preguntas sencillas en pocos minutos.</p>
             </article>
-            <article class="lp-value lp-lift">
+            <article class="lp-value">
               <h3>Un solo pago</h3>
               <p>Desde \${{ price }}. No pagas ninguna mensualidad.</p>
             </article>
-            <article class="lp-value lp-lift">
+            <article class="lp-value">
               <h3>Notario incluido</h3>
               <p>Reservas la reunión y el notario aprueba tu trámite.</p>
             </article>

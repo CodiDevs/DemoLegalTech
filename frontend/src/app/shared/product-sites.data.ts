@@ -45,7 +45,9 @@ export interface ProductSiteConfig {
   heroHighlight: string;
   heroLede: string;
   heroImage: string;
+  ctaTitle: string;
   workflow: { n: number; title: string; desc: string; screen: string }[];
+  values?: { title: string; desc: string }[];
   stats: StatItem[];
   gallery: GalleryItem[];
   testimonials: { quote: string; author: string; role: string }[];
@@ -72,19 +74,27 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'sin filas ni papeleo.',
     heroLede: 'Califica tu caso en minutos, paga una sola vez y gestiona todo el trámite desde tu expediente digital.',
     heroImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
+    ctaTitle: '¿Listo para iniciar tu trámite?',
     workflow: [
-      { n: 1, title: 'Evaluar caso', desc: 'Cuestionario condicional con resultado inmediato.', screen: 'Registro' },
-      { n: 2, title: 'Pago único', desc: 'Honorario único sin suscripción.', screen: 'Pago' },
-      { n: 3, title: 'Documentos', desc: 'Cédula y partida de matrimonio.', screen: 'Documentos' },
-      { n: 4, title: 'Consulta', desc: 'Videollamada con abogado.', screen: 'Consulta' },
-      { n: 5, title: 'Firma', desc: 'Minuta y firma documental.', screen: 'Firma' },
-      { n: 6, title: 'Notaría', desc: 'Reunión virtual y cierre.', screen: 'Notaría' },
+      { n: 1, title: 'Calificar', desc: '12–15 preguntas con resultado verde, amarillo o rojo.', screen: 'Registro' },
+      { n: 2, title: 'Pagar', desc: 'Honorarios de demostración tras aptitud notarial: pago único, sin suscripción.', screen: 'Pago' },
+      { n: 3, title: 'Cargar', desc: 'Cédula y partida con revisión del operador.', screen: 'Documentos' },
+      { n: 4, title: 'Consultar', desc: 'Videollamada de demostración con tu abogado para revisar el expediente.', screen: 'Consulta' },
+      { n: 5, title: 'Firmar', desc: 'Minuta generada y firma con evidencia IP.', screen: 'Firma' },
+      { n: 6, title: 'Notaría', desc: 'Reunión notarial virtual y cierre del expediente.', screen: 'Notaría' },
+    ],
+    values: [
+      { title: 'Filtro antes de cobrar', desc: 'Solo casos aptos avanzan a documentos y pago: menos tiempo perdido.' },
+      { title: 'Expediente único', desc: 'Cliente y operador ven el mismo timeline de 10 estados.' },
+      { title: 'Autoservicio real', desc: 'Mensajes, documentos y firma sin depender del teléfono.' },
     ],
     stats: [
-      { label: 'Estados trazables', value: '10', detail: 'Timeline único cliente y operador.', icon: 'file' },
-      { label: 'Tiempo intake', value: '5 min', detail: 'Cuestionario con resultado inmediato.', icon: 'check' },
-      { label: 'Honorarios desde', value: '$349', detail: 'Pago único si calificas.', icon: 'scale' },
-      { label: 'Firma electrónica', value: '1 paso', detail: 'Evidencia y trazabilidad.', icon: 'pen' },
+      { label: 'Estados trazables', value: '10', detail: 'Timeline único para cliente y operador.', trend: '+100%', icon: 'file' },
+      { label: 'Tiempo de intake', value: '5 min', detail: 'Cuestionario condicional con resultado inmediato.', icon: 'check' },
+      { label: 'Honorarios desde', value: '$349', detail: 'Precio orientativo si calificas verde.', icon: 'scale' },
+      { label: 'Mensajes integrados', value: '24/7', detail: 'Notificaciones LegalStation en el expediente.', icon: 'users' },
+      { label: 'Firma demo', value: '1 click', detail: 'Evidencia IP, fecha y trazabilidad LOPDP.', icon: 'pen' },
+      { label: 'Operador SLA', value: '3 días', detail: 'Alertas en bandeja cuando el caso se detiene.', icon: 'shield' },
     ],
     gallery: [
       { id: '01', title: 'Cuestionario Divorcio360', category: 'Intake', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario divorcio' },
@@ -107,8 +117,9 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     ],
     questionnaire: [],
     plans: [
-      { name: 'Apto notarial', audience: 'Mutuo consentimiento sin conflictos', price: 349, items: ['Cuestionario verde', 'Flujo completo demo', 'Expediente trazable'], featured: true },
-      { name: 'Evaluación', audience: 'Casos con complejidad media', price: 749, items: ['Revisión humana', 'Plan personalizado'], featured: false },
+      { name: 'Apto notarial', audience: 'Mutuo consentimiento sin conflictos', price: 349, items: ['Cuestionario verde', 'Flujo completo de demostración', 'Expediente trazable', 'Firma documental incluida'], featured: true },
+      { name: 'Evaluación', audience: 'Casos con complejidad media', price: 749, items: ['Resultado amarillo', 'Revisión humana', 'Plan personalizado', 'Agenda demo'], featured: false },
+      { name: 'Derivación', audience: 'No apto vía simplificada', price: 0, items: ['Resultado rojo', 'Orientación jurídica', 'Sin cobro automático', 'Contacto operador'], featured: false },
     ],
   },
   traslado360: {
@@ -127,6 +138,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'sin filas ni trámites.',
     heroLede: 'Mutuo acuerdo, pago único y reunión notarial virtual — al mismo costo que presencial, desde tu pantalla.',
     heroImage: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1400&q=80',
+    ctaTitle: '¿Listo para tu traslado?',
     workflow: [
       { n: 1, title: 'Cuestionario', desc: 'Datos del vehículo y acuerdo entre partes.', screen: 'Registro' },
       { n: 2, title: 'Pago único', desc: 'Honorario único sin suscripción mensual.', screen: 'Pago' },
@@ -198,6 +210,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'al mismo costo, sin filas.',
     heroLede: 'Dominio de terreno o propiedad con comparecencia digital — pago único por trámite, sin membresía.',
     heroImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=80',
+    ctaTitle: '¿Listo para tu traslado de inmueble?',
     workflow: [
       { n: 1, title: 'Cuestionario', desc: 'Datos del inmueble y partes de acuerdo.', screen: 'Registro' },
       { n: 2, title: 'Pago único', desc: 'Honorario único sin plan mensual.', screen: 'Pago' },
@@ -273,6 +286,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'para documentos legales.',
     heroLede: 'Sobres de firma, auditoría y plantillas reutilizables en un hub de firma acreditada.',
     heroImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1400&q=80',
+    ctaTitle: '¿Listo para firmar?',
     workflow: [
       { n: 1, title: 'Evaluar caso', desc: 'Define el tipo de documento y firmantes.', screen: 'Registro' },
       { n: 2, title: 'Configurar', desc: 'Plantilla y orden de firma.', screen: 'Configuración' },
@@ -324,6 +338,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'para operadores legales.',
     heroLede: 'Bandeja, alertas SLA, pipeline kanban y notas visibles al cliente.',
     heroImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80',
+    ctaTitle: '¿Listo para operar expedientes?',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Tipo de operación y volumen.', screen: 'Registro' },
       { n: 2, title: 'Configurar', desc: 'Pipeline y SLA.', screen: 'Configuración' },
@@ -363,6 +378,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'y auditoría de datos.',
     heroLede: 'Consentimiento, trazas de acceso y exportes para cumplimiento normativo.',
     heroImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1400&q=80',
+    ctaTitle: '¿Listo para cumplir LOPDP?',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Alcance de datos personales.', screen: 'Registro' },
       { n: 2, title: 'Implementar', desc: 'Políticas y consentimiento.', screen: 'Configuración' },
@@ -398,6 +414,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'y comparecencia digital.',
     heroLede: 'Directorio de notarías, comparecencia y seguimiento hasta acta emitida.',
     heroImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
+    ctaTitle: '¿Listo para agendar notaría?',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Tipo de acto notarial.', screen: 'Registro' },
       { n: 2, title: 'Agendar', desc: 'Notaría y fecha.', screen: 'Agenda' },

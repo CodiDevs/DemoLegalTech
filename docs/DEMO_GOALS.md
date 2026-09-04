@@ -20,6 +20,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Flujo documental multi-producto | Traslado360 carro: upload matrícula+acuerdo → abogado aprueba → minuta → firma; blockers por etapa | 2026-08-30 |
 | done | Upload documentos UX | Checklist + dropzone por producto; reemplazar sin borrar; abogado ve solo última versión | 2026-08-30 |
 | done | Cuestionario UX progreso estático | `/cuestionario` — barra superior quieta; preguntas entran desde abajo | 2026-09-02 |
+| done | Marketing UI polish Fase 0+1 | `/productos/divorcio360` Fraunces + teal AA + mock expediente + 6 pasos | 2026-09-03 |
 
 ## Entries
 
@@ -245,3 +246,10 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 - **Tu cuenta:** expedientes por producto + facturas (pagos) en un panel unificado.
 
 **Demo:** login cliente → `/cliente` → expedientes y facturas de todos los productos.
+
+### 2026-09-03 — Marketing UI polish (Fase 0 + 1)
+- **Tipografía:** Fraunces display + Inter 400–800, scoped a `.landing-page`.
+- **Teal AA:** `--lp-accent-ink: #2e6e67` en Divorcio360; 6 pasos en grid `auto-fit`; mock UI de expediente (sin Unsplash).
+- **Pricing:** “Sin costo” en Derivación; CTA primary vs tertiary; values asimétricos 1.4fr / 1fr.
+
+**Demo:** `ng serve` → `/productos/divorcio360` (hero pin + mock + 6 pasos + precios). Spot `/` y `/productos/traslado360`.

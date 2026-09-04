@@ -19,6 +19,7 @@ import { IconComponent } from '../../shared/icon.component';
         [style.--lp-accent]="site.accent"
         [style.--lp-accent-deep]="site.accentDeep"
         [style.--lp-accent-soft]="site.accentSoft"
+        [style.--lp-accent-ink]="site.accentDeep"
         [style.--lp-bg]="site.bg"
         [style.--lp-bg-soft]="site.bgSoft"
       >
@@ -47,7 +48,7 @@ import { IconComponent } from '../../shared/icon.component';
                 <a href="#flujo" class="lp-btn lp-btn-outline">Ver cómo funciona</a>
               </div>
             </div>
-            <div class="ps-mock-ui lp-lift">
+            <div class="ps-mock-ui">
               <div class="ps-mock-bar">
                 <span></span><span></span><span></span>
                 <strong>{{ site.name }} — expediente de ejemplo</strong>
@@ -88,7 +89,7 @@ import { IconComponent } from '../../shared/icon.component';
               }
             </div>
             @if (previewStep) {
-              <div class="ps-preview lp-lift">
+              <div class="ps-preview">
                 <p class="lp-eyebrow">Vista previa · paso {{ previewStep.n }}</p>
                 <h3>{{ previewStep.title }} — {{ previewStep.screen }}</h3>
                 <p>{{ previewStep.desc }}</p>
@@ -121,7 +122,7 @@ import { IconComponent } from '../../shared/icon.component';
           <div class="lp-shell">
             <div class="lp-testimonials">
               @for (t of site.testimonials; track t.author) {
-                <blockquote class="ps-quote lp-lift">
+                <blockquote class="ps-quote">
                   <p>"{{ t.quote }}"</p>
                   <footer>{{ t.author }} · {{ t.role }}</footer>
                 </blockquote>
@@ -162,7 +163,7 @@ import { IconComponent } from '../../shared/icon.component';
           <div class="lp-shell">
             <div class="lp-cta-inner">
               <p class="lp-cta-eyebrow">{{ site.name }} listo</p>
-              <h2>{{ site.slug === 'bienraiz360' ? '¿Listo para tu traslado de inmueble?' : '¿Listo para tu traslado?' }}</h2>
+              <h2>{{ site.ctaTitle }}</h2>
               <p>Contestas el cuestionario en minutos, creas tu cuenta, haces un solo pago, subes tus documentos, hablas con tu abogado, firmas y cierras en la notaría.</p>
               <div class="lp-cta-buttons">
                 <a href="#" (click)="startEvaluation($event)" class="lp-cta-primary">Evaluar mi caso</a>
@@ -229,94 +230,8 @@ import { IconComponent } from '../../shared/icon.component';
       margin-top: var(--space-5);
     }
 
-    .ps-mock-ui {
-      position: relative;
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      min-height: 280px;
+    .ps-hero .ps-mock-ui {
       max-height: 420px;
-      width: 100%;
-      max-width: 100%;
-    }
-
-    .ps-mock-bar {
-      display: flex;
-      align-items: center;
-      gap: var(--space-1);
-      padding: var(--space-3) var(--space-4);
-      background: var(--bg-subtle);
-      border-bottom: 1px solid var(--border);
-      font-size: var(--text-xs);
-      flex-wrap: wrap;
-    }
-
-    .ps-mock-bar strong {
-      margin-left: auto;
-      font-size: var(--text-xs);
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .ps-mock-bar span {
-      width: 0.55rem;
-      height: 0.55rem;
-      border-radius: var(--radius-full);
-      background: var(--lp-accent);
-      opacity: 0.45;
-    }
-
-    .ps-mock-body {
-      position: relative;
-      z-index: 1;
-      padding: var(--space-4);
-      display: grid;
-      gap: var(--space-2);
-    }
-
-    .ps-mock-step {
-      display: grid;
-      grid-template-columns: 2rem 1fr;
-      gap: var(--space-3);
-      align-items: center;
-      padding: var(--space-2) var(--space-3);
-      border-radius: var(--radius-lg);
-      background: rgb(255 255 255 / 0.92);
-      border: 1px solid var(--border);
-    }
-
-    .ps-mock-step.active {
-      border-color: var(--lp-accent);
-      box-shadow: 0 0 0 2px var(--lp-accent-soft);
-    }
-
-    .ps-mock-num {
-      width: 1.75rem;
-      height: 1.75rem;
-      border-radius: var(--radius-full);
-      display: grid;
-      place-items: center;
-      font-size: var(--text-xs);
-      font-weight: 700;
-      background: var(--lp-accent-soft);
-      color: var(--lp-accent-deep);
-    }
-
-    .ps-mock-step small {
-      display: block;
-      color: var(--text-muted);
-      font-size: var(--text-xs);
-    }
-
-    .ps-mock-bg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.12;
-      pointer-events: none;
     }
 
     .ps-timeline {
@@ -385,7 +300,7 @@ import { IconComponent } from '../../shared/icon.component';
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: var(--tracking-wide);
-      color: var(--lp-accent-deep);
+      color: var(--lp-accent-ink);
     }
 
     .ps-preview {

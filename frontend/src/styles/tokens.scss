@@ -113,6 +113,7 @@
   --shadow-sm: 0 1px 2px rgb(27 25 23 / 0.04);
   --shadow-md: 0 2px 4px rgb(27 25 23 / 0.04), 0 4px 12px rgb(27 25 23 / 0.05);
   --shadow-lg: 0 4px 8px rgb(27 25 23 / 0.05), 0 16px 36px rgb(27 25 23 / 0.08);
+  --shadow-accent: 0 12px 40px color-mix(in srgb, var(--primary) 28%, transparent);
 
   /* ---------- Movimiento ---------- */
   --dur-fast: 150ms;
@@ -152,8 +153,7 @@
   --radius:     var(--radius-lg);
   --max:        var(--container-max);
 
-  /* Una sola familia: display y body apuntan a Inter */
-  --font-display: var(--font-sans);
+  --font-display: 'Fraunces', Georgia, serif;
   --font-body:    var(--font-sans);
 }
 
