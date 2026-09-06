@@ -156,6 +156,7 @@ gsap.registerPlugin(ScrollTrigger);
     :host ::ng-deep .reveal-word,
     .reveal-word {
       display: inline-block;
+      opacity: 1;
       transform-origin: left center;
       margin-right: 0.22em;
     }
@@ -398,6 +399,9 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
   private gsapCtx?: gsap.Context;
   private gsapMedia?: ReturnType<typeof gsap.matchMedia>;
   private reducedMotion = false;
+  private destroyed = false;
+  private rafIds: number[] = [];
+  private refreshTimer?: ReturnType<typeof setTimeout>;
 
   constructor(public auth: AuthService) {}
 
@@ -413,15 +417,26 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
       return;
     }
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    const outer = requestAnimationFrame(() => {
+      if (this.destroyed) return;
+      const inner = requestAnimationFrame(() => {
+        if (this.destroyed) return;
         this.initGsap();
-        setTimeout(() => ScrollTrigger.refresh(), 100);
+        this.refreshTimer = setTimeout(() => {
+          if (this.destroyed) return;
+          ScrollTrigger.refresh();
+        }, 100);
       });
+      this.rafIds.push(inner);
     });
+    this.rafIds.push(outer);
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    for (const id of this.rafIds) cancelAnimationFrame(id);
+    this.rafIds = [];
+    if (this.refreshTimer !== undefined) clearTimeout(this.refreshTimer);
     this.gsapMedia?.revert();
     this.gsapCtx?.revert();
   }
@@ -442,6 +457,8 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
   }
 
   private initGsap(): void {
+    if (this.destroyed) return;
+
     const root = this.rootRef?.nativeElement;
     const benefit = this.benefitRef?.nativeElement;
     const para = this.paraRef?.nativeElement;
@@ -466,6 +483,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
           stagger: 0.035,
           duration: 0.42,
           ease: 'power2.out',
+          immediateRender: false,
           scrollTrigger: {
             trigger: para,
             start: 'top 82%',
