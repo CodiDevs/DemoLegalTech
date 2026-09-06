@@ -256,8 +256,8 @@ interface ProductSwitcherItem {
 
         <div class="footer-col">
           <h2>Ayuda</h2>
-          <span class="footer-soon">Política de datos</span>
-          <span class="footer-soon">Términos de uso</span>
+          <a routerLink="/legal/privacidad">Política de datos</a>
+          <a routerLink="/legal/terminos">Términos de uso</a>
           <a href="mailto:soporte@legalstation.ec">soporte&#64;legalstation.ec</a>
         </div>
       </div>
@@ -265,7 +265,7 @@ interface ProductSwitcherItem {
 
       <div class="shell footer-bottom">
         <span>© 2026 LegalStation</span>
-        <span class="footer-soon">Pagos y firmas procesados de forma segura.</span>
+        <span>Hecho por CodiDevs</span>
       </div>
     </footer>
     }

@@ -22,6 +22,7 @@ import { Fase2AiComponent } from './pages/fase2/ai-agent/ai-agent.component';
 import { Fase2SatjeComponent } from './pages/fase2/satje/satje.component';
 import { Fase2BillingComponent } from './pages/fase2/b2b-billing/b2b-billing.component';
 import { ProductExpedienteComponent } from './pages/client-panel/product-expediente.component';
+import { LegalPageComponent } from './pages/legal/legal-page.component';
 import { authGuard, roleGuard, clienteOrGuestGuard } from './core/guards';
 
 export const routes: Routes = [
@@ -38,6 +39,16 @@ export const routes: Routes = [
       { path: 'intake/bienraiz360', redirectTo: 'productos/bienraiz360/cuestionario', pathMatch: 'full' },
       { path: 'cuestionario', component: QuestionnaireComponent, canActivate: [clienteOrGuestGuard] },
       { path: 'auth', component: AuthComponent },
+      {
+        path: 'legal/privacidad',
+        component: LegalPageComponent,
+        data: { legalDocument: 'privacy' },
+      },
+      {
+        path: 'legal/terminos',
+        component: LegalPageComponent,
+        data: { legalDocument: 'terms' },
+      },
       { path: 'cliente', component: ClientPanelComponent, canActivate: [roleGuard('cliente')] },
       {
         path: 'abogado',
