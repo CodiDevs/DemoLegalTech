@@ -76,7 +76,6 @@ import { IconComponent } from '../../shared/icon.component';
           <div class="lp-pricing">
             @for (plan of site.plans; track plan.name) {
               <article class="lp-plan lp-lift" [class.featured]="plan.featured">
-                @if (plan.featured) { <span class="lp-plan-tag">Más común</span> }
                 <h3>{{ plan.name }}</h3>
                 <p class="lp-muted">{{ plan.audience }}</p>
                 @if (plan.price === 0) {
@@ -242,7 +241,6 @@ export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestro
     const el = this.stepsRoot?.nativeElement;
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce || !el || typeof IntersectionObserver === 'undefined') {
-      this.stepsRevealed = true;
       return;
     }
 
