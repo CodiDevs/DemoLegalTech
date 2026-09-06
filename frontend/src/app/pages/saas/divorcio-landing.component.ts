@@ -1,16 +1,19 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
-import { PRODUCT_SITES, setActiveProduct, getProductQuestionnairePath } from '../../shared/product-sites.data';
+import {
+  PRODUCT_SITES,
+  getMarketingPrimaryAction,
+  setActiveProduct,
+} from '../../shared/product-sites.data';
 import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
-import { CinematicLogoCloudComponent, LogoCloudClient } from './cinematic-logo-cloud.component';
 import { LandingStatisticsComponent } from './landing-statistics.component';
 import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-divorcio-landing',
   standalone: true,
-  imports: [RouterLink, HeroScrollVideoPinRevealComponent, CinematicLogoCloudComponent, LandingStatisticsComponent, IconComponent],
+  imports: [RouterLink, HeroScrollVideoPinRevealComponent, LandingStatisticsComponent, IconComponent],
   template: `
     <div class="landing-page divorcio-landing">
       <nav class="lp-shell lp-crumb" aria-label="Ruta de navegación">
@@ -21,50 +24,13 @@ import { IconComponent } from '../../shared/icon.component';
 
       <app-hero-scroll-video-pin-reveal />
 
-      <section class="lp-tools-band">
-        <div class="lp-shell">
-          <div class="lp-action">
-            <p class="lp-action-label">Míralo en acción</p>
-            <div class="lp-carousel-layout">
-              <div class="lp-carousel-copy">
-                <h3>Expediente Divorcio360</h3>
-                <p>Timeline del expediente, documentos, firma electrónica y mensajes LegalStation. Todo en un solo flujo demo.</p>
-                <a (click)="startEvaluation($event)" href="#" class="lp-link">
-                  Evaluar mi caso
-                  <app-icon name="arrow-right" [size]="16" />
-                </a>
-              </div>
-              <div class="ps-mock-ui">
-                <div class="ps-mock-bar">
-                  <span></span><span></span><span></span>
-                  <strong>{{ site.name }} — expediente de ejemplo</strong>
-                </div>
-                <div class="ps-mock-body">
-                  @for (s of site.workflow.slice(0, 4); track s.n) {
-                    <div class="ps-mock-step" [class.active]="s.n === 2">
-                      <span class="ps-mock-num">{{ s.n }}</span>
-                      <div>
-                        <strong>{{ s.title }}</strong>
-                        <small>{{ s.screen }}</small>
-                      </div>
-                    </div>
-                  }
-                </div>
-                <img [src]="site.heroImage" [alt]="site.name" class="ps-mock-bg" loading="lazy" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section class="lp-section soft" id="flujo">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Un flujo Divorcio360</p>
             <h2>Seis pasos conectados. <span class="lp-highlight">Un solo expediente.</span></h2>
             <p>Desde la calificación hasta la notaría, sin saltar entre herramientas.</p>
           </div>
-          <div #stepsRoot class="lp-steps" [class.lp-steps-in]="stepsRevealed">
+          <div #stepsRoot class="lp-steps lp-steps--flow" [class.lp-steps-in]="stepsRevealed">
             @for (s of site.workflow; track s.title; let i = $index) {
               <article class="lp-step" [style.--lp-i]="i">
                 <div class="lp-step-num">{{ s.n }}</div>
@@ -79,10 +45,9 @@ import { IconComponent } from '../../shared/icon.component';
       <section class="lp-section">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">¿Por qué Divorcio360?</p>
             <h2>Diseñado para <span class="lp-highlight">firmas y clientes.</span></h2>
           </div>
-          <div class="lp-values">
+          <div class="lp-values lp-values--rules">
             @for (v of site.values ?? []; track v.title) {
               <article class="lp-value">
                 <h3>{{ v.title }}</h3>
@@ -96,29 +61,17 @@ import { IconComponent } from '../../shared/icon.component';
       <section class="lp-section soft" id="capacidades">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Capacidades</p>
-            <h2>Todo lo que necesitas <span class="lp-highlight">en un trámite.</span></h2>
+            <h2>Qué muestra esta demostración</h2>
           </div>
-          <app-landing-statistics theme="divorcio" [stats]="site.stats" />
-        </div>
-      </section>
-
-      <section class="lp-section">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <p class="lp-eyebrow">Clientes demo</p>
-            <h2>Confianza de <span class="lp-highlight">firmas y familias.</span></h2>
-          </div>
-          <app-cinematic-logo-cloud theme="divorcio" variant="grid" [clients]="clientLogos" />
+          <app-landing-statistics theme="divorcio" variant="band" [stats]="site.stats" />
         </div>
       </section>
 
       <section class="lp-section soft" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Pago por trámite</p>
-            <h2>Honorarios claros <span class="lp-highlight">sin suscripción.</span></h2>
-            <p>Un solo pago por caso: no hay membresía mensual para el cliente final.</p>
+            <h2>Un valor orientativo, sin suscripción</h2>
+            <p>El monto mostrado pertenece a la demostración y no constituye una cotización.</p>
           </div>
           <div class="lp-pricing">
             @for (plan of site.plans; track plan.name) {
@@ -134,25 +87,27 @@ import { IconComponent } from '../../shared/icon.component';
                 <ul>
                   @for (item of plan.items; track item) { <li>{{ item }}</li> }
                 </ul>
-                @if (plan.featured) {
-                  <a (click)="startEvaluation($event)" href="#" class="lp-btn lp-btn-primary">Evaluar mi caso</a>
-                } @else {
-                  <a (click)="startEvaluation($event)" href="#" class="lp-btn lp-btn-tertiary">Evaluar mi caso</a>
-                }
+                <a [routerLink]="primaryAction.path" class="lp-btn lp-btn-primary">
+                  {{ primaryAction.label }}
+                </a>
               </article>
             }
           </div>
+          <p class="lp-price-note">
+            Si el resultado no encaja en este recorrido, la demostración no genera un cobro automático.
+          </p>
         </div>
       </section>
 
       <section class="lp-cta-panel">
         <div class="lp-shell">
           <div class="lp-cta-inner">
-            <p class="lp-cta-eyebrow">Listo cuando tú lo estés</p>
-            <h2>{{ site.ctaTitle }}</h2>
-            <p>Responde el cuestionario en minutos. Si calificas, continúas con registro, pago y expediente digital.</p>
+            <h2>{{ ctaTitle }}</h2>
+            <p>{{ ctaBody }}</p>
             <div class="lp-cta-buttons">
-              <a (click)="startEvaluation($event)" href="#" class="lp-cta-primary">Evaluar mi caso</a>
+              <a [routerLink]="primaryAction.path" class="lp-cta-primary">
+                {{ primaryAction.label }}
+              </a>
               <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
             </div>
           </div>
@@ -162,18 +117,91 @@ import { IconComponent } from '../../shared/icon.component';
   `,
   styles: [`
     .divorcio-landing {
-      --lp-accent: #4a9e96;
-      --lp-accent-deep: #3a827b;
-      --lp-accent-soft: #e8f6f4;
-      --lp-accent-ink: #2e6e67;
-      --lp-bg: #f7fcfb;
-      --lp-bg-soft: #eef8f6;
+      --lp-accent: var(--primary);
+      --lp-accent-deep: var(--primary-hover);
+      --lp-accent-soft: var(--primary-subtle);
+      --lp-accent-ink: var(--primary-hover);
+      --lp-bg: var(--bg);
+      --lp-bg-soft: var(--bg-subtle);
+      background: var(--lp-bg);
     }
 
-    .lp-tools-band {
-      background: var(--lp-bg-soft);
-      padding: 2.5rem 0 4rem;
-      border-top: 1px solid var(--lp-border);
+    .divorcio-landing::before {
+      content: none;
+    }
+
+    .divorcio-landing .lp-section-head {
+      margin-inline: 0;
+      text-align: left;
+    }
+
+    .divorcio-landing .lp-pricing {
+      grid-template-columns: minmax(0, 44rem);
+      justify-content: start;
+    }
+
+    .divorcio-landing .lp-plan,
+    .divorcio-landing .lp-cta-inner {
+      border-radius: var(--radius-lg);
+      box-shadow: none;
+    }
+
+    .divorcio-landing .lp-plan.featured {
+      outline: 0;
+      border-color: var(--primary-border);
+    }
+
+    .divorcio-landing .lp-lift:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--primary-border);
+    }
+
+    .divorcio-landing .lp-steps--flow .lp-step::after {
+      background: var(--lp-border);
+    }
+
+    .divorcio-landing .lp-cta-inner {
+      background: var(--primary-hover);
+      text-align: left;
+    }
+
+    .divorcio-landing .lp-cta-inner::before,
+    .divorcio-landing .lp-cta-inner::after {
+      display: none;
+    }
+
+    .divorcio-landing .lp-cta-buttons {
+      justify-content: flex-start;
+    }
+
+    .lp-price-note {
+      color: var(--text-muted);
+      font-size: var(--text-sm);
+    }
+
+    #flujo,
+    #capacidades,
+    #precios {
+      scroll-margin-top: 5.5rem;
+    }
+
+    @media (max-width: 720px) {
+      .divorcio-landing .lp-steps--flow .lp-step {
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+        column-gap: var(--space-3);
+        align-items: start;
+      }
+
+      .divorcio-landing .lp-step-num {
+        grid-row: 1 / span 2;
+        margin: 0;
+      }
+
+      .divorcio-landing .lp-section {
+        padding-block: var(--space-7);
+      }
     }
   `]
 })
@@ -184,22 +212,27 @@ export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestro
   stepsRevealed = false;
   private stepsObserver?: IntersectionObserver;
 
-  clientLogos: LogoCloudClient[] = [
-    { name: 'LegalStation', tone: 'accent' },
-    { name: 'Divorcio360', tone: 'bold' },
-    { name: 'Bufete Ruiz & Cía.', tone: 'serif' },
-    { name: 'Estudio Pérez Lara', tone: 'default' },
-    { name: 'Mendoza Legal', tone: 'lowercase' },
-    { name: 'Vega & Asociados', tone: 'wide' },
-    { name: 'Corporativo EC', tone: 'bold' },
-    { name: 'Alfaro Abogados', tone: 'default' },
-    { name: 'PayPhone demo', tone: 'wide' },
-    { name: 'SATJE de demostración', tone: 'serif' },
-    { name: 'SignDesk', tone: 'default' },
-    { name: 'CodiDevs', tone: 'accent' },
-  ];
+  constructor(public auth: AuthService) {}
 
-  constructor(public auth: AuthService, private router: Router) {}
+  get primaryAction() {
+    return getMarketingPrimaryAction(this.auth.user()?.role ?? null, 'divorcio360');
+  }
+
+  get ctaTitle(): string {
+    if (this.auth.isLoggedIn && this.auth.user()?.role === 'cliente') return 'Tu expediente sigue abierto';
+    if (this.auth.isLoggedIn) return 'Sigue los casos desde el panel';
+    return this.site.ctaTitle;
+  }
+
+  get ctaBody(): string {
+    if (this.auth.isLoggedIn && this.auth.user()?.role === 'cliente') {
+      return 'Revisa estados, documentos y mensajes en el mismo seguimiento que ve tu operador.';
+    }
+    if (this.auth.isLoggedIn) {
+      return 'Bandeja, documentos y firma documental: el mismo expediente que ve el cliente.';
+    }
+    return 'Responde el cuestionario en minutos. Si calificas, continúas con registro, pago y expediente digital.';
+  }
 
   ngOnInit(): void {
     setActiveProduct('divorcio360');
@@ -227,10 +260,5 @@ export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestro
 
   ngOnDestroy(): void {
     this.stepsObserver?.disconnect();
-  }
-
-  startEvaluation(event: Event): void {
-    event.preventDefault();
-    void this.router.navigateByUrl(getProductQuestionnairePath('divorcio360'));
   }
 }

@@ -14,15 +14,19 @@ export interface StatItem {
   standalone: true,
   imports: [LandingIconComponent],
   template: `
-    <div class="ls-stats" [class.theme-divorcio]="theme === 'divorcio'">
+    <div
+      class="ls-stats"
+      [class.theme-divorcio]="theme === 'divorcio'"
+      [class.ls-stats--band]="variant === 'band'"
+    >
       @for (s of stats; track s.label) {
         <article class="ls-stat">
-          @if (s.icon) {
+          @if (s.icon && variant !== 'band') {
             <span class="ls-stat-icon"><app-landing-icon [name]="s.icon" [size]="20" /></span>
           }
           <div class="ls-stat-top">
             <span class="ls-value">{{ s.value }}</span>
-            @if (s.trend) { <span class="ls-trend">{{ s.trend }}</span> }
+            @if (s.trend && variant !== 'band') { <span class="ls-trend">{{ s.trend }}</span> }
           </div>
           <h3>{{ s.label }}</h3>
           <p>{{ s.detail }}</p>
@@ -47,9 +51,9 @@ export interface StatItem {
     .ls-stat {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 1rem;
+      border-radius: var(--radius-md);
       padding: 1.35rem 1.25rem;
-      box-shadow: 0 8px 28px rgb(27 25 23 / 0.06);
+      box-shadow: var(--shadow-sm);
       display: grid;
       gap: 0.35rem;
     }
@@ -103,16 +107,49 @@ export interface StatItem {
       color: var(--text-muted);
     }
 
+    .ls-stats--band {
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .ls-stats--band .ls-stat {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 1.5rem 1.15rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ls-stats--band .ls-stat:nth-child(3n) { border-right: 0; }
+    .ls-stats--band .ls-stat:nth-last-child(-n+3) { border-bottom: 0; }
+
+    .ls-stats--band .ls-stat-icon { display: none; }
+
     @media (max-width: 960px) {
       .ls-stats { grid-template-columns: 1fr 1fr; }
+      .ls-stats--band .ls-stat:nth-child(3n) { border-right: 1px solid var(--border); }
+      .ls-stats--band .ls-stat:nth-child(2n) { border-right: 0; }
+      .ls-stats--band .ls-stat:nth-last-child(-n+3) { border-bottom: 1px solid var(--border); }
+      .ls-stats--band .ls-stat:nth-last-child(-n+2) { border-bottom: 0; }
     }
 
     @media (max-width: 560px) {
       .ls-stats { grid-template-columns: 1fr; }
+      .ls-stats--band .ls-stat {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .ls-stats--band .ls-stat:last-child { border-bottom: 0; }
     }
   `],
 })
 export class LandingStatisticsComponent {
   @Input() theme: 'legalstation' | 'divorcio' = 'legalstation';
+  @Input() variant: 'cards' | 'band' = 'cards';
   @Input() stats: StatItem[] = [];
 }
