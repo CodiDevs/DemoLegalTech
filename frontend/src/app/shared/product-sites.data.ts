@@ -57,6 +57,13 @@ export interface ProductSiteConfig {
   plans: { name: string; audience: string; price: number; items: string[]; featured: boolean }[];
 }
 
+export type MarketingRole = 'cliente' | 'abogado' | 'notario' | null;
+
+export interface MarketingPrimaryAction {
+  label: string;
+  path: string;
+}
+
 export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
   divorcio360: {
     slug: 'divorcio360',
@@ -64,37 +71,88 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     name: 'Divorcio360',
     theme: 'divorcio',
     live: true,
-    accent: '#4a9e96',
-    accentDeep: '#3a827b',
-    accentSoft: '#e8f6f4',
-    bg: '#f7fcfb',
-    bgSoft: '#eef8f6',
+    accent: 'var(--primary)',
+    accentDeep: 'var(--primary-hover)',
+    accentSoft: 'var(--primary-subtle)',
+    bg: 'var(--bg)',
+    bgSoft: 'var(--bg-subtle)',
     price: 349,
     heroTitle: 'Divorcio por mutuo acuerdo',
-    heroHighlight: 'sin filas ni papeleo.',
-    heroLede: 'Califica tu caso en minutos, paga una sola vez y gestiona todo el trámite desde tu expediente digital.',
+    heroHighlight: 'con seguimiento claro.',
+    heroLede: 'Evalúa si tu caso encaja y recorre una demostración completa del expediente digital.',
     heroImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
-    ctaTitle: '¿Listo para iniciar tu trámite?',
+    ctaTitle: 'Evalúa si tu caso encaja',
     workflow: [
-      { n: 1, title: 'Calificar', desc: '12–15 preguntas con resultado verde, amarillo o rojo.', screen: 'Registro' },
-      { n: 2, title: 'Pagar', desc: 'Honorarios de demostración tras aptitud notarial: pago único, sin suscripción.', screen: 'Pago' },
-      { n: 3, title: 'Cargar', desc: 'Cédula y partida con revisión del operador.', screen: 'Documentos' },
-      { n: 4, title: 'Consultar', desc: 'Videollamada de demostración con tu abogado para revisar el expediente.', screen: 'Consulta' },
-      { n: 5, title: 'Firmar', desc: 'Minuta generada y firma con evidencia IP.', screen: 'Firma' },
-      { n: 6, title: 'Notaría', desc: 'Reunión notarial virtual y cierre del expediente.', screen: 'Notaría' },
+      {
+        n: 1,
+        title: 'Evaluar',
+        desc: 'Cuestionario guiado con un resultado explicado en lenguaje claro.',
+        screen: 'Cuestionario',
+      },
+      {
+        n: 2,
+        title: 'Confirmar',
+        desc: 'Revisión del resultado antes de generar cualquier cobro.',
+        screen: 'Resultado',
+      },
+      {
+        n: 3,
+        title: 'Documentar',
+        desc: 'Carga de cédula y partida para revisión del operador.',
+        screen: 'Documentos',
+      },
+      {
+        n: 4,
+        title: 'Consultar',
+        desc: 'Solicitud de consulta para revisar el expediente con un abogado.',
+        screen: 'Consulta',
+      },
+      {
+        n: 5,
+        title: 'Firmar',
+        desc: 'Carga del documento firmado con fecha y evidencia técnica.',
+        screen: 'Firma',
+      },
+      {
+        n: 6,
+        title: 'Cerrar',
+        desc: 'Seguimiento del cierre dentro del recorrido de demostración.',
+        screen: 'Resultado',
+      },
     ],
     values: [
-      { title: 'Filtro antes de cobrar', desc: 'Solo casos aptos avanzan a documentos y pago: menos tiempo perdido.' },
-      { title: 'Expediente único', desc: 'Cliente y operador ven el mismo timeline de 10 estados.' },
-      { title: 'Autoservicio real', desc: 'Mensajes, documentos y firma sin depender del teléfono.' },
+      {
+        title: 'Evaluación antes del cobro',
+        desc: 'El cuestionario explica si el caso puede continuar por este recorrido.',
+      },
+      {
+        title: 'Un expediente compartido',
+        desc: 'Cliente y operador consultan documentos, mensajes y estado en el mismo lugar.',
+      },
+      {
+        title: 'Acciones visibles',
+        desc: 'Cada etapa muestra qué falta y quién debe realizar la siguiente acción.',
+      },
     ],
     stats: [
-      { label: 'Estados trazables', value: '10', detail: 'Timeline único para cliente y operador.', trend: '+100%', icon: 'file' },
-      { label: 'Tiempo de intake', value: '5 min', detail: 'Cuestionario condicional con resultado inmediato.', icon: 'check' },
-      { label: 'Honorarios desde', value: '$349', detail: 'Precio orientativo si calificas verde.', icon: 'scale' },
-      { label: 'Mensajes integrados', value: '24/7', detail: 'Notificaciones LegalStation en el expediente.', icon: 'users' },
-      { label: 'Firma demo', value: '1 click', detail: 'Evidencia IP, fecha y trazabilidad LOPDP.', icon: 'pen' },
-      { label: 'Operador SLA', value: '3 días', detail: 'Alertas en bandeja cuando el caso se detiene.', icon: 'shield' },
+      {
+        label: 'Recorrido visible',
+        value: '6 etapas',
+        detail: 'De la evaluación al cierre dentro de esta demostración.',
+        icon: 'file',
+      },
+      {
+        label: 'Seguimiento centralizado',
+        value: '1 expediente',
+        detail: 'Documentos, mensajes y estado reunidos en una sola vista.',
+        icon: 'users',
+      },
+      {
+        label: 'Valor orientativo',
+        value: '$349 demo',
+        detail: 'No constituye cotización ni promesa de precio final.',
+        icon: 'scale',
+      },
     ],
     gallery: [
       { id: '01', title: 'Cuestionario Divorcio360', category: 'Intake', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario divorcio' },
@@ -117,9 +175,18 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     ],
     questionnaire: [],
     plans: [
-      { name: 'Apto notarial', audience: 'Mutuo consentimiento sin conflictos', price: 349, items: ['Cuestionario verde', 'Flujo completo de demostración', 'Expediente trazable', 'Firma documental incluida'], featured: true },
-      { name: 'Evaluación', audience: 'Casos con complejidad media', price: 749, items: ['Resultado amarillo', 'Revisión humana', 'Plan personalizado', 'Agenda demo'], featured: false },
-      { name: 'Derivación', audience: 'No apto vía simplificada', price: 0, items: ['Resultado rojo', 'Orientación jurídica', 'Sin cobro automático', 'Contacto operador'], featured: false },
+      {
+        name: 'Caso por mutuo acuerdo',
+        audience: 'Valor de demostración sujeto a revisión',
+        price: 349,
+        items: [
+          'Evaluación inicial',
+          'Expediente digital',
+          'Revisión documental',
+          'Carga de firma',
+        ],
+        featured: true,
+      },
     ],
   },
   traslado360: {
@@ -445,6 +512,19 @@ export function getProductQuestionnairePath(slug: string): string {
   const id = normalizeProductId(slug);
   if (id === 'divorcio360') return '/cuestionario';
   return `/productos/${id}/cuestionario`;
+}
+
+export function getMarketingPrimaryAction(
+  role: MarketingRole,
+  product = 'divorcio360',
+): MarketingPrimaryAction {
+  if (role === 'cliente') return { label: 'Mis expedientes', path: '/cliente' };
+  if (role === 'abogado') return { label: 'Panel de casos', path: '/abogado' };
+  if (role === 'notario') return { label: 'Inicio', path: '/' };
+  return {
+    label: 'Evaluar mi caso',
+    path: getProductQuestionnairePath(product),
+  };
 }
 
 /** Ruta del expediente filtrado por producto. */
