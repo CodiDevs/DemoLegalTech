@@ -22,6 +22,8 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cuestionario UX progreso estático | `/cuestionario` — barra superior quieta; preguntas entran desde abajo | 2026-09-02 |
 | done | Marketing UI polish Fase 0+1 | `/productos/divorcio360` Fraunces + teal AA + mock expediente + 6 pasos | 2026-09-03 |
 | done | Marketing UI polish Fase 2 | `/` LegalStation teal inherit, 3 live badges, catalog copy | 2026-09-03 |
+| done | Divorcio360 landing UI/UX | `/productos/divorcio360` hero pin con mock, CTAs por sesión, band de stats | 2026-09-06 |
+| done | Divorcio360 no-slop repair | `/productos/divorcio360` — CTA above-fold, una demo, copy honesto, legales | 2026-09-06 |
 
 ## Entries
 
@@ -262,3 +264,19 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 - **Dots:** pill activo en `landing-shared.scss`; hit-area 2.25rem.
 
 **Demo:** `ng serve` → `/` — hero collage = 3 productos live; `#catalogo` badges; `#precios` lift hover; CTA final teal no índigo. Spot `/productos/divorcio360` (teal producto `#4a9e96` intacto).
+
+### 2026-09-06 — Divorcio360 landing UI/UX
+- **Hero:** pin revela mock del expediente (sin video Cloudinary roto). Intro ~70svh, sin outro, reveal de palabras one-shot.
+- **CTAs:** cliente logueado ve “Ir a mi expediente”; operador ve el panel. Sin self-link “Volver a Divorcio360”.
+- **Layout:** 6 pasos 3×2 con conectores; valores en fila editorial; stats en banda; logos en marquee.
+
+**Demo:** `/productos/divorcio360` — scroll corto hasta el mock; logueado como Carlos: CTAs de expediente; invitados: “Evaluar mi caso”.
+
+### 2026-09-06 — Divorcio360 no-slop repair
+- Hero con un H1, contraste AA y CTA visible sin scroll.
+- Una sola demo del expediente; sin marquee ni prueba social ficticia.
+- Navegación coherente para invitado, cliente y abogado.
+- Motion local a su componente y fallback completo para reduced motion.
+- Política de datos, términos demo y footer `Hecho por CodiDevs`.
+
+**Demo:** `/productos/divorcio360` como guest → cliente → abogado; revisar móvil 390px y reduced motion.
