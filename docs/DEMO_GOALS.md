@@ -22,7 +22,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cuestionario UX progreso estático | `/cuestionario` — barra superior quieta; preguntas entran desde abajo | 2026-09-02 |
 | done | Marketing UI polish Fase 0+1 | `/productos/divorcio360` Fraunces + teal AA + mock expediente + 6 pasos | 2026-09-03 |
 | done | Marketing UI polish Fase 2 | `/` LegalStation teal inherit, 3 live badges, catalog copy | 2026-09-03 |
-| done | Divorcio360 landing UI/UX | `/productos/divorcio360` hero pin con mock, CTAs por sesión, band de stats | 2026-09-06 |
+| superseded | Divorcio360 landing UI/UX | `/productos/divorcio360` hero pin con mock, CTAs por sesión, band de stats | 2026-09-06 |
 | done | Divorcio360 no-slop repair | `/productos/divorcio360` — CTA above-fold, una demo, copy honesto, legales | 2026-09-06 |
 
 ## Entries
@@ -266,6 +266,7 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 **Demo:** `ng serve` → `/` — hero collage = 3 productos live; `#catalogo` badges; `#precios` lift hover; CTA final teal no índigo. Spot `/productos/divorcio360` (teal producto `#4a9e96` intacto).
 
 ### 2026-09-06 — Divorcio360 landing UI/UX
+Superseded by “Divorcio360 no-slop repair”; do not use this section as the current walkthrough.
 - **Hero:** pin revela mock del expediente (sin video Cloudinary roto). Intro ~70svh, sin outro, reveal de palabras one-shot.
 - **CTAs:** cliente logueado ve “Ir a mi expediente”; operador ve el panel. Sin self-link “Volver a Divorcio360”.
 - **Layout:** 6 pasos 3×2 con conectores; valores en fila editorial; stats en banda; logos en marquee.
