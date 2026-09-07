@@ -692,14 +692,22 @@
     gap: 1.25rem;
   }
 
-  &.divorcio-landing .lp-values {
-    grid-template-columns: 1.4fr 1fr;
-    grid-template-rows: auto auto;
+  .lp-values--rules {
+    gap: 0;
+    border-top: 1px solid var(--lp-border);
+    border-bottom: 1px solid var(--lp-border);
   }
 
-  &.divorcio-landing .lp-value:first-child {
-    grid-row: 1 / span 2;
+  .lp-values--rules .lp-value {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 2rem 1.65rem;
+    border-right: 1px solid var(--lp-border);
   }
+
+  .lp-values--rules .lp-value:last-child { border-right: 0; }
 
   .lp-value {
     background: white;
@@ -727,6 +735,30 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
+  }
+
+  .lp-steps--flow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem 2.5rem;
+  }
+
+  .lp-steps--flow .lp-step {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    position: relative;
+  }
+
+  .lp-steps--flow .lp-step:not(:nth-child(3n))::after {
+    content: '';
+    position: absolute;
+    top: 0.85rem;
+    left: 2.15rem;
+    width: calc(100% - 2.15rem + 2.5rem);
+    height: 1px;
+    background: var(--lp-border);
+    pointer-events: none;
   }
 
   .lp-step {
@@ -1157,19 +1189,24 @@
     .lp-carousel-layout { grid-template-columns: 1fr; gap: 1.5rem; }
     .lp-pill-row { grid-template-columns: repeat(2, 1fr); }
     .lp-steps { grid-template-columns: repeat(2, 1fr); }
+    .lp-steps--flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lp-steps--flow .lp-step:not(:nth-child(3n))::after { display: none; }
+    .lp-steps--flow .lp-step:not(:nth-child(2n))::after {
+      display: block;
+      width: calc(100% - 2.15rem + 2.5rem);
+    }
     .lp-product-grid,
     .lp-values,
     .lp-quotes,
     .lp-pricing { grid-template-columns: 1fr 1fr; }
 
-    &.divorcio-landing .lp-values {
-      grid-template-columns: 1fr 1fr;
+    .lp-values--rules { grid-template-columns: 1fr; }
+    .lp-values--rules .lp-value {
+      border-right: 0;
+      border-bottom: 1px solid var(--lp-border);
+      padding: 1.5rem 0;
     }
-
-    &.divorcio-landing .lp-value:first-child {
-      grid-row: auto;
-      grid-column: 1 / -1;
-    }
+    .lp-values--rules .lp-value:last-child { border-bottom: 0; }
   }
 
   @media (max-width: 720px) {
@@ -1179,13 +1216,12 @@
     .lp-product-grid,
     .lp-values,
     .lp-steps,
+    .lp-steps--flow,
     .lp-cap-grid,
     .lp-quotes,
     .lp-pricing { grid-template-columns: 1fr; }
 
-    &.divorcio-landing .lp-values {
-      grid-template-columns: 1fr;
-    }
+    .lp-steps--flow .lp-step::after { display: none !important; }
 
     .ps-mock-bar strong { margin-left: 0; width: 100%; }
   }

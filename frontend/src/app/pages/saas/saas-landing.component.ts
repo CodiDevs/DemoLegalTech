@@ -259,20 +259,6 @@ import { IconComponent } from '../../shared/icon.component';
         </div>
       </section>
 
-      <section class="lp-cta-panel">
-        <div class="lp-shell">
-          <div class="lp-cta-inner">
-            <p class="lp-cta-eyebrow">Listo cuando tú lo estés</p>
-            <h2>¿Listo para transformar tu operación legal?</h2>
-            <p>Únete a más de 120 firmas demo que gestionan trámites con LegalStation. Diseñado para accesibilidad y escala.</p>
-            <div class="lp-cta-buttons">
-              <a routerLink="/productos/divorcio360" class="lp-cta-primary">Comenzar hoy</a>
-              <a routerLink="/auth" class="lp-cta-ghost">Agendar demo</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       @if (toast) { <div class="lp-toast" role="status" aria-live="polite">{{ toast }}</div> }
     </div>
   `,
