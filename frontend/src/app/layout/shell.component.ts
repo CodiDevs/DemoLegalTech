@@ -39,6 +39,7 @@ interface ProductSwitcherItem {
     <header
       class="site-header"
       [class.on-marketing]="isMarketing"
+      [class.on-flow]="isDivorcioFlow"
       [style.--header-accent]="headerAccent"
     >
       <div class="header-bar">
@@ -366,6 +367,12 @@ interface ProductSwitcherItem {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       box-shadow: none;
+    }
+
+    .site-header.on-flow {
+      background: var(--bg);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
     .header-bar {

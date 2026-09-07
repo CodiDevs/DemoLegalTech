@@ -57,16 +57,13 @@ interface Question {
                     (click)="goToStep(i)"
                   >
                     <span class="ob-seg-bar" aria-hidden="true"></span>
-                    @if (i + 1 < position) {
-                      <span class="ob-seg-mark" aria-hidden="true">✓</span>
-                    }
                   </button>
                 }
               </div>
               <div class="ob-progress-meta">
                 <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
                 @if (canGoBack) {
-                  <p class="ob-step-hint">Haz clic en ✓ para regresar</p>
+                  <p class="ob-step-hint">Toca un paso anterior para volver</p>
                 }
               </div>
             </div>
@@ -75,7 +72,7 @@ interface Question {
               <div class="ob-card-slot">
                 <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
                 @for (q of [current]; track q.key) {
-                  <section class="ob-card" [class.is-back]="direction === -1">
+                  <section class="ob-card">
                 <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
 
                 <h1>{{ q.text }}</h1>
@@ -289,6 +286,13 @@ interface Question {
 
             <p class="ob-note is-centered">Evaluación orientativa. No sustituye una consulta legal.</p>
           </section>
+
+          <div class="ob-foot">
+            <button type="button" class="btn btn-ghost btn-sm" (click)="backToReview()">
+              <app-icon name="arrow-left" [size]="16" />
+              Atrás
+            </button>
+          </div>
         }
       </div>
     </div>
@@ -615,6 +619,10 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     this.direction = -1;
     this.stage = 'questions';
     this.pendingFocus = true;
+  }
+
+  backToReview(): void {
+    this.stage = 'review';
   }
 
   /** Vuelve a una pregunta concreta desde la pantalla de revisión. */

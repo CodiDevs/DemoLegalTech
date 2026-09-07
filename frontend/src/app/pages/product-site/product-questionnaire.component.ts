@@ -27,7 +27,6 @@ type Stage = 'questions' | 'review' | 'done';
               <app-icon name="arrow-left" [size]="16" />
               {{ site.name }}
             </a>
-            <p class="pq-eyebrow">Evaluar mi caso</p>
           </header>
 
           @if (stage === 'questions' && currentField) {
@@ -47,15 +46,12 @@ type Stage = 'questions' | 'review' | 'done';
                       (click)="goToField(i)"
                     >
                       <span class="ob-seg-bar" aria-hidden="true"></span>
-                      @if (i < fieldIndex) {
-                        <span class="ob-seg-mark" aria-hidden="true">✓</span>
-                      }
                     </button>
                   }
                 </div>
                 @if (fieldIndex > 0) {
                   <div class="ob-progress-meta">
-                    <p class="ob-step-hint">Haz clic en ✓ para regresar</p>
+                    <p class="ob-step-hint">Toca un paso anterior para volver</p>
                   </div>
                 }
               </div>
@@ -175,14 +171,6 @@ type Stage = 'questions' | 'review' | 'done';
       width: 100%;
       max-width: 28rem;
       margin-inline: auto;
-    }
-    .pq-eyebrow {
-      margin: 0;
-      font-size: var(--text-xs);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: var(--tracking-wide);
-      color: var(--text-muted);
     }
     .pq-price {
       margin: var(--space-4) 0;

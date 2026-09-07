@@ -24,6 +24,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Marketing UI polish Fase 2 | `/` LegalStation teal inherit, 3 live badges, catalog copy | 2026-09-03 |
 | superseded | Divorcio360 landing UI/UX | `/productos/divorcio360` hero pin con mock, CTAs por sesión, band de stats | 2026-09-06 |
 | done | Divorcio360 no-slop repair | `/productos/divorcio360` — CTA above-fold, una demo, copy honesto, legales | 2026-09-06 |
+| done | Cuestionario no-slop | `/cuestionario` — sin atmósfera, progreso teal, header sólido, Atrás en resultado | 2026-09-06 |
 
 ## Entries
 
@@ -281,3 +282,11 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 - Política de datos, términos demo y footer `Hecho por CodiDevs`.
 
 **Demo:** `/productos/divorcio360` como guest → cliente → abogado; revisar móvil 390px y reduced motion.
+
+### 2026-09-06 — Cuestionario no-slop
+- Sin `app-ob-atmosphere` (wash, papel, sellos, watermark).
+- Progreso en segmentos `--primary`, radio 2px, hover de color.
+- Header de flujo sólido (sin blur). Card `--radius-md`. H1 Inter.
+- Resultado con Atrás a la revisión.
+
+**Demo:** `/cuestionario` green path → review → Apto → Atrás. Spot 390px.
