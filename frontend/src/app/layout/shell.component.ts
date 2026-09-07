@@ -928,6 +928,9 @@ export class ShellComponent implements OnInit, OnDestroy {
   }
 
   get footerPitch(): string {
+    if (this.isDivorcioMarketing || (this.isProductContext && this.activeProduct === 'divorcio360')) {
+      return 'Demostración del trámite en línea, sin filas ni desplazamientos. Recorre el expediente desde casa.';
+    }
     if (this.isProductContext) {
       return 'Al mismo costo que presencial, sin filas ni desplazamientos. Todo el trámite desde casa.';
     }

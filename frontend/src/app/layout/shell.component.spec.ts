@@ -72,4 +72,26 @@ describe('ShellComponent marketing navigation', () => {
       { label: 'Evaluar mi caso', path: '/cuestionario' },
     ]);
   });
+
+  it('no afirma mismo costo en el pie de Divorcio360', () => {
+    const marketing = makeShell(null);
+    const productContext = makeShell(null);
+    productContext.isDivorcioMarketing = false;
+    productContext.isProductLanding = true;
+    productContext.activeProduct = 'divorcio360';
+
+    expect(marketing.footerPitch).not.toMatch(/mismo costo/i);
+    expect(marketing.footerPitch.toLowerCase()).toContain('demostración');
+    expect(productContext.footerPitch).not.toMatch(/mismo costo/i);
+    expect(productContext.footerPitch.toLowerCase()).toContain('demostración');
+  });
+
+  it('conserva el slogan de LegalStation fuera de Divorcio360', () => {
+    const home = makeShell(null);
+    home.isDivorcioMarketing = false;
+    home.isLegalStationMarketing = true;
+    home.activeProduct = 'divorcio360';
+
+    expect(home.footerPitch).toBe('Servicios jurídicos al mismo costo, sin filas ni trámites.');
+  });
 });
