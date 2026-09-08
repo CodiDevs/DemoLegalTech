@@ -8,8 +8,8 @@ import { DecimalPipe } from '@angular/common';
   template: `
     @if (showConfetti) {
       <div class="confetti-layer" aria-hidden="true">
-        @for (i of confettiPieces; track i) {
-          <span class="confetti-piece" [style]="confettiStyle(i)"></span>
+        @for (piece of confettiPieces; track $index) {
+          <span class="confetti-piece" [style]="piece"></span>
         }
       </div>
     }
@@ -235,7 +235,7 @@ export class AnimatedTicketComponent implements OnInit {
   @Input() receiptOnly = false;
 
   showConfetti = false;
-  confettiPieces = Array.from({ length: 80 }, (_, i) => i);
+  confettiPieces: Record<string, string>[] = [];
   svgWidth = 250;
   svgHeight = 70;
   bars: { x: number; width: number }[] = [];
@@ -244,6 +244,7 @@ export class AnimatedTicketComponent implements OnInit {
 
   ngOnInit(): void {
     this.bars = this.buildBars(this.barcodeValue);
+    this.confettiPieces = Array.from({ length: 80 }, (_, i) => this.confettiStyle(i));
     setTimeout(() => { this.showConfetti = true; }, 100);
     setTimeout(() => { this.showConfetti = false; }, 6000);
   }

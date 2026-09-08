@@ -1,10 +1,10 @@
 import {
-  Component, EventEmitter, Input, OnInit, Output, inject,
+  Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 import { AuthService } from '../core/auth.service';
 import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.component';
 
@@ -49,7 +49,7 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
     .meet-err { margin: 0; font-size: var(--text-sm); color: var(--danger); }
   `],
 })
-export class MeetingSchedulerComponent implements OnInit {
+export class MeetingSchedulerComponent implements OnInit, OnDestroy {
   @Input() dateLabel = 'Fecha y hora';
   @Input() confirmLabel = 'Confirmar cita';
   @Input() busy = false;
@@ -58,7 +58,7 @@ export class MeetingSchedulerComponent implements OnInit {
   @Input() requireLogin = false;
   @Input() authReturnUrl = '/cuestionario?resume=result';
   @Input() authProduct = 'divorcio360';
-  /** Función opcional de guardado; si falla, se persiste en demo local. */
+  /** Guardado remoto opcional. Si falla, se muestra error y no se marca la cita. */
   @Input() saveFn: ((at: string) => Observable<unknown>) | null = null;
   @Output() scheduled = new EventEmitter<string>();
 
@@ -70,12 +70,17 @@ export class MeetingSchedulerComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private modalEl: HTMLDivElement | null = null;
+  private escapeUnbind?: () => void;
 
   ngOnInit(): void {
     if (this.storageKey) {
       const saved = sessionStorage.getItem(this.storageKey);
       if (saved) this.scheduledAt = saved;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.closeModal();
   }
 
   get minDateTime(): string {
@@ -114,9 +119,13 @@ export class MeetingSchedulerComponent implements OnInit {
     const request$ = this.saveFn ? this.saveFn(when) : of(null);
 
     request$.pipe(
-      catchError(() => of(null)),
       finalize(() => { this.busy = false; }),
-    ).subscribe(() => this.completeSave(when));
+    ).subscribe({
+      next: () => this.completeSave(when),
+      error: () => {
+        this.errorMsg = 'No se pudo guardar la cita. Inténtalo de nuevo.';
+      },
+    });
   }
 
   private completeSave(when: string): void {
@@ -136,34 +145,45 @@ export class MeetingSchedulerComponent implements OnInit {
     if (!pending || this.scheduledAt) return;
     this.busy = true;
     saveFn(pending).pipe(
-      catchError(() => of(null)),
       finalize(() => { this.busy = false; }),
-    ).subscribe(() => this.completeSave(pending));
+    ).subscribe({
+      next: () => this.completeSave(pending),
+      error: () => {
+        this.errorMsg = 'No se pudo guardar la cita. Inténtalo de nuevo.';
+      },
+    });
   }
 
   private openModal(): void {
     this.closeModal();
+    const titleId = 'meet-modal-title';
     const backdrop = document.createElement('div');
     backdrop.className = 'meet-modal-backdrop';
-    backdrop.setAttribute('role', 'dialog');
-    backdrop.setAttribute('aria-modal', 'true');
     backdrop.innerHTML = `
-      <div class="meet-modal pf-card">
-        <h3>Cita registrada</h3>
+      <div class="meet-modal pf-card" role="dialog" aria-modal="true" aria-labelledby="${titleId}">
+        <h3 id="${titleId}">Cita registrada</h3>
         <p>Su fecha se registró, espere el link de la reunión en su correo.</p>
         <button type="button" class="lp-btn lp-btn-primary meet-modal-ok">Entendido</button>
       </div>
     `;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') this.closeModal();
+    };
     backdrop.addEventListener('click', (e) => {
       if (e.target === backdrop) this.closeModal();
     });
     backdrop.querySelector('.meet-modal-ok')?.addEventListener('click', () => this.closeModal());
+    document.addEventListener('keydown', onKey);
+    this.escapeUnbind = () => document.removeEventListener('keydown', onKey);
     document.body.appendChild(backdrop);
     this.modalEl = backdrop;
     document.body.style.overflow = 'hidden';
+    (backdrop.querySelector('.meet-modal-ok') as HTMLButtonElement | null)?.focus();
   }
 
   closeModal(): void {
+    this.escapeUnbind?.();
+    this.escapeUnbind = undefined;
     if (this.modalEl) {
       this.modalEl.remove();
       this.modalEl = null;

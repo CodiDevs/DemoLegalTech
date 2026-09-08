@@ -291,8 +291,8 @@ export class CaseDetailComponent implements OnInit {
         primary: true,
       });
     }
-    if (c.status >= '03' && isClient && !c.consultation_at) {
-      actions.push({ label: 'Agendar consulta', link: ['/consulta', c.id], primary: false });
+    if (c.status >= '03' && isClient && c.consultation_at && c.consultation_at !== 'requested') {
+      actions.push({ label: 'Entrar a la consulta', link: ['/consulta', c.id], primary: false });
     }
 
     if (actions.length === 1) {
