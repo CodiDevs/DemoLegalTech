@@ -26,6 +26,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Divorcio360 no-slop repair | `/productos/divorcio360` — CTA above-fold, una demo, copy honesto, legales | 2026-09-06 |
 | done | Cuestionario no-slop | `/cuestionario` — sin atmósfera, progreso teal, header sólido, Atrás en resultado | 2026-09-06 |
 | done | Home `/` no-slop | `/` — un hero, catálogo live, CTA por rol, sin collage/KPIs/gallery | 2026-09-08 |
+| done | Fase 2 admin no-slop | `abogado@demo.ec` → `/fase2/admin` — tabla de casos, métricas honestas, sin KPI theater | 2026-09-08 |
 
 ## Entries
 
@@ -300,3 +301,10 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 - Pricing: un plan featured. Footer `Hecho por CodiDevs`.
 
 **Demo:** `/` como Carlos → Mis expedientes → `/cliente`. Guest: Ver qué puedo tramitar → `#catalogo`. Spot `/productos/divorcio360` (pin + band) y `/productos/traslado360` (gallery).
+
+### 2026-09-08 — Fase 2 admin no-slop
+- `/fase2/admin` como abogado: sidebar sólido 248px, nav por etiqueta, sin card dashed.
+- Resumen: `<dl>` de conteos live + ingreso/tiempo rotulados demo. Tabla de `recent_cases` con Abrir → `/abogado/caso/:id`.
+- Sin KPI grid, eyebrows, % inventados ni fade `opacity: 0`. Loading/error/retry.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → Fase 2 → Resumen. Abrir un caso. Spot `/fase2/templates` (chrome compartido).
