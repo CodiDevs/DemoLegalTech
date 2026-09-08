@@ -1,53 +1,38 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import {
+  PRODUCT_SITES,
+  getMarketingPrimaryAction,
+  setActiveProduct,
+} from '../../shared/product-sites.data';
 import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
-import { LandingStatisticsComponent, StatItem } from './landing-statistics.component';
+import { LandingStatisticsComponent } from './landing-statistics.component';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-divorcio-landing',
   standalone: true,
-  imports: [RouterLink, HeroScrollVideoPinRevealComponent, LandingStatisticsComponent],
-  styleUrls: ['../../../styles/landing-shared.scss'],
+  imports: [RouterLink, HeroScrollVideoPinRevealComponent, LandingStatisticsComponent, IconComponent],
   template: `
     <div class="landing-page divorcio-landing">
-      <p class="lp-shell lp-crumb"><a routerLink="/">LegalStation</a> › Divorcio360</p>
+      <nav class="lp-shell lp-crumb" aria-label="Ruta de navegación">
+        <a routerLink="/">LegalStation</a>
+        <app-icon name="chevron-right" [size]="14" />
+        <span>Divorcio360</span>
+      </nav>
 
       <app-hero-scroll-video-pin-reveal />
-
-      <section class="lp-tools-band">
-        <div class="lp-shell">
-          <div class="lp-action">
-            <p class="lp-action-label">Míralo en acción</p>
-            <div class="lp-carousel-layout">
-              <div class="lp-carousel-copy">
-                <h3>Expediente Divorcio360</h3>
-                <p>Timeline del expediente, documentos, firma electrónica y mensajes LegalStation. Un solo flujo demo.</p>
-                <a routerLink="/cuestionario" class="lp-link">Comenzar</a>
-              </div>
-              <div class="lp-carousel-panel">
-                <div class="lp-carousel-frame">
-                  <img
-                    src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1400&q=80"
-                    alt="Expediente Divorcio360, vista demo"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section class="lp-section soft" id="flujo">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Cinco pasos conectados. <span class="lp-highlight">Un solo expediente.</span></h2>
+            <h2>Seis pasos conectados. <span class="lp-highlight">Un solo expediente.</span></h2>
             <p>Desde la calificación hasta la notaría, sin saltar entre herramientas.</p>
           </div>
-          <div class="lp-steps">
-            @for (s of workflow; track s.title) {
-              <article class="lp-step lp-lift">
+          <div #stepsRoot class="lp-steps lp-steps--flow" [class.lp-steps-in]="stepsRevealed">
+            @for (s of site.workflow; track s.title; let i = $index) {
+              <article class="lp-step" [style.--lp-i]="i">
                 <div class="lp-step-num">{{ s.n }}</div>
                 <h3>{{ s.title }}</h3>
                 <p>{{ s.desc }}</p>
@@ -62,9 +47,9 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
           <div class="lp-section-head">
             <h2>Diseñado para <span class="lp-highlight">firmas y clientes.</span></h2>
           </div>
-          <div class="lp-values">
-            @for (v of values; track v.title) {
-              <article class="lp-value lp-lift">
+          <div class="lp-values lp-values--rules">
+            @for (v of site.values ?? []; track v.title) {
+              <article class="lp-value">
                 <h3>{{ v.title }}</h3>
                 <p>{{ v.desc }}</p>
               </article>
@@ -76,43 +61,52 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
       <section class="lp-section soft" id="capacidades">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Tres cifras <span class="lp-highlight">de esta demo.</span></h2>
+            <h2>Qué muestra esta demostración</h2>
           </div>
-          <app-landing-statistics theme="divorcio" [stats]="stats" />
+          <app-landing-statistics theme="divorcio" variant="band" [stats]="site.stats" />
         </div>
       </section>
 
-      <section class="lp-section" id="precios">
+      <section class="lp-section soft" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Pago por trámite</p>
-            <h2>Honorarios claros <span class="lp-highlight">sin suscripción.</span></h2>
-            <p>Un solo pago por caso. No hay membresía mensual para el cliente final.</p>
+            <h2>Un valor orientativo, sin suscripción</h2>
+            <p>El monto mostrado pertenece a la demostración y no constituye una cotización.</p>
           </div>
           <div class="lp-pricing">
-            @for (plan of plans; track plan.name) {
+            @for (plan of site.plans; track plan.name) {
               <article class="lp-plan lp-lift" [class.featured]="plan.featured">
-                @if (plan.featured) { <span class="lp-plan-tag">Más común</span> }
                 <h3>{{ plan.name }}</h3>
                 <p class="lp-muted">{{ plan.audience }}</p>
-                <div class="lp-plan-price">\${{ plan.price }}<small>+</small></div>
+                @if (plan.price === 0) {
+                  <div class="lp-plan-price">Sin costo</div>
+                } @else {
+                  <div class="lp-plan-price">\${{ plan.price }}<small>+</small></div>
+                }
                 <ul>
                   @for (item of plan.items; track item) { <li>{{ item }}</li> }
                 </ul>
-                  <a routerLink="/cuestionario" class="lp-btn lp-btn-primary">Comenzar</a>
+                <a [routerLink]="primaryAction.path" class="lp-btn lp-btn-primary">
+                  {{ primaryAction.label }}
+                </a>
               </article>
             }
           </div>
+          <p class="lp-price-note">
+            Si el resultado no encaja en este recorrido, la demostración no genera un cobro automático.
+          </p>
         </div>
       </section>
 
       <section class="lp-cta-panel">
         <div class="lp-shell">
           <div class="lp-cta-inner">
-            <h2>¿Listo para iniciar tu trámite?</h2>
-            <p>Responde el cuestionario en minutos. Si calificas, continúas con registro, pago y expediente digital.</p>
+            <h2>{{ ctaTitle }}</h2>
+            <p>{{ ctaBody }}</p>
             <div class="lp-cta-buttons">
-              <a routerLink="/cuestionario" class="lp-cta-primary">Comenzar</a>
+              <a [routerLink]="primaryAction.path" class="lp-cta-primary">
+                {{ primaryAction.label }}
+              </a>
               <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
             </div>
           </div>
@@ -122,49 +116,147 @@ import { LandingStatisticsComponent, StatItem } from './landing-statistics.compo
   `,
   styles: [`
     .divorcio-landing {
-      --lp-accent: var(--brand);
-      --lp-accent-deep: var(--brand-deep);
-      --lp-accent-soft: oklch(0.94 0.03 190);
-      --lp-bg: var(--paper);
-      --lp-bg-soft: oklch(0.94 0.012 210);
+      --lp-accent: var(--primary);
+      --lp-accent-deep: var(--primary-hover);
+      --lp-accent-soft: var(--primary-subtle);
+      --lp-accent-ink: var(--primary-hover);
+      --lp-bg: var(--bg);
+      --lp-bg-soft: var(--bg-subtle);
+      background: var(--lp-bg);
     }
 
-    .lp-muted { color: var(--lp-ink-muted); font-size: 0.9rem; margin: 0; }
+    .divorcio-landing::before {
+      content: none;
+    }
 
-    .lp-tools-band {
-      background: var(--lp-bg-soft);
-      padding: 2.5rem 0 4rem;
-      border-top: 1px solid var(--lp-border);
+    .divorcio-landing .lp-section-head {
+      margin-inline: 0;
+      text-align: left;
+    }
+
+    .divorcio-landing .lp-pricing {
+      grid-template-columns: minmax(0, 44rem);
+      justify-content: start;
+    }
+
+    .divorcio-landing .lp-plan,
+    .divorcio-landing .lp-cta-inner {
+      border-radius: var(--radius-lg);
+      box-shadow: none;
+    }
+
+    .divorcio-landing .lp-plan.featured {
+      outline: 0;
+      border-color: var(--primary-border);
+    }
+
+    .divorcio-landing .lp-lift:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--primary-border);
+    }
+
+    .divorcio-landing .lp-steps--flow .lp-step::after {
+      background: var(--lp-border);
+    }
+
+    .divorcio-landing .lp-cta-inner {
+      background: var(--primary-hover);
+      text-align: left;
+    }
+
+    .divorcio-landing .lp-cta-inner::before,
+    .divorcio-landing .lp-cta-inner::after {
+      display: none;
+    }
+
+    .divorcio-landing .lp-cta-buttons {
+      justify-content: flex-start;
+    }
+
+    .lp-price-note {
+      color: var(--text-muted);
+      font-size: var(--text-sm);
+    }
+
+    #flujo,
+    #capacidades,
+    #precios {
+      scroll-margin-top: 5.5rem;
+    }
+
+    @media (max-width: 720px) {
+      .divorcio-landing .lp-steps--flow .lp-step {
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+        column-gap: var(--space-3);
+        align-items: start;
+      }
+
+      .divorcio-landing .lp-step-num {
+        grid-row: 1 / span 2;
+        margin: 0;
+      }
+
+      .divorcio-landing .lp-section {
+        padding-block: var(--space-7);
+      }
     }
   `]
 })
-export class DivorcioLandingComponent {
-  stats: StatItem[] = [
-    { label: 'Estados trazables', value: '10', detail: 'Timeline único para cliente y operador.', icon: 'file' },
-    { label: 'Tiempo de intake', value: '5 min', detail: 'Cuestionario condicional con resultado inmediato.', icon: 'check' },
-    { label: 'Honorarios desde', value: '$349', detail: 'Precio orientativo si calificas verde.', icon: 'scale' },
-  ];
+export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestroy {
+  readonly site = PRODUCT_SITES['divorcio360'];
 
-  workflow = [
-    { n: 1, title: 'Calificar', desc: '12–15 preguntas con resultado verde, amarillo o rojo.' },
-    { n: 2, title: 'Pagar', desc: 'Honorarios de demostración tras aptitud notarial. Pago único, sin suscripción.' },
-    { n: 3, title: 'Cargar', desc: 'Cédula y partida con revisión del operador.' },
-    { n: 4, title: 'Consultar', desc: 'Videollamada de demostración con tu abogado para revisar el expediente.' },
-    { n: 5, title: 'Firmar', desc: 'Minuta generada y firma con evidencia IP.' },
-    { n: 6, title: 'Notaría', desc: 'Reunión notarial virtual y cierre del expediente.' },
-  ];
-
-  values = [
-    { title: 'Filtro antes de cobrar', desc: 'Solo casos aptos avanzan a documentos y pago. Menos tiempo perdido.' },
-    { title: 'Expediente único', desc: 'Cliente y operador ven el mismo timeline de 10 estados.' },
-    { title: 'Autoservicio real', desc: 'Mensajes, documentos y firma sin depender del teléfono.' },
-  ];
-
-  plans = [
-    { name: 'Apto notarial', audience: 'Mutuo consentimiento sin conflictos', price: 349, items: ['Cuestionario verde', 'Flujo completo de demostración', 'Expediente trazable', 'Firma documental incluida'], featured: true },
-    { name: 'Evaluación', audience: 'Casos con complejidad media', price: 749, items: ['Resultado amarillo', 'Revisión humana', 'Plan personalizado', 'Agenda demo'], featured: false },
-    { name: 'Derivación', audience: 'No apto vía simplificada', price: 0, items: ['Resultado rojo', 'Orientación jurídica', 'Sin cobro automático', 'Contacto operador'], featured: false },
-  ];
+  @ViewChild('stepsRoot') stepsRoot?: ElementRef<HTMLElement>;
+  stepsRevealed = false;
+  private stepsObserver?: IntersectionObserver;
 
   constructor(public auth: AuthService) {}
+
+  get primaryAction() {
+    return getMarketingPrimaryAction(this.auth.user()?.role ?? null, 'divorcio360');
+  }
+
+  get ctaTitle(): string {
+    if (this.auth.isLoggedIn && this.auth.user()?.role === 'cliente') return 'Tu expediente sigue abierto';
+    if (this.auth.isLoggedIn) return 'Sigue los casos desde el panel';
+    return this.site.ctaTitle;
+  }
+
+  get ctaBody(): string {
+    if (this.auth.isLoggedIn && this.auth.user()?.role === 'cliente') {
+      return 'Revisa estados, documentos y mensajes en el mismo seguimiento que ve tu operador.';
+    }
+    if (this.auth.isLoggedIn) {
+      return 'Bandeja, documentos y firma documental: el mismo expediente que ve el cliente.';
+    }
+    return 'Responde el cuestionario en minutos. Si calificas, continúas con registro, pago y expediente digital.';
+  }
+
+  ngOnInit(): void {
+    setActiveProduct('divorcio360');
+  }
+
+  ngAfterViewInit(): void {
+    const el = this.stepsRoot?.nativeElement;
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !el || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    this.stepsObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          this.stepsRevealed = true;
+          this.stepsObserver?.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+    this.stepsObserver.observe(el);
+  }
+
+  ngOnDestroy(): void {
+    this.stepsObserver?.disconnect();
+  }
 }

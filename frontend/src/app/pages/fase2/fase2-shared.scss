@@ -1,77 +1,237 @@
 .fase2-layout {
-  --fase2-bg: oklch(0.96 0.012 230);
-  background: var(--fase2-bg);
-  min-height: calc(100dvh - 8rem);
+  background: var(--bg-subtle);
+  min-height: calc(100dvh - var(--header-height) * 2);
 }
 
 .fase2-grid {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 1.5rem;
-  padding-block: 2rem;
+  grid-template-columns: 248px 1fr;
+  gap: 0;
+  padding-block: var(--space-5);
 }
 
 .fase2-sidebar {
   position: sticky;
-  top: 5rem;
+  top: calc(var(--header-height) + var(--space-4));
   align-self: start;
-  background: white;
-  border: 1px dashed oklch(0.75 0.04 210);
-  border-radius: var(--radius);
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  padding: var(--space-4) var(--space-5) var(--space-4) 0;
 }
 
 .fase2-sidebar h2 {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-soft);
-  margin: 0 0 0.75rem;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text);
+  margin: var(--space-3) 0 var(--space-4);
 }
 
 .fase2-sidebar nav {
   display: grid;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
-.fase2-sidebar a {
+.fase2-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
   text-decoration: none;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
   font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.5rem 0.65rem;
-  border-radius: 8px;
+  font-size: var(--text-sm);
+  transition:
+    background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
 }
 
-.fase2-sidebar a.on,
-.fase2-sidebar a:hover {
-  background: oklch(0.94 0.02 210);
-  color: var(--brand-deep);
+.fase2-sidebar nav a app-icon {
+  flex-shrink: 0;
+}
+
+.fase2-sidebar nav a:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.fase2-sidebar nav a.on {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.fase2-sidebar nav a:focus-visible,
+.fase2-sidebar .back a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.fase2-sidebar .back {
+  margin-top: var(--space-5);
+  font-size: var(--text-sm);
+}
+
+.fase2-sidebar .back a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.fase2-sidebar .back a:hover {
+  color: var(--text);
 }
 
 .fase2-main {
   min-width: 0;
+  padding-left: var(--space-5);
 }
 
+/* Borde discontinuo: señal visual de que el módulo es una demostración */
 .fase2-preview-card {
-  border: 1px dashed oklch(0.78 0.03 210);
-  background: white;
+  border: 1px dashed var(--border-strong);
+  background: var(--surface);
 }
 
 .fase2-section {
-  margin-top: 1.5rem;
+  margin-top: var(--space-6);
 }
 
 .fase2-section h2 {
-  font-size: 1.15rem;
-  margin-bottom: 0.75rem;
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-3);
+}
+
+/* =========================================================================
+   Estados compartidos de los módulos Fase 2: carga, error y vacío
+   ========================================================================= */
+
+.fase2-state-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.fase2-state-error {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  border-color: var(--danger-border);
+  background: var(--danger-subtle);
+}
+
+.fase2-state-error .state-icon {
+  display: grid;
+  place-items: center;
+  color: var(--danger);
+}
+
+.fase2-state-error .state-body {
+  flex: 1;
+  min-width: 14rem;
+}
+
+.fase2-state-error .state-body strong {
+  display: block;
+  font-weight: 650;
+}
+
+.fase2-state-error .state-body p {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.fase2-empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: var(--space-7) var(--space-5);
+  text-align: center;
+}
+
+.fase2-empty .empty-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.fase2-empty h2 {
+  font-size: var(--text-lg);
+  margin: 0;
+}
+
+.fase2-empty p {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
 }
 
 @media (max-width: 860px) {
   .fase2-grid {
     grid-template-columns: 1fr;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
   }
+
   .fase2-sidebar {
     position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fase2-sidebar h2 {
+    margin: 0;
+  }
+
+  .fase2-sidebar nav {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-1);
+    order: 2;
+    flex: 1 1 100%;
+    overflow-x: auto;
+    padding-block: 2px;
+    scrollbar-width: thin;
+  }
+
+  .fase2-sidebar nav a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .fase2-sidebar .back {
+    order: 1;
+    margin-top: 0;
+    margin-inline-start: auto;
+  }
+
+  .fase2-main {
+    padding-left: 0;
   }
 }

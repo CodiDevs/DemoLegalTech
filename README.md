@@ -14,12 +14,46 @@ Documentación extendida: [`docs/HANDOFF.md`](docs/HANDOFF.md) · Metas demo: [`
 
 | Herramienta | Versión |
 |-------------|---------|
-| Go | 1.22+ (recomendado 1.27) |
-| Node.js / npm | 20+ |
+| [Bun](https://bun.sh) | 1.0+ (recomendado para orquestación) |
+| Go | 1.22+ (recomendado 1.26+) |
+| Node.js / npm | 20+ (opcional si usas Bun) |
 
 ---
 
-## Arranque rápido
+## Arranque rápido con Bun (Recomendado)
+
+Todo el entorno (API Go + Frontend Angular) se puede levantar con un único comando:
+
+```bash
+# 1. Configurar dependencias (primera vez)
+bun run setup
+
+# 2. Levantar entorno completo (Backend :8080 + Frontend :4200)
+bun run dev
+# o directamente: ./dev.sh (Linux/macOS) o .\dev.ps1 (Windows)
+```
+
+- **Frontend:** http://localhost:4200 (con proxy hacia `:8080` y Hot-Reload)
+- **Backend API:** http://localhost:8080
+- **Health check:** `GET http://localhost:8080/api/v1/health`
+
+### Comandos disponibles en Bun
+
+| Comando | Descripción |
+|---------|-------------|
+| `bun run dev` | Levanta API Go + Angular en paralelo con logs unificados y apagado limpio |
+| `bun run dev:clean` | Resetea la base de datos SQLite y levanta todo el entorno |
+| `bun run dev:backend` | Levanta únicamente el backend Go (`:8080`) |
+| `bun run dev:frontend` | Levanta únicamente el frontend Angular (`:4200`) |
+| `bun run doctor` | Diagnostica puertos, Go, dependencias y base de datos |
+| `bun run db:reset` | Resetea la base de datos y recrea el seed limpio |
+| `bun run setup` | Instala dependencias de frontend y módulos de Go |
+| `bun run build` | Compila frontend y backend para producción |
+| `bun run test` | Ejecuta suites de prueba de backend y frontend |
+
+---
+
+## Arranque manual (Alternativo)
 
 ### Backend (API)
 
@@ -36,28 +70,18 @@ go run ./cmd/api
 
 ```powershell
 cd frontend
-npm install
-npm start
+bun install   # o npm install
+bun start     # o npm start
 ```
 
 - App: http://localhost:4200 (proxy → `:8080`)
 
-### Parar la API
+### Reset de base de datos manual
 
-```powershell
-# Ctrl+C en la terminal del backend, o:
-Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue |
-  Select-Object -ExpandProperty OwningProcess -Unique |
-  ForEach-Object { Stop-Process -Id $_ -Force }
+```bash
+bun run db:reset
 ```
 
-### Reset de base de datos (seed limpio)
-
-```powershell
-# Parar la API primero
-Remove-Item backend\data\divorcio360.db -ErrorAction SilentlyContinue
-go run ./cmd/api
-```
 
 ---
 

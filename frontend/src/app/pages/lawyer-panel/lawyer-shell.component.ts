@@ -9,8 +9,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
     <div class="lawyer-workspace">
       <div class="shell lawyer-grid">
         <aside class="lawyer-sidebar">
-          <h2>Operador legal</h2>
-          <nav>
+          <h2 id="lawyer-nav-title">Operador legal</h2>
+          <nav aria-labelledby="lawyer-nav-title">
             <a routerLink="/abogado" routerLinkActive="on" [routerLinkActiveOptions]="{exact:true}">Bandeja</a>
             <a routerLink="/fase2/admin" routerLinkActive="on">Fase 2</a>
           </nav>

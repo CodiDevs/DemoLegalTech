@@ -11,10 +11,29 @@ import { Component, Input } from '@angular/core';
     </div>
   `,
   styles: [`
-    .metric { display: grid; gap: 0.25rem; }
-    .metric strong { font-family: var(--font-display); font-size: 1.8rem; line-height: 1.1; }
-    .metric span { color: var(--ink-soft); font-size: 0.85rem; }
-    .hint { font-style: normal; font-size: 0.75rem; color: var(--ok); font-weight: 600; }
+    .metric {
+      display: grid;
+      gap: var(--space-1);
+      padding: var(--space-4);
+    }
+    .metric strong {
+      font-weight: 650;
+      font-size: var(--text-3xl);
+      line-height: var(--leading-tight);
+      letter-spacing: var(--tracking-tight);
+      font-variant-numeric: tabular-nums;
+    }
+    .metric span {
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      line-height: var(--leading-snug);
+    }
+    .hint {
+      font-style: normal;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--success);
+    }
   `]
 })
 export class MetricCardComponent {

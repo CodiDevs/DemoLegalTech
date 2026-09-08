@@ -14,6 +14,8 @@ export interface QuestionnaireAnswers {
   conjugal_society: boolean;
   ids_valid: boolean;
   want_liquidate_assets: boolean;
+  country: string;
+  province: string;
   city: string;
 }
 
@@ -50,6 +52,7 @@ export interface CaseItem {
   has_signature?: boolean;
   can_sign?: boolean;
   sign_hint?: string;
+  questionnaire_json?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -142,6 +145,10 @@ export class ApiService {
     return this.http.post(`/api/v1/cases/${id}/documents`, fd);
   }
 
+  deleteDoc(caseId: number, docId: number): Observable<any> {
+    return this.http.delete(`/api/v1/cases/${caseId}/documents/${docId}`);
+  }
+
   sign(id: number, file: File): Observable<any> {
     const fd = new FormData();
     fd.append('file', file);
@@ -174,6 +181,21 @@ export class ApiService {
 
   scheduleAppointment(caseId: number, appointmentAt: string, notaryName = ''): Observable<any> {
     return this.http.post(`/api/v1/cases/${caseId}/appointment`, { appointment_at: appointmentAt, notary_name: notaryName });
+  }
+
+  scheduleConsultation(caseId: number, consultationAt: string): Observable<any> {
+    return this.http.post(`/api/v1/cases/${caseId}/consultation/schedule`, { consultation_at: consultationAt });
+  }
+
+  requestConsultation(caseId: number): Observable<any> {
+    return this.http.post(`/api/v1/cases/${caseId}/consultation/schedule`, {
+      request_only: true,
+      consultation_at: 'requested',
+    });
+  }
+
+  requestMeeting(scheduledAt: string, product: string, context: string): Observable<any> {
+    return this.http.post('/api/v1/meeting-requests', { scheduled_at: scheduledAt, product, context });
   }
 
   completeConsultation(caseId: number): Observable<any> {

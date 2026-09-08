@@ -1,116 +1,45 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { AuthService } from '../../core/auth.service';
+import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { LEGALSTATION_CATALOG, ProductCatalogEntry, getProductQuestionnairePath, setActiveProduct } from '../../shared/product-sites.data';
 import { MarketingHeroComponent } from './marketing-hero.component';
-import { LandingIconComponent, LandingIconName } from './landing-icon.component';
-import { ElasticGalleryComponent, GalleryItem } from './elastic-gallery.component';
-import { LandingStatisticsComponent, StatItem } from './landing-statistics.component';
-import { LEGALSTATION_CLIENT_GALLERY, LEGALSTATION_PLATFORM_STATS } from './saas-landing.data';
-
-interface Product {
-  id: string;
-  name: string;
-  tagline: string;
-  image: string;
-  showcaseImage: string;
-  showcaseDesc: string;
-  features: string[];
-  route: string;
-  icon: LandingIconName;
-  pillDesc: string;
-}
+import {
+  LEGALSTATION_ENTERPRISE,
+  LEGALSTATION_HERO_IMAGES,
+  LEGALSTATION_PLANS,
+  LEGALSTATION_WORKFLOW,
+} from './saas-landing.data';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-saas-landing',
   standalone: true,
-  imports: [RouterLink, MarketingHeroComponent, LandingIconComponent, ElasticGalleryComponent, LandingStatisticsComponent],
-  styleUrls: ['../../../styles/landing-shared.scss'],
+  imports: [RouterLink, MarketingHeroComponent, IconComponent],
   template: `
     <div class="landing-page legalstation-landing">
       <app-marketing-hero
         theme="legalstation"
-        titleLine1="Ahorra horas con"
-        titleHighlight="tecnología legal multi-trámite."
-        subtitle="Servicios jurídicos al mismo costo, sin filas ni trámites."
-        lede="LegalStation conecta intake, expediente, firma y operador en una sola plataforma. El cliente final paga por trámite, sin membresía; tu bufete opera con licencia mensual."
-        primaryCta="Comenzar"
-        primaryRoute="/cuestionario"
+        titleLine1="Tus trámites legales,"
+        titleHighlight="sin filas ni papeleo."
+        subtitle="Divorcios, traslados de vehículo y trámites de inmuebles, resueltos en línea y al mismo costo que hacerlos en persona. Pagas solo por el trámite que necesitas."
+        primaryCta="Ver qué puedo tramitar"
+        primaryFragment="catalogo"
         [showSecondary]="false"
         [images]="heroImages"
       />
 
-      <section class="lp-trust lp-shell">
-        <p>Divorcio360 está en vivo. Traslado360 y BienRaiz360 tienen sitio y cuestionario en esta demo.</p>
-      </section>
-
-      <section class="lp-tools-band">
-        <div class="lp-shell">
-          <div class="lp-tool-grid">
-            @for (p of products; track p.id; let i = $index) {
-              <button
-                type="button"
-                class="lp-tool-card"
-                [class.active]="activeSlide === i"
-                (click)="selectSlide(i)"
-              >
-                <span class="lp-tool-icon">
-                  <app-landing-icon [name]="p.icon" [size]="20" />
-                </span>
-                <span class="lp-tool-text">
-                  <strong>{{ p.name }}</strong>
-                  <span>{{ p.pillDesc }}</span>
-                </span>
-              </button>
-            }
-          </div>
-
-          <div class="lp-action">
-            <p class="lp-action-label">Míralo en acción</p>
-            <div class="lp-carousel-layout">
-              <div class="lp-carousel-copy">
-                <h3>{{ activeProduct.name }}</h3>
-                <p>{{ activeProduct.showcaseDesc }}</p>
-                <a [routerLink]="activeProduct.route" class="lp-link">Ver {{ activeProduct.name }}</a>
-              </div>
-              <div class="lp-carousel-panel">
-                <div class="lp-carousel-controls">
-                  <button type="button" class="lp-carousel-nav" (click)="prevSlide()" aria-label="Anterior">‹</button>
-                  <button type="button" class="lp-carousel-nav" (click)="nextSlide()" aria-label="Siguiente">›</button>
-                </div>
-                <div class="lp-carousel-frame">
-                  <img
-                    [src]="activeProduct.showcaseImage"
-                    [alt]="'Vista demo de ' + activeProduct.name"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="lp-carousel-dots">
-                  @for (p of products; track p.id; let i = $index) {
-                    <button
-                      type="button"
-                      [class.on]="activeSlide === i"
-                      (click)="selectSlide(i)"
-                      [attr.aria-label]="'Ver ' + p.name"
-                    ></button>
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section class="lp-section soft" id="catalogo">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Tres trámites <span class="lp-highlight">en esta demo.</span></h2>
+            <h2>Trámites en vivo: <span class="lp-highlight">intake y expediente.</span></h2>
             <p>
-              Divorcio360, Traslado360 y BienRaiz360. El resto de la plataforma (firma, CRM, LOPDP, agenda notarial) no se vende como producto aparte aquí.
+              Divorcio360, Traslado360 y BienRaiz360 abren el cuestionario ahora.
+              El resto aparece abajo como demo, todavía no en vivo.
             </p>
           </div>
-          <div class="lp-product-grid">
-            @for (p of products; track p.id) {
-            <article class="lp-product-card lp-lift">
+          <div class="lp-product-grid ls-bento ls-choreo">
+            @for (p of liveProducts; track p.id; let i = $index) {
+              <article class="lp-product-card lp-lift" [style.--i]="i">
+                <span class="lp-badge-live">En vivo</span>
                 <img [src]="p.image" [alt]="p.name" loading="lazy" />
                 <div class="lp-product-body">
                   <h3>{{ p.name }}</h3>
@@ -118,10 +47,31 @@ interface Product {
                   <ul class="lp-list-tt">
                     @for (f of p.features; track f) { <li>{{ f }}</li> }
                   </ul>
-                  <a [routerLink]="p.route" class="lp-btn lp-btn-outline">Ver producto</a>
+                  <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(p)">
+                    Abrir producto
+                    <app-icon name="arrow-right" [size]="16" />
+                  </button>
                 </div>
               </article>
             }
+          </div>
+
+          <div class="soon-wrap">
+            <h3>Próximamente</h3>
+            <p class="lp-muted">Herramientas de la demo que aún no abren intake.</p>
+            <ul class="lp-list-tt soon-list">
+              @for (p of comingSoon; track p.id) {
+                <li class="soon-item">
+                  <span>
+                    <strong>{{ p.name }}</strong>
+                    <span class="lp-muted">: {{ p.pillDesc }}</span>
+                  </span>
+                  <button type="button" class="lp-btn lp-btn-outline" (click)="notify(p.name)">
+                    Explorar demo
+                  </button>
+                </li>
+              }
+            </ul>
           </div>
         </div>
       </section>
@@ -129,23 +79,21 @@ interface Product {
       <section class="lp-section">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Tecnología legal construida para <span class="lp-highlight">acceso y escala.</span></h2>
-            <p>
-              LegalStation es la capa SaaS sobre la que CodiDevs despliega verticales como Divorcio360: mismo login, mismos roles, misma trazabilidad.
-            </p>
+            <h2>Intake, expediente y <span class="lp-highlight">operador.</span></h2>
+            <p>El cliente llena el intake. El expediente junta pago y documentos. El operador revisa y cierra.</p>
           </div>
-          <div class="lp-values">
-            <article class="lp-value lp-lift">
-              <h3>Construido con abogados</h3>
-              <p>Flujos diseñados con operadores reales: revisión documental, minuta, firma y notaría.</p>
+          <div class="lp-values lp-values--rules">
+            <article class="lp-value">
+              <h3>Intake</h3>
+              <p>Cuestionario y clasificación del caso antes de pagar.</p>
             </article>
-            <article class="lp-value lp-lift">
-              <h3>Licencia para bufetes</h3>
-              <p>Suscripción mensual solo para operadores y firmas, no para el cliente final de cada trámite.</p>
+            <article class="lp-value">
+              <h3>Expediente</h3>
+              <p>Documentos, pago y mensajes en un solo lugar.</p>
             </article>
-            <article class="lp-value lp-lift">
-              <h3>Hecho para crecer</h3>
-              <p>Multi-tenant, multi-producto y LOPDP demo, sin la complejidad de un ERP legal legacy.</p>
+            <article class="lp-value">
+              <h3>Operador</h3>
+              <p>Revisión, minuta y aviso de estado al cliente.</p>
             </article>
           </div>
         </div>
@@ -154,12 +102,12 @@ interface Product {
       <section class="lp-section soft">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Del intake al cierre en <span class="lp-highlight">un solo lugar.</span></h2>
-            <p>Ciclo completo del expediente integrado en la plataforma.</p>
+            <h2>Del intake al cierre, <span class="lp-highlight">cinco pasos.</span></h2>
+            <p>Ciclo del expediente en la plataforma.</p>
           </div>
-          <div class="lp-steps">
-            @for (s of workflow; track s.title) {
-              <article class="lp-step lp-lift">
+          <div class="lp-steps ls-choreo">
+            @for (s of workflow; track s.title; let i = $index) {
+              <article class="lp-step" [style.--i]="i">
                 <div class="lp-step-num">{{ s.n }}</div>
                 <h3>{{ s.title }}</h3>
                 <p>{{ s.desc }}</p>
@@ -169,61 +117,47 @@ interface Product {
         </div>
       </section>
 
-      <section class="lp-section">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <h2>Simplifica la carga legal <span class="lp-highlight">de rutina.</span></h2>
-            <p>Trazabilidad, honorarios claros y roles de demostración en un solo login.</p>
-          </div>
-          <app-landing-statistics theme="legalstation" [stats]="platformStats" />
-        </div>
-      </section>
-
-      <section class="lp-section soft">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <h2>Confianza de <span class="lp-highlight">firmas en la región.</span></h2>
-          </div>
-          <app-elastic-gallery theme="legalstation" [items]="clientGallery" defaultActive="02" />
-        </div>
-      </section>
-
       <section class="lp-section" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Licencia para bufetes</p>
-            <h2>Opera LegalStation con <span class="lp-highlight">tu firma.</span></h2>
-            <p>Solo abogados y operadores. El cliente final paga honorarios por trámite, no esta licencia.</p>
+            <h2>Licencia demo para <span class="lp-highlight">operar la plataforma.</span></h2>
+            <p>Tarifas de demostración para operadores. El cliente del trámite no paga esta licencia.</p>
           </div>
-          <div class="lp-pricing">
-            @for (plan of plans; track plan.name) {
-              <article class="lp-plan lp-lift" [class.featured]="plan.featured">
-                @if (plan.featured) { <span class="lp-plan-tag">Más popular</span> }
-                <h3>{{ plan.name }}</h3>
-                <p class="lp-muted">{{ plan.audience }}</p>
-                <div class="lp-plan-price">\${{ plan.price }}<small>/mes</small></div>
-                <ul>
-                  @for (item of plan.items; track item) { <li>{{ item }}</li> }
-                </ul>
-                <a routerLink="/auth" [queryParams]="{ returnUrl: '/fase2/billing' }" class="lp-btn lp-btn-outline">Ver licencia demo</a>
-              </article>
+          <div class="pricing-lead">
+            <article class="lp-plan featured">
+              <span class="lp-plan-tag">Licencia demo</span>
+              <h3>{{ featuredPlan.name }}</h3>
+              <p class="lp-muted">{{ featuredPlan.audience }}</p>
+              <div class="lp-plan-price">\${{ featuredPlan.price }}<small>/mes</small></div>
+              <ul>
+                @for (item of featuredPlan.items; track item) { <li>{{ item }}</li> }
+              </ul>
+              <a routerLink="/auth" [queryParams]="{ returnUrl: '/fase2/billing' }" class="lp-btn lp-btn-outline">Ver licencia demo</a>
+            </article>
+          </div>
+          <p class="lp-muted other-plans">
+            Otras licencias demo:
+            @for (plan of otherPlans; track plan.name; let last = $last) {
+              <a routerLink="/auth" [queryParams]="{ returnUrl: '/fase2/billing' }" class="lp-link">{{ plan.name }}</a>
+              @if (!last) { <span aria-hidden="true">·</span> }
             }
-          </div>
+          </p>
         </div>
       </section>
 
       <section class="lp-section soft">
         <div class="lp-shell lp-enterprise">
           <div class="lp-enterprise-copy">
-            <h2>Despliegues a medida, <span class="lp-highlight">en tus términos.</span></h2>
+            <h2>Enterprise en demo</h2>
             <p>
-              Para firmas con requisitos estrictos de datos: instancia dedicada, SSO y SLA demo.
+              Instancia dedicada, SSO y SLA de demostración para firmas que necesitan datos aislados.
+              Consulta demo. No es un contrato.
             </p>
             <button type="button" class="lp-btn lp-btn-primary" (click)="notify('Enterprise')">Solicitar consulta</button>
           </div>
           <div class="lp-enterprise-grid">
             @for (e of enterprise; track e.title) {
-              <article class="lp-value lp-lift">
+              <article class="lp-value">
                 <h3>{{ e.title }}</h3>
                 <p>{{ e.desc }}</p>
               </article>
@@ -232,30 +166,46 @@ interface Product {
         </div>
       </section>
 
-      <section class="lp-cta-panel">
-        <div class="lp-shell">
-          <div class="lp-cta-inner">
-            <h2>Empieza por Divorcio360, el producto en vivo.</h2>
-            <p>Cuestionario, pago, expediente y firma en un solo flujo demo.</p>
-            <div class="lp-cta-buttons">
-              <a routerLink="/cuestionario" class="lp-cta-primary">Comenzar</a>
-              <a routerLink="/auth" class="lp-cta-ghost">Ingresar</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      @if (toast) { <div class="lp-toast">{{ toast }}</div> }
+      @if (toast) {
+        <div class="lp-toast toast-fade" role="status" aria-live="polite">{{ toast }}</div>
+      }
     </div>
   `,
   styles: [`
-    .legalstation-landing {
-      --lp-accent: var(--brand);
-      --lp-accent-deep: var(--brand-deep);
-      --lp-accent-soft: oklch(0.94 0.03 190);
+    .soon-wrap {
+      margin-top: 2rem;
     }
 
-    .lp-muted { color: var(--lp-ink-muted); font-size: 0.9rem; margin: 0; }
+    .soon-wrap h3 {
+      margin-bottom: 0.35rem;
+    }
+
+    .soon-list {
+      max-width: 42rem;
+      margin-top: 0.75rem;
+    }
+
+    .soon-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.75rem 1rem;
+      align-items: center;
+    }
+
+    .pricing-lead {
+      display: grid;
+      grid-template-columns: minmax(16rem, 26rem);
+      justify-content: center;
+    }
+
+    .other-plans {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.35rem 0.85rem;
+      margin-top: 1.25rem;
+    }
 
     .lp-enterprise {
       display: grid;
@@ -266,7 +216,7 @@ interface Product {
 
     .lp-enterprise-copy h2 {
       font-size: clamp(1.5rem, 3vw, 2rem);
-      margin: 0.5rem 0 0.85rem;
+      margin: 0 0 0.85rem;
     }
 
     .lp-enterprise-copy p { margin-bottom: 1.25rem; }
@@ -277,103 +227,69 @@ interface Product {
       gap: 1rem;
     }
 
+    .toast-fade {
+      opacity: 1;
+      transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+    }
+
     @media (max-width: 960px) {
       .lp-enterprise { grid-template-columns: 1fr; }
     }
 
-    .lp-tools-band {
-      background: var(--lp-bg-soft);
-      padding: 2.5rem 0 4rem;
-      border-top: 1px solid var(--lp-border);
+    @media (max-width: 720px) {
+      .soon-item { grid-template-columns: 1fr; }
+      .pricing-lead { grid-template-columns: minmax(0, 1fr); }
     }
   `]
 })
-export class SaasLandingComponent {
+export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   toast = '';
-  activeSlide = 0;
-  platformStats: StatItem[] = LEGALSTATION_PLATFORM_STATS;
-  clientGallery: GalleryItem[] = LEGALSTATION_CLIENT_GALLERY;
+  heroImages = LEGALSTATION_HERO_IMAGES;
+  liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
+  comingSoon = LEGALSTATION_CATALOG.filter((p) => !p.live);
+  workflow = LEGALSTATION_WORKFLOW;
+  featuredPlan = LEGALSTATION_PLANS.find((p) => p.featured)!;
+  otherPlans = LEGALSTATION_PLANS.filter((p) => !p.featured);
+  enterprise = LEGALSTATION_ENTERPRISE;
+  private io?: IntersectionObserver;
 
-  heroImages: [string, string, string] = [
-    'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
-  ];
+  constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
 
-  get activeProduct(): Product {
-    return this.products[this.activeSlide];
+  ngAfterViewInit(): void {
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo');
+    this.io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-choreo');
+          this.io?.unobserve(entry.target);
+        }
+      },
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.14 },
+    );
+    nodes.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const alreadyIn = rect.top < window.innerHeight * 0.88 && rect.bottom > 0;
+      if (alreadyIn) return;
+      this.io!.observe(el);
+    });
   }
 
-  products: Product[] = [
-    {
-      id: 'divorcio360', name: 'Divorcio360', icon: 'scale',
-      pillDesc: 'Contratos de divorcio notarial',
-      showcaseDesc: 'Intake con cuestionario inteligente, pago, expediente de 10 estados y firma. El flujo completo en vivo.',
-      showcaseImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Mutuo consentimiento con intake, pago y expediente trazable.',
-      image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
-      features: ['Cuestionario inteligente', '10 estados de trámite', 'Firma y minuta mock'],
-      route: '/productos/divorcio360',
-    },
-    {
-      id: 'traslado360', name: 'Traslado360', icon: 'file',
-      pillDesc: 'Traslado de vehículo',
-      showcaseDesc: 'Mutuo acuerdo, pago único, documentos y reunión virtual con notario. Traslado de dominio vehicular demo.',
-      showcaseImage: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Traslado vehicular con acuerdo mutuo y firma notarial.',
-      image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80',
-      features: ['Sitio producto completo', 'Pago único mock', 'Consulta + notaría virtual'],
-      route: '/productos/traslado360',
-    },
-    {
-      id: 'bienraiz360', name: 'BienRaiz360', icon: 'building',
-      pillDesc: 'Traslado de inmueble',
-      showcaseDesc: 'Traslado de dominio de terreno o inmueble. Ambas partes de acuerdo, reunión virtual con notario.',
-      showcaseImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=80',
-      tagline: 'Traslado de bienes inmuebles con comparecencia digital.',
-      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-      features: ['Sitio producto completo', 'Honorario único', 'Expediente trazable'],
-      route: '/productos/bienraiz360',
-    },
-  ];
-
-  workflow = [
-    { n: 1, title: 'Intake', desc: 'Cuestionario y clasificación automática del caso.' },
-    { n: 2, title: 'Expediente', desc: 'Documentos, pago y mensajes en un solo lugar.' },
-    { n: 3, title: 'Revisión', desc: 'Operador aprueba, genera minuta y comunica al cliente.' },
-    { n: 4, title: 'Firma', desc: 'Firma electrónica con evidencia y notificaciones.' },
-    { n: 5, title: 'Cierre', desc: 'Notaría, registro y archivo con auditoría completa.' },
-  ];
-
-  plans = [
-    { name: 'Starter', audience: 'Bufete pequeño, licencia operador', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión demo por venta'], featured: false },
-    { name: 'Professional', audience: 'Equipo en crecimiento', price: 249, items: ['3 productos live', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync demo'], featured: true },
-    { name: 'Enterprise', audience: 'Multi-sede', price: 599, items: ['Productos ilimitados', 'SSO demo', 'Comisión negociable', 'White-label ready'], featured: false },
-  ];
-
-  enterprise = [
-    { title: 'Aislamiento completo', desc: 'Infraestructura dedicada: tus datos separados del resto de tenants demo.' },
-    { title: 'En tus términos', desc: 'On-prem o nube privada con SSO, logs y control administrativo.' },
-    { title: 'White-label', desc: 'Marca y flujos adaptados a tu firma o grupo legal.' },
-    { title: 'SLA y partnership', desc: 'Colaboración con tu equipo de TI y soporte prioritario demo.' },
-  ];
-
-  constructor(public auth: AuthService) {}
-
-  selectSlide(i: number): void {
-    this.activeSlide = i;
+  ngOnDestroy(): void {
+    this.io?.disconnect();
   }
 
-  prevSlide(): void {
-    this.activeSlide = (this.activeSlide - 1 + this.products.length) % this.products.length;
-  }
-
-  nextSlide(): void {
-    this.activeSlide = (this.activeSlide + 1) % this.products.length;
+  /** Siempre al cuestionario del producto seleccionado. */
+  openProduct(p: ProductCatalogEntry): void {
+    if (!p.route) return;
+    setActiveProduct(p.id);
+    void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
   }
 
   notify(name: string): void {
-    this.toast = `${name}: demo registrada — te avisaremos (simulación)`;
+    this.toast = `${name}: demo registrada. Te avisaremos (simulación)`;
     setTimeout(() => this.toast = '', 3500);
   }
 }

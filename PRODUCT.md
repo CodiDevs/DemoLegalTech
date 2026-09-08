@@ -1,47 +1,35 @@
-# Product
+# Divorcio360 product direction
 
 ## Register
 
-product
+brand
 
-## Users
+## Audience
 
-Tres roles en un walkthrough de stakeholder (Ecuador, español):
+Familias que necesitan entender si un divorcio por mutuo acuerdo puede seguir un recorrido digital, y operadores jurídicos que deben revisar el mismo expediente.
 
-- **Cliente:** persona que inicia un trámite notarial (divorcio, traslado vehicular, inmueble). Llega desde marketing, califica en cuestionario, paga, carga documentos, firma, asiste a consulta/notaría demo.
-- **Abogado / operador:** revisa expediente, aprueba documentos, genera minuta, avanza estados 01–10, usa bandeja SLA y mocks Fase 2.
-- **Notario:** cierra el expediente en reunión virtual demo.
+## Trust rule
 
-Contexto: demo de producto, no producción. El usuario está cansado, en el teléfono o en una mesa de bufete, y no debe adivinar la marca.
+Este repositorio es una demostración. Clientes, integraciones, valores y plazos deben rotularse como demo salvo que CodiDevs tenga evidencia verificable y permiso de publicación.
 
-## Product Purpose
+## Visual language
 
-**LegalStation** es la plataforma SaaS multi-producto. **Divorcio360** es el flujo live; Traslado360 y BienRaiz360 son sitios de producto con cuestionario. Pagos Payphone y firma documental son demostraciones.
+- Base neutra cálida, superficies planas y teal jurídico desde `frontend/src/styles/tokens.scss`.
+- Fraunces en headings e Inter en texto. Esta pareja es una excepción deliberada al filtro no-slop porque distingue contenido editorial de controles operativos.
+- Sin gradientes decorativos, glassmorphism, glows, botones pill ni hover con transform.
+- Radios máximos: `var(--radius-lg)` para contenedores y `var(--radius-md)` para controles.
 
-Éxito: un stakeholder recorre `/` → producto → cuestionario → auth → expediente sin preguntar “¿esto es otro sitio?”. Identidad visual única (Sora + teal legal-ops). Copyright de footer: `© 2026 CodiDevs · Demo LegalStation` (no añadir “Hecho por CodiDevs” salvo que el fundador lo pida).
+## Motion
 
-## Brand Personality
+- Una firma expresiva: reveal circular del expediente en el hero.
+- Entradas breves con opacity/transform; sin blur.
+- Menús y hover usan color u opacidad entre 100ms y 200ms.
+- `prefers-reduced-motion` muestra todo el contenido sin pin ni autoplay.
 
-Quiet Quito evening desk. Tres palabras: **preciso, sereno, operacional**.
+## Conversion
 
-Voz: español claro, términos legales solo cuando el trámite los exige, slogan canónico *Servicios jurídicos al mismo costo, sin filas ni trámites.* Confianza de bufete, no urgencia de ads. Marketing sigue al producto, no al revés.
+Una acción primaria por sesión:
 
-## Anti-references
-
-- Clon Talking Tree (cream + Inter + indigo `#4455c4`).
-- Tres sistemas a la vez (Inter / Fraunces / Sora; cream / teal; isla hero `#0d0f0d` en página clara).
-- SaaS slop: métricas inventadas en el hero, cejas uppercase en cada sección, 7 cards idénticas de “producto”, CTA con cuatro nombres para la misma acción.
-- Footer de 4 columnas en wizard y auth.
-- Glassmorphism, gradient text, navy-gold “legal cliché”.
-
-## Design Principles
-
-1. **Una identidad.** Tipo, color y CTA vienen de `tokens.scss`. Landings de producto no inventan acento azul o marrón.
-2. **El trámite es el foco.** En wizard, un paso, un footer corto, un CTA.
-3. **Mostrar el expediente, no el pitch.** Catálogo marketing existe para entrar a Divorcio360, no para competir con el flujo.
-4. **Salidas visibles.** Skip-link, 404 real, volver, labels en auth.
-5. **Demo honesta.** Honorarios y “firmas demo” no se disfrazan de métricas de mercado.
-
-## Accessibility & Inclusion
-
-Piso WCAG AA: contraste body ≥4.5:1, `:focus-visible` en tokens, skip-link al `#main`, inputs con `for`/`id`, `prefers-reduced-motion` en animaciones, títulos de documento por ruta. Español `lang="es"`. No transmitir estado solo con color (Sí/No del cuestionario necesita más que verde/rojo).
+- Guest: `Evaluar mi caso` → `/cuestionario`.
+- Cliente: `Mis expedientes` → `/cliente`.
+- Abogado: `Panel de casos` → `/abogado`.

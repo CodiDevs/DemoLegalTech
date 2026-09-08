@@ -16,7 +16,7 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
         <div>
           <h2>{{ data.current_tenant.name }}</h2>
           <p class="muted">Plan actual: <strong>{{ data.current_tenant.plan_label || data.current_tenant.plan }}</strong></p>
-          <p class="muted">Comisión demo: {{ data.current_tenant.commission_pct }}% abogado · {{ data.current_tenant.platform_pct }}% plataforma</p>
+          <p class="muted">Comisión: {{ data.current_tenant.commission_pct }}% abogado · {{ data.current_tenant.platform_pct }}% plataforma</p>
         </div>
         <div class="usage">
           <strong>{{ data.current_tenant.cases_used }} / {{ data.current_tenant.cases_limit }}</strong>
@@ -77,21 +77,21 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
   styles: [`
     .tenant { display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; }
     .usage { min-width: 200px; text-align: right; }
-    .usage strong { font-family: var(--font-display); font-size: 1.5rem; display: block; }
-    .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 0.5rem; }
+    .usage strong { font-weight: 650; font-size: 1.5rem; display: block; }
+    .bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 0.5rem; }
     .bar span { display: block; height: 100%; background: var(--brand); }
     .toggle { display: flex; gap: 0.5rem; margin: 1.25rem 0; }
     .toggle .on { background: var(--brand); color: white; border-color: var(--brand); }
     .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    .plan ul { padding-left: 1.1rem; color: var(--ink-soft); font-size: 0.9rem; }
+    .plan ul { padding-left: 1.1rem; color: var(--text-secondary); font-size: 0.9rem; }
     .plan.current { outline: 2px solid oklch(0.55 0.12 150 / 0.35); }
-    .price { font-family: var(--font-display); font-size: 1.6rem; }
+    .price { font-weight: 650; font-size: 1.6rem; }
     .modal-backdrop {
       position: fixed; inset: 0; background: oklch(0.15 0.02 230 / 0.45);
       display: grid; place-items: center; z-index: 50; padding: 1rem;
     }
     .modal { max-width: 420px; width: 100%; }
-    .ref-link { display: block; padding: 0.75rem; background: var(--line); border-radius: 8px; word-break: break-all; font-size: 0.85rem; margin: 0.75rem 0; }
+    .ref-link { display: block; padding: 0.75rem; background: var(--border); border-radius: 8px; word-break: break-all; font-size: 0.85rem; margin: 0.75rem 0; }
     .link-card { margin-top: 1rem; }
     @media (max-width: 900px) { .plans { grid-template-columns: 1fr; } }
   `]

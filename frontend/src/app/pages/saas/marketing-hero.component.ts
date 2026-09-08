@@ -1,67 +1,73 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { IconComponent } from '../../shared/icon.component';
+import { LandingIconName } from './landing-icon.component';
 
 export interface HeroStat {
   value: string;
   label: string;
-  icon: string;
+  icon: LandingIconName;
+}
+
+interface HeroAction {
+  label: string;
+  route: string;
+  query?: Record<string, string>;
 }
 
 @Component({
   selector: 'app-marketing-hero',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, IconComponent],
   template: `
     <section class="mk-hero" [class.theme-divorcio]="theme === 'divorcio'">
       <div class="mk-hero-shell">
         <div class="mk-hero-copy">
           <h1>
-            {{ titleLine1 }}<br />
+            {{ titleLine1 }}
             <span class="mk-accent">{{ titleHighlight }}</span>
           </h1>
-          <p class="mk-sub">{{ subtitle }}</p>
-          <p class="mk-lede">{{ lede }}</p>
+
+          <p class="mk-lede">{{ subtitle }}</p>
+
           <div class="mk-cta">
-            @if (auth.user()?.role === 'abogado') {
-              <a routerLink="/abogado" class="mk-btn mk-btn-primary">{{ primaryCta }}</a>
-              <a routerLink="/fase2/admin" class="mk-btn mk-btn-outline">Ver Fase 2</a>
-            } @else if (auth.user()?.role === 'cliente') {
-              @if (primaryFragment) {
-                <a href="#" class="mk-btn mk-btn-primary" (click)="scrollToSection($event, primaryFragment)">{{ primaryCta }}</a>
-              } @else {
-                <a [routerLink]="primaryRoute" class="mk-btn mk-btn-primary">{{ primaryCta }}</a>
-              }
-              @if (showSecondary && secondaryCta === 'Volver a Divorcio360') {
-                <a routerLink="/productos/divorcio360" class="mk-btn mk-btn-outline">{{ secondaryCta }}</a>
-              } @else if (showSecondary) {
-                <a routerLink="/cliente" class="mk-btn mk-btn-outline">Mi expediente</a>
-              }
-            } @else if (auth.isLoggedIn) {
-              @if (primaryFragment) {
-                <a href="#" class="mk-btn mk-btn-primary" (click)="scrollToSection($event, primaryFragment)">{{ primaryCta }}</a>
-              } @else {
-                <a [routerLink]="primaryRoute" class="mk-btn mk-btn-primary">{{ primaryCta }}</a>
-              }
-              @if (showSecondary && secondaryCta === 'Volver a Divorcio360') {
-                <a routerLink="/productos/divorcio360" class="mk-btn mk-btn-outline">{{ secondaryCta }}</a>
-              }
+            @if (useFragment) {
+              <a
+                class="btn btn-primary btn-lg mk-cta-btn"
+                [href]="'#' + primaryFragment"
+                (click)="scrollToSection($event, primaryFragment)"
+              >
+                <span>{{ primaryLabel }}</span>
+                <span class="mk-cta-chip" aria-hidden="true">
+                  <app-icon name="arrow-right" [size]="16" />
+                </span>
+              </a>
             } @else {
-              @if (primaryFragment) {
-                <a href="#" class="mk-btn mk-btn-primary" (click)="scrollToSection($event, primaryFragment)">{{ primaryCta }}</a>
-              } @else {
-                <a [routerLink]="primaryRoute" class="mk-btn mk-btn-primary">{{ primaryCta }}</a>
-              }
-              @if (showSecondary) {
-                <a routerLink="/auth" [queryParams]="secondaryAuthQuery" class="mk-btn mk-btn-outline">{{ secondaryCta }}</a>
-              }
+              <a class="btn btn-primary btn-lg mk-cta-btn" [routerLink]="primaryLink">
+                <span>{{ primaryLabel }}</span>
+                <span class="mk-cta-chip" aria-hidden="true">
+                  <app-icon name="arrow-right" [size]="16" />
+                </span>
+              </a>
+            }
+
+            @if (secondaryAction) {
+              <a
+                [routerLink]="secondaryAction.route"
+                [queryParams]="secondaryAction.query"
+                class="btn btn-secondary btn-lg"
+              >{{ secondaryAction.label }}</a>
             }
           </div>
         </div>
-        <div class="mk-collage" aria-hidden="true">
-          <img class="img-a" [src]="images[0]" alt="" loading="eager" />
-          <img class="img-b" [src]="images[1]" alt="" loading="lazy" />
-          <img class="img-c" [src]="images[2]" alt="" loading="lazy" />
+
+        <div class="mk-visual">
+          @if (images[0]) {
+            <div class="mk-bezel">
+              <img [src]="images[0]" alt="Trámite en línea LegalStation" loading="eager" />
+            </div>
+          }
         </div>
       </div>
     </section>
@@ -69,178 +75,175 @@ export interface HeroStat {
   styles: [`
     :host {
       display: block;
-      --mk-accent: var(--brand);
-      --mk-accent-deep: var(--brand-deep);
-      --mk-accent-soft: oklch(0.94 0.03 190);
+      --mk-accent: var(--primary);
+      --mk-accent-soft: var(--primary-subtle);
     }
 
     :host(.theme-divorcio), .theme-divorcio {
-      --mk-accent: var(--brand);
-      --mk-accent-deep: var(--brand-deep);
-      --mk-accent-soft: oklch(0.94 0.03 190);
+      --mk-accent: var(--primary);
+      --mk-accent-soft: var(--primary-subtle);
     }
 
     .mk-hero {
-      overflow-x: clip;
-      background: var(--paper);
-      padding: clamp(2rem, 5vw, 4rem) 0 clamp(2.5rem, 4vw, 3.5rem);
-      font-family: var(--font-body);
-    }
-
-    .theme-divorcio.mk-hero {
-      background: linear-gradient(180deg, var(--paper) 0%, white 100%);
+      display: grid;
+      align-items: center;
+      min-height: min(88dvh, 54rem);
+      background: var(--bg);
+      padding-block: var(--space-8) var(--space-9);
     }
 
     .mk-hero-shell {
-      max-width: 1320px;
-      margin: 0 auto;
-      padding: 0 clamp(1.25rem, 3vw, 2.5rem);
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: clamp(2rem, 4vw, 3rem);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: var(--space-8);
       align-items: center;
+      max-width: var(--container-wide);
+      margin-inline: auto;
+      padding-inline: var(--container-pad);
     }
 
     .mk-hero-copy h1 {
-      font-size: clamp(2.5rem, 5.5vw, 4rem);
-      font-weight: 700;
-      line-height: 1.05;
+      font-size: clamp(2.75rem, 6vw, 4.65rem);
+      font-weight: 600;
+      line-height: 0.98;
       letter-spacing: -0.04em;
-      color: var(--ink);
-      margin: 0 0 1rem;
+      max-width: 11ch;
+      margin: 0 0 var(--space-5);
+      text-wrap: balance;
     }
 
     .mk-accent { color: var(--mk-accent); }
 
-    .mk-sub {
-      font-size: clamp(1.05rem, 2vw, 1.25rem);
-      font-weight: 700;
-      color: var(--ink);
-      margin: 0 0 0.85rem;
-    }
-
     .mk-lede {
-      font-size: 1.05rem;
-      line-height: 1.65;
-      color: var(--ink-soft);
-      max-width: 52ch;
-      margin: 0 0 1.75rem;
+      max-width: 38ch;
+      margin: 0 0 var(--space-6);
+      font-size: var(--text-lg);
+      line-height: var(--leading-normal);
+      color: var(--text-secondary);
     }
 
     .mk-cta {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.85rem;
-      margin-bottom: 2rem;
+      gap: var(--space-3);
     }
 
-    .mk-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.88rem 1.5rem;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.95rem;
+    .mk-cta a.btn {
       text-decoration: none;
-      border: 0;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      color: var(--btn-fg);
     }
 
-    .mk-btn:hover { transform: translateY(-1px); }
-
-    .mk-btn-primary {
-      background: var(--mk-accent);
-      color: white;
-      box-shadow: 0 10px 24px color-mix(in srgb, var(--mk-accent) 35%, transparent);
+    .mk-cta a.btn:hover {
+      text-decoration: none;
+      color: var(--btn-fg);
     }
 
-    .mk-btn-outline {
-      background: transparent;
-      color: var(--ink);
-      border: 1.5px solid var(--line);
+    .mk-cta-btn {
+      gap: var(--space-3);
+      transition: transform 140ms var(--ease);
     }
 
-    .mk-btn-outline:hover { border-color: var(--mk-accent); color: var(--mk-accent); }
-
-    .mk-stats {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.25rem 1.75rem;
+    .mk-cta-btn:active {
+      transform: scale(0.97);
     }
 
-    .mk-stat {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-    }
-
-    .mk-stat-icon {
-      width: 2.25rem;
-      height: 2.25rem;
-      border-radius: 999px;
-      background: var(--mk-accent-soft);
-      color: var(--mk-accent);
+    .mk-cta-chip {
       display: grid;
       place-items: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: var(--radius-md);
+      background: color-mix(in srgb, #fff 18%, transparent);
+      transition: transform var(--dur-base) var(--ease);
     }
 
-    .mk-stat strong {
-      display: block;
-      font-size: 1rem;
-      color: var(--ink);
+    .mk-cta-btn:hover .mk-cta-chip {
+      transform: translateX(3px);
     }
 
-    .mk-stat span {
-      font-size: 0.82rem;
-      color: var(--ink-soft);
-    }
-
-    .mk-collage {
-      position: relative;
-      min-height: 420px;
+    .mk-bezel {
+      padding: 0.4rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius-lg) + 4px);
+      background: var(--surface);
+      box-shadow: var(--shadow-lg);
       overflow: hidden;
     }
 
-    .mk-collage img {
-      position: absolute;
+    .mk-visual img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
       object-fit: cover;
-      border-radius: 18px;
-      box-shadow: 0 20px 50px rgb(42 49 72 / 0.12);
+      border-radius: var(--radius-lg);
     }
 
-    .img-a {
-      width: 58%;
-      height: 52%;
-      top: 8%;
-      left: 0;
-      z-index: 1;
+    @media (prefers-reduced-motion: no-preference) {
+      .mk-hero-copy h1 {
+        animation: mk-in 0.52s var(--ease-out) both;
+      }
+
+      .mk-lede {
+        animation: mk-in 0.48s var(--ease-out) 0.06s both;
+      }
+
+      .mk-cta {
+        animation: mk-in 0.42s var(--ease-out) 0.12s both;
+      }
+
+      .mk-visual img {
+        animation:
+          mk-wipe 0.85s cubic-bezier(0.77, 0, 0.175, 1) both,
+          mk-drift 28s var(--ease) 0.85s infinite alternate;
+      }
+
+      .mk-bezel:hover img {
+        animation-play-state: paused;
+      }
     }
 
-    .img-b {
-      width: 48%;
-      height: 44%;
-      top: 0;
-      right: 0;
-      z-index: 2;
+    @keyframes mk-in {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: none; }
     }
 
-    .img-c {
-      width: 62%;
-      height: 48%;
-      bottom: 0;
-      right: 8%;
-      z-index: 3;
+    @keyframes mk-wipe {
+      from { clip-path: inset(0 0 100% 0); }
+      to { clip-path: inset(0 0 0 0); }
+    }
+
+    @keyframes mk-drift {
+      from { transform: scale(1); }
+      to { transform: scale(1.045); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mk-hero-copy h1,
+      .mk-lede,
+      .mk-cta {
+        animation: none;
+      }
+
+      .mk-cta-chip,
+      .mk-cta-btn { transition: none; }
+      .mk-cta-btn:hover .mk-cta-chip,
+      .mk-cta-btn:active { transform: none; }
     }
 
     @media (max-width: 960px) {
+      .mk-hero {
+        min-height: 0;
+        padding-block: var(--space-7);
+      }
+
       .mk-hero-shell { grid-template-columns: 1fr; }
-      .mk-collage { min-height: 280px; max-width: min(420px, 100%); margin: 0 auto; }
+      .mk-visual { order: -1; max-width: 26rem; }
+      .mk-hero-copy h1 { max-width: 14ch; }
     }
 
-    @media (max-width: 480px) {
-      .mk-hero-copy h1 { font-size: clamp(1.85rem, 9vw, 2.5rem); }
-      .mk-collage { min-height: 200px; }
+    @media (max-width: 560px) {
+      .mk-hero { padding-block: var(--space-6); }
+      .mk-visual img { aspect-ratio: 4 / 3; }
     }
   `],
 })
@@ -249,6 +252,7 @@ export class MarketingHeroComponent {
   @Input() titleLine1 = 'Ahorra horas con';
   @Input() titleHighlight = 'tecnología legal multi-trámite.';
   @Input() subtitle = 'Herramientas enterprise. Precio SaaS accesible.';
+  /** Se mantiene por compatibilidad: el hero solo muestra un párrafo para no sobrecargarlo. */
   @Input() lede = '';
   @Input() primaryCta = 'Comenzar';
   @Input() secondaryCta = 'Cómo funciona';
@@ -256,16 +260,52 @@ export class MarketingHeroComponent {
   @Input() primaryFragment = '';
   @Input() showSecondary = true;
   @Input() secondaryAuthQuery: Record<string, string> = { returnUrl: '/' };
+  /** ponytail: unused — parent still binds [stats]; slice ships without fake KPIs. */
   @Input() stats: HeroStat[] = [];
   @Input() images: [string, string, string] = ['', '', ''];
 
   constructor(public auth: AuthService) {}
 
-  scrollToSection(event: Event, id: string): void {
-    event.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  private get role(): string | undefined {
+    return this.auth.user()?.role;
+  }
+
+  get useFragment(): boolean {
+    return !!this.primaryFragment && this.role !== 'abogado' && this.role !== 'cliente';
+  }
+
+  get primaryLink(): string {
+    if (this.role === 'abogado') return '/abogado';
+    if (this.role === 'cliente') return '/cliente';
+    return this.primaryRoute;
+  }
+
+  get primaryLabel(): string {
+    return this.role === 'cliente' ? 'Mis expedientes' : this.primaryCta;
+  }
+
+  get secondaryAction(): HeroAction | null {
+    if (!this.showSecondary) return null;
+    if (this.role === 'abogado') {
+      return { label: 'Ver Fase 2', route: '/fase2/admin' };
     }
+
+    if (this.secondaryCta === 'Volver a Divorcio360') {
+      return { label: this.secondaryCta, route: '/productos/divorcio360' };
+    }
+    if (this.role === 'cliente') {
+      return { label: 'Mi expediente', route: '/cliente' };
+    }
+    if (this.auth.isLoggedIn) return null;
+
+    return { label: this.secondaryCta, route: '/auth', query: this.secondaryAuthQuery };
+  }
+
+  scrollToSection(event: Event, id: string): void {
+    const el = document.getElementById(id);
+    if (!el) return;
+    event.preventDefault();
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   }
 }

@@ -1,26 +1,30 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProgressStepsComponent, ProgressStep } from './progress-steps.component';
+import { IconComponent } from './icon.component';
 
 export type ProductFlowTheme = 'divorcio' | 'legalstation' | 'traslado' | 'bienraiz';
 
 @Component({
   selector: 'app-product-flow-shell',
   standalone: true,
-  imports: [RouterLink, ProgressStepsComponent],
+  imports: [RouterLink, ProgressStepsComponent, IconComponent],
   template: `
     <div class="landing-page product-flow" [class]="'theme-' + theme">
       <div class="lp-shell">
         @if (crumb.length) {
-          <p class="pf-crumb">
-            @for (c of crumb; track c.label; let last = $last) {
+          <nav class="pf-crumb" aria-label="Dónde estás">
+            @for (c of crumb; track c.label; let first = $first; let last = $last) {
+              @if (!first) {
+                <app-icon name="chevron-right" [size]="14" />
+              }
               @if (c.link && !last) {
-                <a [routerLink]="c.link">{{ c.label }}</a> ›
+                <a [routerLink]="c.link">{{ c.label }}</a>
               } @else {
-                {{ c.label }}
+                <span [attr.aria-current]="last ? 'page' : null">{{ c.label }}</span>
               }
             }
-          </p>
+          </nav>
         }
         @if (eyebrow || title) {
           <header class="pf-head">
@@ -36,7 +40,6 @@ export type ProductFlowTheme = 'divorcio' | 'legalstation' | 'traslado' | 'bienr
       </div>
     </div>
   `,
-  styleUrls: ['../../styles/landing-shared.scss', '../../styles/product-flow.scss'],
 })
 export class ProductFlowShellComponent {
   @Input() theme: ProductFlowTheme = 'divorcio';

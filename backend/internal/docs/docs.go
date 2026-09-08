@@ -123,6 +123,53 @@ func (s *Service) Upload(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *Service) Delete(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFrom(r.Context())
+	if u.Role != "cliente" && u.Role != "abogado" {
+		writeErr(w, http.StatusForbidden, "acceso denegado")
+		return
+	}
+	caseID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil || caseID <= 0 {
+		writeErr(w, http.StatusBadRequest, "caso inválido")
+		return
+	}
+	docID, err := strconv.ParseInt(chi.URLParam(r, "docId"), 10, 64)
+	if err != nil || docID <= 0 {
+		writeErr(w, http.StatusBadRequest, "documento inválido")
+		return
+	}
+	c, err := s.loadCase(caseID)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "caso no encontrado")
+		return
+	}
+	if u.Role == "cliente" && c.ClientID != u.ID {
+		writeErr(w, http.StatusForbidden, "acceso denegado")
+		return
+	}
+	var storedPath string
+	err = s.DB.QueryRow(
+		`SELECT stored_path FROM documents WHERE id=? AND case_id=?`, docID, caseID,
+	).Scan(&storedPath)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "documento no encontrado")
+		return
+	}
+	res, err := s.DB.Exec(`DELETE FROM documents WHERE id=? AND case_id=?`, docID, caseID)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "no se pudo borrar")
+		return
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		writeErr(w, http.StatusNotFound, "documento no encontrado")
+		return
+	}
+	_ = os.Remove(filepath.Join(s.UploadDir, storedPath))
+	writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
+}
+
 func (s *Service) List(w http.ResponseWriter, r *http.Request) {
 	u := auth.UserFrom(r.Context())
 	caseID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)

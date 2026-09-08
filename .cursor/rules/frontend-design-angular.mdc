@@ -11,7 +11,7 @@ Al recibir referencia visual (ej. talkingtree.app) y datos de API:
 1. **Tokens:** Extraer jerarquía, espaciado, contraste y paleta — adaptar, no copiar literal.
 2. **Stack demo:** Angular 19 standalone, SCSS, Inter. **No** migrar a React/Tailwind salvo proyecto nuevo.
 3. **Componentes UI:** `frontend/src/app/shared/` y `pages/saas/`. Patrones shadcn se portan (estados hover, skeleton, badges), no se instala shadcn en este repo.
-4. **Marcas:** LegalStation = índigo `#4455c4` + crema `#fdfcfa`. Divorcio360 = terracota `#c45c4a` + `#fffaf8`.
+4. **Marcas:** LegalStation = teal primario `#2f6f68` + crema `#fdfcfa`. Divorcio360 = teal `#4a9e96` + `#f7fcfb`. No indigo `#4455c4`.
 5. **Hero:** `MarketingHeroComponent` — collage de imágenes estilo hero-section-9 (21st.dev), stats con iconos SVG.
 6. **Referencias React (21st.dev, Skiper):** Portar comportamiento a Angular; documentar en HANDOFF si no hay paridad 1:1.
 

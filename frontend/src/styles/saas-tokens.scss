@@ -1,17 +1,16 @@
-:root {
-  --saas-ink: var(--ink);
-  --saas-ink-soft: var(--ink-soft);
-  --saas-accent: var(--brand);
-  --saas-accent-deep: var(--brand-deep);
-  --saas-surface: var(--surface);
-  --saas-muted: var(--ink-soft);
-  --saas-hero-bg: var(--ink);
-  --saas-card: var(--brand-deep);
-}
+/* =========================================================================
+   Modos de fondo por tipo de página.
+   Los colores derivan de los tokens canónicos (styles/tokens.scss).
+   ========================================================================= */
 
 body.saas-mode,
+body.product-mode {
+  background: var(--bg);
+  color: var(--text);
+}
+
 body.product-landing-mode,
 body.divorcio-flow-mode {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--bg-subtle);
+  color: var(--text);
 }

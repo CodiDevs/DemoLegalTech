@@ -6,13 +6,39 @@ import { Component, Input } from '@angular/core';
   template: `<span class="badge" [class]="variant">{{ label }}</span>`,
   styles: [`
     .badge {
-      font-size: 0.72rem; font-weight: 600; padding: 0.15rem 0.5rem;
-      border-radius: 999px; background: var(--line); white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      line-height: 1.4;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border);
+      background: var(--bg-muted);
+      color: var(--text-secondary);
+      white-space: nowrap;
     }
-    .badge.warn { background: oklch(0.92 0.05 85); color: oklch(0.45 0.08 55); }
-    .badge.ok { background: oklch(0.92 0.04 150); color: var(--ok); }
-    .badge.bad { background: oklch(0.92 0.04 25); color: var(--bad); }
-    .badge.info { background: oklch(0.92 0.04 210); color: var(--brand-deep); }
+    .badge.ok {
+      background: var(--success-subtle);
+      border-color: var(--success-border);
+      color: var(--success);
+    }
+    .badge.warn {
+      background: var(--warning-subtle);
+      border-color: var(--warning-border);
+      color: var(--warning);
+    }
+    .badge.bad {
+      background: var(--danger-subtle);
+      border-color: var(--danger-border);
+      color: var(--danger);
+    }
+    .badge.info {
+      background: var(--info-subtle);
+      border-color: var(--info-border);
+      color: var(--info);
+    }
   `]
 })
 export class StatusBadgeComponent {

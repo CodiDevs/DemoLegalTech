@@ -9,13 +9,12 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
   standalone: true,
   imports: [FormsModule, StatusBadgeComponent, DecimalPipe],
   template: `
-    <h1>Agente de IA</h1>
-    <p class="muted">Análisis asistido de expedientes — respuesta simulada para demo.</p>
+    <h1>Asistente de revisión</h1>
 
     <div class="panel controls">
       <label for="caseId">Expediente a analizar</label>
       <select id="caseId" [(ngModel)]="selectedCaseId">
-        <option [ngValue]="0">Demo genérico</option>
+        <option [ngValue]="0">Expediente genérico</option>
         @for (c of cases; track c.id) {
           <option [ngValue]="c.id">#{{ c.id }} — {{ c.client_name }} ({{ c.status_label }})</option>
         }

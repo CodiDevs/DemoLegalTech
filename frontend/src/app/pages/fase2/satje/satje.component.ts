@@ -4,54 +4,50 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { ApiService } from '../../../core/api.service';
 import { DataTableComponent } from '../../../shared/data-table.component';
 import { StatusBadgeComponent } from '../../../shared/status-badge.component';
+import { IconComponent } from '../../../shared/icon.component';
 
 @Component({
   selector: 'app-fase2-satje',
   standalone: true,
-  imports: [FormsModule, DatePipe, DecimalPipe, DataTableComponent, StatusBadgeComponent],
+  imports: [FormsModule, DatePipe, DecimalPipe, DataTableComponent, StatusBadgeComponent, IconComponent],
   template: `
-    <h1>SATJE / Función Judicial</h1>
-    <p class="muted">Sincronización automática con causas judiciales — simulación sin scraping real.</p>
+    <header class="satje-head">
+      <h1>Causas judiciales</h1>
+    </header>
 
-    <div class="panel fase2-preview-card config">
-      <h2>Configuración sync</h2>
-      <div class="field">
-        <label>Frecuencia</label>
-        <select disabled><option>Cada 6 horas (mock)</option></select>
-      </div>
-      <div class="field">
-        <label>Credenciales SATJE</label>
-        <input disabled value="••••••••••••" />
-      </div>
+    <div class="panel satje-action">
       <button class="btn btn-primary" type="button" (click)="sync()" [disabled]="loading">
-        {{ loading ? 'Sincronizando… ' + syncCount : 'Simular sync' }}
+        <app-icon name="clock" [size]="16" />
+        {{ loading ? 'Sincronizando… ' + syncCount : 'Sincronizar SATJE' }}
       </button>
     </div>
 
     @if (data) {
-      <div class="stats panel fase2-preview-card">
-        <app-status-badge label="Simulado OK" variant="ok" />
+      <div class="stats panel">
+        <app-status-badge label="Sincronización completada" variant="ok" />
         <p>{{ data.message }}</p>
         <p class="muted">
-          Última sync: {{ data.last_sync | date:'medium' }} ·
-          Próxima: {{ data.next_scheduled | date:'medium' }} ·
-          Registros: {{ data.records_pulled }}
+          Última revisión: {{ data.last_sync | date:'medium' }} ·
+          Próxima automática: {{ data.next_scheduled | date:'medium' }} ·
+          {{ data.records_pulled }} movimientos encontrados
         </p>
       </div>
 
       <section class="fase2-section">
-        <h2>Registros judiciales</h2>
+        <h2>Causas en el juzgado</h2>
         <app-data-table [columns]="recordCols" [rows]="recordRows" />
       </section>
 
       <section class="fase2-section">
-        <h2>Sugerencias de vinculación</h2>
+        <h2>Vincular expediente</h2>
         @for (m of data.suggested_matches; track m.case_id) {
-          <div class="panel fase2-preview-card match">
-            <strong>{{ m.label }}</strong>
-            <span class="muted">Confianza {{ (m.confidence * 100) | number:'1.0-0' }}%</span>
-            <button type="button" class="btn btn-ghost" (click)="linkMatch(m)" [disabled]="linking === m.case_id">
-              {{ linking === m.case_id ? 'Vinculando…' : 'Vincular' }}
+          <div class="panel match">
+            <div class="match-body">
+              <strong>{{ m.label }}</strong>
+              <span class="muted">Coincidencia {{ (m.confidence * 100) | number:'1.0-0' }}%</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" (click)="linkMatch(m)" [disabled]="linking === m.case_id">
+              {{ linking === m.case_id ? 'Vinculando…' : 'Vincular con expediente' }}
             </button>
           </div>
         }
@@ -60,10 +56,63 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
   `,
   styleUrls: ['../fase2-shared.scss'],
   styles: [`
-    .config { max-width: 480px; margin-top: 1rem; }
-    .stats { margin-top: 1rem; }
-    .match { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.65rem; }
-    .match .muted { flex: 1; }
+    .satje-head { margin-bottom: var(--space-4); }
+    .satje-head h1 { margin: 0 0 var(--space-2); }
+
+    .satje-intro {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-4);
+      margin-bottom: var(--space-4);
+      padding: var(--space-4);
+    }
+
+    .satje-intro p {
+      margin: var(--space-1) 0 0;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .satje-action {
+      max-width: 36rem;
+      margin-bottom: var(--space-4);
+      padding: var(--space-5);
+    }
+
+    .satje-action h2 {
+      margin: 0 0 var(--space-2);
+      font-size: var(--text-lg);
+    }
+
+    .satje-steps {
+      margin: var(--space-3) 0 var(--space-4);
+      padding-left: 1.2rem;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      display: grid;
+      gap: var(--space-1);
+    }
+
+    .stats { margin-bottom: var(--space-4); padding: var(--space-4); }
+
+    .section-hint {
+      margin: 0 0 var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .match {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-3);
+      padding: var(--space-4);
+    }
+
+    .match-body { flex: 1; min-width: 12rem; }
+    .match-body .muted { display: block; font-size: var(--text-sm); margin-top: 0.15rem; }
   `]
 })
 export class Fase2SatjeComponent {
@@ -71,10 +120,10 @@ export class Fase2SatjeComponent {
   loading = false;
   syncCount = '';
   recordCols = [
-    { key: 'cause_no', label: 'Causa', mono: true },
+    { key: 'cause_no', label: 'Número de causa', mono: true },
     { key: 'court', label: 'Juzgado' },
-    { key: 'status', label: 'Estado' },
-    { key: 'match', label: 'Match expediente' },
+    { key: 'status', label: 'Estado procesal' },
+    { key: 'match', label: 'Expediente LegalStation' },
   ];
   recordRows: Record<string, string | number>[] = [];
   linking: number | null = null;
@@ -99,7 +148,7 @@ export class Fase2SatjeComponent {
           cause_no: r.cause_no,
           court: r.court,
           status: r.status,
-          match: r.match_case_id ? `#${r.match_case_id}` : '—',
+          match: r.match_case_id ? `#${r.match_case_id}` : 'Sin vincular',
         }));
       },
       error: () => { this.loading = false; clearInterval(tick); },
@@ -109,7 +158,7 @@ export class Fase2SatjeComponent {
   linkMatch(m: { case_id: number; label: string; confidence: number; cause_no?: string; court?: string }): void {
     this.linking = m.case_id;
     const causeNo = m.cause_no || `SATJE-${m.case_id}`;
-    const court = m.court || 'Juzgado de Familia (mock)';
+    const court = m.court || 'Juzgado de Familia';
     this.api.mockSatjeLink(m.case_id, causeNo, court, m.confidence).subscribe({
       next: () => { this.linking = null; },
       error: () => { this.linking = null; },

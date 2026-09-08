@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { IconComponent } from './icon.component';
 
 export interface ProgressStep {
   id: string;
@@ -8,40 +9,80 @@ export interface ProgressStep {
 @Component({
   selector: 'app-progress-steps',
   standalone: true,
+  imports: [IconComponent],
   template: `
     <div class="steps" role="list">
       @for (step of steps; track step.id; let i = $index) {
         <div class="step" role="listitem"
           [class.done]="i < activeIndex"
-          [class.active]="i === activeIndex">
-          <span class="dot">{{ i + 1 }}</span>
+          [class.active]="i === activeIndex"
+          [attr.aria-current]="i === activeIndex ? 'step' : null">
+          <span class="dot">
+            @if (i < activeIndex) {
+              <app-icon name="check" [size]="12" [strokeWidth]="2.5" />
+            } @else {
+              {{ i + 1 }}
+            }
+          </span>
           <span class="label">{{ step.label }}</span>
         </div>
       }
     </div>
   `,
   styles: [`
-    .steps { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .steps {
+      display: flex;
+      gap: var(--space-1);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-4);
+    }
+
     .step {
-      display: flex; align-items: center; gap: 0.35rem;
-      padding: 0.5rem 0.75rem; border-radius: 999px;
-      min-height: 44px; flex: 1 1 auto; min-width: 0;
-      border: 1px solid var(--line); font-size: 0.78rem; font-weight: 600;
-      color: var(--ink-soft); background: white;
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--surface);
     }
-    .step.done { border-color: oklch(0.55 0.12 150 / 0.4); color: var(--ok); }
-    .step.active { border-color: var(--brand); color: var(--brand-deep); background: oklch(0.94 0.02 210); }
+
+    .step.done {
+      border-color: var(--success-border);
+      color: var(--success);
+    }
+
+    .step.active {
+      border-color: var(--primary);
+      color: var(--primary-hover);
+      background: var(--primary-subtle);
+    }
+
     .dot {
-      width: 1.25rem; height: 1.25rem; border-radius: 50%;
-      display: grid; place-items: center; font-size: 0.7rem;
-      background: var(--line); flex-shrink: 0;
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: var(--radius-full);
+      display: grid;
+      place-items: center;
+      font-size: var(--text-xs);
+      background: var(--bg-muted);
+      color: var(--text-secondary);
     }
-    .step.done .dot { background: var(--ok); color: white; }
-    .step.active .dot { background: var(--brand); color: white; }
-    .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    @media (max-width: 520px) {
-      .step { flex: 1 1 calc(50% - 0.35rem); }
+
+    .step.done .dot {
+      background: var(--success);
+      color: var(--text-on-primary);
     }
+
+    .step.active .dot {
+      background: var(--primary);
+      color: var(--text-on-primary);
+    }
+
+    .label { white-space: nowrap; }
   `]
 })
 export class ProgressStepsComponent {

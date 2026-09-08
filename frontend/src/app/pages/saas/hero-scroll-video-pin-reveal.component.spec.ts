@@ -1,0 +1,135 @@
+import { signal } from '@angular/core';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { AuthService } from '../../core/auth.service';
+import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
+
+function motionQuery(reduce: boolean): MediaQueryList {
+  return {
+    matches: reduce,
+    media: '(prefers-reduced-motion: reduce)',
+    onchange: null,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => true,
+  };
+}
+
+function configureHero(): Promise<void> {
+  return TestBed.configureTestingModule({
+    imports: [HeroScrollVideoPinRevealComponent],
+    providers: [
+      provideRouter([]),
+      {
+        provide: AuthService,
+        useValue: {
+          isLoggedIn: false,
+          user: signal(null),
+        },
+      },
+    ],
+  }).compileComponents();
+}
+
+describe('HeroScrollVideoPinRevealComponent', () => {
+  let fixture: ComponentFixture<HeroScrollVideoPinRevealComponent>;
+
+  afterEach(() => {
+    if (fixture && !fixture.componentRef.hostView.destroyed) fixture.destroy();
+    ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    TestBed.resetTestingModule();
+  });
+
+  describe('con movimiento reducido', () => {
+    beforeEach(async () => {
+      spyOn(window, 'matchMedia').and.returnValue(motionQuery(true));
+      await configureHero();
+      fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
+      fixture.detectChanges();
+    });
+
+    it('renderiza un único H1 y la acción primaria en el primer bloque', () => {
+      const root = fixture.nativeElement as HTMLElement;
+
+      expect(root.querySelectorAll('h1').length).toBe(1);
+      expect(root.querySelector('.hsvr-intro')).toBeNull();
+      expect(root.querySelector('.hsvr-tags')).toBeNull();
+      expect(root.querySelector('.hsvr-btn-primary')?.getAttribute('href')).toBe('/cuestionario');
+    });
+
+    it('no consulta ni destruye ScrollTriggers globales al desmontarse', () => {
+      const getAllSpy = spyOn(ScrollTrigger, 'getAll').and.callThrough();
+
+      fixture.destroy();
+
+      expect(getAllSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('con movimiento', () => {
+    const rafPending = new Map<number, FrameRequestCallback>();
+    let rafSeq = 0;
+
+    function flushScheduledFrames(): void {
+      const queued = [...rafPending.entries()];
+      rafPending.clear();
+      for (const [, callback] of queued) {
+        callback(0);
+      }
+    }
+
+    beforeEach(async () => {
+      rafPending.clear();
+      rafSeq = 0;
+      spyOn(window, 'matchMedia').and.returnValue(motionQuery(false));
+      spyOn(window, 'requestAnimationFrame').and.callFake((callback: FrameRequestCallback) => {
+        rafSeq += 1;
+        rafPending.set(rafSeq, callback);
+        return rafSeq;
+      });
+      spyOn(window, 'cancelAnimationFrame').and.callFake((id: number) => {
+        rafPending.delete(id);
+      });
+      await configureHero();
+      fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
+    });
+
+    it('no inicializa GSAP ni refresca ScrollTrigger si se destruye antes del frame', fakeAsync(() => {
+      const refreshSpy = spyOn(ScrollTrigger, 'refresh');
+
+      fixture.detectChanges();
+      fixture.destroy();
+      flushScheduledFrames();
+      flushScheduledFrames();
+      tick(100);
+
+      expect(refreshSpy).not.toHaveBeenCalled();
+      expect(ScrollTrigger.getAll().length).toBe(0);
+    }));
+
+    it('no deja las palabras del H1 en opacity 0 si el reveal no arranca', fakeAsync(() => {
+      spyOn(ScrollTrigger, 'refresh').and.stub();
+
+      fixture.detectChanges();
+      flushScheduledFrames();
+      flushScheduledFrames();
+
+      const words = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll('.reveal-word'),
+      ) as HTMLElement[];
+
+      expect(words.length).toBeGreaterThan(0);
+      for (const word of words) {
+        expect(word.style.opacity).not.toBe('0');
+        expect(Number(getComputedStyle(word).opacity)).toBeGreaterThan(0);
+      }
+
+      fixture.destroy();
+      tick(100);
+      expect(ScrollTrigger.getAll().length).toBe(0);
+    }));
+  });
+});

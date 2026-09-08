@@ -1,650 +1,793 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
-import { Title } from '@angular/platform-browser';
-import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
-import { getActiveProduct, getProductSite } from '../shared/product-sites.data';
+import { getActiveProduct, getProductSite, getProductQuestionnairePath, getMarketingPrimaryAction, setActiveProduct, detectProductFromPath } from '../shared/product-sites.data';
+import { IconComponent, IconName } from '../shared/icon.component';
 
-const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/consulta', '/firma', '/reunion-notarial', '/caso', '/intake', '/productos/traslado360/cuestionario', '/productos/bienraiz360/cuestionario'];
+const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/consulta', '/firma', '/caso', '/intake', '/productos/traslado360/cuestionario', '/productos/bienraiz360/cuestionario'];
+
+interface NavLink {
+  label: string;
+  path: string;
+  fragment?: string;
+  exact?: boolean;
+}
+
+interface ActionLink {
+  label: string;
+  path: string;
+  query?: Record<string, string>;
+  variant: 'primary' | 'quiet';
+}
+
+interface ProductSwitcherItem {
+  id: string;
+  label: string;
+  path: string;
+}
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent],
   template: `
-    <a class="skip-link" href="#main">Saltar al contenido</a>
-    @if (isLegalStationMarketing) {
-      <header class="mk-header">
-        <div class="mk-bar">
-          <a routerLink="/" class="mk-brand">
-            <span class="mk-logo" aria-hidden="true">⚖</span>
-            LegalStation.
-          </a>
-          <nav class="mk-nav">
-            <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{exact:true}">Plataforma</a>
-            <a href="/#catalogo" (click)="goToSection($event, '/', 'catalogo')">Productos</a>
-            <a href="/#precios" (click)="goToSection($event, '/', 'precios')">Precios</a>
-            @if (auth.user()?.role === 'abogado') {
-              <a routerLink="/fase2/admin">Fase 2</a>
-            }
-          </nav>
-          <div class="mk-actions">
-            @if (auth.isLoggedIn) {
-              <span class="mk-user">{{ userFirstName }}</span>
-              @if (auth.user()?.role === 'abogado') {
-                <a routerLink="/abogado" class="mk-cta">Panel</a>
-              } @else {
-                <a routerLink="/cliente" class="mk-cta">Mi expediente</a>
-              }
-              <button type="button" class="mk-signin" (click)="auth.logout()">Salir</button>
-            } @else {
-              <a [routerLink]="['/auth']" [queryParams]="{ returnUrl: '/' }" class="mk-signin">Ingresar</a>
-              <a routerLink="/cuestionario" class="mk-cta">Comenzar</a>
-            }
-          </div>
-        </div>
-      </header>
-    } @else if (isDivorcioMarketing) {
-      <header class="mk-header d360-header">
-        <div class="mk-bar">
-          <a routerLink="/productos/divorcio360" class="mk-brand d360-brand">
-            <span class="mk-logo d360-logo" aria-hidden="true">360</span>
-            <span>
-              Divorcio360
-              <small class="mk-by">por LegalStation</small>
-            </span>
-          </a>
-          <nav class="mk-nav">
-            <a href="/productos/divorcio360#flujo" (click)="goToSection($event, '/productos/divorcio360', 'flujo')">Flujo</a>
-            <a href="/productos/divorcio360#precios" (click)="goToSection($event, '/productos/divorcio360', 'precios')">Precios</a>
-            <a routerLink="/">LegalStation</a>
-          </nav>
-          <div class="mk-actions">
-            @if (auth.isLoggedIn) {
-              <span class="mk-user">{{ userFirstName }}</span>
-              @if (auth.user()?.role === 'cliente') {
-                <a routerLink="/cliente" class="mk-cta">Mi expediente</a>
-              } @else if (auth.user()?.role === 'abogado') {
-                <a routerLink="/abogado" class="mk-cta">Panel</a>
-              }
-              <button type="button" class="mk-signin" (click)="auth.logout()">Salir</button>
-            } @else {
-              <a [routerLink]="['/auth']" [queryParams]="{ product: 'divorcio360', returnUrl: '/productos/divorcio360' }" class="mk-signin">Ingresar</a>
-              <a routerLink="/cuestionario" class="mk-cta">Comenzar</a>
-            }
-          </div>
-        </div>
-      </header>
-    } @else if (isTrasladoMarketing || isBienraizMarketing) {
-      <header class="mk-header ps-header">
-        <div class="mk-bar">
-          <a [routerLink]="productHome" class="mk-brand ps-brand">
-            <span class="mk-logo ps-logo" aria-hidden="true">360</span>
-            <span>{{ productSite?.name }}<small class="mk-by">por LegalStation</small></span>
-          </a>
-          <nav class="mk-nav">
-            <a [href]="productHome + '#flujo'" (click)="goToSection($event, productHome, 'flujo')">Flujo</a>
-            <a [href]="productHome + '#precios'" (click)="goToSection($event, productHome, 'precios')">Precios</a>
-            <a routerLink="/">LegalStation</a>
-          </nav>
-          <div class="mk-actions">
-            @if (auth.isLoggedIn) {
-              <span class="mk-user">{{ userFirstName }}</span>
-              @if (auth.user()?.role === 'cliente') {
-                <a routerLink="/cliente" class="mk-cta">Mi expediente</a>
-              }
-              <button type="button" class="mk-signin" (click)="auth.logout()">Salir</button>
-            } @else {
-              <a [routerLink]="['/auth']" [queryParams]="{ product: productSite?.id, returnUrl: productHome }" class="mk-signin">Ingresar</a>
-              <a [routerLink]="productQuestionnaire" class="mk-cta ps-cta">Comenzar</a>
-            }
-          </div>
-        </div>
-      </header>
-    } @else if (isAuthPage && isDivorcioAuth) {
-      <header class="mk-header d360-header">
-        <div class="mk-bar">
-          <a routerLink="/productos/divorcio360" class="mk-brand d360-brand">
-            <span class="mk-logo d360-logo" aria-hidden="true">360</span>
-            <span>Divorcio360<small class="mk-by">por LegalStation</small></span>
-          </a>
-          <nav class="mk-nav">
-            <a routerLink="/productos/divorcio360">Inicio producto</a>
-          </nav>
-          <div class="mk-actions">
-            <a routerLink="/productos/divorcio360" class="mk-signin">Volver a Divorcio360</a>
-          </div>
-        </div>
-      </header>
-    } @else if (isAuthPage) {
-      <header class="mk-header">
-        <div class="mk-bar">
-          <a routerLink="/" class="mk-brand">
-            <span class="mk-logo" aria-hidden="true">⚖</span>
-            LegalStation.
-          </a>
-          <nav class="mk-nav">
-            <a routerLink="/">Plataforma</a>
-          </nav>
-          <div class="mk-actions">
-            <a routerLink="/" class="mk-signin">← Volver</a>
-          </div>
-        </div>
-      </header>
-    } @else if (isDivorcioFlow) {
-      <header class="top" [class.d360-top]="activeProduct === 'divorcio360'" [class.ps-flow-top]="activeProduct !== 'divorcio360'">
-        <div class="shell bar">
-          <a [routerLink]="productHome" class="brand" [class.d360-brand-inline]="activeProduct === 'divorcio360'">
-            @if (activeProduct === 'divorcio360') {
-              Divorcio<span>360</span>
-            } @else {
-              {{ productSite?.name }}
-            }
-            <small class="by-ls">por LegalStation</small>
-          </a>
-          <nav>
-            @if (auth.user()?.role !== 'abogado') {
-              @if (activeProduct === 'divorcio360') {
-                <a routerLink="/cuestionario" routerLinkActive="on">Cuestionario</a>
-              } @else {
-                <a [routerLink]="productQuestionnaire" routerLinkActive="on">Cuestionario</a>
-              }
-            }
-            @if (auth.user()?.role === 'cliente') {
-              <a routerLink="/cliente" routerLinkActive="on">Mi expediente</a>
-            }
-            <a [routerLink]="productHome" class="nav-back">Volver a {{ productDisplayName }}</a>
-            @if (auth.isLoggedIn) {
-              <span class="user-chip">{{ userFirstName }}</span>
-              <button type="button" class="bell btn btn-ghost" (click)="toggleNotifs()" aria-label="Notificaciones">
-                🔔
-                @if (unreadCount) { <span class="count">{{ unreadCount }}</span> }
-              </button>
-              @if (showNotifs) {
-                <div class="notif-drop panel">
-                  @if (unreadNotifications.length) {
-                    @for (n of unreadNotifications.slice(0, 8); track n.id) {
-                      <button type="button" class="notif-item" (click)="openNotif(n)">
-                        <strong>{{ n.title }}</strong>
-                        <span class="muted">{{ n.body }}</span>
-                      </button>
-                    }
-                    <div class="notif-footer">
-                      <button type="button" class="btn btn-ghost notif-mark-all" (click)="markAllRead($event)">Marcar todas como leídas</button>
-                    </div>
-                  } @else {
-                    <p class="notif-empty muted">No hay notificaciones nuevas</p>
-                  }
-                </div>
-              }
-              <button type="button" class="btn btn-ghost" (click)="auth.logout()">Salir</button>
-            } @else {
-              <a [routerLink]="['/auth']" [queryParams]="{ product: 'divorcio360', returnUrl: '/productos/divorcio360' }" class="btn btn-primary nav-cta">Ingresar</a>
-            }
-          </nav>
-        </div>
-      </header>
-    } @else {
-      <header class="top">
-        <div class="shell bar">
-          <a routerLink="/" class="brand">Legal<span>Station</span></a>
-          <nav>
-            @if (auth.user()?.role !== 'abogado') {
-              <a routerLink="/cuestionario" routerLinkActive="on">Cuestionario</a>
-            }
-            @if (auth.user()?.role === 'cliente') {
-              <a routerLink="/cliente" routerLinkActive="on">Mi expediente</a>
-            }
-            @if (auth.user()?.role === 'abogado') {
-              <a routerLink="/abogado" routerLinkActive="on">Panel operador</a>
-              <a routerLink="/fase2/admin" routerLinkActive="on">Fase 2</a>
-            }
-            @if (auth.user()?.role === 'notario') {
-              <a routerLink="/notario" routerLinkActive="on">Panel notario</a>
-            }
-            @if (auth.isLoggedIn) {
-              <span class="user-chip">{{ userFirstName }}</span>
-              <button type="button" class="bell btn btn-ghost" (click)="toggleNotifs()" aria-label="Notificaciones">
-                🔔
-                @if (unreadCount) { <span class="count">{{ unreadCount }}</span> }
-              </button>
-              @if (showNotifs) {
-                <div class="notif-drop panel">
-                  @if (unreadNotifications.length) {
-                    @for (n of unreadNotifications.slice(0, 8); track n.id) {
-                      <button type="button" class="notif-item" (click)="openNotif(n)">
-                        <strong>{{ n.title }}</strong>
-                        <span class="muted">{{ n.body }}</span>
-                      </button>
-                    }
-                    <div class="notif-footer">
-                      <button type="button" class="btn btn-ghost notif-mark-all" (click)="markAllRead($event)">Marcar todas como leídas</button>
-                    </div>
-                  } @else {
-                    <p class="notif-empty muted">No hay notificaciones nuevas</p>
-                  }
-                </div>
-              }
-              <button type="button" class="btn btn-ghost" (click)="auth.logout()">Salir</button>
-            } @else {
-              <a routerLink="/auth" class="btn btn-primary nav-cta">Ingresar</a>
-            }
-          </nav>
-        </div>
-      </header>
-    }
-    <main id="main">
-      <router-outlet />
-    </main>
-    <footer
-      class="foot"
-      [class.marketing-foot]="isLegalStationMarketing || isDivorcioMarketing || isTrasladoMarketing || isBienraizMarketing"
-      [class.d360-foot]="isDivorcioFlow || isDivorcioMarketing"
-      [class.ps-foot]="isTrasladoMarketing || isBienraizMarketing"
-      [class.compact-foot]="isCompactFoot"
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header
+      class="site-header"
+      [class.on-marketing]="isMarketing"
+      [class.on-flow]="isDivorcioFlow"
+      [style.--header-accent]="headerAccent"
     >
-      @if (isCompactFoot) {
-        <div class="shell foot-bottom">
-          <span>© 2026 CodiDevs · Demo LegalStation</span>
-          <a href="mailto:demo@codidevs.ec">demo&#64;codidevs.ec</a>
-        </div>
-      } @else {
-      <div class="shell foot-grid">
-        <div class="foot-col brand-col">
-          @if (isDivorcioFlow || isDivorcioMarketing) {
-            <strong class="foot-logo">Divorcio360</strong>
-            <p class="foot-by">por LegalStation</p>
-            <p>Al mismo costo, sin filas ni trámites. Divorcio notarial con intake, consulta y firma demo.</p>
-          } @else if (isTrasladoMarketing || isBienraizMarketing) {
-            <strong class="foot-logo">{{ productDisplayName }}</strong>
-            <p class="foot-by">por LegalStation</p>
-            <p>Trámite con pago único, sin membresía. Servicios jurídicos al mismo costo, sin filas ni trámites.</p>
+      <div class="header-bar">
+        <a [routerLink]="brand.home" class="brand" (click)="closeAll()">
+          @if (brand.mark === 'logo') {
+            <span class="brand-mark" aria-hidden="true"><app-icon name="scale" [size]="16" /></span>
           } @else {
-            <strong class="foot-logo">LegalStation</strong>
-            <p>Servicios jurídicos al mismo costo, sin filas ni trámites. Plataforma legal ops para Latinoamérica.</p>
+            <span class="brand-mark brand-mark-360" aria-hidden="true">360</span>
+          }
+          <span class="brand-text">
+            {{ brand.name }}
+            @if (brand.sub) { <small>{{ brand.sub }}</small> }
+          </span>
+        </a>
+
+        @if (navLinks.length || showProductSwitcher) {
+          <nav class="header-nav" aria-label="Secciones">
+            @if (showProductSwitcher) {
+              <div class="product-switcher">
+                <button
+                  type="button"
+                  class="nav-link dropdown-trigger"
+                  [attr.aria-expanded]="showProducts"
+                  aria-haspopup="true"
+                  (click)="toggleProducts($event)"
+                >
+                  Productos
+                  <app-icon name="chevron-down" [size]="14" />
+                </button>
+                @if (showProducts) {
+                  <div class="dropdown-panel" role="menu">
+                    @for (item of productSwitcherItems; track item.id) {
+                      <a
+                        role="menuitem"
+                        [routerLink]="item.path"
+                        class="dropdown-item"
+                        [class.is-active]="item.id === activeProduct"
+                        (click)="switchProduct(item.id); closeAll()"
+                      >{{ item.label }}</a>
+                    }
+                  </div>
+                }
+              </div>
+            }
+            @for (link of navLinks; track link.label) {
+              @if (link.fragment) {
+                <a
+                  class="nav-link"
+                  [href]="link.path + '#' + link.fragment"
+                  (click)="goToSection($event, link.path, link.fragment)"
+                >{{ link.label }}</a>
+              } @else {
+                <a
+                  class="nav-link"
+                  [routerLink]="link.path"
+                  routerLinkActive="is-active"
+                  [routerLinkActiveOptions]="{ exact: !!link.exact }"
+                >{{ link.label }}</a>
+              }
+            }
+          </nav>
+        }
+
+        <div class="header-actions">
+          @if (auth.isLoggedIn) {
+            <div class="notif-wrap">
+              <button
+                type="button"
+                class="btn btn-ghost btn-icon notif-trigger"
+                [attr.aria-label]="notifLabel"
+                [attr.aria-expanded]="showNotifs"
+                (click)="toggleNotifs($event)"
+              >
+                <app-icon name="bell" [size]="19" />
+                @if (unreadCount) { <span class="notif-count" aria-hidden="true">{{ unreadCount }}</span> }
+              </button>
+
+              @if (showNotifs) {
+                <div class="notif-panel" role="dialog" aria-label="Notificaciones">
+                  <header class="notif-head">
+                    <strong>Notificaciones</strong>
+                    @if (unreadNotifications.length) {
+                      <button type="button" class="btn btn-ghost btn-sm" (click)="markAllRead($event)">
+                        Marcar todas como leídas
+                      </button>
+                    }
+                  </header>
+
+                  @if (unreadNotifications.length) {
+                    <ul class="notif-list">
+                      @for (n of unreadNotifications.slice(0, 10); track n.id) {
+                        <li>
+                          <button
+                            type="button"
+                            class="notif-item"
+                            (click)="openNotif(n)"
+                          >
+                            <span class="notif-item-title">{{ n.title }}</span>
+                            <span class="notif-item-body">{{ n.body }}</span>
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <div class="notif-empty">
+                      <app-icon name="inbox" [size]="22" />
+                      <p>Estás al día. No tienes avisos pendientes.</p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <a [routerLink]="homeForRole" class="btn btn-secondary btn-sm account-link">
+              <app-icon name="user" [size]="16" />
+              <span>{{ userFirstName }}</span>
+            </a>
+            <button type="button" class="btn btn-ghost btn-sm" (click)="auth.logout()">Salir</button>
+          } @else {
+            @for (action of guestActions; track action.label) {
+              <a
+                [routerLink]="action.path"
+                [queryParams]="action.query"
+                [class]="action.variant === 'primary' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'"
+              >{{ action.label }}</a>
+            }
           }
         </div>
-        <div class="foot-col">
-          <h4>Productos</h4>
+
+        <button
+          type="button"
+          class="btn btn-ghost btn-icon menu-trigger"
+          [attr.aria-label]="showMenu ? 'Cerrar menú' : 'Abrir menú'"
+          [attr.aria-expanded]="showMenu"
+          (click)="toggleMenu($event)"
+        >
+          <app-icon [name]="showMenu ? 'x' : 'menu'" [size]="20" />
+        </button>
+      </div>
+
+      @if (showMenu) {
+        <div class="mobile-menu">
+          @if (showProductSwitcher) {
+            <p class="mobile-menu-label">Productos</p>
+            @for (item of productSwitcherItems; track item.id) {
+              <a [routerLink]="item.path" (click)="switchProduct(item.id); closeAll()">{{ item.label }}</a>
+            }
+          }
+
+          @for (link of navLinks; track link.label) {
+            @if (link.fragment) {
+              <a [href]="link.path + '#' + link.fragment" (click)="goToSection($event, link.path, link.fragment)">
+                {{ link.label }}
+              </a>
+            } @else {
+              <a [routerLink]="link.path" (click)="closeAll()">{{ link.label }}</a>
+            }
+          }
+
+          <div class="mobile-menu-actions">
+            @if (auth.isLoggedIn) {
+              <a [routerLink]="homeForRole" class="btn btn-secondary btn-block" (click)="closeAll()">
+                {{ roleHomeLabel }}
+              </a>
+              <button type="button" class="btn btn-ghost btn-block" (click)="auth.logout()">Salir</button>
+            } @else {
+              @for (action of guestActions; track action.label) {
+                <a
+                  [routerLink]="action.path"
+                  [queryParams]="action.query"
+                  (click)="closeAll()"
+                  [class]="action.variant === 'primary' ? 'btn btn-primary btn-block' : 'btn btn-secondary btn-block'"
+                >{{ action.label }}</a>
+              }
+            }
+          </div>
+        </div>
+      }
+    </header>
+
+    <main id="contenido">
+      <router-outlet />
+    </main>
+
+    @if (!isDivorcioFlow) {
+    <footer class="site-footer" [class.is-compact]="isAuthPage">
+      @if (!isAuthPage) {
+      <div class="shell footer-grid">
+        <div class="footer-col footer-brand">
+          <strong>{{ footerBrandName }}</strong>
+          @if (footerBrandName !== 'LegalStation') { <p class="footer-by">por LegalStation</p> }
+          <p>{{ footerPitch }}</p>
+        </div>
+
+        <div class="footer-col">
+          <h2>Productos</h2>
           <a routerLink="/productos/divorcio360">Divorcio360</a>
           <a routerLink="/productos/traslado360">Traslado360</a>
           <a routerLink="/productos/bienraiz360">BienRaiz360</a>
-          <span class="foot-muted">Estate360 · Próximamente</span>
-          <span class="foot-muted">SignDesk · Próximamente</span>
+          <span class="footer-soon">Estate360 · próximamente</span>
+          <span class="footer-soon">SignDesk · próximamente</span>
         </div>
-        <div class="foot-col">
-          <h4>Plataforma</h4>
-          @if (auth.user()?.role === 'abogado') {
-            <a routerLink="/abogado">Panel operador</a>
-            <a routerLink="/fase2/admin">Fase 2</a>
-          } @else if (auth.user()?.role === 'cliente') {
-            <a routerLink="/cliente">Mi expediente</a>
-            <a routerLink="/productos/divorcio360">Divorcio360</a>
+
+        <div class="footer-col">
+          <h2>Tu cuenta</h2>
+          @if (auth.isLoggedIn) {
+            <a [routerLink]="homeForRole">{{ roleHomeLabel }}</a>
+            @if (auth.user()?.role === 'abogado') { <a routerLink="/fase2/admin">Fase 2</a> }
           } @else {
             <a [routerLink]="['/auth']" [queryParams]="{ returnUrl: '/' }">Ingresar</a>
-            <a routerLink="/cuestionario">Comenzar</a>
+            <a routerLink="/cuestionario">Comprobar si aplico</a>
           }
-          <a routerLink="/">LegalStation</a>
+          <a routerLink="/">Inicio</a>
         </div>
-        <div class="foot-col">
-          <h4>Legal y soporte</h4>
-          <span class="foot-muted">Política LOPDP (demo)</span>
-          <span class="foot-muted">Términos de uso (demo)</span>
-          <a href="mailto:demo@codidevs.ec">demo&#64;codidevs.ec</a>
+
+        <div class="footer-col">
+          <h2>Ayuda</h2>
+          <a routerLink="/legal/privacidad">Política de datos</a>
+          <a routerLink="/legal/terminos">Términos de uso</a>
+          <a href="mailto:soporte@legalstation.ec">soporte&#64;legalstation.ec</a>
         </div>
-      </div>
-      <div class="shell foot-bottom">
-        <span>© 2026 CodiDevs · Demo LegalStation</span>
-        @if (isDivorcioFlow || isDivorcioMarketing) {
-          <span class="foot-muted">Divorcio360 por LegalStation</span>
-        } @else {
-          <span class="foot-muted">Divorcio360 es el producto en vivo de esta demo.</span>
-        }
       </div>
       }
+
+      <div class="shell footer-bottom">
+        <span>© 2026 LegalStation</span>
+        <span>Hecho por CodiDevs</span>
+      </div>
     </footer>
+    }
   `,
   styles: [`
-    .mk-header {
+    :host {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: var(--space-2);
+      left: var(--space-2);
+      z-index: 999;
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      text-decoration: none;
+      transform: translateY(-200%);
+    }
+
+    .skip-link:focus-visible { transform: translateY(0); }
+
+    /* ---------- Cabecera ---------- */
+
+    .site-header {
+      --header-accent: var(--primary);
       position: sticky;
       top: 0;
-      z-index: 30;
-      background: var(--paper);
-      border-bottom: 1px solid var(--line);
-      font-family: var(--font-body);
-      overflow-x: clip;
+      z-index: var(--z-header);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition:
+        background 280ms cubic-bezier(0.32, 0.72, 0, 1),
+        border-color 280ms cubic-bezier(0.32, 0.72, 0, 1),
+        padding 280ms cubic-bezier(0.32, 0.72, 0, 1);
     }
 
-    .d360-header {
-      background: rgb(247 252 251 / 0.96);
-      border-bottom-color: rgb(74 158 150 / 0.12);
+    .site-header.on-marketing {
+      padding: 0;
+      pointer-events: auto;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
-    .mk-bar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      align-items: center;
-      gap: 1.5rem;
-      max-width: 1320px;
-      margin: 0 auto;
-      padding: 0 clamp(1.25rem, 3vw, 2.5rem);
-      min-height: 4.5rem;
-      min-width: 0;
-    }
-
-    .mk-brand {
-      justify-self: start;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      font-size: 1.12rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--ink);
-      text-decoration: none;
-    }
-
-    .d360-brand { color: var(--ink); }
-
-    .mk-by {
-      display: block;
-      font-size: 0.68rem;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      color: var(--ink-soft);
-      margin-top: 0.1rem;
-    }
-
-    .mk-logo {
-      width: 1.65rem;
-      height: 1.65rem;
-      border-radius: 999px;
-      background: oklch(0.94 0.03 190);
-      color: var(--brand);
-      display: grid;
-      place-items: center;
-      font-size: 0.85rem;
-    }
-
-    .d360-logo {
-      background: oklch(0.94 0.03 190);
-      color: var(--brand);
-      font-size: 0.62rem;
-      font-weight: 800;
-    }
-
-    .mk-nav {
-      justify-self: center;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: clamp(1rem, 2.5vw, 2rem);
-    }
-
-    .mk-nav a {
-      font-size: 0.92rem;
-      font-weight: 500;
-      color: var(--ink-soft);
-      text-decoration: none;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-
-    .mk-nav a:hover,
-    .mk-nav a.on { color: var(--ink); }
-
-    .d360-header .mk-nav a:hover { color: var(--brand); }
-
-    .mk-actions {
-      justify-self: end;
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-    }
-
-    .mk-signin {
-      font-size: 0.92rem;
-      font-weight: 500;
-      color: var(--ink);
-      text-decoration: none;
-      background: none;
+    .site-header.on-marketing .header-bar {
+      max-width: var(--container-wide);
+      min-height: var(--header-height);
+      gap: var(--space-4);
+      padding-inline: var(--container-pad);
       border: 0;
-      cursor: pointer;
-      font-family: inherit;
-      padding: 0.35rem 0.25rem;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
     }
 
-    .mk-signin:hover { color: var(--brand); }
-    .d360-header .mk-signin:hover { color: var(--brand-deep); }
+    .site-header.on-marketing .brand {
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
 
-    .mk-cta {
-      display: inline-flex;
+    .site-header.on-marketing .brand-mark {
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--radius-sm);
+      background: var(--primary-subtle);
+      box-shadow: none;
+    }
+
+    .site-header.on-marketing .nav-link,
+    .site-header.on-marketing .dropdown-trigger {
+      padding: var(--space-2);
+      border-radius: var(--radius-sm);
+      transition:
+        color var(--dur-fast) var(--ease),
+        background var(--dur-fast) var(--ease);
+    }
+
+    .site-header.on-marketing .btn-primary {
+      border-radius: var(--radius-md);
+      padding-inline: var(--space-4);
+      box-shadow: none;
+    }
+
+    .site-header.on-marketing .mobile-menu {
+      margin: 0;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      background: var(--bg);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
+    }
+
+    .site-header.on-flow {
+      background: var(--bg);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .header-bar {
+      display: flex;
       align-items: center;
-      padding: 0.62rem 1.25rem;
-      border-radius: 999px;
-      background: var(--brand);
-      color: white;
-      font-size: 0.92rem;
-      font-weight: 600;
-      text-decoration: none;
-      box-shadow: 0 8px 20px oklch(0.42 0.09 210 / 0.28);
-      transition: background 0.15s ease, transform 0.15s ease;
-    }
-
-    .mk-cta:hover {
-      background: var(--brand-deep);
-      transform: translateY(-1px);
-    }
-
-    .d360-header .mk-cta {
-      background: var(--brand);
-      box-shadow: 0 8px 20px oklch(0.42 0.09 210 / 0.28);
-    }
-
-    .d360-header .mk-cta:hover { background: var(--brand-deep); }
-
-    /* ponytail: product-site chrome uses brand tokens — per-product accents stay data-only */
-    .ps-header {
-      background: color-mix(in srgb, var(--paper) 96%, white);
-      border-bottom-color: color-mix(in srgb, var(--brand) 12%, var(--line));
-    }
-
-    .ps-brand { color: var(--brand-deep); }
-
-    .ps-logo {
-      background: oklch(0.94 0.03 190);
-      color: var(--brand-deep);
-      font-size: 0.62rem;
-      font-weight: 800;
-    }
-
-    .ps-header .mk-nav a:hover { color: var(--brand); }
-
-    .ps-cta {
-      background: var(--brand) !important;
-      box-shadow: 0 8px 20px oklch(0.42 0.09 210 / 0.28) !important;
-    }
-
-    .ps-flow-top {
-      background: color-mix(in srgb, var(--paper) 94%, white);
-      border-bottom-color: var(--line);
-    }
-
-    .mk-user {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--ink-soft);
-    }
-
-    .top {
-      position: sticky; top: 0; z-index: 20;
-      backdrop-filter: blur(10px);
-      background: oklch(0.99 0.004 220 / 0.92);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .d360-top {
-      background: oklch(0.99 0.012 190 / 0.94);
-      border-bottom-color: oklch(0.88 0.04 190);
-    }
-
-    .bar {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 1rem; min-height: 4.25rem; position: relative;
+      gap: var(--space-5);
+      width: 100%;
+      max-width: var(--container-wide);
+      margin-inline: auto;
+      padding-inline: var(--container-pad);
+      min-height: var(--header-height);
     }
 
     .brand {
-      font-family: var(--font-body);
-      font-size: 1.25rem; color: var(--ink); text-decoration: none;
-      letter-spacing: -0.02em; font-weight: 700;
-      display: inline-flex; flex-direction: column; line-height: 1.15;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-base);
+      font-weight: 650;
+      letter-spacing: var(--tracking-tight);
+      color: var(--text);
+      text-decoration: none;
+      margin-right: auto;
     }
 
-    .brand span { color: var(--brand); }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--header-accent) 12%, transparent);
+      color: var(--header-accent);
+    }
 
-    .d360-brand-inline span { color: var(--brand); }
+    .brand-mark-360 {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
 
-    .by-ls {
-      font-size: 0.65rem;
+    .brand-text { display: grid; line-height: 1.2; }
+
+    .brand-text small {
+      font-size: var(--text-xs);
       font-weight: 500;
-      color: var(--ink-soft);
+      color: var(--text-muted);
+      letter-spacing: 0;
     }
 
-    nav { display: flex; flex-wrap: wrap; gap: 0.85rem; align-items: center; }
-    nav a { text-decoration: none; color: var(--ink-soft); font-size: 0.92rem; font-weight: 500; }
-    nav a.on, nav a:hover { color: var(--brand-deep); }
-    .nav-back { color: var(--brand) !important; font-weight: 600 !important; }
-    .nav-cta { color: white !important; }
-    .user-chip {
-      font-size: 0.82rem; font-weight: 600; opacity: 0.85;
-      padding: 0.25rem 0.5rem; border-radius: 999px;
-      background: oklch(1 0 0 / 0.08);
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
     }
-    .bell { position: relative; padding: 0.5rem 0.75rem; min-width: auto; }
-    .count {
-      position: absolute; top: 0; right: 0; background: var(--bad); color: white;
-      font-size: 0.65rem; font-weight: 700; border-radius: 999px; padding: 0.1rem 0.35rem;
+
+    .nav-link {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: color var(--dur-fast) var(--ease);
     }
-    .notif-drop {
-      position: absolute; top: 100%; right: 0; width: min(320px, 90vw);
-      margin-top: 0.5rem; padding: 0.5rem; z-index: 30; max-height: 360px; overflow: auto;
-      animation: notif-in 0.18s ease;
+
+    .nav-link:hover,
+    .nav-link.is-active { color: var(--text); }
+
+    .dropdown-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      line-height: inherit;
+      color: var(--text-secondary);
+      cursor: pointer;
     }
+
+    .dropdown-trigger:hover { color: var(--text); }
+
+    .product-switcher {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .dropdown-panel {
+      position: absolute;
+      top: calc(100% + var(--space-2));
+      left: 0;
+      min-width: 11rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: var(--space-2);
+      z-index: var(--z-dropdown);
+      animation: notif-in var(--dur-base) var(--ease-out);
+    }
+
+    .dropdown-item {
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item.is-active {
+      background: var(--bg-subtle);
+      color: var(--text);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-left: auto;
+    }
+
+    .account-link { max-width: 11rem; }
+    .account-link span { overflow: hidden; text-overflow: ellipsis; }
+
+    .site-header .btn-primary {
+      --btn-bg: var(--header-accent);
+      --btn-border: var(--header-accent);
+    }
+
+    .site-header .btn-primary:hover:not(:disabled) {
+      --btn-bg: color-mix(in srgb, var(--header-accent) 85%, #000);
+      --btn-border: color-mix(in srgb, var(--header-accent) 85%, #000);
+    }
+
+    /* ---------- Notificaciones ---------- */
+
+    .notif-wrap { position: relative; }
+
+    .notif-trigger { position: relative; }
+
+    .notif-count {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 1.05rem;
+      padding: 0 0.2rem;
+      border-radius: var(--radius-full);
+      background: var(--danger);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      line-height: 1.05rem;
+      text-align: center;
+    }
+
+    .notif-panel {
+      position: absolute;
+      top: calc(100% + var(--space-2));
+      right: 0;
+      width: min(22rem, calc(100vw - 2rem));
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      z-index: var(--z-dropdown);
+      animation: notif-in var(--dur-base) var(--ease-out);
+    }
+
     @keyframes notif-in {
       from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: none; }
+      to { opacity: 1; transform: translateY(0); }
     }
+
+    .notif-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .notif-head strong { font-size: var(--text-sm); }
+
+    .notif-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 24rem;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .notif-list li {
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
     .notif-item {
-      display: grid; gap: 0.15rem; width: 100%; text-align: left;
-      background: none; border: 0; border-bottom: 1px solid var(--line);
-      padding: 0.65rem 0.5rem; cursor: pointer; font: inherit;
-    }
-    .notif-item:last-child { border-bottom: 0; }
-    .notif-footer {
-      border-top: 1px solid var(--line);
-      padding: 0.35rem 0.25rem 0;
-      margin-top: 0.25rem;
-    }
-    .notif-mark-all { width: 100%; font-size: 0.85rem; justify-content: center; }
-    .notif-empty { margin: 0; padding: 0.85rem 0.5rem; font-size: 0.88rem; text-align: center; }
-    .notif-item span { font-size: 0.82rem; }
-    main { min-height: calc(100dvh - 12rem); }
-
-    .foot {
-      margin-top: 0;
-      padding: 3rem 0 0;
-      border-top: 1px solid var(--line);
-      color: var(--ink-soft);
-      font-size: 0.9rem;
-      background: oklch(0.98 0.006 260);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.375rem;
+      width: 100%;
+      min-height: auto;
+      height: auto;
+      box-sizing: border-box;
+      margin: 0;
+      padding: var(--space-4);
+      text-align: left;
+      background: none;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      cursor: pointer;
+      transition: background var(--dur-fast) var(--ease);
     }
 
-    .foot.marketing-foot {
-      background: oklch(0.95 0.01 210);
-      border-top-color: var(--line);
-      color: var(--ink-soft);
+    .notif-list li:last-child .notif-item { border-bottom: 0; }
+    .notif-item:hover { background: var(--bg-subtle); }
+
+    .notif-item-title {
+      display: block;
+      width: 100%;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text);
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
-    .foot.compact-foot {
-      padding-top: 0;
+    .notif-item-body {
+      display: block;
+      width: 100%;
+      font-size: var(--text-xs);
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--text-muted);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: normal;
     }
 
-    .foot.d360-foot {
-      background: oklch(0.95 0.012 190);
-      border-top-color: rgb(74 158 150 / 0.15);
-    }
-
-    .foot-by {
-      margin: -0.2rem 0 0.35rem;
-      font-size: 0.78rem;
-      color: var(--ink-soft);
-    }
-
-    .marketing-foot .foot-col h4 { color: var(--ink); }
-    .marketing-foot .foot-logo { color: var(--ink); }
-    .d360-foot .foot-logo { color: var(--ink); }
-    .foot-grid {
+    .notif-empty {
       display: grid;
-      grid-template-columns: 1.4fr 1fr 1fr 1fr;
-      gap: 2rem 1.5rem;
-      padding-bottom: 2rem;
-    }
-    .foot-col { display: grid; gap: 0.45rem; align-content: start; }
-    .foot-col h4 {
-      margin: 0 0 0.35rem; font-size: 0.78rem; text-transform: uppercase;
-      letter-spacing: 0.08em; color: var(--ink);
-    }
-    .foot-logo { font-size: 1.1rem; color: var(--ink); }
-    .brand-col p { margin: 0.35rem 0 0; line-height: 1.55; max-width: 28ch; }
-    .foot-col a {
-      color: inherit; text-decoration: none; font-size: 0.88rem;
-    }
-    .foot-col a:hover { color: var(--brand-deep); text-decoration: underline; }
-    .foot-muted { font-size: 0.85rem; opacity: 0.72; }
-    .foot-bottom {
-      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem;
-      padding: 1.25rem 0 2rem;
-      border-top: 1px solid var(--line);
-      font-size: 0.82rem;
-    }
-    .marketing-foot .foot-bottom { border-top-color: var(--line); }
-    .marketing-foot .foot-col a:hover { color: var(--brand); }
-    .d360-foot .foot-col a:hover { color: var(--brand-deep); }
-
-    .ps-foot {
-      background: var(--paper);
-      border-top-color: var(--line);
+      justify-items: center;
+      gap: var(--space-2);
+      padding: var(--space-6) var(--space-4);
+      color: var(--text-muted);
+      text-align: center;
     }
 
-    .ps-foot .foot-logo { color: var(--brand-deep); }
-    .ps-foot .foot-col a:hover { color: var(--brand); }
+    .notif-empty p { margin: 0; font-size: var(--text-sm); }
 
-    @media (max-width: 860px) {
-      .foot-grid { grid-template-columns: 1fr 1fr; }
+    /* ---------- Menú móvil ---------- */
+
+    .menu-trigger { display: none; }
+
+    .mobile-menu {
+      display: grid;
+      gap: var(--space-1);
+      padding: var(--space-3) var(--container-pad) var(--space-5);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      animation: notif-in var(--dur-base) var(--ease-out);
     }
-    @media (max-width: 720px) {
-      .mk-bar {
-        grid-template-columns: minmax(0, 1fr) auto;
-        grid-template-areas:
-          "brand actions"
-          "nav nav";
-        padding-block: 0.75rem;
-        padding-inline: 0.85rem;
-        row-gap: 0.5rem;
-        column-gap: 0.5rem;
-      }
-      .mk-brand { grid-area: brand; font-size: 1rem; min-width: 0; }
-      .mk-actions { grid-area: actions; gap: 0.4rem; }
-      .mk-nav { grid-area: nav; justify-self: stretch; gap: 0.65rem; }
-      .mk-nav a { font-size: 0.85rem; }
-      .mk-cta { padding: 0.5rem 0.85rem; font-size: 0.85rem; }
-      .mk-user { display: none; }
-      .bar { flex-direction: column; align-items: flex-start; padding-block: 0.75rem; }
-      .foot-grid { grid-template-columns: 1fr; }
+
+    .mobile-menu > a {
+      padding: var(--space-3) 0;
+      font-size: var(--text-base);
+      font-weight: 500;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .mobile-menu-label {
+      margin: 0;
+      padding: var(--space-2) 0 0;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      color: var(--text-muted);
+    }
+
+    .mobile-menu-actions {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ---------- Contenido ---------- */
+
+    main {
+      flex: 1;
+    }
+
+    /* ---------- Pie ---------- */
+
+    .site-footer {
+      margin-top: var(--space-8);
+      padding-top: var(--space-7);
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+
+    /* En autenticación el pie se reduce para que el formulario quepa en pantalla */
+    .site-footer.is-compact {
+      margin-top: 0;
+      padding-top: 0;
+      background: transparent;
+    }
+
+    .site-footer.is-compact .footer-bottom {
+      border-top: 0;
+      padding-block: var(--space-4);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.6fr repeat(3, 1fr);
+      gap: var(--space-6) var(--space-5);
+      padding-bottom: var(--space-6);
+    }
+
+    .footer-col {
+      display: grid;
+      gap: var(--space-2);
+      align-content: start;
+    }
+
+    .footer-col h2 {
+      margin: 0 0 var(--space-1);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      color: var(--text);
+    }
+
+    .footer-brand strong {
+      font-size: var(--text-lg);
+      font-weight: 650;
+      color: var(--text);
+    }
+
+    .footer-by {
+      margin: 0;
+      font-size: var(--text-xs);
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .footer-brand p {
+      margin: 0;
+      max-width: 32ch;
+      line-height: var(--leading-normal);
+    }
+
+    .footer-col a {
+      color: inherit;
+      text-decoration: none;
+      font-size: var(--text-sm);
+    }
+
+    .footer-col a:hover { color: var(--primary); text-decoration: underline; }
+
+    .footer-soon {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+
+    .footer-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--container-pad) var(--space-6);
+      border-top: 1px solid var(--border);
+      font-size: var(--text-xs);
+    }
+
+    /* ---------- Responsive ---------- */
+
+    @media (max-width: 900px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 820px) {
+      .header-nav { display: none; }
+      .menu-trigger { display: inline-flex; }
+      .header-actions .account-link span,
+      .header-actions .btn-ghost:not(.notif-trigger):not(.menu-trigger) { display: none; }
+      .header-actions .account-link { max-width: none; }
+    }
+
+    @media (max-width: 560px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .brand-text small { display: none; }
     }
   `]
 })
@@ -653,6 +796,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   isDivorcioMarketing = false;
   isTrasladoMarketing = false;
   isBienraizMarketing = false;
+  isProductLanding = false;
   isDivorcioFlow = false;
   isAuthPage = false;
   isDivorcioAuth = false;
@@ -661,21 +805,124 @@ export class ShellComponent implements OnInit, OnDestroy {
   notifications: any[] = [];
   unreadCount = 0;
   showNotifs = false;
-  private notifTimer?: ReturnType<typeof setInterval>;
-  private navSub?: Subscription;
+  showMenu = false;
+  showProducts = false;
+
+  private pollId?: ReturnType<typeof setInterval>;
+
+  constructor(
+    public auth: AuthService,
+    private router: Router,
+    private api: ApiService,
+    private viewport: ViewportScroller,
+  ) {}
+
+  /* ---------- Identidad de la cabecera ---------- */
+
+  get isMarketing(): boolean {
+    return this.isLegalStationMarketing || this.isDivorcioMarketing
+      || this.isTrasladoMarketing || this.isBienraizMarketing || this.isProductLanding;
+  }
+
+  get isProductContext(): boolean {
+    const path = this.cleanPath(this.router.url);
+    const inClientWithProduct = path === '/cliente' && !!getActiveProduct();
+    return !this.isLegalStationMarketing && (
+      this.isProductLanding || this.isDivorcioFlow || this.isDivorcioAuth || inClientWithProduct
+    );
+  }
+
+  get showProductSwitcher(): boolean {
+    return !this.isAuthPage;
+  }
+
+  get navLinks(): NavLink[] {
+    if (this.isAuthPage) return [];
+
+    const links: NavLink[] = [];
+
+    if (this.isLegalStationMarketing) {
+      // "Productos" ya está en el switcher — aquí Catálogo evita duplicado
+      links.push(
+        { label: 'Catálogo', path: '/', fragment: 'catalogo' },
+        { label: 'Precios', path: '/', fragment: 'precios' },
+      );
+    } else if (this.isMarketing) {
+      links.push(
+        { label: 'Inicio', path: this.productHome, exact: true },
+        { label: 'Cómo funciona', path: this.productHome, fragment: 'flujo' },
+        { label: 'Precios', path: this.productHome, fragment: 'precios' },
+      );
+    } else if (this.isProductContext || this.isDivorcioFlow) {
+      links.push({ label: 'Inicio', path: this.productHome, exact: true });
+    }
+
+    return links;
+  }
+
+  get productSwitcherItems(): ProductSwitcherItem[] {
+    return [
+      { id: 'divorcio360', label: 'Divorcio360', path: '/productos/divorcio360' },
+      { id: 'traslado360', label: 'Traslado360', path: '/productos/traslado360' },
+      { id: 'bienraiz360', label: 'BienRaiz360', path: '/productos/bienraiz360' },
+      { id: 'legalstation', label: 'LegalStation', path: '/' },
+    ];
+  }
+
+  get brand(): { home: string; name: string; sub: string; mark: 'logo' | '360' } {
+    if (this.isProductContext) {
+      return { home: this.productHome, name: this.productDisplayName, sub: 'por LegalStation', mark: '360' };
+    }
+    return { home: '/', name: 'LegalStation', sub: '', mark: 'logo' };
+  }
+
+  get headerAccent(): string {
+    if (!this.isProductContext) return 'var(--primary)';
+    return this.productSite?.accent || 'var(--primary)';
+  }
+
+  get guestActions(): ActionLink[] {
+    if (this.isAuthPage) {
+      return [{ label: 'Volver', path: this.isDivorcioAuth ? this.productHome : '/', variant: 'quiet' }];
+    }
+
+    const query: Record<string, string> = this.isProductContext
+      ? { product: this.activeProduct, returnUrl: getProductQuestionnairePath(this.activeProduct) }
+      : { returnUrl: '/' };
+
+    const primary = getMarketingPrimaryAction(null, this.activeProduct);
+
+    return [
+      { label: 'Ingresar', path: '/auth', query, variant: 'quiet' },
+      { ...primary, variant: 'primary' },
+    ];
+  }
+
+  get sessionAction() {
+    return getMarketingPrimaryAction(
+      this.auth.user()?.role ?? null,
+      this.activeProduct,
+    );
+  }
+
+  get homeForRole(): string {
+    return this.sessionAction.path;
+  }
+
+  get roleHomeLabel(): string {
+    return this.sessionAction.label;
+  }
 
   get userFirstName(): string {
-    return this.auth.user()?.full_name?.split(' ')[0] ?? 'Usuario';
+    return this.auth.user()?.full_name?.split(' ')[0] ?? 'Mi cuenta';
   }
 
   get productHome(): string {
-    if (this.activeProduct === 'divorcio360') return '/productos/divorcio360';
     return `/productos/${this.activeProduct}`;
   }
 
   get productQuestionnaire(): string {
-    if (this.activeProduct === 'divorcio360') return '/cuestionario';
-    return `/productos/${this.activeProduct}/cuestionario`;
+    return getProductQuestionnairePath(this.activeProduct);
   }
 
   get productDisplayName(): string {
@@ -683,69 +930,184 @@ export class ShellComponent implements OnInit, OnDestroy {
     return this.productSite?.name || 'LegalStation';
   }
 
+  get footerBrandName(): string {
+    return this.isProductContext ? this.productDisplayName : 'LegalStation';
+  }
+
+  get footerPitch(): string {
+    if (this.isDivorcioMarketing || (this.isProductContext && this.activeProduct === 'divorcio360')) {
+      return 'Demostración del trámite en línea, sin filas ni desplazamientos. Recorre el expediente desde casa.';
+    }
+    if (this.isProductContext) {
+      return 'Al mismo costo que presencial, sin filas ni desplazamientos. Todo el trámite desde casa.';
+    }
+    return 'Servicios jurídicos al mismo costo, sin filas ni trámites.';
+  }
+
+  /* ---------- Notificaciones ---------- */
+
   get unreadNotifications(): any[] {
     return this.notifications.filter((n: any) => !n.read);
   }
 
-  get isCompactFoot(): boolean {
-    return this.isAuthPage || (
-      this.isDivorcioFlow &&
-      !this.isDivorcioMarketing &&
-      !this.isTrasladoMarketing &&
-      !this.isBienraizMarketing
-    );
+  get notifLabel(): string {
+    if (!this.unreadCount) return 'Notificaciones, ninguna sin leer';
+    return `Notificaciones, ${this.unreadCount} sin leer`;
   }
 
-  constructor(
-    public auth: AuthService,
-    private router: Router,
-    private api: ApiService,
-    private viewport: ViewportScroller,
-    private title: Title,
-  ) {}
+  /* ---------- Ciclo de vida ---------- */
 
   ngOnInit(): void {
     this.applyMode(this.router.url);
     if (this.auth.isLoggedIn) this.loadNotifs();
-    this.notifTimer = setInterval(() => {
+
+    this.pollId = setInterval(() => {
       if (this.auth.isLoggedIn) this.loadNotifs();
     }, 20000);
-    this.navSub = this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e: NavigationEnd) => {
+
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e: NavigationEnd) => {
       this.applyMode(e.urlAfterRedirects);
+      this.closeAll();
       if (this.auth.isLoggedIn) this.loadNotifs();
+
       const path = this.cleanPath(e.urlAfterRedirects);
       if (path.startsWith('/productos/divorcio360') && !e.urlAfterRedirects.includes('#')) {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
       }
+
       const fragment = e.urlAfterRedirects.split('#')[1];
-      if (fragment) {
-        setTimeout(() => this.scrollToId(fragment), 50);
-      }
+      if (fragment) setTimeout(() => this.scrollToId(fragment), 50);
     });
   }
 
   ngOnDestroy(): void {
-    if (this.notifTimer) clearInterval(this.notifTimer);
-    this.navSub?.unsubscribe();
+    if (this.pollId) clearInterval(this.pollId);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.showNotifs || this.showMenu || this.showProducts) this.closeAll();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeAll();
+  }
+
+  closeAll(): void {
+    this.showNotifs = false;
+    this.showMenu = false;
+    this.showProducts = false;
+  }
+
+  toggleProducts(event: Event): void {
+    event.stopPropagation();
+    const next = !this.showProducts;
+    this.closeAll();
+    this.showProducts = next;
+  }
+
+  switchProduct(id: string): void {
+    if (id !== 'legalstation') setActiveProduct(id);
+  }
+
+  toggleNotifs(event: Event): void {
+    event.stopPropagation();
+    const next = !this.showNotifs;
+    this.closeAll();
+    this.showNotifs = next;
+    if (next) this.loadNotifs();
+  }
+
+  toggleMenu(event: Event): void {
+    event.stopPropagation();
+    const next = !this.showMenu;
+    this.closeAll();
+    this.showMenu = next;
   }
 
   goToSection(event: Event, path: string, id: string): void {
     event.preventDefault();
-    const current = this.cleanPath(this.router.url);
-    if (current === path) {
+    event.stopPropagation();
+    this.closeAll();
+    if (this.cleanPath(this.router.url) === path) {
       this.scrollToId(id);
       return;
     }
     void this.router.navigate([path], { fragment: id });
   }
 
+  loadNotifs(): void {
+    this.api.listNotifications().subscribe({
+      next: (list) => {
+        this.notifications = list.map((n: any) => ({
+          ...n,
+          title: this.sanitizeNotifText(n.title),
+          body: this.sanitizeNotifText(n.body),
+        }));
+        this.unreadCount = this.unreadNotifications.length;
+      },
+      error: () => {},
+    });
+  }
+
+  openNotif(n: any): void {
+    this.api.markNotificationRead(n.id).subscribe(() => {
+      n.read = true;
+      this.unreadCount = this.unreadNotifications.length;
+    });
+    this.closeAll();
+    if (n.case_id) {
+      const base = this.auth.user()?.role === 'abogado' ? '/abogado/caso' : '/caso';
+      void this.router.navigate([base, n.case_id]);
+    }
+  }
+
+  markAllRead(event?: Event): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+    this.api.markAllNotificationsRead().subscribe({
+      next: () => {
+        this.notifications = this.notifications.map((n: any) => ({ ...n, read: true }));
+        this.unreadCount = 0;
+        this.closeAll();
+      },
+      error: () => {
+        this.loadNotifs();
+      },
+    });
+  }
+
+  private sanitizeNotifText(text: string): string {
+    if (!text) return text;
+    let t = text
+      .replace(/Minuta del notario/gi, 'Minuta disponible')
+      .replace(/Actualización notarial/gi, 'Actualización de expediente')
+      .replace(/Enviado a notar[ií]a/gi, 'En revisión jurídica')
+      .replace(/notar[ií]a/gi, 'bufete')
+      .replace(/notario/gi, 'abogado')
+      .replace(/bufetel/gi, 'bufete');
+
+    t = t.replace(/\d{4}-\d{2}-\d{2}T[\d:.]+Z?/g, (iso) => {
+      try {
+        return new Intl.DateTimeFormat('es-EC', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(new Date(iso));
+      } catch {
+        return iso;
+      }
+    });
+
+    return t;
+  }
+
+  /* ---------- Detección de contexto ---------- */
+
   private scrollToId(id: string): void {
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      this.viewport.scrollToAnchor(id);
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else this.viewport.scrollToAnchor(id);
   }
 
   private cleanPath(url: string): string {
@@ -759,94 +1121,40 @@ export class ShellComponent implements OnInit, OnDestroy {
 
     this.isAuthPage = path === '/auth';
     this.isDivorcioAuth = this.isAuthPage && (params.get('next') === 'checkout' || params.get('product') === 'divorcio360');
-    this.isDivorcioMarketing = path.startsWith('/productos/divorcio360');
-    this.isTrasladoMarketing = path === '/productos/traslado360';
-    this.isBienraizMarketing = path === '/productos/bienraiz360';
+    this.isLegalStationMarketing = (path === '/' || path === '') && !this.isAuthPage;
+    this.isDivorcioMarketing = path.startsWith('/productos/divorcio360') && !path.includes('/cuestionario') && !path.includes('/expediente');
+    this.isTrasladoMarketing = path.startsWith('/productos/traslado360') && !path.includes('/cuestionario') && !path.includes('/expediente');
+    this.isBienraizMarketing = path.startsWith('/productos/bienraiz360') && !path.includes('/cuestionario') && !path.includes('/expediente');
+    this.isProductLanding = /^\/productos\/[^/]+$/.test(path);
 
     if (path.includes('traslado360')) this.activeProduct = 'traslado360';
     else if (path.includes('bienraiz360')) this.activeProduct = 'bienraiz360';
     else if (path.includes('divorcio360') || path === '/cuestionario') this.activeProduct = 'divorcio360';
-    else this.activeProduct = getActiveProduct();
+    else if (path.includes('signdesk')) this.activeProduct = 'signdesk';
+    else if (path.includes('matterflow')) this.activeProduct = 'matterflow';
+    else if (path.includes('compliancehub')) this.activeProduct = 'compliancehub';
+    else if (path.includes('notarylink')) this.activeProduct = 'notarylink';
+    else {
+      const fromPath = detectProductFromPath(path);
+      this.activeProduct = fromPath || getActiveProduct();
+    }
 
-    this.productSite = getProductSite(this.activeProduct) || getProductSite('divorcio360');
+    if (detectProductFromPath(path) || path === '/cuestionario') {
+      setActiveProduct(this.activeProduct);
+    }
+
+    this.productSite = getProductSite(this.activeProduct);
 
     this.isDivorcioFlow = !this.isAuthPage && (
       DIVORCIO_FLOW.some((p) => path.startsWith(p)) ||
       path.startsWith('/productos/traslado360') ||
       path.startsWith('/productos/bienraiz360') ||
-      path.startsWith('/consulta') ||
-      path.startsWith('/reunion-notarial')
-    );
-
-    const isPanel =
-      path.startsWith('/abogado') ||
-      path.startsWith('/notario') ||
-      path.startsWith('/fase2');
-    this.isLegalStationMarketing = !this.isAuthPage && (
-      path === '/' ||
-      path === '' ||
-      (!this.isDivorcioMarketing && !this.isTrasladoMarketing && !this.isBienraizMarketing && !this.isDivorcioFlow && !isPanel)
+      path.startsWith('/consulta')
     );
 
     document.body.classList.toggle('saas-mode', this.isLegalStationMarketing || (this.isAuthPage && !this.isDivorcioAuth));
-    document.body.classList.toggle('product-landing-mode', this.isDivorcioMarketing || this.isDivorcioAuth || this.isTrasladoMarketing || this.isBienraizMarketing);
-    document.body.classList.toggle('divorcio-flow-mode', this.isDivorcioFlow || this.isDivorcioMarketing || this.isDivorcioAuth || this.isTrasladoMarketing || this.isBienraizMarketing);
-    document.body.classList.toggle('product-mode', !this.isLegalStationMarketing && !this.isDivorcioMarketing && !this.isDivorcioFlow && !this.isAuthPage && !this.isTrasladoMarketing && !this.isBienraizMarketing);
-    this.title.setTitle(this.titleFor(path));
-  }
-
-  private titleFor(path: string): string {
-    if (path === '/' || path === '') return 'LegalStation';
-    if (path.startsWith('/productos/divorcio360')) return 'Divorcio360';
-    if (path.startsWith('/productos/traslado360')) return 'Traslado360';
-    if (path.startsWith('/productos/bienraiz360')) return 'BienRaiz360';
-    if (path.startsWith('/cuestionario')) return 'Cuestionario · Divorcio360';
-    if (path === '/auth') return 'Ingresar · LegalStation';
-    if (path.startsWith('/cliente')) return 'Mi expediente · LegalStation';
-    if (path.startsWith('/abogado')) return 'Panel operador · LegalStation';
-    if (path.startsWith('/notario')) return 'Panel notario · LegalStation';
-    if (path.startsWith('/fase2')) return 'Fase 2 · LegalStation';
-    return 'LegalStation';
-  }
-
-  loadNotifs(): void {
-    this.api.listNotifications().subscribe({
-      next: (list) => {
-        this.notifications = list;
-        this.unreadCount = list.filter((n: any) => !n.read).length;
-      },
-      error: () => {},
-    });
-  }
-
-  toggleNotifs(): void {
-    this.showNotifs = !this.showNotifs;
-    if (this.showNotifs) this.loadNotifs();
-  }
-
-	openNotif(n: any): void {
-    this.api.markNotificationRead(n.id).subscribe(() => {
-      n.read = true;
-      this.unreadCount = this.unreadNotifications.length;
-    });
-    this.showNotifs = false;
-    if (n.case_id) {
-      const base = this.auth.user()?.role === 'abogado' ? '/abogado/caso'
-        : this.auth.user()?.role === 'notario' ? '/caso' : '/caso';
-      void this.router.navigate([base, n.case_id]);
-    }
-  }
-
-  markAllRead(event?: Event): void {
-    event?.stopPropagation();
-    event?.preventDefault();
-    this.api.markAllNotificationsRead().subscribe({
-      next: () => {
-        this.notifications = this.notifications.map((n: any) => ({ ...n, read: true }));
-        this.unreadCount = 0;
-        this.showNotifs = false;
-      },
-      error: () => {},
-    });
+    document.body.classList.toggle('product-landing-mode', this.isProductLanding || this.isDivorcioAuth);
+    document.body.classList.toggle('divorcio-flow-mode', this.isDivorcioFlow || this.isProductLanding || this.isDivorcioAuth);
+    document.body.classList.toggle('product-mode', !this.isMarketing && !this.isDivorcioFlow && !this.isAuthPage);
   }
 }

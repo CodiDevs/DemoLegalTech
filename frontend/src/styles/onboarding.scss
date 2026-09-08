@@ -1,0 +1,403 @@
+/* =========================================================================
+   Onboarding progresivo — una pregunta por pantalla.
+   Compartido por el cuestionario de Divorcio360 y el de los demás productos.
+   ========================================================================= */
+
+.landing-page.product-flow .ob h1,
+.landing-page.product-flow .ob h2 {
+  font-family: var(--font-sans);
+  font-weight: 650;
+  letter-spacing: var(--tracking-tight);
+}
+
+.ob {
+  display: grid;
+  align-content: start; /* ponytail: no center — progress must stay put when card height changes */
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+  padding: var(--space-6) var(--container-pad) var(--space-8);
+}
+
+body.divorcio-flow-mode .ob {
+  align-content: start;
+  min-height: auto;
+  padding-block: var(--space-6);
+}
+
+.ob-questions {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+  align-content: start;
+}
+
+.ob-stage {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.ob-card-slot {
+  min-height: 18rem;
+  display: grid;
+  align-items: start;
+}
+
+/* ---------- Progreso (segmentos, no pills) ---------- */
+
+.ob-progress {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.ob-segments {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ob-seg {
+  position: relative;
+  flex: 1 1 0;
+  display: flex !important;
+  align-items: center;
+  justify-content: stretch;
+  min-width: 0;
+  min-height: 2.25rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  color: inherit;
+  box-shadow: none;
+  cursor: default;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: none;
+}
+
+.ob-seg-bar {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+  box-sizing: border-box;
+}
+
+.ob-seg.is-done {
+  cursor: pointer;
+}
+
+.ob-seg.is-done .ob-seg-bar,
+.ob-seg.is-current .ob-seg-bar {
+  background: var(--lp-accent, var(--primary));
+}
+
+.ob-seg.is-done:hover .ob-seg-bar {
+  background: var(--lp-accent-deep, var(--primary-hover));
+}
+
+.ob-seg.is-done:focus-visible {
+  outline: 2px solid var(--lp-accent, var(--primary));
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.ob-seg:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.ob-seg.is-current {
+  cursor: default;
+  pointer-events: none;
+}
+
+.ob-progress-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.ob-step-label {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.ob-step-hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ---------- Tarjeta ---------- */
+
+.ob-card {
+  min-height: 17.5rem; /* keeps foot/progress stable across Sí/No vs city */
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.ob-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--lp-accent-soft, var(--primary-subtle));
+  color: var(--lp-accent, var(--primary));
+}
+
+.ob-card h1 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  margin-bottom: var(--space-2);
+}
+
+.ob-hint {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+/* ---------- Opciones ---------- */
+
+.ob-choices {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ob-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-height-lg);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: 500;
+  text-align: left;
+  white-space: normal;
+  color: var(--text);
+  /* no transition — instant selected/hover for rapid taps */
+}
+
+.ob-choice app-icon { color: var(--text-muted); }
+
+.ob-choice:hover {
+  border-color: var(--lp-accent, var(--primary));
+  background: var(--lp-accent-soft, var(--primary-subtle));
+}
+
+.ob-choice:hover app-icon { color: var(--lp-accent, var(--primary)); }
+
+.ob-choice.is-selected {
+  border-color: var(--lp-accent, var(--primary));
+  background: var(--lp-accent-soft, var(--primary-subtle));
+}
+
+.ob-field { margin-bottom: var(--space-4); }
+
+/* ---------- Pie del paso ---------- */
+
+.ob-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.ob-note {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.ob-note.is-centered {
+  margin-top: var(--space-5);
+  text-align: center;
+}
+
+/* ---------- Revisión ---------- */
+
+.ob-review {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.ob-review li + li { border-top: 1px solid var(--border); }
+
+.ob-review-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 0;
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+
+.ob-review-row:hover { background: var(--bg-subtle); }
+
+.ob-review-label { color: var(--text-secondary); }
+
+.ob-review-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ob-review-value app-icon { color: var(--text-muted); }
+
+/* ---------- Resultado ---------- */
+
+.ob-card.is-apto .ob-icon {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.ob-card.is-evaluacion .ob-icon {
+  background: var(--warning-subtle);
+  color: var(--warning);
+}
+
+.ob-card.is-no_aplica .ob-icon {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.ob-card.is-no_aplica h1 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-4);
+}
+
+.ob-card.is-no_aplica .ob-message {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-6);
+}
+
+.ob-card.is-no_aplica .ob-actions {
+  margin-top: var(--space-2);
+  gap: var(--space-3);
+}
+
+.ob-schedule-block {
+  margin: var(--space-6) 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+}
+
+.ob-schedule-block h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.ob-schedule-block p {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.ob-message {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.ob-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+}
+
+.ob-price-value {
+  font-size: var(--text-3xl);
+  font-weight: 650;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.ob-price-note {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.ob-actions {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* ---------- Aviso de error ---------- */
+
+.ob-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-md);
+  background: var(--danger-subtle);
+  color: var(--danger);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 560px) {
+  .ob-card { padding: var(--space-5) var(--space-4); }
+  .ob-card h1 { font-size: var(--text-xl); }
+  .ob-note { text-align: left; }
+  .ob-foot { flex-wrap: wrap; }
+}

@@ -1,0 +1,57 @@
+import { signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { AuthService, User } from '../../core/auth.service';
+import { MarketingHeroComponent } from './marketing-hero.component';
+
+function userFor(role: User['role']): User {
+  return { id: 1, email: 'demo@legalstation.test', full_name: 'Demo', phone: '', role };
+}
+
+async function renderHero(role: User['role'] | null): Promise<ComponentFixture<MarketingHeroComponent>> {
+  TestBed.resetTestingModule();
+  await TestBed.configureTestingModule({
+    imports: [MarketingHeroComponent],
+    providers: [
+      provideRouter([]),
+      {
+        provide: AuthService,
+        useValue: {
+          isLoggedIn: !!role,
+          user: signal(role ? userFor(role) : null),
+        },
+      },
+    ],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(MarketingHeroComponent);
+  fixture.componentInstance.primaryFragment = 'catalogo';
+  fixture.componentInstance.primaryCta = 'Ver qué puedo tramitar';
+  fixture.componentInstance.showSecondary = false;
+  fixture.detectChanges();
+  return fixture;
+}
+
+describe('MarketingHeroComponent CTA', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('enruta el CTA primario según el rol e ignora el fragmento para cliente', async () => {
+    const guest = await renderHero(null);
+    const guestCta = (guest.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
+    expect(guestCta?.getAttribute('href')).toBe('#catalogo');
+    expect((guest.nativeElement as HTMLElement).querySelector('a[href="#"]')).toBeNull();
+    guest.destroy();
+
+    const cliente = await renderHero('cliente');
+    const clienteCta = (cliente.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
+    expect(clienteCta?.getAttribute('href')).toBe('/cliente');
+    expect(clienteCta?.textContent).toContain('Mis expedientes');
+    cliente.destroy();
+
+    const abogado = await renderHero('abogado');
+    const abogadoCta = (abogado.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
+    expect(abogadoCta?.getAttribute('href')).toBe('/abogado');
+    expect((abogado.nativeElement as HTMLElement).textContent).not.toContain('Ver Fase 2');
+    abogado.destroy();
+  });
+});

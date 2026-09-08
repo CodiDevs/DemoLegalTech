@@ -1,38 +1,62 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-product-lite-landing',
   standalone: true,
-  imports: [RouterLink],
-  styleUrls: ['../../../styles/landing-shared.scss'],
+  imports: [RouterLink, IconComponent],
   styles: [`
-    /* ponytail: lite landings unused in routes; if revived, inherit token teal */
-    .traslado-landing,
-    .bienraiz-landing {
-      --lp-accent: var(--brand);
-      --lp-accent-deep: var(--brand-deep);
-      --lp-accent-soft: oklch(0.94 0.03 190);
+    .traslado-landing { --lp-accent: #4a7eb8; --lp-accent-deep: #3a6599; --lp-accent-soft: #e8f0f8; }
+    .bienraiz-landing { --lp-accent: #8b6b4a; --lp-accent-deep: #705539; --lp-accent-soft: #f5efe8; }
+
+    .crumb-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .lite-cta {
+      display: flex;
+      justify-content: center;
+      margin-top: var(--space-6);
     }
   `],
   template: `
     <div class="landing-page" [class]="themeClass">
-      <p class="lp-shell lp-crumb"><a routerLink="/">LegalStation</a> › {{ name }}</p>
+      <nav class="lp-shell lp-crumb crumb-row" aria-label="Dónde estás">
+        <a routerLink="/">LegalStation</a>
+        <app-icon name="chevron-right" [size]="14" />
+        <span aria-current="page">{{ name }}</span>
+      </nav>
       <section class="lp-section soft">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Pago por trámite</p>
-            <h2>{{ name }} — <span class="lp-highlight">honorario único.</span></h2>
-            <p>Sin suscripción mensual. Mutuo acuerdo, documentos y reunión notarial virtual.</p>
+            <p class="lp-eyebrow">Pagas una sola vez</p>
+            <h2>{{ name }} — <span class="lp-highlight">un solo pago.</span></h2>
+            <p>Sin cuotas mensuales. Acuerdo entre las dos partes, tus documentos y la reunión con el notario por videollamada.</p>
           </div>
           <div class="lp-values">
-            <article class="lp-value lp-lift"><h3>Formulario corto</h3><p>Intake demo en minutos — siempre apto para walkthrough.</p></article>
-            <article class="lp-value lp-lift"><h3>Un solo pago</h3><p>Honorarios mock desde \${{ price }} — el cliente no paga licencia SaaS.</p></article>
-            <article class="lp-value lp-lift"><h3>Notario incluido</h3><p>Agenda reunión y aprobación en panel notario demo.</p></article>
+            <article class="lp-value">
+              <h3>Formulario corto</h3>
+              <p>Contestas unas preguntas sencillas en pocos minutos.</p>
+            </article>
+            <article class="lp-value">
+              <h3>Un solo pago</h3>
+              <p>Desde \${{ price }}. No pagas ninguna mensualidad.</p>
+            </article>
+            <article class="lp-value">
+              <h3>Notario incluido</h3>
+              <p>Reservas la reunión y el notario aprueba tu trámite.</p>
+            </article>
           </div>
-          <div style="text-align:center;margin-top:2rem">
-            <a [routerLink]="intakeRoute" class="lp-btn lp-btn-primary">Iniciar trámite demo →</a>
+          <div class="lite-cta">
+            <a [routerLink]="intakeRoute" class="lp-btn lp-btn-primary">
+              Empezar mi trámite
+              <app-icon name="arrow-right" [size]="16" />
+            </a>
           </div>
         </div>
       </section>

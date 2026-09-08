@@ -1,307 +1,175 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../core/api.service';
+import { IconComponent } from './icon.component';
 import { ProductFlowShellComponent } from './product-flow-shell.component';
-import { productThemeFromCase } from './product-sites.data';
-
-export type MeetingMode = 'consultation' | 'notary';
+import { ProgressStep } from './progress-steps.component';
+import { getProductFlowMeta, productThemeFromCase, clientFlowStepIndex } from './product-sites.data';
+import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.component';
 
 @Component({
   selector: 'app-virtual-meeting',
   standalone: true,
-  imports: [RouterLink, ProductFlowShellComponent],
+  imports: [RouterLink, ProductFlowShellComponent, IconComponent, ScheduledMeetingCardComponent],
   template: `
     @if (caseItem) {
       <app-product-flow-shell
         [theme]="theme"
-        [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Expediente #' + caseItem.id, link: '/caso/' + caseItem.id }, { label: title }]"
-        [eyebrow]="mode === 'consultation' ? 'Consulta virtual' : 'Reunión notarial'"
-        [title]="title"
-        [subtitle]="subtitle"
+        [crumb]="crumb"
+        eyebrow="Consulta virtual"
+        title="Consulta con abogado"
+        subtitle="Solicita tu consulta virtual. Tu abogado revisará tu expediente y te contactará para coordinar."
+        [steps]="flowSteps"
+        [activeStep]="consultStepIndex"
       >
-        <div class="vm-layout">
-          <section class="vm-video pf-card lp-lift">
-            <div class="vm-video-frame" [class.live]="phase === 'live'" [class.done]="phase === 'completed'">
-              @if (phase === 'scheduled') {
-                <div class="vm-placeholder">
-                  <span class="vm-icon">{{ mode === 'consultation' ? '👨‍⚖️' : '🏛️' }}</span>
-                  <p>Sala lista — presiona «Unirse» para iniciar la demo.</p>
-                  <p class="pf-muted">{{ hostName }} · {{ scheduledLabel }}</p>
-                </div>
-              } @else if (phase === 'live') {
-                <div class="vm-live">
-                  <div class="vm-participant main">
-                    <span>{{ hostName }}</span>
-                    <small>{{ mode === 'consultation' ? 'Abogado' : 'Notario' }}</small>
-                  </div>
-                  <div class="vm-participant pip">
-                    <span>Tú</span>
-                    <small>Cliente</small>
-                  </div>
-                  <div class="vm-live-badge">EN VIVO · mock</div>
-                </div>
-              } @else {
-                <div class="vm-placeholder done">
-                  <span class="vm-icon">✓</span>
-                  <p>{{ completedMessage }}</p>
-                </div>
-              }
-            </div>
-            <div class="vm-controls">
-              @if (phase === 'scheduled') {
-                <button type="button" class="lp-btn lp-btn-primary" (click)="join()" [disabled]="busy">
-                  Unirse a la {{ mode === 'consultation' ? 'consulta' : 'reunión' }}
-                </button>
-              } @else if (phase === 'live') {
-                <button type="button" class="lp-btn lp-btn-outline" (click)="end()" [disabled]="busy">Finalizar</button>
-              } @else {
-                <a [routerLink]="['/caso', caseItem.id]" class="lp-btn lp-btn-primary">Volver al expediente</a>
-              }
-            </div>
-          </section>
-
-          <aside class="vm-side">
-            <div class="pf-card lp-lift">
-              <h3>Chat demo</h3>
-              <div class="vm-chat">
-                @for (m of chat; track m.at) {
-                  <div class="vm-msg" [class.host]="m.from === 'host'">
-                    <strong>{{ m.from === 'host' ? hostName : 'Tú' }}</strong>
-                    <p>{{ m.text }}</p>
-                    <small>{{ m.at }}</small>
-                  </div>
-                }
-              </div>
-            </div>
-            <div class="pf-card lp-lift">
-              <h3>Documentos</h3>
-              <ul class="vm-docs">
-                <li>Expediente #{{ caseItem.id }}</li>
-                <li>{{ caseItem.product }}</li>
-                <li>{{ caseItem.status_label }}</li>
-                @if (mode === 'notary') {
-                  <li>Minuta lista para comparecencia</li>
-                } @else {
-                  <li>Revisión pre-firma</li>
-                }
-              </ul>
-            </div>
+        <div class="up-layout">
+          <aside class="up-side lp-lift">
+            <h3>Tu progreso</h3>
+            <p class="pf-muted">Pasos del trámite hasta la consulta.</p>
+            <ul class="up-checklist">
+              <li [class.done]="docsComplete">
+                <span class="up-check-icon">
+                  @if (docsComplete) { <app-icon name="check" [size]="16" /> }
+                </span>
+                <span>Documentos cargados</span>
+              </li>
+              <li [class.done]="consultationRequested">
+                <span class="up-check-icon">
+                  @if (consultationRequested) { <app-icon name="check" [size]="16" /> }
+                </span>
+                <span>Consulta solicitada</span>
+              </li>
+              <li [class.done]="consultationScheduled">
+                <span class="up-check-icon">
+                  @if (consultationScheduled) { <app-icon name="check" [size]="16" /> }
+                </span>
+                <span>Videollamada coordinada</span>
+              </li>
+            </ul>
+            <p class="pf-muted" style="margin-top:1rem;font-size:0.82rem">
+              Duración orientativa: 30 minutos
+            </p>
           </aside>
+
+          <div class="up-slots">
+            <div class="pf-card lp-lift up-slot">
+              <div class="up-slot-head">
+                <h2>Consulta virtual</h2>
+                <span class="up-slot-badge" [class]="statusBadgeClass">{{ statusBadgeLabel }}</span>
+              </div>
+
+              @if (consultationRequested) {
+                <div class="consult-body">
+                  <app-scheduled-meeting-card
+                    [scheduledAt]="caseItem.consultation_at!"
+                    [pendingRequest]="!consultationScheduled"
+                    subtitle="Consulta con abogado · Expediente #{{ caseItem.id }}"
+                  />
+                </div>
+              } @else {
+                <div class="consult-request-zone">
+                  <div class="up-drop-icon"><app-icon name="video" [size]="24" /></div>
+                  <p class="consult-request-title">¿Listo para hablar con tu abogado?</p>
+                  <p class="pf-muted consult-request-hint">
+                    Envía la solicitud y te contactaremos por correo para confirmar la videollamada.
+                  </p>
+                  @if (error) { <p class="pf-err">{{ error }}</p> }
+                  <button
+                    type="button"
+                    class="lp-btn lp-btn-primary"
+                    [disabled]="busy"
+                    (click)="requestConsult()"
+                  >
+                    @if (busy) { Enviando solicitud… }
+                    @else { Solicitar consulta }
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="up-footer">
+          <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseItem.id]">Ver expediente</a>
+          <a class="lp-btn lp-btn-outline" [routerLink]="['/upload', caseItem.id]">Volver a documentos</a>
         </div>
       </app-product-flow-shell>
     }
   `,
-  styles: [`
-    .vm-layout {
-      display: grid;
-      grid-template-columns: 1.4fr 0.9fr;
-      gap: 1rem;
-      align-items: start;
-    }
-
-    .vm-video-frame {
-      min-height: 320px;
-      border-radius: var(--lp-radius-sm);
-      background: linear-gradient(145deg, #1a1f2e, #2d3548);
-      display: grid;
-      place-items: center;
-      color: white;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .vm-video-frame.live { background: linear-gradient(145deg, #0f2a28, #1a4038); }
-
-    .vm-placeholder {
-      text-align: center;
-      padding: 2rem;
-      max-width: 28rem;
-    }
-
-    .vm-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
-
-    .vm-live {
-      width: 100%;
-      height: 100%;
-      min-height: 320px;
-      position: relative;
-      padding: 1rem;
-    }
-
-    .vm-participant {
-      border-radius: var(--lp-radius-sm);
-      padding: 1rem;
-      background: rgb(255 255 255 / 0.08);
-      border: 1px solid rgb(255 255 255 / 0.12);
-    }
-
-    .vm-participant.main {
-      width: 100%;
-      min-height: 220px;
-      display: grid;
-      place-content: center;
-      text-align: center;
-    }
-
-    .vm-participant.pip {
-      position: absolute;
-      bottom: 1rem;
-      right: 1rem;
-      width: 120px;
-      text-align: center;
-      font-size: 0.85rem;
-    }
-
-    .vm-participant small { display: block; opacity: 0.75; margin-top: 0.25rem; }
-
-    .vm-live-badge {
-      position: absolute;
-      top: 1rem;
-      left: 1rem;
-      background: #c0392b;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-    }
-
-    .vm-controls {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .vm-chat {
-      display: grid;
-      gap: 0.65rem;
-      max-height: 220px;
-      overflow: auto;
-    }
-
-    .vm-msg {
-      padding: 0.55rem 0.75rem;
-      border-radius: var(--lp-radius-sm);
-      background: var(--lp-bg-soft);
-      font-size: 0.88rem;
-    }
-
-    .vm-msg.host { background: var(--lp-accent-soft); }
-    .vm-msg p { margin: 0.2rem 0; }
-    .vm-msg small { color: var(--lp-ink-muted); font-size: 0.72rem; }
-
-    .vm-docs {
-      margin: 0;
-      padding-left: 1.1rem;
-      font-size: 0.88rem;
-      color: var(--lp-ink-muted);
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    @media (max-width: 860px) {
-      .vm-layout { grid-template-columns: 1fr; }
-    }
-  `],
 })
 export class VirtualMeetingComponent implements OnInit {
   @Input() caseId = 0;
-  @Input() mode: MeetingMode = 'consultation';
 
   caseItem: CaseItem | null = null;
   theme = productThemeFromCase();
-  phase: 'scheduled' | 'live' | 'completed' = 'scheduled';
+  flowSteps: ProgressStep[] = [];
+  consultStepIndex = 3;
+  crumb: { label: string; link?: string }[] = [{ label: 'LegalStation', link: '/' }, { label: 'Consulta' }];
+  docsComplete = false;
   busy = false;
-  chat: { from: 'host' | 'client'; text: string; at: string }[] = [];
+  error = '';
 
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
     if (!this.caseId) return;
+    this.reload();
+  }
+
+  get consultationRequested(): boolean {
+    return Boolean(this.caseItem?.consultation_at);
+  }
+
+  get consultationScheduled(): boolean {
+    const at = this.caseItem?.consultation_at;
+    return Boolean(at && at !== 'requested');
+  }
+
+  get statusBadgeLabel(): string {
+    if (this.consultationScheduled) return 'Coordinada';
+    if (this.consultationRequested) return 'Solicitada';
+    return 'Pendiente';
+  }
+
+  get statusBadgeClass(): string {
+    if (this.consultationScheduled) return 'ok';
+    if (this.consultationRequested) return 'warn';
+    return '';
+  }
+
+  requestConsult(): void {
+    if (!this.caseItem || this.busy || this.consultationRequested) return;
+    this.busy = true;
+    this.error = '';
+    this.api.requestConsultation(this.caseItem.id).subscribe({
+      next: (c) => {
+        this.busy = false;
+        this.caseItem = c;
+      },
+      error: (e) => {
+        this.busy = false;
+        this.error = e?.error?.error || 'No pudimos enviar la solicitud. Inténtalo de nuevo.';
+      },
+    });
+  }
+
+  private reload(): void {
     this.api.getCase(this.caseId).subscribe((d) => {
       this.caseItem = d.case;
       this.theme = productThemeFromCase(this.caseItem?.product);
-      if (this.mode === 'consultation' && d.case?.consultation_at) {
-        this.phase = 'completed';
-      }
-      if (this.mode === 'notary' && d.case?.appointment_at) {
-        this.phase = 'scheduled';
-      }
-      this.seedChat();
-    });
-  }
-
-  get title(): string {
-    return this.mode === 'consultation' ? 'Consulta con abogado' : 'Reunión notarial virtual';
-  }
-
-  get subtitle(): string {
-    return this.mode === 'consultation'
-      ? 'Revisión del expediente por videollamada — demo sin WebRTC real.'
-      : 'Comparecencia notarial simulada tras la firma.';
-  }
-
-  get hostName(): string {
-    return this.mode === 'consultation' ? 'Dr. Pérez · Abogado' : (this.caseItem?.notary_name || 'Notaría LegalStation Demo');
-  }
-
-  get scheduledLabel(): string {
-    if (this.mode === 'notary' && this.caseItem?.appointment_at) {
-      return this.caseItem.appointment_at;
-    }
-    return 'Disponible ahora (demo)';
-  }
-
-  get completedMessage(): string {
-    return this.mode === 'consultation'
-      ? 'Consulta completada — puedes continuar con la firma.'
-      : 'Reunión notarial finalizada — expediente en cierre.';
-  }
-
-  join(): void {
-    this.phase = 'live';
-    this.chat.push({
-      from: 'host',
-      text: this.mode === 'consultation'
-        ? 'Buenos días — revisemos juntos su expediente antes de la firma.'
-        : 'Bienvenido a la comparecencia notarial demo.',
-      at: this.timeNow(),
-    });
-  }
-
-  end(): void {
-    if (!this.caseItem) return;
-    this.busy = true;
-    const finish = () => {
-      this.phase = 'completed';
-      this.busy = false;
-      this.chat.push({
-        from: 'host',
-        text: this.mode === 'consultation'
-          ? 'Todo en orden. Proceda a firmar cuando esté listo.'
-          : 'Acta registrada en demo — gracias por su comparecencia.',
-        at: this.timeNow(),
+      const meta = getProductFlowMeta(this.caseItem?.product);
+      this.flowSteps = meta.clientFlowSteps;
+      this.consultStepIndex = clientFlowStepIndex(meta.flowSteps, 'call');
+      this.crumb = [
+        { label: 'LegalStation', link: '/' },
+        ...(meta.productHome ? [{ label: meta.name, link: meta.productHome }] : []),
+        { label: 'Expediente #' + this.caseItem!.id, link: '/caso/' + this.caseItem!.id },
+        { label: 'Consulta' },
+      ];
+      const required = meta.docTypes.length;
+      this.api.listDocs(this.caseId).subscribe((docs) => {
+        this.docsComplete = required > 0 && docs.length >= required;
       });
-    };
-    if (this.mode === 'consultation') {
-      this.api.completeConsultation(this.caseItem.id).subscribe({
-        next: () => finish(),
-        error: () => finish(),
-      });
-    } else {
-      finish();
-    }
-  }
-
-  private seedChat(): void {
-    this.chat = [{
-      from: 'host',
-      text: 'Sala de demo LegalStation — sin audio/video real.',
-      at: '09:00',
-    }];
-  }
-
-  private timeNow(): string {
-    return new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+    });
   }
 }

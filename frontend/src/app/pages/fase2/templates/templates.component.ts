@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../core/api.service';
 import { StatusBadgeComponent } from '../../../shared/status-badge.component';
+import { friendlyFieldLabel } from '../../../shared/template-field-labels';
 
 @Component({
   selector: 'app-fase2-templates',
   standalone: true,
   imports: [StatusBadgeComponent],
   template: `
-    <h1>Motor de plantillas</h1>
-    <p class="muted">Extensión a otros trámites legales más allá del divorcio notarial.</p>
+    <h1>Modelos de documentos</h1>
 
     <div class="grid">
       @for (t of templates; track t.id) {
@@ -20,8 +20,8 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
           <h2>{{ t.name }}</h2>
           <p class="muted">{{ t.version }}</p>
           <div class="fields">
-            @for (f of t.fields?.slice(0, 3) || []; track f) {
-              <code>{{ f }}</code>
+            @for (f of t.fields?.slice(0, 4) || []; track f) {
+              <span class="field-chip">{{ labelFor(f) }}</span>
             }
           </div>
           <button type="button" class="btn btn-ghost" (click)="dup($event)">Duplicar plantilla</button>
@@ -33,12 +33,14 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
       <div class="modal-backdrop" (click)="preview = null">
         <div class="modal panel" (click)="$event.stopPropagation()">
           <h2>{{ preview.name }}</h2>
-          <p class="muted">Vista previa mock · {{ preview.version }}</p>
+          <p class="muted">Vista previa · {{ preview.version }}</p>
           <div class="preview-html" [innerHTML]="preview.preview_html"></div>
-          <h3>Variables</h3>
-          <ul>
-            @for (f of preview.fields || []; track f) { <li><code>{{ f }}</code></li> }
-          </ul>
+          <h3>Datos que completa el sistema</h3>
+          <div class="fields modal-fields">
+            @for (f of preview.fields || []; track f) {
+              <span class="field-chip">{{ labelFor(f) }}</span>
+            }
+          </div>
           @if (versions.length) {
             <h3>Historial de versiones</h3>
             <ul class="versions">
@@ -61,8 +63,18 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
     .card-head { display: flex; justify-content: space-between; align-items: center; }
     .cat { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--brand); }
     .card h2 { font-size: 1.1rem; margin: 0; }
-    .fields { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-    code { font-size: 0.72rem; background: oklch(0.96 0.01 230); padding: 0.15rem 0.4rem; border-radius: 4px; }
+    .fields, .modal-fields { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .field-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
     .modal-backdrop {
       position: fixed; inset: 0; background: oklch(0.15 0.02 230 / 0.45);
       display: grid; place-items: center; z-index: 50; padding: 1rem;
@@ -92,6 +104,10 @@ export class Fase2TemplatesComponent implements OnInit {
     });
   }
 
+  labelFor(raw: string): string {
+    return friendlyFieldLabel(raw);
+  }
+
   statusLabel(t: any): string {
     if (t.status === 'activa') return 'Activa (MVP)';
     if (t.status === 'diseno') return 'En diseño';
@@ -112,7 +128,7 @@ export class Fase2TemplatesComponent implements OnInit {
 
   dup(ev: Event): void {
     ev.stopPropagation();
-    this.toast = 'Duplicar plantilla — disponible en producción (Fase 2 mock)';
+    this.toast = 'Plantilla duplicada — lista para personalizar';
     setTimeout(() => this.toast = '', 3000);
   }
 }

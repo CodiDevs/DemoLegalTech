@@ -33,7 +33,7 @@ const PRODUCTS: Record<string, ProductMeta> = {
     <app-product-flow-shell
       [theme]="meta.theme"
       [crumb]="[{ label: 'LegalStation', link: '/' }, { label: meta.name }]"
-      eyebrow="Intake demo"
+      eyebrow="Inicio de trámite"
       [title]="'Formulario ' + meta.name"
       subtitle="Mutuo acuerdo — pago único, sin suscripción."
     >
@@ -50,7 +50,7 @@ const PRODUCTS: Record<string, ProductMeta> = {
           }
           @if (step === 2) {
             <h2>Resumen</h2>
-            <p>Honorario único demo: <strong>\${{ meta.price }}</strong> — sin membresía.</p>
+            <p>Honorario único: <strong>\${{ meta.price }}</strong> — sin membresía.</p>
             <ul class="lp-list-tt">
               <li>{{ meta.doc1 }}</li>
               <li>{{ meta.doc2 }}</li>

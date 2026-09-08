@@ -19,9 +19,14 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Firma virtual + flujo operador | notify sin cambio estado; confirm solo con firma en 05; can_sign autónomo cliente | 2026-08-30 |
 | done | Flujo documental multi-producto | Traslado360 carro: upload matrícula+acuerdo → abogado aprueba → minuta → firma; blockers por etapa | 2026-08-30 |
 | done | Upload documentos UX | Checklist + dropzone por producto; reemplazar sin borrar; abogado ve solo última versión | 2026-08-30 |
-| done | Identidad teal unificada | `/` + `/productos/divorcio360` + `/auth` + `/cuestionario`: Sora/teal, 404, skip-link | 2026-08-31 |
-| done | P1 distill/quieter/harden | `/` Comenzar → cuestionario; hero Divorcio H1+CTA; wizard Atrás + Sí/No iguales | 2026-08-31 |
-| done | Distill catalog + quieter Traslado + harden/adapt | `/` 3 trámites; Traslado sin “Pantallas reales”; auth aria; header 390 | 2026-08-31 |
+| done | Cuestionario UX progreso estático | `/cuestionario` — barra superior quieta; preguntas entran desde abajo | 2026-09-02 |
+| done | Marketing UI polish Fase 0+1 | `/productos/divorcio360` Fraunces + teal AA + mock expediente + 6 pasos | 2026-09-03 |
+| superseded | Marketing UI polish Fase 2 | `/` collage + badges — replaced by Home `/` no-slop | 2026-09-03 |
+| superseded | Divorcio360 landing UI/UX | `/productos/divorcio360` hero pin con mock, CTAs por sesión, band de stats | 2026-09-06 |
+| done | Divorcio360 no-slop repair | `/productos/divorcio360` — CTA above-fold, una demo, copy honesto, legales | 2026-09-06 |
+| done | Cuestionario no-slop | `/cuestionario` — sin atmósfera, progreso teal, header sólido, Atrás en resultado | 2026-09-06 |
+| done | Home `/` no-slop | `/` — un hero, catálogo live, CTA por rol, sin collage/KPIs/gallery | 2026-09-08 |
+| done | Fase 2 admin no-slop | `abogado@demo.ec` → `/fase2/admin` — tabla de casos, métricas honestas, sin KPI theater | 2026-09-08 |
 
 ## Entries
 
@@ -159,23 +164,147 @@ Ver **`docs/HANDOFF.md` → Errores que NO repetir**.
 
 **Verificación:** `backend/scripts/verify-flow.ps1`.
 
-### 2026-08-31 — Identidad legal-ops teal
-Marketing y producto usan Sora + tokens teal (se fue Inter/Fraunces/indigo). Skip-link, labels en `/auth`, 404 real, título por ruta, footer corto en wizard/auth. Hero Divorcio360 ya no es isla negra.
+### 2026-08-31 — UX LegalStation: header, documentos, reuniones, Fase 2
+- **Header:** «Evaluar mi caso» y «Mis expedientes» (logueado) siempre visibles; selector de productos alineado con la nav.
+- **Landing `/`:** carrusel manual (sin auto-play); dots clicables.
+- **Upload:** badge con más aire; botón rojo «Eliminar archivo» junto a «Ver» (`DELETE /cases/{id}/documents/{docId}`).
+- **Reuniones:** solo agendar fecha/hora (días pasados bloqueados); popup «Su fecha se registró, espere el link…»; sin «Unirse a consulta virtual».
+- **Cuestionario no_aplica:** bloque de agendamiento inline; login preserva `returnUrl=/cuestionario?resume=result`.
+- **Fase 2:** nav en lenguaje llano; Admin/Plantillas/IA/SATJE ocultos para notario; copy minuta/acta: notaría envía → abogado sube.
 
-**Demo:** `/` CTA teal → `/productos/divorcio360` hero claro → `/cuestionario` footer corto → `/ruta-falsa` 404.
+**Demo cliente (5 min):**
+1. `/` → header: Productos, Evaluar mi caso; login → «Mis expedientes» visible en cualquier página.
+2. `/cuestionario` → respuestas → **no_aplica** → agendar reunión (si no hay sesión: login → vuelve al resultado).
+3. Caso con docs → `/upload/{id}` → Eliminar archivo → resubir.
+4. Expediente → agendar consulta/notaría → popup de confirmación.
 
-### 2026-08-31 — Tres P1 (distill / quieter / harden)
-Un **Comenzar** en `/` va a `/cuestionario`. Catálogo distingue 3 live vs 4 demo. Hero Divorcio360 es H1 + CTA above the fold (sin pin GSAP). Cuestionario tiene Atrás y Sí/No con el mismo peso. Auth envía con Enter.
+**Demo abogado Fase 2:** `/fase2/admin` — menú lateral con descripciones claras; minuta en workspace explica flujo notaría→abogado.
 
-**Demo:** `/` Comenzar → pregunta 1 → Atrás → Sí/No iguales. `/productos/divorcio360` CTA visible sin scrollear teatro. `/auth` Enter en correo+clave.
+### 2026-08-31 — Fase 2 comercial + agendamiento + pagos premium
+- **Agendamiento:** popup funcional (z-index 10000); tarjeta persistente «Cita agendada»; persistencia sessionStorage; flujo auth con `d360_pending_meeting`; visible en cuestionario no_aplica y Mis expedientes.
+- **Notaría eliminada:** ruta `/notario`, `/reunion-notarial`, login demo notaría, guards y nav; reunión notarial virtual removida del expediente cliente.
+- **Checkout:** animación tarjeta procesando + factura generándose (CSS puro).
+- **Dashboard bufete:** grid hero (ingresos + casos activos destacados), embudo, ingresos por producto, CTA «Ir a mis casos».
+- **Plantillas:** variables `{{}}` → chips legibles («Nombre del cliente», etc.).
+- **Notificaciones:** fix escalera (block layout); leídas vs no leídas con opacidad.
+- **SATJE:** lenguaje legal natural («Sincronizar expediente judicial»).
 
-### 2026-08-31 — Polish
-Stats de `/` son 3 trámites / 10 estados / $349 / 3 roles (sin 120+). Hex de isla CTA y footer producto → tokens. Traslado CTA = Comenzar. Hints en sociedad conyugal y acta. startCase con error.
+**Demo agendamiento:** `/cuestionario` → no_aplica → confirmar → popup → tarjeta verde; `/cliente` muestra la misma cita.
+**Demo pago:** `/checkout/{id}` → animación tarjeta → factura → subir documentos.
 
-**Demo:** `/` scroll stats; `/productos/traslado360` Comenzar; cuestionario hasta sociedad conyugal (hint).
+### 2026-08-31 — Pulido producción: acciones, notificaciones, copy
+- **Acciones expediente:** botones centrados; acción única = CTA grande con color del producto (`--lp-accent`); todas las acciones son botones visibles.
+- **Notificaciones:** layout flex robusto, sin alturas fijas; fechas ISO formateadas; textos con `break-words`.
+- **Copy:** eliminado "demo/demostración" de checkout, footer, Fase 2, intake y flujos de producto.
 
-### 2026-08-31 — Distill + quieter + harden + adapt
-`/` muestra 3 trámites (pills + cards), no 7 módulos. Traslado/BienRaiz: eyebrows fuera salvo precios; gallery dice “fotos de referencia”. Divorcio: 3 stats honestas, sin logo cloud. Auth: `required` + `aria-invalid` / `aria-live`. Header y pills wizard caben a 390.
+**Demo acciones:** `/caso/{id}` — solo "Subir documentos" aparece como botón sólido centrado.
+**Demo notificaciones:** campana → textos alineados, fechas legibles.
+- **Citas (fix crítico):** `MeetingScheduler` autónomo con `[saveFn]`; modal en `document.body`; funciona en cuestionario no_aplica, expediente y Mis expedientes.
+- **Notificaciones:** más padding/gap; solo no leídas; clic individual las quita; «Marcar todas» cierra el panel; copy sin referencias a notaría.
+- **Checkout 2 columnas:** formulario izquierda; resumen del pedido derecha; post-pago → `AnimatedTicket` (recibo con confetti).
+- **Fase 2 minimal:** Admin, SATJE, Plantillas y Asistente sin párrafos explicativos — solo títulos, métricas y acciones.
 
-**Demo:** `/#catalogo` cuenta 3 cards. `/productos/traslado360` no dice “Pantallas reales”. `/productos/divorcio360` stats 10 / 5 min / $349. `/auth` submit vacío. Mobile 390: header sin scroll horizontal.
+**Demo citas:** `/cuestionario` → no_aplica → «Confirmar reunión con abogado» → popup; `/cliente` → agendar si no hay cita.
+**Demo pago:** `/checkout/{id}` → pagar → overlay oscuro → loader centrado → recibo en modal → «Subir mis documentos».
+**Demo notificaciones:** campana → leer una (desaparece) o «Marcar todas» (panel se cierra).
+**Demo Fase 2:** `/fase2/admin` — escaneable en 2 s, sin bloques de texto.
 
+### 2026-08-31 — AdvancedStats dashboard Fase 2
+- **Resumen del bufete** reemplazado por dashboard visual: gráfico de área animado, KPIs del bufete, tarjeta de objetivo y crecimiento de clientes.
+- Datos conectados a `/mock/admin/metrics` (ingresos, casos activos, tiempo de resolución, tasa de finalización).
+- Animaciones de entrada escalonadas al scroll (sin dependencias React).
+
+**Demo:** login abogado → Fase 2 → Resumen del bufete → gráfico + 4 KPIs + progreso trámites digitales.
+
+### 2026-09-02 — Cuestionario UX progreso lateral
+- **Barra de progreso estática:** vuelve arriba del formulario (flujo normal, no fija al viewport); no se mueve ni se acorta al animar la card.
+- **Animación de preguntas:** cada tarjeta entra desde abajo; al retroceder, desde arriba.
+- **Slot fijo:** `ob-card-slot` con altura mínima para que el layout no salte entre preguntas.
+- Mismo patrón en cuestionarios de otros productos (`product-questionnaire`).
+
+**Demo:** `/cuestionario` → responder Sí/No; la barra superior permanece quieta mientras la pregunta sube desde abajo.
+
+### 2026-09-02 — Cuestionario pantalla completa
+- **Sin footer** en rutas de flujo Divorcio360 (`/cuestionario`, checkout, cliente, etc.).
+- **Formulario arriba** bajo el header, sin pie de página.
+
+**Demo:** `/cuestionario` → header + formulario alineado arriba, sin footer.
+
+### 2026-09-02 — Ubicación con selects
+- **País, provincia y ciudad** como tres `<select>` en el último paso del cuestionario (Ecuador + países frecuentes).
+- Texto actualizado sin referencia a notaría cercana.
+
+**Demo:** `/cuestionario` → último paso → elegir país, provincia y ciudad.
+
+### 2026-09-02 — Checkout carrito desglosado
+- **Resumen tipo carrito:** valor del trámite + valor del notario ($20 ref.) + extras según cuestionario (hijos, bienes, exterior, etc.) marcados como «Incluido».
+
+**Demo:** `/checkout/{id}` → ver líneas del carrito y total según respuestas del cuestionario.
+
+### 2026-09-02 — Consulta virtual tipo upload
+- **Layout** igual que subir documentos: sidebar de progreso + tarjeta principal.
+- **Solicitar consulta** sin elegir fecha; el abogado coordina después.
+
+**Demo:** `/upload/{id}` → documentos → «Solicitar consulta» → botón en zona de carga.
+
+### 2026-09-02 — Panel cliente general
+- **Sin agendar consulta** en `/cliente` — la consulta se solicita desde cada expediente.
+- **Tu cuenta:** expedientes por producto + facturas (pagos) en un panel unificado.
+
+**Demo:** login cliente → `/cliente` → expedientes y facturas de todos los productos.
+
+### 2026-09-03 — Marketing UI polish (Fase 0 + 1)
+- **Tipografía:** Fraunces display + Inter 400–800, scoped a `.landing-page`.
+- **Teal AA:** `--lp-accent-ink: #2e6e67` en Divorcio360; 6 pasos en grid `auto-fit`; mock UI de expediente (sin Unsplash).
+- **Pricing:** “Sin costo” en Derivación; CTA primary vs tertiary; values asimétricos 1.4fr / 1fr.
+
+**Demo:** `ng serve` → `/productos/divorcio360` (hero pin + mock + 6 pasos + precios). Spot `/` y `/productos/traslado360`.
+
+### 2026-09-03 — Marketing UI polish (Fase 2)
+- **Home accent:** `/` hereda `--primary` teal `#2f6f68`. Sin override índigo `#4455c4`.
+- **Catálogo:** badges En vivo / Próximamente. Copy: Divorcio360, Traslado360 y BienRaiz360 en vivo.
+- **CTA bottom:** teal compartido (sin gradiente índigo).
+- **Dots:** pill activo en `landing-shared.scss`; hit-area 2.25rem.
+
+**Demo:** `ng serve` → `/` — hero collage = 3 productos live; `#catalogo` badges; `#precios` lift hover; CTA final teal no índigo. Spot `/productos/divorcio360` (teal producto `#4a9e96` intacto).
+
+### 2026-09-06 — Divorcio360 landing UI/UX
+Superseded by “Divorcio360 no-slop repair”; do not use this section as the current walkthrough.
+- **Hero:** pin revela mock del expediente (sin video Cloudinary roto). Intro ~70svh, sin outro, reveal de palabras one-shot.
+- **CTAs:** cliente logueado ve “Ir a mi expediente”; operador ve el panel. Sin self-link “Volver a Divorcio360”.
+- **Layout:** 6 pasos 3×2 con conectores; valores en fila editorial; stats en banda; logos en marquee.
+
+**Demo:** `/productos/divorcio360` — scroll corto hasta el mock; logueado como Carlos: CTAs de expediente; invitados: “Evaluar mi caso”.
+
+### 2026-09-06 — Divorcio360 no-slop repair
+- Hero con un H1, contraste AA y CTA visible sin scroll.
+- Una sola demo del expediente; sin marquee ni prueba social ficticia.
+- Navegación coherente para invitado, cliente y abogado.
+- Motion local a su componente y fallback completo para reduced motion.
+- Política de datos, términos demo y footer `Hecho por CodiDevs`.
+
+**Demo:** `/productos/divorcio360` como guest → cliente → abogado; revisar móvil 390px y reduced motion.
+
+### 2026-09-06 — Cuestionario no-slop
+- Sin `app-ob-atmosphere` (wash, papel, sellos, watermark).
+- Progreso en segmentos `--primary`, radio 2px, hover de color.
+- Header de flujo sólido (sin blur). Card `--radius-md`. H1 Inter.
+- Resultado con Atrás a la revisión.
+
+**Demo:** `/cuestionario` green path → review → Apto → Atrás. Spot 390px.
+
+### 2026-09-08 — Home `/` no-slop
+- Un hero (una imagen, sin collage ni KPIs). CTA: guest `#catalogo`, cliente `/cliente`, abogado `/abogado`.
+- Hero editorial: Fraunces grande, bezel, wipe `clip-path` + drift lento (pausa en hover). CTA con chip y `:active` scale. Catálogo bento. Grain.
+- Catálogo y pasos: stagger `--i` * 50ms solo si entran desde abajo. Secciones visibles sin JS. `prefers-reduced-motion` apaga wipe/drift/stagger.
+- Un catálogo: 3 live + lista próximamente. Sin trust bar, carousel, stats grid ni galería elástica.
+- Pricing: un plan featured. Footer `Hecho por CodiDevs`.
+
+**Demo:** `/` como Carlos → Mis expedientes → `/cliente`. Guest: Ver qué puedo tramitar → `#catalogo`. Spot `/productos/divorcio360` (pin + band) y `/productos/traslado360` (gallery).
+
+### 2026-09-08 — Fase 2 admin no-slop
+- `/fase2/admin` como abogado: sidebar sólido 248px, nav por etiqueta, sin card dashed.
+- Resumen: `<dl>` de conteos live + ingreso/tiempo rotulados demo. Tabla de `recent_cases` con Abrir → `/abogado/caso/:id`.
+- Sin KPI grid, eyebrows, % inventados ni fade `opacity: 0`. Loading/error/retry.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → Fase 2 → Resumen. Abrir un caso. Spot `/fase2/templates` (chrome compartido).
