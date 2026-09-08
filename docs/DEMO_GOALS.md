@@ -21,10 +21,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Upload documentos UX | Checklist + dropzone por producto; reemplazar sin borrar; abogado ve solo última versión | 2026-08-30 |
 | done | Cuestionario UX progreso estático | `/cuestionario` — barra superior quieta; preguntas entran desde abajo | 2026-09-02 |
 | done | Marketing UI polish Fase 0+1 | `/productos/divorcio360` Fraunces + teal AA + mock expediente + 6 pasos | 2026-09-03 |
-| done | Marketing UI polish Fase 2 | `/` LegalStation teal inherit, 3 live badges, catalog copy | 2026-09-03 |
+| superseded | Marketing UI polish Fase 2 | `/` collage + badges — replaced by Home `/` no-slop | 2026-09-03 |
 | superseded | Divorcio360 landing UI/UX | `/productos/divorcio360` hero pin con mock, CTAs por sesión, band de stats | 2026-09-06 |
 | done | Divorcio360 no-slop repair | `/productos/divorcio360` — CTA above-fold, una demo, copy honesto, legales | 2026-09-06 |
 | done | Cuestionario no-slop | `/cuestionario` — sin atmósfera, progreso teal, header sólido, Atrás en resultado | 2026-09-06 |
+| done | Home `/` no-slop | `/` — un hero, catálogo live, CTA por rol, sin collage/KPIs/gallery | 2026-09-08 |
 
 ## Entries
 
@@ -290,3 +291,12 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 - Resultado con Atrás a la revisión.
 
 **Demo:** `/cuestionario` green path → review → Apto → Atrás. Spot 390px.
+
+### 2026-09-08 — Home `/` no-slop
+- Un hero (una imagen, sin collage ni KPIs). CTA: guest `#catalogo`, cliente `/cliente`, abogado `/abogado`.
+- Hero editorial: Fraunces grande, bezel, wipe `clip-path` + drift lento (pausa en hover). CTA con chip y `:active` scale. Catálogo bento. Grain.
+- Catálogo y pasos: stagger `--i` * 50ms solo si entran desde abajo. Secciones visibles sin JS. `prefers-reduced-motion` apaga wipe/drift/stagger.
+- Un catálogo: 3 live + lista próximamente. Sin trust bar, carousel, stats grid ni galería elástica.
+- Pricing: un plan featured. Footer `Hecho por CodiDevs`.
+
+**Demo:** `/` como Carlos → Mis expedientes → `/cliente`. Guest: Ver qué puedo tramitar → `#catalogo`. Spot `/productos/divorcio360` (pin + band) y `/productos/traslado360` (gallery).

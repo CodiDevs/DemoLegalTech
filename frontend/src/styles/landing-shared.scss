@@ -13,7 +13,7 @@
   --lp-accent-soft: var(--primary-subtle);
   --lp-accent-ink: var(--lp-accent-deep);
   --lp-border: var(--border);
-  --lp-radius: var(--radius-xl);
+  --lp-radius: var(--radius-lg);
   --lp-radius-sm: var(--radius-lg);
   --lp-shadow: var(--shadow-md);
   --shadow-accent: 0 12px 40px color-mix(in srgb, var(--lp-accent) 28%, transparent);
@@ -24,28 +24,7 @@
   color: var(--lp-ink);
   position: relative;
   overflow-x: hidden;
-  background:
-    radial-gradient(ellipse 90% 55% at 8% -8%, color-mix(in srgb, var(--lp-accent) 16%, transparent), transparent 58%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, color-mix(in srgb, var(--lp-accent) 9%, transparent), transparent 52%),
-    var(--lp-bg);
-
-  /* Grain sutil — atmósfera, no flat white */
-  &::before {
-    content: '';
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    opacity: 0.045;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 180px 180px;
-    mix-blend-mode: multiply;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
+  background: var(--lp-bg);
 
   h1, h2 {
     font-family: var(--font-display);
@@ -148,16 +127,16 @@
     margin: 0;
   }
 
-  /* Elevación hover — solo elementos interactivos (.lp-lift) */
   .lp-lift {
-    transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+    transition:
+      box-shadow var(--dur-fast) ease,
+      border-color var(--dur-fast) ease,
+      background var(--dur-fast) ease;
   }
 
   .lp-lift:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 4px 8px rgb(27 25 23 / 0.06),
-      0 18px 44px rgb(27 25 23 / 0.12);
+    border-color: color-mix(in srgb, var(--lp-accent) 40%, var(--lp-border));
+    box-shadow: var(--shadow-md);
   }
 
   /* Listas estilo Talking Tree */
@@ -312,9 +291,9 @@
     color: inherit;
     cursor: pointer;
     transition:
-      transform var(--dur-fast, 0.15s) var(--ease, ease),
-      box-shadow var(--dur-fast, 0.15s) var(--ease, ease),
-      border-color var(--dur-fast, 0.15s) var(--ease, ease);
+      box-shadow var(--dur-fast, 0.15s) ease,
+      border-color var(--dur-fast, 0.15s) ease,
+      background var(--dur-fast, 0.15s) ease;
   }
 
   .lp-tool-card:not(button) {
@@ -322,10 +301,8 @@
   }
 
   .lp-tool-card:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 4px 8px rgb(27 25 23 / 0.06),
-      0 18px 44px rgb(27 25 23 / 0.12);
+    border-color: color-mix(in srgb, var(--lp-accent) 40%, var(--border, var(--lp-border)));
+    box-shadow: var(--shadow-md);
   }
 
   .lp-tool-card.active {
@@ -337,7 +314,7 @@
     flex-shrink: 0;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 999px;
+    border-radius: var(--radius-md);
     display: grid;
     place-items: center;
     color: var(--lp-accent);
@@ -434,7 +411,7 @@
     pointer-events: auto;
     width: 2.75rem;
     height: 2.75rem;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-strong);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     color: var(--text);
@@ -443,15 +420,13 @@
     display: grid;
     place-items: center;
     transition:
-      background var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease),
-      transform var(--dur-fast) var(--ease);
+      background var(--dur-fast) ease,
+      border-color var(--dur-fast) ease;
   }
 
   .lp-carousel-nav:hover {
     background: var(--surface);
     border-color: var(--lp-accent);
-    transform: scale(1.04);
   }
 
   .lp-carousel-nav:focus-visible {
@@ -460,7 +435,8 @@
   }
 
   .lp-carousel-nav:active {
-    transform: scale(0.98);
+    background: var(--lp-bg-soft);
+    border-color: var(--lp-accent);
   }
 
   .lp-carousel-frame {
@@ -468,9 +444,7 @@
     border-radius: calc(var(--lp-radius) + 6px);
     padding: 0.65rem;
     border: 1px solid var(--lp-border);
-    box-shadow:
-      0 4px 12px rgb(27 25 23 / 0.06),
-      0 28px 64px rgb(27 25 23 / 0.12);
+    box-shadow: var(--shadow-md);
   }
 
   .lp-carousel-frame img {
@@ -505,11 +479,10 @@
     height: 0.5rem;
     border-radius: var(--radius-full);
     background: var(--border-strong);
-    transition: width var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
+    transition: background 150ms ease;
   }
 
   .lp-carousel-dots button.on::after {
-    width: 1.25rem;
     background: var(--lp-accent);
   }
 
@@ -542,7 +515,7 @@
   .lp-pill-icon {
     width: 2.25rem;
     height: 2.25rem;
-    border-radius: 999px;
+    border-radius: var(--radius-md);
     background: var(--lp-accent-soft);
     color: var(--lp-accent);
     display: grid;
@@ -723,7 +696,7 @@
   .lp-quote,
   .lp-plan,
   .lp-product-card {
-    transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+    transition: box-shadow var(--dur-fast) ease, border-color var(--dur-fast) ease;
   }
 
   .lp-value h3 {
@@ -772,7 +745,7 @@
   .lp-step-num {
     width: 1.75rem;
     height: 1.75rem;
-    border-radius: 999px;
+    border-radius: var(--radius-md);
     background: var(--lp-accent);
     color: white;
     font-size: 0.78rem;
@@ -791,8 +764,9 @@
     font-size: 0.84rem;
   }
 
+  /* Divorcio360 still uses lp-steps-in; LegalStation HOME has no entrance stagger. */
   @media (prefers-reduced-motion: no-preference) {
-    .lp-steps.lp-steps-in .lp-step {
+    &:not(.legalstation-landing) .lp-steps.lp-steps-in .lp-step {
       animation: lp-step-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
       animation-delay: calc(var(--lp-i, 0) * 0.07s);
     }
@@ -1225,12 +1199,132 @@
 
     .ps-mock-bar strong { margin-left: 0; width: 100%; }
   }
+
+  &.legalstation-landing {
+    .lp-eyebrow {
+      font-size: var(--text-sm);
+      font-weight: 400;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--lp-ink-muted);
+    }
+
+    .lp-steps.lp-steps-in .lp-step {
+      animation: none;
+    }
+
+    .lp-section {
+      padding: 7.5rem 0;
+    }
+
+    .lp-section-head {
+      text-align: left;
+      margin-inline: 0;
+      max-width: 38rem;
+    }
+
+    .lp-section-head h2,
+    .lp-section-head h3,
+    .lp-product-body h3 {
+      text-wrap: balance;
+    }
+
+    .lp-btn-primary {
+      transition:
+        background var(--dur-fast) var(--ease),
+        border-color var(--dur-fast) var(--ease),
+        color var(--dur-fast) var(--ease),
+        transform 140ms var(--ease);
+    }
+
+    .lp-btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .ls-choreo.is-choreo .lp-product-card,
+    .ls-choreo.is-choreo .lp-step {
+      animation: ls-in 0.45s var(--ease-out) both;
+      animation-delay: calc(var(--i, 0) * 50ms);
+    }
+
+    .lp-product-card img {
+      transition: transform 0.7s var(--ease);
+    }
+
+    .lp-product-card:hover img {
+      transform: scale(1.04);
+    }
+
+    .lp-product-grid.ls-bento {
+      grid-template-columns: 1.4fr 1fr;
+      grid-template-rows: auto auto;
+    }
+
+    .lp-product-grid.ls-bento .lp-product-card:first-child {
+      grid-row: span 2;
+    }
+
+    .lp-product-grid.ls-bento .lp-product-card:first-child img {
+      height: auto;
+      min-height: 14rem;
+      flex: 1 1 48%;
+    }
+
+    @media (max-width: 960px) {
+      .lp-product-grid.ls-bento {
+        grid-template-columns: 1fr;
+      }
+
+      .lp-product-grid.ls-bento .lp-product-card:first-child {
+        grid-row: auto;
+      }
+
+      .lp-product-grid.ls-bento .lp-product-card:first-child img {
+        flex: none;
+        height: 180px;
+      }
+    }
+
+    &::after {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.032;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 180px 180px;
+      mix-blend-mode: multiply;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .lp-product-card img { transition: none; }
+      .lp-product-card:hover img { transform: none; }
+      .lp-btn-primary { transition: none; }
+      .lp-btn-primary:active { transform: none; }
+      .ls-choreo.is-choreo .lp-product-card,
+      .ls-choreo.is-choreo .lp-step {
+        animation: none;
+      }
+    }
+  }
 }
 
 @keyframes lp-step-in {
   from {
     opacity: 0;
     transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ls-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
   to {
     opacity: 1;

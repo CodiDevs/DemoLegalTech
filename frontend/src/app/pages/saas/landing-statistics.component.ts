@@ -24,10 +24,7 @@ export interface StatItem {
           @if (s.icon && variant !== 'band') {
             <span class="ls-stat-icon"><app-landing-icon [name]="s.icon" [size]="20" /></span>
           }
-          <div class="ls-stat-top">
-            <span class="ls-value">{{ s.value }}</span>
-            @if (s.trend && variant !== 'band') { <span class="ls-trend">{{ s.trend }}</span> }
-          </div>
+          <span class="ls-value">{{ s.value }}</span>
           <h3>{{ s.label }}</h3>
           <p>{{ s.detail }}</p>
         </article>
@@ -61,19 +58,12 @@ export interface StatItem {
     .ls-stat-icon {
       width: 2.25rem;
       height: 2.25rem;
-      border-radius: 999px;
+      border-radius: var(--radius-md);
       background: var(--ls-accent-soft);
       color: var(--ls-accent);
       display: grid;
       place-items: center;
       margin-bottom: 0.25rem;
-    }
-
-    .ls-stat-top {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-      flex-wrap: wrap;
     }
 
     .ls-value {
@@ -82,15 +72,6 @@ export interface StatItem {
       letter-spacing: -0.03em;
       color: var(--text);
       line-height: 1;
-    }
-
-    .ls-trend {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--success);
-      background: var(--success-subtle);
-      padding: 0.2rem 0.45rem;
-      border-radius: 999px;
     }
 
     .ls-stat h3 {
