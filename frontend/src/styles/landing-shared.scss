@@ -827,9 +827,21 @@
 
   .lp-pricing {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
     align-items: stretch;
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  .lp-pricing:has(> :only-child) {
+    grid-template-columns: minmax(0, 22rem);
+    max-width: 22rem;
+  }
+
+  .lp-pricing:has(> :nth-child(3)) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: none;
   }
 
   .lp-plan {
@@ -850,11 +862,18 @@
   }
 
   .lp-plan-tag {
+    display: block;
+    min-height: 1.05em;
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--lp-accent-ink);
+  }
+
+  .lp-plan-tag.is-spacer {
+    visibility: hidden;
+    user-select: none;
   }
 
   .lp-plan h3 {
@@ -903,6 +922,10 @@
     background: var(--lp-accent);
     -webkit-mask: var(--icon-check) center / contain no-repeat;
     mask: var(--icon-check) center / contain no-repeat;
+  }
+
+  .lp-plan .lp-btn {
+    margin-top: auto;
   }
 
   .lp-cta-panel {
@@ -1201,12 +1224,20 @@
   }
 
   &.legalstation-landing {
+    --lp-max: 1200px;
+
+    .lp-shell {
+      max-width: var(--lp-max);
+      padding-inline: clamp(1rem, 4vw, 1.5rem);
+    }
+
     .lp-eyebrow {
-      font-size: var(--text-sm);
-      font-weight: 400;
-      letter-spacing: normal;
-      text-transform: none;
-      color: var(--lp-ink-muted);
+      margin: 0 0 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary);
     }
 
     .lp-steps.lp-steps-in .lp-step {
@@ -1214,13 +1245,33 @@
     }
 
     .lp-section {
-      padding: 7.5rem 0;
+      padding-block: clamp(4rem, 8vw, 7rem);
+      background: var(--bg);
+    }
+
+    .lp-section.soft {
+      background: var(--bg-muted);
     }
 
     .lp-section-head {
       text-align: left;
       margin-inline: 0;
-      max-width: 38rem;
+      margin-bottom: clamp(2rem, 4vw, 3rem);
+      max-width: 40rem;
+    }
+
+    .lp-section-head h2 {
+      font-size: clamp(1.85rem, 3.8vw, 2.75rem);
+      font-weight: 600;
+      letter-spacing: -0.035em;
+      max-width: 18ch;
+      margin-bottom: 0.75rem;
+    }
+
+    .lp-section-head p {
+      font-size: clamp(1rem, 1.5vw, 1.1rem);
+      line-height: 1.65;
+      color: var(--text-secondary);
     }
 
     .lp-section-head h2,
@@ -1233,78 +1284,184 @@
       transition:
         background var(--dur-fast) var(--ease),
         border-color var(--dur-fast) var(--ease),
-        color var(--dur-fast) var(--ease),
-        transform 140ms var(--ease);
+        color var(--dur-fast) var(--ease);
     }
 
     .lp-btn-primary:active {
-      transform: scale(0.97);
+      transform: none;
     }
 
-    .ls-choreo.is-choreo .lp-product-card,
+    .ls-choreo.is-choreo .ls-tilt-slot,
     .ls-choreo.is-choreo .lp-step {
       animation: ls-in 0.45s var(--ease-out) both;
       animation-delay: calc(var(--i, 0) * 50ms);
     }
 
-    .lp-product-card img {
-      transition: transform 0.7s var(--ease);
+    .lp-product-grid.ls-product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+      align-items: stretch;
     }
 
-    .lp-product-card:hover img {
-      transform: scale(1.04);
+    .ls-product-card,
+    .ls-plan-card,
+    .ls-steps .lp-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      transition:
+        box-shadow 200ms var(--ease),
+        border-color 200ms var(--ease);
     }
 
-    .lp-product-grid.ls-bento {
-      grid-template-columns: 1.4fr 1fr;
-      grid-template-rows: auto auto;
+    .ls-product-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
     }
 
-    .lp-product-grid.ls-bento .lp-product-card:first-child {
-      grid-row: span 2;
+    .ls-tilt-slot[data-product='divorcio360'] .ls-product-card {
+      border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
     }
 
-    .lp-product-grid.ls-bento .lp-product-card:first-child img {
-      height: auto;
-      min-height: 14rem;
-      flex: 1 1 48%;
+    .ls-tilt-slot[data-product='traslado360'] .ls-product-card {
+      border-color: color-mix(in srgb, var(--primary) 22%, #7a9eb0 18%, var(--border));
+    }
+
+    .ls-tilt-slot[data-product='bienraiz360'] .ls-product-card {
+      border-color: color-mix(in srgb, var(--primary) 18%, #a89070 16%, var(--border));
+    }
+
+    .ls-product-card img {
+      height: 11rem;
+      object-fit: cover;
+      flex: none;
+      transition: opacity var(--dur-base) var(--ease);
+    }
+
+    .ls-product-card:hover img {
+      opacity: 0.92;
+    }
+
+    .ls-product-card .lp-product-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 0.65rem;
+      padding: 1.25rem 1.25rem 1.35rem;
+    }
+
+    .ls-product-card .lp-product-body p {
+      flex: 1;
+    }
+
+    .ls-product-card .lp-list-tt {
+      flex: 0 0 auto;
+    }
+
+    .ls-product-card .lp-btn {
+      margin-top: auto;
+      align-self: flex-start;
+    }
+
+    .ls-plan-card {
+      padding: 1.75rem 1.5rem;
+    }
+
+    .ls-plan-card.featured {
+      border: 0;
+      box-shadow: var(--shadow-lg);
+      outline: none;
+    }
+
+    .ls-shine-slot {
+      filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--primary) 14%, transparent));
+    }
+
+    .ls-steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .ls-steps .lp-step {
+      padding: 1.25rem 1.1rem;
+      background: transparent;
+      box-shadow: none;
+      border: 0;
+      border-top: 2px solid var(--primary-border);
+      border-radius: 0;
+    }
+
+    .ls-steps .lp-step-num {
+      color: var(--primary);
+    }
+
+    .ls-enterprise-card {
+      padding: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: none;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .ls-plan-card:not(.featured):hover {
+        box-shadow: var(--shadow-lg);
+        border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+        transform: translateY(-3px);
+        transition:
+          transform 200ms var(--ease),
+          box-shadow 200ms var(--ease),
+          border-color 200ms var(--ease);
+      }
+
+      .ls-product-card:hover {
+        border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .ls-steps {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
     @media (max-width: 960px) {
-      .lp-product-grid.ls-bento {
+      .lp-product-grid.ls-product-grid {
         grid-template-columns: 1fr;
       }
 
-      .lp-product-grid.ls-bento .lp-product-card:first-child {
-        grid-row: auto;
+      .ls-steps {
+        grid-template-columns: 1fr 1fr;
       }
+    }
 
-      .lp-product-grid.ls-bento .lp-product-card:first-child img {
-        flex: none;
-        height: 180px;
+    @media (max-width: 560px) {
+      .ls-steps {
+        grid-template-columns: 1fr;
       }
     }
 
     &::after {
-      content: '';
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      opacity: 0.032;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 180px 180px;
-      mix-blend-mode: multiply;
+      content: none;
     }
 
     @media (prefers-reduced-motion: reduce) {
       .lp-product-card img { transition: none; }
-      .lp-product-card:hover img { transform: none; }
       .lp-btn-primary { transition: none; }
       .lp-btn-primary:active { transform: none; }
-      .ls-choreo.is-choreo .lp-product-card,
+      .ls-choreo.is-choreo .ls-tilt-slot,
       .ls-choreo.is-choreo .lp-step {
         animation: none;
+      }
+
+      .ls-plan-card:not(.featured):hover {
+        transform: none;
       }
     }
   }
