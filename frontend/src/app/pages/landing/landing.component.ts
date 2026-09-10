@@ -18,7 +18,7 @@ import { AuthService } from '../../core/auth.service';
         <div class="cta">
           @if (auth.user()?.role === 'abogado') {
             <a routerLink="/abogado" class="btn btn-primary">Ir al panel abogado</a>
-            <a routerLink="/fase2/admin" class="btn btn-ghost">Ver Fase 2</a>
+            <a routerLink="/abogado/fase2/admin" class="btn btn-ghost">Ver Fase 2</a>
           } @else if (auth.user()?.role === 'cliente') {
             <a routerLink="/cuestionario" class="btn btn-primary">Empezar cuestionario</a>
             <a routerLink="/cliente" class="btn btn-ghost">Mi expediente</a>

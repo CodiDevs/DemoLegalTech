@@ -1,64 +1,75 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LEGALSTATION_CATALOG, ProductCatalogEntry, getProductQuestionnairePath, setActiveProduct } from '../../shared/product-sites.data';
+import { CaseProgressComponent } from '../../shared/case-progress.component';
+import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
+import { IconComponent } from '../../shared/icon.component';
+import { LandingFaqComponent } from '../../shared/ui/landing-faq.component';
+import { ShineBorderComponent } from '../../shared/ui/shine-border.component';
+import { TiltCardComponent } from '../../shared/ui/tilt-card.component';
 import { MarketingHeroComponent } from './marketing-hero.component';
 import {
   LEGALSTATION_ENTERPRISE,
-  LEGALSTATION_HERO_IMAGES,
+  LEGALSTATION_FAQ,
   LEGALSTATION_PLANS,
   LEGALSTATION_WORKFLOW,
 } from './saas-landing.data';
-import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-saas-landing',
   standalone: true,
-  imports: [RouterLink, MarketingHeroComponent, IconComponent],
+  imports: [
+    RouterLink,
+    MarketingHeroComponent,
+    IconComponent,
+    TiltCardComponent,
+    ShineBorderComponent,
+    LandingFaqComponent,
+    CaseProgressComponent,
+  ],
   template: `
     <div class="landing-page legalstation-landing">
       <app-marketing-hero
-        theme="legalstation"
-        titleLine1="Tus trámites legales,"
-        titleHighlight="sin filas ni papeleo."
-        subtitle="Divorcios, traslados de vehículo y trámites de inmuebles, resueltos en línea y al mismo costo que hacerlos en persona. Pagas solo por el trámite que necesitas."
         primaryCta="Ver qué puedo tramitar"
         primaryFragment="catalogo"
         [showSecondary]="false"
-        [images]="heroImages"
       />
 
       <section class="lp-section soft" id="catalogo">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Trámites en vivo: <span class="lp-highlight">intake y expediente.</span></h2>
+            <p class="lp-eyebrow">Productos</p>
+            <h2>Trámites en vivo</h2>
             <p>
               Divorcio360, Traslado360 y BienRaiz360 abren el cuestionario ahora.
-              El resto aparece abajo como demo, todavía no en vivo.
+              El resto aparece como próximos lanzamientos.
             </p>
           </div>
-          <div class="lp-product-grid ls-bento ls-choreo">
+          <div class="lp-product-grid ls-product-grid ls-choreo">
             @for (p of liveProducts; track p.id; let i = $index) {
-              <article class="lp-product-card lp-lift" [style.--i]="i">
-                <span class="lp-badge-live">En vivo</span>
-                <img [src]="p.image" [alt]="p.name" loading="lazy" />
-                <div class="lp-product-body">
-                  <h3>{{ p.name }}</h3>
-                  <p>{{ p.tagline }}</p>
-                  <ul class="lp-list-tt">
-                    @for (f of p.features; track f) { <li>{{ f }}</li> }
-                  </ul>
-                  <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(p)">
-                    Abrir producto
-                    <app-icon name="arrow-right" [size]="16" />
-                  </button>
-                </div>
-              </article>
+              <app-tilt-card class="ls-tilt-slot" [style.--i]="i" [attr.data-product]="p.id">
+                <article class="lp-product-card ls-product-card">
+                  <span class="lp-badge-live">En vivo</span>
+                  <img class="tilt-z-media" [src]="p.image" [alt]="p.name" loading="lazy" />
+                  <div class="lp-product-body tilt-z-copy">
+                    <h3>{{ p.name }}</h3>
+                    <p>{{ p.tagline }}</p>
+                    <ul class="lp-list-tt">
+                      @for (f of p.features; track f) { <li>{{ f }}</li> }
+                    </ul>
+                    <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(p)">
+                      Abrir producto
+                      <app-icon name="arrow-right" [size]="16" />
+                    </button>
+                  </div>
+                </article>
+              </app-tilt-card>
             }
           </div>
 
           <div class="soon-wrap">
             <h3>Próximamente</h3>
-            <p class="lp-muted">Herramientas de la demo que aún no abren intake.</p>
+            <p class="lp-muted">Herramientas en preparación que aún no abren cuestionario.</p>
             <ul class="lp-list-tt soon-list">
               @for (p of comingSoon; track p.id) {
                 <li class="soon-item">
@@ -67,7 +78,7 @@ import { IconComponent } from '../../shared/icon.component';
                     <span class="lp-muted">: {{ p.pillDesc }}</span>
                   </span>
                   <button type="button" class="lp-btn lp-btn-outline" (click)="notify(p.name)">
-                    Explorar demo
+                    Explorar
                   </button>
                 </li>
               }
@@ -76,88 +87,99 @@ import { IconComponent } from '../../shared/icon.component';
         </div>
       </section>
 
-      <section class="lp-section">
+      <section class="lp-section" id="flujo">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Intake, expediente y <span class="lp-highlight">operador.</span></h2>
-            <p>El cliente llena el intake. El expediente junta pago y documentos. El operador revisa y cierra.</p>
+            <p class="lp-eyebrow">Recorrido</p>
+            <h2>De la recepción a la finalización</h2>
+            <p>Cinco etapas del expediente en la plataforma.</p>
           </div>
-          <div class="lp-values lp-values--rules">
-            <article class="lp-value">
-              <h3>Intake</h3>
-              <p>Cuestionario y clasificación del caso antes de pagar.</p>
-            </article>
-            <article class="lp-value">
-              <h3>Expediente</h3>
-              <p>Documentos, pago y mensajes en un solo lugar.</p>
-            </article>
-            <article class="lp-value">
-              <h3>Operador</h3>
-              <p>Revisión, minuta y aviso de estado al cliente.</p>
-            </article>
+          <div class="ls-progress ls-choreo">
+            <app-case-progress
+              variant="marketing"
+              layout="auto"
+              [interactive]="true"
+              [stages]="journeyStages"
+              [focusIndex]="journeyFocus"
+              ariaLabel="Recorrido del trámite LegalStation"
+              (stageSelect)="onJourneySelect($event.index)"
+            />
           </div>
         </div>
       </section>
 
-      <section class="lp-section soft">
+      <section class="lp-section soft" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Del intake al cierre, <span class="lp-highlight">cinco pasos.</span></h2>
-            <p>Ciclo del expediente en la plataforma.</p>
+            <p class="lp-eyebrow">Licencias</p>
+            <h2>Licencia para operar la plataforma</h2>
+            <p>Tarifas para operadores. El cliente del trámite no paga esta licencia.</p>
           </div>
-          <div class="lp-steps ls-choreo">
-            @for (s of workflow; track s.title; let i = $index) {
-              <article class="lp-step" [style.--i]="i">
-                <div class="lp-step-num">{{ s.n }}</div>
-                <h3>{{ s.title }}</h3>
-                <p>{{ s.desc }}</p>
-              </article>
+          <div class="ls-pricing-grid">
+            @for (plan of plans; track plan.name) {
+              @if (plan.featured) {
+                <app-shine-border class="ls-shine-slot">
+                  <article class="lp-plan ls-plan-card featured">
+                    <span class="lp-plan-tag">Más popular</span>
+                    <h3>{{ plan.name }}</h3>
+                    <p class="lp-muted">{{ plan.audience }}</p>
+                    <div class="lp-plan-price">\${{ plan.price }}<small>/mes</small></div>
+                    <ul>
+                      @for (item of plan.items; track item) { <li>{{ item }}</li> }
+                    </ul>
+                    <a
+                      routerLink="/auth"
+                      [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
+                      class="lp-btn lp-btn-primary"
+                    >Ver licencia</a>
+                  </article>
+                </app-shine-border>
+              } @else {
+                <article class="lp-plan ls-plan-card">
+                  <span class="lp-plan-tag is-spacer">Más popular</span>
+                  <h3>{{ plan.name }}</h3>
+                  <p class="lp-muted">{{ plan.audience }}</p>
+                  <div class="lp-plan-price">\${{ plan.price }}<small>/mes</small></div>
+                  <ul>
+                    @for (item of plan.items; track item) { <li>{{ item }}</li> }
+                  </ul>
+                  <a
+                    routerLink="/auth"
+                    [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
+                    class="lp-btn lp-btn-outline"
+                  >Ver licencia</a>
+                </article>
+              }
             }
           </div>
         </div>
       </section>
 
-      <section class="lp-section" id="precios">
+      <section class="lp-section" id="faq">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Licencia demo para <span class="lp-highlight">operar la plataforma.</span></h2>
-            <p>Tarifas de demostración para operadores. El cliente del trámite no paga esta licencia.</p>
+            <p class="lp-eyebrow">Preguntas</p>
+            <h2>Antes de empezar</h2>
+            <p>Respuestas cortas sobre trámites, cuenta, documentos y seguimiento.</p>
           </div>
-          <div class="pricing-lead">
-            <article class="lp-plan featured">
-              <span class="lp-plan-tag">Licencia demo</span>
-              <h3>{{ featuredPlan.name }}</h3>
-              <p class="lp-muted">{{ featuredPlan.audience }}</p>
-              <div class="lp-plan-price">\${{ featuredPlan.price }}<small>/mes</small></div>
-              <ul>
-                @for (item of featuredPlan.items; track item) { <li>{{ item }}</li> }
-              </ul>
-              <a routerLink="/auth" [queryParams]="{ returnUrl: '/fase2/billing' }" class="lp-btn lp-btn-outline">Ver licencia demo</a>
-            </article>
-          </div>
-          <p class="lp-muted other-plans">
-            Otras licencias demo:
-            @for (plan of otherPlans; track plan.name; let last = $last) {
-              <a routerLink="/auth" [queryParams]="{ returnUrl: '/fase2/billing' }" class="lp-link">{{ plan.name }}</a>
-              @if (!last) { <span aria-hidden="true">·</span> }
-            }
-          </p>
+          <app-landing-faq [items]="faq" />
         </div>
       </section>
 
-      <section class="lp-section soft">
+      <section class="lp-section soft" id="enterprise">
         <div class="lp-shell lp-enterprise">
           <div class="lp-enterprise-copy">
-            <h2>Enterprise en demo</h2>
+            <p class="lp-eyebrow">Enterprise</p>
+            <h2>Para firmas que necesitan aislamiento</h2>
             <p>
-              Instancia dedicada, SSO y SLA de demostración para firmas que necesitan datos aislados.
-              Consulta demo. No es un contrato.
+              Instancia dedicada, SSO y SLA para firmas que necesitan datos aislados.
+              Solicita una consulta comercial.
             </p>
             <button type="button" class="lp-btn lp-btn-primary" (click)="notify('Enterprise')">Solicitar consulta</button>
           </div>
           <div class="lp-enterprise-grid">
             @for (e of enterprise; track e.title) {
-              <article class="lp-value">
+              <article class="lp-value ls-enterprise-card">
                 <h3>{{ e.title }}</h3>
                 <p>{{ e.desc }}</p>
               </article>
@@ -173,16 +195,21 @@ import { IconComponent } from '../../shared/icon.component';
   `,
   styles: [`
     .soon-wrap {
-      margin-top: 2rem;
+      margin-top: clamp(2rem, 4vw, 2.75rem);
+      padding-top: clamp(1.5rem, 3vw, 2rem);
+      border-top: 1px solid var(--border);
     }
 
     .soon-wrap h3 {
-      margin-bottom: 0.35rem;
+      margin: 0 0 0.35rem;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
     }
 
     .soon-list {
-      max-width: 42rem;
-      margin-top: 0.75rem;
+      max-width: 44rem;
+      margin-top: 0.85rem;
     }
 
     .soon-item {
@@ -190,36 +217,60 @@ import { IconComponent } from '../../shared/icon.component';
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 0.75rem 1rem;
       align-items: center;
+      padding-block: 0.85rem;
+      border-bottom: 1px solid var(--border);
     }
 
-    .pricing-lead {
+    .soon-item:last-child {
+      border-bottom: 0;
+    }
+
+    .ls-pricing-grid {
       display: grid;
-      grid-template-columns: minmax(16rem, 26rem);
-      justify-content: center;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+      align-items: stretch;
     }
 
-    .other-plans {
+    .ls-shine-slot,
+    .ls-tilt-slot {
+      display: block;
+      height: 100%;
+      min-width: 0;
+    }
+
+    .ls-plan-card {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .ls-plan-card .lp-btn {
+      margin-top: auto;
+      align-self: stretch;
       justify-content: center;
-      align-items: center;
-      gap: 0.35rem 0.85rem;
-      margin-top: 1.25rem;
     }
 
     .lp-enterprise {
       display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 2rem;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
+      gap: clamp(1.75rem, 4vw, 3rem);
       align-items: start;
     }
 
     .lp-enterprise-copy h2 {
-      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
       margin: 0 0 0.85rem;
+      max-width: 16ch;
     }
 
-    .lp-enterprise-copy p { margin-bottom: 1.25rem; }
+    .lp-enterprise-copy p {
+      margin-bottom: 1.25rem;
+      max-width: 36rem;
+    }
 
     .lp-enterprise-grid {
       display: grid;
@@ -232,25 +283,31 @@ import { IconComponent } from '../../shared/icon.component';
       transition: opacity 180ms var(--ease), transform 180ms var(--ease);
     }
 
+    .ls-progress {
+      margin-top: 0.5rem;
+      padding: 0.25rem 0 0.5rem;
+    }
+
     @media (max-width: 960px) {
       .lp-enterprise { grid-template-columns: 1fr; }
+      .ls-pricing-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
       .soon-item { grid-template-columns: 1fr; }
-      .pricing-lead { grid-template-columns: minmax(0, 1fr); }
+      .lp-enterprise-grid { grid-template-columns: 1fr; }
     }
   `]
 })
 export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   toast = '';
-  heroImages = LEGALSTATION_HERO_IMAGES;
   liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
   comingSoon = LEGALSTATION_CATALOG.filter((p) => !p.live);
-  workflow = LEGALSTATION_WORKFLOW;
-  featuredPlan = LEGALSTATION_PLANS.find((p) => p.featured)!;
-  otherPlans = LEGALSTATION_PLANS.filter((p) => !p.featured);
+  journeyFocus = 1;
+  journeyStages: CaseProgressStage[] = buildMarketingProgressStages(LEGALSTATION_WORKFLOW, 1);
+  plans = LEGALSTATION_PLANS;
   enterprise = LEGALSTATION_ENTERPRISE;
+  faq = LEGALSTATION_FAQ;
   private io?: IntersectionObserver;
 
   constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
@@ -281,15 +338,19 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
     this.io?.disconnect();
   }
 
-  /** Siempre al cuestionario del producto seleccionado. */
   openProduct(p: ProductCatalogEntry): void {
     if (!p.route) return;
     setActiveProduct(p.id);
     void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
   }
 
+  onJourneySelect(index: number): void {
+    this.journeyFocus = index;
+    this.journeyStages = buildMarketingProgressStages(LEGALSTATION_WORKFLOW, index);
+  }
+
   notify(name: string): void {
-    this.toast = `${name}: demo registrada. Te avisaremos (simulación)`;
+    this.toast = `${name}: solicitud registrada. Te contactaremos pronto.`;
     setTimeout(() => this.toast = '', 3500);
   }
 }

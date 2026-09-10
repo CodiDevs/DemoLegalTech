@@ -271,6 +271,19 @@ button,
     color var(--dur-fast) var(--ease);
 }
 
+/* Links styled as buttons must keep --btn-fg (a:hover would paint primary-hover on primary). */
+a.btn {
+  text-decoration: none;
+  color: var(--btn-fg);
+}
+
+a.btn:hover,
+a.btn:focus-visible,
+a.btn:active {
+  text-decoration: none;
+  color: var(--btn-fg);
+}
+
 .btn-primary {
   --btn-bg: var(--primary);
   --btn-fg: var(--text-on-primary);

@@ -15,7 +15,6 @@ import { LawyerPanelComponent } from './pages/lawyer-panel/lawyer-panel.componen
 import { LawyerCaseComponent } from './pages/lawyer-case/lawyer-case.component';
 import { CaseDetailComponent } from './pages/case-detail/case-detail.component';
 import { VirtualMeetingPageComponent } from './pages/virtual-meeting/virtual-meeting-page.component';
-import { Fase2ShellComponent } from './pages/fase2/fase2-shell.component';
 import { Fase2AdminComponent } from './pages/fase2/admin/admin.component';
 import { Fase2TemplatesComponent } from './pages/fase2/templates/templates.component';
 import { Fase2AiComponent } from './pages/fase2/ai-agent/ai-agent.component';
@@ -57,6 +56,12 @@ export const routes: Routes = [
         children: [
           { path: '', component: LawyerPanelComponent },
           { path: 'caso/:id', component: LawyerCaseComponent },
+          { path: 'fase2', redirectTo: 'fase2/admin', pathMatch: 'full' },
+          { path: 'fase2/admin', component: Fase2AdminComponent },
+          { path: 'fase2/templates', component: Fase2TemplatesComponent },
+          { path: 'fase2/ai', component: Fase2AiComponent },
+          { path: 'fase2/satje', component: Fase2SatjeComponent },
+          { path: 'fase2/billing', component: Fase2BillingComponent },
         ],
       },
       { path: 'checkout/:id', component: CheckoutComponent, canActivate: [authGuard] },
@@ -64,19 +69,12 @@ export const routes: Routes = [
       { path: 'consulta/:caseId', component: VirtualMeetingPageComponent, canActivate: [authGuard] },
       { path: 'firma/:id', component: SignComponent, canActivate: [authGuard] },
       { path: 'caso/:id', component: CaseDetailComponent, canActivate: [authGuard] },
-      {
-        path: 'fase2',
-        component: Fase2ShellComponent,
-        canActivate: [roleGuard('abogado')],
-        children: [
-          { path: '', redirectTo: 'admin', pathMatch: 'full' },
-          { path: 'admin', component: Fase2AdminComponent },
-          { path: 'templates', component: Fase2TemplatesComponent },
-          { path: 'ai', component: Fase2AiComponent },
-          { path: 'satje', component: Fase2SatjeComponent },
-          { path: 'billing', component: Fase2BillingComponent },
-        ],
-      },
+      { path: 'fase2', redirectTo: 'abogado/fase2/admin', pathMatch: 'full' },
+      { path: 'fase2/admin', redirectTo: 'abogado/fase2/admin', pathMatch: 'full' },
+      { path: 'fase2/templates', redirectTo: 'abogado/fase2/templates', pathMatch: 'full' },
+      { path: 'fase2/ai', redirectTo: 'abogado/fase2/ai', pathMatch: 'full' },
+      { path: 'fase2/satje', redirectTo: 'abogado/fase2/satje', pathMatch: 'full' },
+      { path: 'fase2/billing', redirectTo: 'abogado/fase2/billing', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: '' },

@@ -4,12 +4,29 @@ import { getProductSite, ProductSiteConfig, setActiveProduct, CANONICAL_SLOGAN, 
 import { AuthService } from '../../core/auth.service';
 import { ElasticGalleryComponent } from '../saas/elastic-gallery.component';
 import { LandingStatisticsComponent } from '../saas/landing-statistics.component';
-import { IconComponent } from '../../shared/icon.component';
+import { IconComponent, IconName } from '../../shared/icon.component';
+import { CaseProgressComponent } from '../../shared/case-progress.component';
+import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
+
+const PRODUCT_FLOW_ICONS: IconName[] = [
+  'clipboard',
+  'credit-card',
+  'folder',
+  'video',
+  'signature',
+  'building',
+];
 
 @Component({
   selector: 'app-product-landing',
   standalone: true,
-  imports: [RouterLink, ElasticGalleryComponent, LandingStatisticsComponent, IconComponent],
+  imports: [
+    RouterLink,
+    ElasticGalleryComponent,
+    LandingStatisticsComponent,
+    IconComponent,
+    CaseProgressComponent,
+  ],
   template: `
     @if (site) {
       <div
@@ -74,27 +91,17 @@ import { IconComponent } from '../../shared/icon.component';
             <div class="lp-section-head">
               <p class="lp-eyebrow">Así funciona</p>
               <h2>Seis pasos, <span class="lp-highlight">un solo expediente.</span></h2>
-              <p>El mismo recorrido de Divorcio360, adaptado a {{ site.name }}.</p>
+              <p>El mismo recorrido de LegalStation, adaptado a {{ site.name }}.</p>
             </div>
-            <div class="ps-timeline">
-              @for (s of site.workflow; track s.n) {
-                <button type="button" class="ps-timeline-item lp-lift" [class.active]="activeStep === s.n" (click)="activeStep = s.n">
-                  <span class="ps-timeline-num">{{ s.n }}</span>
-                  <div>
-                    <h3>{{ s.title }}</h3>
-                    <p>{{ s.desc }}</p>
-                    <span class="ps-screen-tag">{{ s.screen }}</span>
-                  </div>
-                </button>
-              }
-            </div>
-            @if (previewStep) {
-              <div class="ps-preview">
-                <p class="lp-eyebrow">Vista previa · paso {{ previewStep.n }}</p>
-                <h3>{{ previewStep.title }} — {{ previewStep.screen }}</h3>
-                <p>{{ previewStep.desc }}</p>
-              </div>
-            }
+            <app-case-progress
+              variant="marketing"
+              layout="auto"
+              [interactive]="true"
+              [stages]="journeyStages"
+              [focusIndex]="activeStep - 1"
+              ariaLabel="Recorrido del trámite"
+              (stageSelect)="onJourneySelect($event.index)"
+            />
           </div>
         </section>
 
@@ -141,7 +148,7 @@ import { IconComponent } from '../../shared/icon.component';
             <div class="lp-pricing">
               @for (plan of site.plans; track plan.name) {
                 <article class="lp-plan lp-lift" [class.featured]="plan.featured">
-                  @if (plan.featured) { <span class="lp-plan-tag">Recomendado</span> }
+                  <span class="lp-plan-tag" [class.is-spacer]="!plan.featured">Recomendado</span>
                   <h3>{{ plan.name }}</h3>
                   <p class="lp-muted">{{ plan.audience }}</p>
                   <div class="lp-plan-price">\${{ plan.price }}<small> pago único</small></div>
@@ -357,6 +364,7 @@ import { IconComponent } from '../../shared/icon.component';
 export class ProductLandingComponent implements OnInit {
   site: ProductSiteConfig | null = null;
   activeStep = 1;
+  journeyStages: CaseProgressStage[] = [];
   slogan = CANONICAL_SLOGAN;
 
   constructor(
@@ -377,10 +385,28 @@ export class ProductLandingComponent implements OnInit {
       return;
     }
     setActiveProduct(this.site.id);
+    this.rebuildJourney();
   }
 
-  get previewStep() {
-    return this.site?.workflow.find((w) => w.n === this.activeStep);
+  onJourneySelect(index: number): void {
+    this.activeStep = index + 1;
+    this.rebuildJourney();
+  }
+
+  private rebuildJourney(): void {
+    if (!this.site) {
+      this.journeyStages = [];
+      return;
+    }
+    const steps = this.site.workflow.map((step, index) => ({
+      id: String(step.n),
+      n: step.n,
+      title: step.title,
+      desc: step.desc,
+      icon: PRODUCT_FLOW_ICONS[index] || ('flag' as IconName),
+      screen: step.screen,
+    }));
+    this.journeyStages = buildMarketingProgressStages(steps, this.activeStep - 1);
   }
 
   startEvaluation(event: Event): void {

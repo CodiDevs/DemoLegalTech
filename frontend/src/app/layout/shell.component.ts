@@ -45,7 +45,9 @@ interface ProductSwitcherItem {
       <div class="header-bar">
         <a [routerLink]="brand.home" class="brand" (click)="closeAll()">
           @if (brand.mark === 'logo') {
-            <span class="brand-mark" aria-hidden="true"><app-icon name="scale" [size]="16" /></span>
+            <span class="brand-mark brand-mark-svg" aria-hidden="true">
+              <img src="/brand/legalstation-mark.svg" width="16" height="16" alt="" />
+            </span>
           } @else {
             <span class="brand-mark brand-mark-360" aria-hidden="true">360</span>
           }
@@ -224,9 +226,8 @@ interface ProductSwitcherItem {
       <router-outlet />
     </main>
 
-    @if (!isDivorcioFlow) {
-    <footer class="site-footer" [class.is-compact]="isAuthPage">
-      @if (!isAuthPage) {
+    @if (!isDivorcioFlow && !isAuthPage) {
+    <footer class="site-footer">
       <div class="shell footer-grid">
         <div class="footer-col footer-brand">
           <strong>{{ footerBrandName }}</strong>
@@ -247,7 +248,7 @@ interface ProductSwitcherItem {
           <h2>Tu cuenta</h2>
           @if (auth.isLoggedIn) {
             <a [routerLink]="homeForRole">{{ roleHomeLabel }}</a>
-            @if (auth.user()?.role === 'abogado') { <a routerLink="/fase2/admin">Fase 2</a> }
+            @if (auth.user()?.role === 'abogado') { <a routerLink="/abogado/fase2/admin">Fase 2</a> }
           } @else {
             <a [routerLink]="['/auth']" [queryParams]="{ returnUrl: '/' }">Ingresar</a>
             <a routerLink="/cuestionario">Comprobar si aplico</a>
@@ -262,7 +263,6 @@ interface ProductSwitcherItem {
           <a href="mailto:soporte@legalstation.ec">soporte&#64;legalstation.ec</a>
         </div>
       </div>
-      }
 
       <div class="shell footer-bottom">
         <span>© 2026 LegalStation</span>
@@ -321,10 +321,10 @@ interface ProductSwitcherItem {
     }
 
     .site-header.on-marketing .header-bar {
-      max-width: var(--container-wide);
+      max-width: 1200px;
       min-height: var(--header-height);
       gap: var(--space-4);
-      padding-inline: var(--container-pad);
+      padding-inline: clamp(1rem, 4vw, 1.5rem);
       border: 0;
       border-radius: 0;
       background: transparent;
@@ -406,6 +406,12 @@ interface ProductSwitcherItem {
       border-radius: var(--radius-sm);
       background: color-mix(in srgb, var(--header-accent) 12%, transparent);
       color: var(--header-accent);
+    }
+
+    .brand-mark-svg img {
+      display: block;
+      width: 1rem;
+      height: 1rem;
     }
 
     .brand-mark-360 {
@@ -498,7 +504,7 @@ interface ProductSwitcherItem {
     .header-actions {
       display: flex;
       align-items: center;
-      gap: var(--space-2);
+      gap: var(--space-3);
       margin-left: auto;
     }
 
@@ -507,12 +513,21 @@ interface ProductSwitcherItem {
 
     .site-header .btn-primary {
       --btn-bg: var(--header-accent);
+      --btn-fg: var(--text-on-primary);
       --btn-border: var(--header-accent);
+      padding-inline: var(--space-4);
+      text-decoration: none;
     }
 
     .site-header .btn-primary:hover:not(:disabled) {
       --btn-bg: color-mix(in srgb, var(--header-accent) 85%, #000);
       --btn-border: color-mix(in srgb, var(--header-accent) 85%, #000);
+      --btn-fg: var(--text-on-primary);
+      color: var(--btn-fg);
+    }
+
+    .site-header .btn-ghost {
+      text-decoration: none;
     }
 
     /* ---------- Notificaciones ---------- */
@@ -936,7 +951,7 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   get footerPitch(): string {
     if (this.isDivorcioMarketing || (this.isProductContext && this.activeProduct === 'divorcio360')) {
-      return 'Demostración del trámite en línea, sin filas ni desplazamientos. Recorre el expediente desde casa.';
+      return 'Trámite en línea, sin filas ni desplazamientos. Recorre el expediente desde casa.';
     }
     if (this.isProductContext) {
       return 'Al mismo costo que presencial, sin filas ni desplazamientos. Todo el trámite desde casa.';

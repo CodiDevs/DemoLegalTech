@@ -79,7 +79,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     price: 349,
     heroTitle: 'Divorcio por mutuo acuerdo',
     heroHighlight: 'con seguimiento claro.',
-    heroLede: 'Evalúa si tu caso encaja y recorre una demostración completa del expediente digital.',
+    heroLede: 'Evalúa si tu caso encaja. Luego documentos, consulta, firma y cierre en un solo expediente.',
     heroImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
     ctaTitle: 'Evalúa si tu caso encaja',
     workflow: [
@@ -116,7 +116,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       {
         n: 6,
         title: 'Cerrar',
-        desc: 'Seguimiento del cierre dentro del recorrido de demostración.',
+        desc: 'Seguimiento del cierre hasta el acta y el archivo del expediente.',
         screen: 'Resultado',
       },
     ],
@@ -138,7 +138,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       {
         label: 'Recorrido visible',
         value: '6 etapas',
-        detail: 'De la evaluación al cierre dentro de esta demostración.',
+        detail: 'De la evaluación al cierre con trazabilidad completa.',
         icon: 'file',
       },
       {
@@ -149,17 +149,17 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       },
       {
         label: 'Valor orientativo',
-        value: '$349 demo',
-        detail: 'No constituye cotización ni promesa de precio final.',
+        value: '$349',
+        detail: 'Honorario de referencia para el recorrido completo.',
         icon: 'scale',
       },
     ],
     gallery: [
-      { id: '01', title: 'Cuestionario Divorcio360', category: 'Intake', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario divorcio' },
-      { id: '02', title: 'Expediente', category: 'Timeline', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Expediente' },
+      { id: '01', title: 'Cuestionario Divorcio360', category: 'Cuestionario', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario divorcio' },
+      { id: '02', title: 'Expediente', category: 'Línea de estados', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Expediente' },
     ],
     testimonials: [
-      { quote: 'Resolvimos el divorcio sin ir dos veces a la notaría.', author: 'Ana R.', role: 'Cliente demo Quito' },
+      { quote: 'Resolvimos el divorcio sin ir dos veces a la notaría.', author: 'Ana R.', role: 'Cliente · Quito' },
     ],
     docTypes: [
       { type: 'cedula', label: 'Cédula de identidad' },
@@ -177,7 +177,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     plans: [
       {
         name: 'Caso por mutuo acuerdo',
-        audience: 'Valor de demostración sujeto a revisión',
+        audience: 'Mutuo acuerdo · honorario de referencia',
         price: 349,
         items: [
           'Evaluación inicial',
@@ -215,19 +215,19 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 6, title: 'Notaría', desc: 'Reunión virtual con notario y cierre.', screen: 'Notaría' },
     ],
     stats: [
-      { label: 'Tiempo intake', value: '4 min', detail: 'Formulario corto siempre apto demo.', icon: 'check' },
+      { label: 'Tiempo cuestionario', value: '4 min', detail: 'Formulario corto de elegibilidad.', icon: 'check' },
       { label: 'Honorario desde', value: '$199', detail: 'Pago único — sin membresía.', icon: 'scale' },
       { label: 'Documentos', value: '2', detail: 'Matrícula + acuerdo mutuo.', icon: 'file' },
       { label: 'Reuniones', value: '2', detail: 'Consulta abogado + notaría virtual.', icon: 'users' },
     ],
     gallery: [
-      { id: '01', title: 'Cuestionario Traslado360', category: 'Intake', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario traslado' },
+      { id: '01', title: 'Cuestionario Traslado360', category: 'Cuestionario', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario traslado' },
       { id: '02', title: 'Pago único', category: 'Pago', src: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=900&q=80', alt: 'Pago trámite' },
-      { id: '03', title: 'Expediente trazable', category: 'Timeline', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Expediente' },
+      { id: '03', title: 'Expediente trazable', category: 'Línea de estados', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Expediente' },
       { id: '04', title: 'Reunión notarial', category: 'Notaría', src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80', alt: 'Videollamada notario' },
     ],
     testimonials: [
-      { quote: 'Vendimos el auto en un día — sin ir a la notaría dos veces.', author: 'María V.', role: 'Cliente demo Quito' },
+      { quote: 'Vendimos el auto en un día — sin ir a la notaría dos veces.', author: 'María V.', role: 'Cliente · Quito' },
       { quote: 'El link Traslado360 nos da comisión por cada trámite cerrado.', author: 'Bufete Ruiz', role: 'Licencia LegalStation' },
     ],
     docTypes: [
@@ -257,7 +257,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       ], required: true },
     ],
     plans: [
-      { name: 'Traslado estándar', audience: 'Mutuo acuerdo · vehículo al día', price: 199, items: ['Cuestionario apto demo', 'Pago único sin suscripción', 'Consulta + notaría virtual', 'Expediente trazable'], featured: true },
+      { name: 'Traslado estándar', audience: 'Mutuo acuerdo · vehículo al día', price: 199, items: ['Cuestionario de elegibilidad', 'Pago único sin suscripción', 'Consulta + notaría virtual', 'Expediente trazable'], featured: true },
       { name: 'Con gravámenes', audience: 'Requiere revisión previa', price: 349, items: ['Evaluación jurídica', 'Plan de regularización', 'Honorario orientativo', 'Sin cobro automático'], featured: false },
     ],
   },
@@ -287,19 +287,19 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 6, title: 'Notaría', desc: 'Reunión virtual y registro.', screen: 'Notaría' },
     ],
     stats: [
-      { label: 'Tiempo intake', value: '5 min', detail: 'Cuestionario con review lateral.', icon: 'check' },
+      { label: 'Tiempo cuestionario', value: '5 min', detail: 'Cuestionario con review lateral.', icon: 'check' },
       { label: 'Honorario desde', value: '$299', detail: 'Un solo pago al cliente.', icon: 'scale' },
       { label: 'Documentos', value: '2', detail: 'Título + acuerdo mutuo.', icon: 'file' },
-      { label: 'Comparecencia', value: 'Virtual', detail: 'Notario en videollamada de demostración.', icon: 'building' },
+      { label: 'Comparecencia', value: 'Virtual', detail: 'Notario en videollamada guiada.', icon: 'building' },
     ],
     gallery: [
-      { id: '01', title: 'Intake BienRaiz360', category: 'Cuestionario', src: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=900&q=80', alt: 'Formulario inmueble' },
+      { id: '01', title: 'Cuestionario BienRaiz360', category: 'Cuestionario', src: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=900&q=80', alt: 'Formulario inmueble' },
       { id: '02', title: 'Honorario único', category: 'Precios', src: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=900&q=80', alt: 'Pago único' },
-      { id: '03', title: 'Timeline expediente', category: 'Expediente', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Estados trámite' },
+      { id: '03', title: 'Línea de estados del expediente', category: 'Expediente', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Estados trámite' },
       { id: '04', title: 'Consulta abogado', category: 'Consulta', src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80', alt: 'Videollamada' },
     ],
     testimonials: [
-      { quote: 'Trasladamos el terreno familiar sin perder un día en filas.', author: 'Carlos M.', role: 'Cliente demo Guayaquil' },
+      { quote: 'Trasladamos el terreno familiar sin perder un día en filas.', author: 'Carlos M.', role: 'Cliente · Guayaquil' },
       { quote: 'BienRaiz360 cierra ventas inmobiliarias con trazabilidad.', author: 'Vega & Asociados', role: 'Bufete partner' },
     ],
     docTypes: [
@@ -329,11 +329,11 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       ], required: true },
       { id: 'meeting', label: 'Modalidad notarial', type: 'select', options: [
         { value: 'virtual', label: 'Reunión virtual' },
-        { value: 'mixta', label: 'Híbrida demo' },
+        { value: 'mixta', label: 'Híbrida' },
       ], required: true },
     ],
     plans: [
-      { name: 'Traslado simple', audience: 'Mutuo acuerdo · sin gravámenes', price: 299, items: ['Flujo completo demo', 'Pago único sin suscripción', 'Consulta + notaría virtual', 'Expediente 10 estados'], featured: true },
+      { name: 'Traslado simple', audience: 'Mutuo acuerdo · sin gravámenes', price: 299, items: ['Flujo completo', 'Pago único sin suscripción', 'Consulta + notaría virtual', 'Expediente 10 estados'], featured: true },
       { name: 'Con gravamen', audience: 'Requiere plan de pago', price: 499, items: ['Evaluación jurídica', 'Estrategia de liberación', 'Honorario orientativo', 'Contacto operador'], featured: false },
     ],
   },
@@ -361,7 +361,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 4, title: 'Auditoría', desc: 'Evidencia y trazabilidad.', screen: 'Auditoría' },
     ],
     stats: [
-      { label: 'Firmantes', value: 'Ilimitado', detail: 'Demo multi-parte.', icon: 'users' },
+      { label: 'Firmantes', value: 'Ilimitado', detail: 'Firma multi-parte.', icon: 'users' },
       { label: 'Plantillas', value: '12+', detail: 'Reutilizables por bufete.', icon: 'file' },
     ],
     gallery: [],
@@ -387,7 +387,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
         { value: 'semana', label: 'Esta semana' },
       ], required: true },
     ],
-    plans: [{ name: 'Sobre estándar', audience: 'Hasta 3 firmantes', price: 149, items: ['Firma ECI demo', 'Auditoría legal'], featured: true }],
+    plans: [{ name: 'Sobre estándar', audience: 'Hasta 3 firmantes', price: 149, items: ['Firma ECI', 'Auditoría legal'], featured: true }],
   },
   matterflow: {
     slug: 'matterflow',
@@ -410,7 +410,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 1, title: 'Evaluar', desc: 'Tipo de operación y volumen.', screen: 'Registro' },
       { n: 2, title: 'Configurar', desc: 'Pipeline y SLA.', screen: 'Configuración' },
     ],
-    stats: [{ label: 'Casos demo', value: '50+', detail: 'Bandeja unificada.', icon: 'folder' }],
+    stats: [{ label: 'Casos activos', value: '50+', detail: 'Bandeja unificada.', icon: 'folder' }],
     gallery: [],
     testimonials: [],
     docTypes: [],
@@ -427,7 +427,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
         { value: 'alto', label: 'Más de 100' },
       ], required: true },
     ],
-    plans: [{ name: 'Licencia demo', audience: 'Operadores', price: 249, items: ['Kanban', 'SLA', 'Notas al cliente'], featured: true }],
+    plans: [{ name: 'Licencia operadores', audience: 'Operadores', price: 249, items: ['Kanban', 'SLA', 'Notas al cliente'], featured: true }],
   },
   compliancehub: {
     slug: 'compliancehub',
@@ -463,7 +463,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       ], required: true },
       { id: 'records', label: '¿Tienes registro de tratamiento de datos?', type: 'boolean', required: true },
     ],
-    plans: [{ name: 'Cumplimiento demo', audience: 'Bufetes', price: 199, items: ['LOPDP', 'Exportes'], featured: true }],
+    plans: [{ name: 'Cumplimiento', audience: 'Bufetes', price: 199, items: ['LOPDP', 'Exportes'], featured: true }],
   },
   notarylink: {
     slug: 'notarylink',
@@ -486,7 +486,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 1, title: 'Evaluar', desc: 'Tipo de acto notarial.', screen: 'Registro' },
       { n: 2, title: 'Agendar', desc: 'Notaría y fecha.', screen: 'Agenda' },
     ],
-    stats: [{ label: 'Notarías demo', value: '24', detail: 'Directorio EC.', icon: 'building' }],
+    stats: [{ label: 'Notarías', value: '24', detail: 'Directorio EC.', icon: 'building' }],
     gallery: [],
     testimonials: [],
     docTypes: [],
@@ -499,7 +499,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       ], required: true },
       { id: 'city', label: 'Ciudad', type: 'text', placeholder: 'Quito', required: true },
     ],
-    plans: [{ name: 'Agenda demo', audience: 'Comparecencias', price: 99, items: ['Directorio', 'SATJE sync demo'], featured: true }],
+    plans: [{ name: 'Agenda', audience: 'Comparecencias', price: 99, items: ['Directorio', 'SATJE sync'], featured: true }],
   },
 };
 
@@ -550,11 +550,11 @@ export function detectProductFromPath(path: string): string | null {
 
 export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
-    id: 'divorcio360', name: 'Divorcio360', tagline: 'Mutuo consentimiento con intake, pago y expediente trazable.',
+    id: 'divorcio360', name: 'Divorcio360', tagline: 'Mutuo consentimiento con cuestionario, pago y expediente trazable.',
     pillDesc: 'Contratos de divorcio notarial', icon: 'scale', iconBg: '#e8efe6',
     image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
     showcaseImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
-    showcaseDesc: 'Intake con cuestionario inteligente, pago, expediente de 10 estados y firma — el flujo completo en vivo.',
+    showcaseDesc: 'Cuestionario inteligente, pago, expediente de 10 estados y firma — el flujo completo en vivo.',
     features: ['Cuestionario inteligente', '10 estados de trámite', 'Firma y minuta'],
     live: true, route: '/productos/divorcio360',
   },
@@ -600,7 +600,7 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
     image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
     showcaseImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1400&q=80',
     showcaseDesc: 'Consentimiento en registro, trazas de acceso y exportes de auditoría.',
-    features: ['Registro LOPDP', 'Trazas de acceso', 'Reportes demo'],
+    features: ['Registro LOPDP', 'Trazas de acceso', 'Reportes de auditoría'],
     live: false, route: '/productos/compliancehub',
   },
   {
@@ -608,8 +608,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
     pillDesc: 'Agenda notarial EC', icon: 'building', iconBg: '#f0ebe3',
     image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
     showcaseImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
-    showcaseDesc: 'Directorio de notarías, comparecencia y sync SATJE demo.',
-    features: ['Directorio notarías', 'Estado comparecencia', 'Sync SATJE demo'],
+    showcaseDesc: 'Directorio de notarías, comparecencia y sync SATJE.',
+    features: ['Directorio notarías', 'Estado comparecencia', 'Sync SATJE'],
     live: false, route: '/productos/notarylink',
   },
 ];

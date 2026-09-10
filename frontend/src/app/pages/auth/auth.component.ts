@@ -5,94 +5,110 @@ import { AuthService } from '../../core/auth.service';
 import { ApiService } from '../../core/api.service';
 import { IconComponent } from '../../shared/icon.component';
 import { getProductQuestionnairePath } from '../../shared/product-sites.data';
+import { AuthAlertComponent } from './auth-alert.component';
+import { AUTH_COPY, AuthMode } from './auth-copy.data';
+import { AuthLayoutComponent } from './auth-layout.component';
 
 type Field = 'fullName' | 'phone' | 'email' | 'password' | 'lopdp';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [FormsModule, IconComponent],
+  imports: [FormsModule, IconComponent, AuthLayoutComponent, AuthAlertComponent],
   template: `
-    <div class="auth-page" [class.is-register]="isRegister">
-      <div class="auth-grid">
-        <!-- Formulario -->
-        <section class="auth-form-col">
-          <header class="auth-head">
-            <h1>{{ isRegister ? 'Crea tu cuenta' : 'Entra a tu cuenta' }}</h1>
-            <p>
-              {{ isRegister
-                ? 'Con una sola cuenta gestionas cualquier trámite de LegalStation.'
-                : 'Continúa tu trámite donde lo dejaste.' }}
-            </p>
-          </header>
+    <app-auth-layout [showPanel]="showPanel" [ready]="layoutReady">
+      <header class="auth-head">
+        <h1>{{ title }}</h1>
+        @if (lead) {
+          <p>{{ lead }}</p>
+        }
+      </header>
 
-          <form class="auth-form" (ngSubmit)="submit()" novalidate>
-            @if (isRegister) {
-              <div class="field">
-                <label for="fullName">Nombre y apellido</label>
-                <input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  autocomplete="name"
-                  placeholder="María Pérez"
-                  [(ngModel)]="fullName"
-                  (blur)="touch('fullName')"
-                  [attr.aria-invalid]="!!errorFor('fullName')"
-                  [attr.aria-describedby]="errorFor('fullName') ? 'err-fullName' : null"
-                />
-                @if (errorFor('fullName')) {
-                  <p class="field-error" id="err-fullName" role="alert">
-                    <app-icon name="alert-circle" [size]="15" />
-                    {{ errorFor('fullName') }}
-                  </p>
-                }
-              </div>
-
-              <div class="field">
-                <label for="phone">Teléfono <span class="label-optional">(opcional)</span></label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  autocomplete="tel"
-                  placeholder="09 9999 9999"
-                  [(ngModel)]="phone"
-                />
-                <p class="field-hint">Lo usamos solo para avisarte de tu cita.</p>
-              </div>
-            }
-
+      @if (mode === 'forgot-sent') {
+        <app-auth-alert
+          tone="success"
+          title="Solicitud registrada"
+          [message]="copy.forgotSentLead"
+        />
+        <button type="button" class="btn btn-primary btn-lg btn-block" (click)="goLogin()">
+          {{ copy.backToLogin }}
+        </button>
+      } @else {
+        <form class="auth-form" (ngSubmit)="submit()" novalidate>
+          @if (mode === 'register') {
             <div class="field">
-              <label for="email">Correo electrónico</label>
+              <label for="fullName">Nombre y apellido</label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="tu@correo.com"
-                [(ngModel)]="email"
-                (blur)="touch('email')"
-                [attr.aria-invalid]="!!errorFor('email')"
-                [attr.aria-describedby]="errorFor('email') ? 'err-email' : null"
+                id="fullName"
+                name="fullName"
+                type="text"
+                autocomplete="name"
+                placeholder="María Pérez"
+                [(ngModel)]="fullName"
+                (blur)="touch('fullName')"
+                [attr.aria-invalid]="!!errorFor('fullName')"
+                [attr.aria-describedby]="errorFor('fullName') ? 'err-fullName' : null"
               />
-              @if (errorFor('email')) {
-                <p class="field-error" id="err-email" role="alert">
+              @if (errorFor('fullName')) {
+                <p class="field-error" id="err-fullName" role="alert">
                   <app-icon name="alert-circle" [size]="15" />
-                  {{ errorFor('email') }}
+                  {{ errorFor('fullName') }}
                 </p>
               }
             </div>
 
             <div class="field">
-              <label for="password">Contraseña</label>
+              <label for="phone">Teléfono <span class="label-optional">(opcional)</span></label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                placeholder="09 9999 9999"
+                [(ngModel)]="phone"
+              />
+              <p class="field-hint">Lo usamos solo para avisarte de tu cita.</p>
+            </div>
+          }
+
+          <div class="field">
+            <label for="email">Correo electrónico</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="tu@correo.com"
+              [(ngModel)]="email"
+              (blur)="touch('email')"
+              [attr.aria-invalid]="!!errorFor('email')"
+              [attr.aria-describedby]="errorFor('email') ? 'err-email' : null"
+            />
+            @if (errorFor('email')) {
+              <p class="field-error" id="err-email" role="alert">
+                <app-icon name="alert-circle" [size]="15" />
+                {{ errorFor('email') }}
+              </p>
+            }
+          </div>
+
+          @if (mode === 'login' || mode === 'register') {
+            <div class="field">
+              <div class="field-label-row">
+                <label for="password">Contraseña</label>
+                @if (mode === 'login') {
+                  <button type="button" class="link-button link-quiet" (click)="goForgot()">
+                    {{ copy.forgotLink }}
+                  </button>
+                }
+              </div>
               <div class="password-wrap">
                 <input
                   id="password"
                   name="password"
                   [type]="showPassword ? 'text' : 'password'"
-                  [autocomplete]="isRegister ? 'new-password' : 'current-password'"
-                  [placeholder]="isRegister ? 'Al menos 6 caracteres' : 'Tu contraseña'"
+                  [autocomplete]="mode === 'register' ? 'new-password' : 'current-password'"
+                  [placeholder]="mode === 'register' ? 'Al menos 6 caracteres' : 'Tu contraseña'"
                   [(ngModel)]="password"
                   (blur)="touch('password')"
                   [attr.aria-invalid]="!!errorFor('password')"
@@ -114,120 +130,118 @@ type Field = 'fullName' | 'phone' | 'email' | 'password' | 'lopdp';
                 </p>
               }
             </div>
+          }
 
-            @if (isRegister) {
-              <div class="field">
-                <label class="consent" [class.consent-error]="!!errorFor('lopdp')">
-                  <input
-                    type="checkbox"
-                    name="lopdp"
-                    [(ngModel)]="lopdpAccepted"
-                    (change)="touch('lopdp')"
-                    [attr.aria-invalid]="!!errorFor('lopdp')"
-                  />
-                  <span>
-                    Autorizo el tratamiento de mis datos para gestionar el trámite,
-                    según la política de datos de LegalStation.
-                  </span>
-                </label>
-                @if (errorFor('lopdp')) {
-                  <p class="field-error" role="alert">
-                    <app-icon name="alert-circle" [size]="15" />
-                    {{ errorFor('lopdp') }}
-                  </p>
-                }
-              </div>
-            }
-
-            @if (serverError) {
-              <div class="alert" role="alert">
-                <app-icon name="alert-triangle" [size]="18" />
-                <span>{{ serverError }}</span>
-              </div>
-            }
-
-            <button type="submit" class="btn btn-primary btn-lg btn-block" [disabled]="submitting">
-              @if (submitting) {
-                <span class="spinner" aria-hidden="true"></span>
-                <span>{{ isRegister ? 'Creando tu cuenta' : 'Entrando' }}</span>
-              } @else {
-                <span>{{ isRegister ? 'Crear cuenta' : 'Entrar' }}</span>
-              }
-            </button>
-
-            <p class="auth-switch">
-              {{ isRegister ? '¿Ya tienes cuenta?' : '¿Es tu primera vez?' }}
-              <button type="button" class="link-button" (click)="switchMode()">
-                {{ isRegister ? 'Entrar' : 'Crear una cuenta' }}
-              </button>
-            </p>
-          </form>
-
-          <aside class="demo-box">
-            <p class="demo-title">Acceso rápido</p>
-            <div class="demo-actions">
-              <button type="button" class="btn btn-secondary btn-sm" (click)="useDemo('cliente')">
-                <app-icon name="user" [size]="15" /> Cliente
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" (click)="useDemo('abogado')">
-                <app-icon name="scale" [size]="15" /> Abogado
-              </button>
-            </div>
-            <p class="demo-hint">Rellenan el formulario para que solo pulses Entrar.</p>
-          </aside>
-        </section>
-
-        <!-- Panel de contexto -->
-        <aside class="auth-aside">
-          <p class="aside-eyebrow">Qué sigue después</p>
-          <ol class="aside-steps">
-            @for (step of nextSteps; track step.title) {
-              <li>
-                <span class="aside-icon"><app-icon [name]="step.icon" [size]="17" /></span>
+          @if (mode === 'register') {
+            <div class="field">
+              <label class="consent" [class.consent-error]="!!errorFor('lopdp')">
+                <input
+                  type="checkbox"
+                  name="lopdp"
+                  [(ngModel)]="lopdpAccepted"
+                  (change)="touch('lopdp')"
+                  [attr.aria-invalid]="!!errorFor('lopdp')"
+                />
                 <span>
-                  <strong>{{ step.title }}</strong>
-                  <small>{{ step.body }}</small>
+                  Autorizo el tratamiento de mis datos para gestionar el trámite,
+                  según la política de datos de LegalStation.
                 </span>
-              </li>
+              </label>
+              @if (errorFor('lopdp')) {
+                <p class="field-error" role="alert">
+                  <app-icon name="alert-circle" [size]="15" />
+                  {{ errorFor('lopdp') }}
+                </p>
+              }
+            </div>
+          }
+
+          @if (serverError) {
+            <app-auth-alert
+              title="No pudimos continuar"
+              [message]="serverError"
+            />
+          }
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block" [disabled]="submitting">
+            @if (submitting) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>{{ submittingLabel }}</span>
+            } @else {
+              <span>{{ submitLabel }}</span>
             }
-          </ol>
-          <p class="aside-foot">
-            <app-icon name="lock" [size]="15" />
-            Tus documentos solo los ve el abogado asignado a tu caso.
+          </button>
+
+          <p class="auth-switch">
+            @if (mode === 'forgot') {
+              <button type="button" class="link-button" (click)="goLogin()">
+                {{ copy.backToLogin }}
+              </button>
+            } @else if (mode === 'register') {
+              {{ copy.switchToLogin }}
+              <button type="button" class="link-button" (click)="goLogin()">
+                {{ copy.switchToLoginCta }}
+              </button>
+            } @else {
+              {{ copy.switchToRegister }}
+              <button type="button" class="link-button" (click)="goRegister()">
+                {{ copy.switchToRegisterCta }}
+              </button>
+            }
           </p>
+        </form>
+      }
+
+      @if (mode === 'login') {
+        <aside class="demo-box">
+          <p class="demo-title">{{ copy.demoTitle }}</p>
+          <div class="demo-actions">
+            <button type="button" class="btn btn-secondary btn-sm" (click)="useDemo('cliente')">
+              <app-icon name="user" [size]="15" /> Cliente
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="useDemo('abogado')">
+              <app-icon name="scale" [size]="15" /> Abogado
+            </button>
+          </div>
+          <p class="demo-hint">{{ copy.demoHint }}</p>
         </aside>
-      </div>
-    </div>
+      }
+    </app-auth-layout>
   `,
   styles: [`
-    .auth-page {
-      display: grid;
-      place-items: center;
-      min-height: calc(100dvh - var(--header-height) - 3.5rem);
-      padding: var(--space-6) var(--container-pad);
+    .auth-head {
+      margin-bottom: 1.5rem;
+      text-align: center;
     }
 
-    .auth-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 26rem) minmax(0, 20rem);
-      gap: var(--space-8);
-      align-items: center;
-      width: 100%;
-      max-width: 52rem;
+    .auth-head h1 {
+      margin: 0 0 0.45rem;
+      font-family: var(--font-display);
+      font-size: clamp(1.45rem, 2.8vw, 1.75rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--text);
     }
-
-    /* ---------- Formulario ---------- */
-
-    .auth-head { margin-bottom: var(--space-5); }
-    .auth-head h1 { font-size: var(--text-3xl); margin-bottom: var(--space-2); }
 
     .auth-head p {
-      margin: 0;
+      margin: 0 auto;
+      max-width: 28ch;
       color: var(--text-secondary);
-      line-height: var(--leading-snug);
+      line-height: 1.5;
+      font-size: var(--text-sm);
     }
 
     .auth-form { display: block; }
+
+    .field-label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .field-label-row label { margin-bottom: 0; }
 
     .label-optional {
       font-weight: 400;
@@ -249,7 +263,11 @@ type Field = 'fullName' | 'phone' | 'email' | 'password' | 'lopdp';
       color: var(--text-muted);
     }
 
-    .password-toggle:hover { color: var(--text); }
+    .password-toggle:hover,
+    .password-toggle:focus-visible {
+      color: var(--text);
+      outline: none;
+    }
 
     .consent {
       display: flex;
@@ -258,31 +276,15 @@ type Field = 'fullName' | 'phone' | 'email' | 'password' | 'lopdp';
       margin: 0;
       font-size: var(--text-sm);
       font-weight: 400;
-      line-height: var(--leading-snug);
+      line-height: 1.45;
       color: var(--text-secondary);
       cursor: pointer;
     }
 
     .consent input { margin-top: 0.15rem; }
 
-    .alert {
-      display: flex;
-      align-items: flex-start;
-      gap: var(--space-3);
-      margin-bottom: var(--space-4);
-      padding: var(--space-3) var(--space-4);
-      border: 1px solid var(--danger-border);
-      border-radius: var(--radius-md);
-      background: var(--danger-subtle);
-      color: var(--danger);
-      font-size: var(--text-sm);
-      line-height: var(--leading-snug);
-    }
-
-    .alert app-icon { margin-top: 0.05rem; }
-
     .auth-switch {
-      margin: var(--space-4) 0 0;
+      margin: 1rem 0 0;
       text-align: center;
       font-size: var(--text-sm);
       color: var(--text-secondary);
@@ -298,146 +300,54 @@ type Field = 'fullName' | 'phone' | 'email' | 'password' | 'lopdp';
       color: var(--primary);
       text-decoration: underline;
       text-underline-offset: 3px;
+      cursor: pointer;
     }
 
-    /* ---------- Cuentas de prueba ---------- */
+    .link-quiet {
+      font-size: var(--text-xs);
+      font-weight: 550;
+      text-decoration: none;
+    }
+
+    .link-quiet:hover { text-decoration: underline; }
 
     .demo-box {
-      margin-top: var(--space-5);
-      padding-top: var(--space-4);
+      margin-top: 1.25rem;
+      padding-top: 1rem;
       border-top: 1px solid var(--border);
     }
 
     .demo-title {
-      margin: 0 0 var(--space-3);
+      margin: 0 0 0.65rem;
       font-size: var(--text-xs);
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: var(--tracking-wide);
+      letter-spacing: 0.06em;
       color: var(--text-muted);
     }
 
     .demo-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--space-2);
+      gap: 0.5rem;
     }
 
     .demo-hint {
-      margin: var(--space-2) 0 0;
+      margin: 0.5rem 0 0;
       font-size: var(--text-xs);
       color: var(--text-muted);
     }
 
-    /* ---------- Panel lateral ---------- */
-
-    .auth-aside {
-      padding: var(--space-5);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
-    }
-
-    .aside-eyebrow {
-      margin: 0 0 var(--space-4);
-      font-size: var(--text-xs);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: var(--tracking-wide);
-      color: var(--text-muted);
-    }
-
-    .aside-steps {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: var(--space-4);
-    }
-
-    .aside-steps li {
-      display: flex;
-      align-items: flex-start;
-      gap: var(--space-3);
-    }
-
-    .aside-icon {
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-      width: 1.9rem;
-      height: 1.9rem;
-      border-radius: var(--radius-sm);
-      background: var(--primary-subtle);
-      color: var(--primary);
-    }
-
-    .aside-steps strong {
-      display: block;
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .aside-steps small {
-      display: block;
-      margin-top: 0.15rem;
-      font-size: var(--text-xs);
-      line-height: var(--leading-snug);
-      color: var(--text-secondary);
-    }
-
-    .aside-foot {
-      display: flex;
-      align-items: flex-start;
-      gap: var(--space-2);
-      margin: var(--space-5) 0 0;
-      padding-top: var(--space-4);
-      border-top: 1px solid var(--border);
-      font-size: var(--text-xs);
-      line-height: var(--leading-snug);
-      color: var(--text-muted);
-    }
-
-    /* ---------- Responsive ---------- */
-
-    @media (max-width: 860px) {
-      .auth-grid {
-        grid-template-columns: minmax(0, 26rem);
-        justify-content: center;
-        gap: var(--space-6);
-      }
-
-      .auth-aside { display: none; }
-    }
-
-    /* Registro: más campos — evita scroll accidental en viewports bajos (p. ej. 1440×900) */
-    @media (max-height: 920px) {
-      .auth-page.is-register .auth-aside { display: none; }
-      .auth-page.is-register .auth-grid {
-        grid-template-columns: minmax(0, 26rem);
-        justify-content: center;
-        gap: var(--space-5);
-      }
-      .auth-page.is-register {
-        padding-block: var(--space-4);
-        min-height: calc(100dvh - var(--header-height) - 2.5rem);
-      }
-      .auth-page.is-register .auth-head {
-        margin-bottom: var(--space-4);
-      }
-      .auth-page.is-register .auth-head h1 {
-        font-size: var(--text-2xl);
-      }
-      .auth-page.is-register .demo-box {
-        margin-top: var(--space-3);
-        padding-top: var(--space-3);
-      }
+    :host ::ng-deep .field input:focus,
+    :host ::ng-deep .field input:focus-visible {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-subtle);
+      outline: none;
     }
   `]
 })
 export class AuthComponent implements OnInit {
-  mode: 'login' | 'register' = 'login';
+  mode: AuthMode = 'login';
   email = '';
   password = '';
   fullName = '';
@@ -446,6 +356,7 @@ export class AuthComponent implements OnInit {
   showPassword = false;
   serverError = '';
   submitting = false;
+  layoutReady = false;
 
   next = '';
   qResult = 'apto';
@@ -453,26 +364,10 @@ export class AuthComponent implements OnInit {
   returnUrl = '';
   product = 'divorcio360';
 
+  readonly copy = AUTH_COPY;
+
   private touched: Partial<Record<Field, boolean>> = {};
   private submitAttempted = false;
-
-  readonly nextSteps: { icon: 'clipboard' | 'users' | 'signature'; title: string; body: string }[] = [
-    {
-      icon: 'clipboard',
-      title: 'Responde unas preguntas',
-      body: 'Comprobamos en dos minutos si tu caso se puede resolver en notaría.',
-    },
-    {
-      icon: 'users',
-      title: 'Hablas con un abogado',
-      body: 'Videollamada para revisar tu situación y resolver dudas.',
-    },
-    {
-      icon: 'signature',
-      title: 'Firmas sin salir de casa',
-      body: 'Subes tus documentos y firmas en línea. Nosotros gestionamos la notaría.',
-    },
-  ];
 
   constructor(
     private auth: AuthService,
@@ -488,26 +383,67 @@ export class AuthComponent implements OnInit {
       this.product = q.get('product') || 'divorcio360';
 
       if (q.get('mode') === 'login') this.mode = 'login';
-      else if (this.next === 'checkout') this.mode = 'register';
+      else if (q.get('mode') === 'forgot') this.mode = 'forgot';
+      else if (this.next === 'checkout' && this.mode !== 'forgot' && this.mode !== 'forgot-sent') {
+        this.mode = 'register';
+      }
     });
   }
 
   ngOnInit(): void {
+    const reduce =
+      typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setTimeout(() => (this.layoutReady = true), reduce ? 0 : 30);
+
     const u = this.auth.user();
     if (this.auth.isLoggedIn && u) {
       this.afterAuth(u.role);
     }
   }
 
-  get isRegister(): boolean {
-    return this.mode === 'register';
+  get showPanel(): boolean {
+    return true;
   }
 
-  switchMode(): void {
-    this.mode = this.isRegister ? 'login' : 'register';
-    this.serverError = '';
-    this.touched = {};
-    this.submitAttempted = false;
+  get title(): string {
+    if (this.mode === 'register') return this.copy.registerTitle;
+    if (this.mode === 'forgot') return this.copy.forgotTitle;
+    if (this.mode === 'forgot-sent') return this.copy.forgotSentTitle;
+    return this.copy.loginTitle;
+  }
+
+  get lead(): string {
+    if (this.mode === 'register') return this.copy.registerLead;
+    if (this.mode === 'forgot') return this.copy.forgotLead;
+    if (this.mode === 'forgot-sent') return '';
+    return this.copy.loginLead;
+  }
+
+  get submitLabel(): string {
+    if (this.mode === 'register') return this.copy.create;
+    if (this.mode === 'forgot') return this.copy.sendLink;
+    return this.copy.enter;
+  }
+
+  get submittingLabel(): string {
+    if (this.mode === 'register') return this.copy.creating;
+    if (this.mode === 'forgot') return this.copy.sending;
+    return this.copy.entering;
+  }
+
+  goLogin(): void {
+    this.mode = 'login';
+    this.resetFormMeta();
+  }
+
+  goRegister(): void {
+    this.mode = 'register';
+    this.resetFormMeta();
+  }
+
+  goForgot(): void {
+    this.mode = 'forgot';
+    this.resetFormMeta();
   }
 
   touch(field: Field): void {
@@ -518,18 +454,15 @@ export class AuthComponent implements OnInit {
     this.mode = 'login';
     this.email = `${role}@demo.ec`;
     this.password = 'demo1234';
-    this.serverError = '';
-    this.touched = {};
-    this.submitAttempted = false;
+    this.resetFormMeta();
   }
 
-  /** Mensaje de error de un campo. Vacío si aún no procede mostrarlo. */
   errorFor(field: Field): string {
     if (!this.touched[field] && !this.submitAttempted) return '';
 
     switch (field) {
       case 'fullName':
-        if (this.isRegister && !this.fullName.trim()) {
+        if (this.mode === 'register' && !this.fullName.trim()) {
           return 'Escribe tu nombre y apellido para identificar tu expediente.';
         }
         return '';
@@ -544,14 +477,15 @@ export class AuthComponent implements OnInit {
       }
 
       case 'password':
+        if (this.mode === 'forgot' || this.mode === 'forgot-sent') return '';
         if (!this.password) return 'Escribe tu contraseña.';
-        if (this.isRegister && this.password.length < 6) {
+        if (this.mode === 'register' && this.password.length < 6) {
           return `Añade ${6 - this.password.length} caracteres más: la contraseña necesita al menos 6.`;
         }
         return '';
 
       case 'lopdp':
-        if (this.isRegister && !this.lopdpAccepted) {
+        if (this.mode === 'register' && !this.lopdpAccepted) {
           return 'Marca la casilla para que podamos tramitar tu caso con tus datos.';
         }
         return '';
@@ -562,9 +496,9 @@ export class AuthComponent implements OnInit {
   }
 
   private get fieldsToValidate(): Field[] {
-    return this.isRegister
-      ? ['fullName', 'email', 'password', 'lopdp']
-      : ['email', 'password'];
+    if (this.mode === 'forgot') return ['email'];
+    if (this.mode === 'register') return ['fullName', 'email', 'password', 'lopdp'];
+    return ['email', 'password'];
   }
 
   submit(): void {
@@ -579,10 +513,20 @@ export class AuthComponent implements OnInit {
       return;
     }
 
+    if (this.mode === 'forgot') {
+      this.submitting = true;
+      // Demo: sin endpoint de recuperación. Feedback honesto.
+      setTimeout(() => {
+        this.submitting = false;
+        this.mode = 'forgot-sent';
+      }, 450);
+      return;
+    }
+
     this.submitting = true;
     const email = this.email.trim().toLowerCase();
 
-    const request = this.isRegister
+    const request = this.mode === 'register'
       ? this.auth.register({
           email,
           password: this.password,
@@ -601,6 +545,12 @@ export class AuthComponent implements OnInit {
     });
   }
 
+  private resetFormMeta(): void {
+    this.serverError = '';
+    this.touched = {};
+    this.submitAttempted = false;
+  }
+
   private describeError(e: any): string {
     if (e?.status === 0) {
       return e?.error?.error
@@ -617,19 +567,12 @@ export class AuthComponent implements OnInit {
     return raw || 'No pudimos completar la operación. Inténtalo de nuevo en unos segundos.';
   }
 
-  /** Ruta del cuestionario inicial según el producto en contexto. */
   private get onboardingPath(): string {
     return this.product === 'divorcio360'
       ? '/cuestionario'
       : `/productos/${this.product}/cuestionario`;
   }
 
-  /**
-   * Resuelve el destino post-login según la intención del usuario.
-   * - `/` → LegalStation
-   * - landing de producto → cuestionario de ese producto
-   * - rutas de flujo → tal cual
-   */
   private resolveReturnUrl(url: string): string {
     const raw = (url || '').trim();
     if (!raw || raw === '/auth') return '';
@@ -659,7 +602,6 @@ export class AuthComponent implements OnInit {
   }
 
   private afterAuth(role: string): void {
-    // 1. Venía del cuestionario con resultado apto: crear caso e ir a pagar.
     if (this.next === 'checkout' && role === 'cliente') {
       const cached = sessionStorage.getItem('d360_q_result');
       let result = this.qResult;
@@ -672,7 +614,7 @@ export class AuthComponent implements OnInit {
           result = p.result || result;
           city = p.city || city;
           questionnaire = p.answers || {};
-        } catch { /* usamos los valores de la URL */ }
+        } catch { /* URL values */ }
       }
 
       this.api.createCase(result, city, questionnaire, this.product).subscribe({
@@ -682,11 +624,9 @@ export class AuthComponent implements OnInit {
       return;
     }
 
-    // 2. Personal interno: directo a su bandeja de trabajo.
     if (role === 'abogado') { this.go('/abogado'); return; }
     if (role === 'notario') { this.go('/'); return; }
 
-    // 3. Cliente con destino explícito (LegalStation, cuestionario, flujo…).
     if (this.returnUrl && this.returnUrl !== '/auth') {
       const destination = this.resolveReturnUrl(this.returnUrl);
       if (destination) {
@@ -695,13 +635,11 @@ export class AuthComponent implements OnInit {
       }
     }
 
-    // 4. Cliente con producto en contexto → cuestionario de ese producto.
     if (this.product) {
       this.go(this.onboardingPath);
       return;
     }
 
-    // 5. Sin destino: volver a LegalStation (login desde home).
     this.go('/');
   }
 }

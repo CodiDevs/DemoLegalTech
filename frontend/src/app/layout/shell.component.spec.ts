@@ -81,9 +81,9 @@ describe('ShellComponent marketing navigation', () => {
     productContext.activeProduct = 'divorcio360';
 
     expect(marketing.footerPitch).not.toMatch(/mismo costo/i);
-    expect(marketing.footerPitch.toLowerCase()).toContain('demostración');
+    expect(marketing.footerPitch.toLowerCase()).toContain('trámite en línea');
     expect(productContext.footerPitch).not.toMatch(/mismo costo/i);
-    expect(productContext.footerPitch.toLowerCase()).toContain('demostración');
+    expect(productContext.footerPitch.toLowerCase()).toContain('trámite en línea');
   });
 
   it('conserva el slogan de LegalStation fuera de Divorcio360', () => {

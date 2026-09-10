@@ -13,7 +13,7 @@ export interface ChartPoint {
   template: `
     <div class="chart-wrap">
       <header class="chart-head">
-        <h3 class="chart-title">Ingresos mensuales (demo)</h3>
+        <h3 class="chart-title">Ingresos mensuales</h3>
         @if (points.length) {
           <p class="chart-latest">
             <span class="chart-latest-value">\${{ latest | number:'1.0-0' }}</span>
@@ -154,11 +154,11 @@ export class ClippedAreaChartComponent implements OnChanges {
 
   get ariaLabel(): string {
     if (!this.points.length) {
-      return 'Gráfico de ingresos mensuales. Cifras de demostración. Sin datos.';
+      return 'Gráfico de ingresos mensuales. Sin datos.';
     }
     const first = this.points[0].label;
     const last = this.points[this.points.length - 1].label;
-    return `Gráfico de ingresos mensuales (cifras de demostración) de ${first} a ${last}. Último valor: ${this.latest} dólares.`;
+    return `Gráfico de ingresos mensuales de ${first} a ${last}. Último valor: ${this.latest} dólares.`;
   }
 
   ngOnChanges(): void {

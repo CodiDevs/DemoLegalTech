@@ -1,26 +1,116 @@
 import { LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
+import { IconName } from '../../shared/icon.component';
 
-const heroShot = LEGALSTATION_CATALOG.find((p) => p.live)?.showcaseImage ?? '';
-
-export const LEGALSTATION_HERO_IMAGES: [string, string, string] = [heroShot, heroShot, heroShot];
-
-export const LEGALSTATION_WORKFLOW = [
-  { n: 1, title: 'Intake', desc: 'Cuestionario y clasificación automática del caso.' },
-  { n: 2, title: 'Expediente', desc: 'Documentos, pago y mensajes en un solo lugar.' },
-  { n: 3, title: 'Revisión', desc: 'Operador aprueba, genera minuta y comunica al cliente.' },
-  { n: 4, title: 'Firma', desc: 'Firma electrónica con evidencia y notificaciones.' },
-  { n: 5, title: 'Cierre', desc: 'Notaría, registro y archivo con auditoría completa.' },
+export const LEGALSTATION_WORKFLOW: {
+  id: string;
+  n: number;
+  title: string;
+  desc: string;
+  icon: IconName;
+}[] = [
+  {
+    id: 'recepcion',
+    n: 1,
+    title: 'Recepción del caso',
+    desc: 'Cuestionario y clasificación automática del caso.',
+    icon: 'clipboard',
+  },
+  {
+    id: 'expediente',
+    n: 2,
+    title: 'Expediente digital',
+    desc: 'Documentos, pago y mensajes en un solo lugar.',
+    icon: 'folder',
+  },
+  {
+    id: 'revision',
+    n: 3,
+    title: 'Revisión',
+    desc: 'Operador aprueba, genera minuta y comunica al cliente.',
+    icon: 'eye',
+  },
+  {
+    id: 'firma',
+    n: 4,
+    title: 'Firma',
+    desc: 'Firma electrónica con evidencia y notificaciones.',
+    icon: 'signature',
+  },
+  {
+    id: 'finalizacion',
+    n: 5,
+    title: 'Finalización',
+    desc: 'Notaría, registro y archivo con auditoría completa.',
+    icon: 'flag',
+  },
 ];
 
 export const LEGALSTATION_PLANS = [
-  { name: 'Starter', audience: 'Bufete pequeño. Licencia demo', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión demo por venta'], featured: false },
-  { name: 'Professional', audience: 'Equipo en crecimiento. Licencia demo', price: 249, items: ['3 productos live', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync demo'], featured: true },
-  { name: 'Enterprise', audience: 'Multi-sede. Licencia demo', price: 599, items: ['Productos ilimitados', 'SSO demo', 'Comisión negociable', 'White-label ready'], featured: false },
+  { name: 'Starter', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión por venta'], featured: false },
+  { name: 'Professional', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['3 productos en vivo', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync'], featured: true },
+  { name: 'Enterprise', audience: 'Multi-sede. Licencia operadores', price: 599, items: ['Productos ilimitados', 'SSO', 'Comisión negociable', 'White-label ready'], featured: false },
 ];
 
 export const LEGALSTATION_ENTERPRISE = [
-  { title: 'Aislamiento completo', desc: 'Infraestructura dedicada: tus datos separados del resto de tenants demo.' },
+  { title: 'Aislamiento completo', desc: 'Infraestructura dedicada: tus datos separados del resto de tenants.' },
   { title: 'En tus términos', desc: 'On-prem o nube privada con SSO, logs y control administrativo.' },
   { title: 'White-label', desc: 'Marca y flujos adaptados a tu firma o grupo legal.' },
-  { title: 'SLA y partnership', desc: 'Colaboración con tu equipo de TI y soporte prioritario demo.' },
+  { title: 'SLA y partnership', desc: 'Colaboración con tu equipo de TI y soporte prioritario.' },
+];
+
+/** Live catalog entries used by the home product grid. */
+export const LEGALSTATION_LIVE = LEGALSTATION_CATALOG.filter((p) => p.live);
+
+/** Landing FAQ — grounded in demo capabilities, no invented legal promises. */
+export const LEGALSTATION_FAQ = [
+  {
+    question: '¿Qué es LegalStation?',
+    answer:
+      'Una plataforma legal-tech para tramitar divorcio, traslado vehicular e inmuebles con recepción digital del caso, expediente y operadores.',
+  },
+  {
+    question: '¿Cómo funciona?',
+    answer:
+      'Eliges el producto, completas el cuestionario, pagas el trámite y das seguimiento al expediente hasta firma y finalización.',
+  },
+  {
+    question: '¿Qué trámites puedo realizar?',
+    answer:
+      'Hoy están Divorcio360, Traslado360 y BienRaiz360. Otros módulos aparecen como próximos lanzamientos.',
+  },
+  {
+    question: '¿Necesito crear una cuenta?',
+    answer:
+      'Sí, para guardar el expediente, pagar y ver el estado. Puedes empezar el cuestionario y autenticarte cuando el flujo lo pida.',
+  },
+  {
+    question: '¿Puedo consultar el estado de mi trámite?',
+    answer:
+      'Sí. En el panel de cliente ves el expediente, mensajes y avances que el operador registra.',
+  },
+  {
+    question: '¿Qué documentos necesito?',
+    answer:
+      'Depende del trámite. El cuestionario y el expediente te indican qué subir en cada paso.',
+  },
+  {
+    question: '¿Mis documentos están protegidos?',
+    answer:
+      'El acceso al expediente es por cuenta autenticada. En demo no hay cifrado empresarial adicional; en producción aplica el despliegue del operador.',
+  },
+  {
+    question: '¿Cómo funciona el pago?',
+    answer:
+      'El cliente paga el honorario del trámite en el checkout del producto. La licencia mensual de bufete es aparte, en Precios.',
+  },
+  {
+    question: '¿Qué sucede después de iniciar mi trámite?',
+    answer:
+      'Se crea el expediente: puedes cargar documentos, el operador revisa, y el flujo sigue a firma y finalización según el producto.',
+  },
+  {
+    question: '¿Puedo consultar mis expedientes desde LegalStation?',
+    answer:
+      'Sí. Clientes en /cliente y operadores en /abogado (incluye Fase 2: bandeja, billing y herramientas del bufete).',
+  },
 ];

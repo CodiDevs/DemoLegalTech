@@ -33,7 +33,7 @@ import { friendlyFieldLabel } from '../../../shared/template-field-labels';
       <div class="modal-backdrop" (click)="preview = null">
         <div class="modal panel" (click)="$event.stopPropagation()">
           <h2>{{ preview.name }}</h2>
-          <p class="muted">Vista previa · {{ preview.version }}</p>
+          <p class="muted">{{ preview.version }}</p>
           <div class="preview-html" [innerHTML]="preview.preview_html"></div>
           <h3>Datos que completa el sistema</h3>
           <div class="fields modal-fields">

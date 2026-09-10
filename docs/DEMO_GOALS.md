@@ -26,7 +26,13 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Divorcio360 no-slop repair | `/productos/divorcio360` — CTA above-fold, una demo, copy honesto, legales | 2026-09-06 |
 | done | Cuestionario no-slop | `/cuestionario` — sin atmósfera, progreso teal, header sólido, Atrás en resultado | 2026-09-06 |
 | done | Home `/` no-slop | `/` — un hero, catálogo live, CTA por rol, sin collage/KPIs/gallery | 2026-09-08 |
-| done | Fase 2 admin no-slop | `abogado@demo.ec` → `/fase2/admin` — tabla de casos, métricas honestas, sin KPI theater | 2026-09-08 |
+| done | Fase 2 admin no-slop | `abogado@demo.ec` → `/abogado/fase2/admin` — tabla de casos, métricas honestas, sin KPI theater | 2026-09-08 |
+| done | Frontend audit polish | Copy producto; sidebar abogado+Fase2 unificado; pricing/stats 2-up; Divorcio360 Legora-like | 2026-09-10 |
+| done | LegalStation landing premium | `/` hero video + brand lockup; secciones/container unificados; cards 3-up | 2026-09-10 |
+| done | Landing layout polish | Precios 3-up; cards elevadas; a.btn hover fix; secciones soft diferenciadas | 2026-09-10 |
+| done | Cards shine / tilt / FAQ | `/` productos 3D, Professional shine, FAQ post-precios; sin `#sistema` | 2026-09-10 |
+| done | Expediente CaseProgress ES | `/#flujo` + `/caso/:id` Línea de estados; mismo componente multi-producto | 2026-09-10 |
+| done | CaseProgress fix + Auth system | `#flujo` sin overlap; `/auth` layout + forgot demo | 2026-09-10 |
 
 ## Entries
 
@@ -303,8 +309,61 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 **Demo:** `/` como Carlos → Mis expedientes → `/cliente`. Guest: Ver qué puedo tramitar → `#catalogo`. Spot `/productos/divorcio360` (pin + band) y `/productos/traslado360` (gallery).
 
 ### 2026-09-08 — Fase 2 admin no-slop
-- `/fase2/admin` como abogado: sidebar sólido 248px, nav por etiqueta, sin card dashed.
-- Resumen: `<dl>` de conteos live + ingreso/tiempo rotulados demo. Tabla de `recent_cases` con Abrir → `/abogado/caso/:id`.
+- `/abogado/fase2/admin` como abogado: sidebar sólido 248px, nav por etiqueta, sin card dashed.
+- Resumen: `<dl>` de conteos live + ingreso/tiempo de referencia. Tabla de `recent_cases` con Abrir → `/abogado/caso/:id`.
 - Sin KPI grid, eyebrows, % inventados ni fade `opacity: 0`. Loading/error/retry.
 
-**Demo:** `abogado@demo.ec` / `demo1234` → Fase 2 → Resumen. Abrir un caso. Spot `/fase2/templates` (chrome compartido).
+**Demo:** `abogado@demo.ec` / `demo1234` → Fase 2 → Resumen. Abrir un caso. Spot `/abogado/fase2/templates` (chrome compartido).
+
+### 2026-09-10 — Frontend audit polish (diseño)
+**Corregido**
+- Copy visible “demo / demostración / Vista previa / Cliente demo” fuera de landings, product sites, SaaS home y badge Fase 2 (legales CodiDevs se mantienen).
+- Sidebar persistente: `/abogado` + `/abogado/fase2/*` en un solo shell (Casos + Herramientas). Redirects `/fase2/*` → `/abogado/fase2/*`. Aside no remonta; fade corto solo en main.
+- Traslado360 / BienRaiz360: pricing 2 columnas + CTAs alineados; stats 2×2 cuando hay 4 métricas.
+- Divorcio360: composición editorial (marca + promesa corta + una CTA + mock expediente); secciones sistema / flujo / prueba / precio.
+
+**Siguiente (fuera de este slice)**
+- Panel cliente: densidad y jerarquía.
+- Checkout: alineación del carro.
+- Páginas de contenido Fase 2: polish interno (admin/templates/AI) más allá del chrome.
+
+**Demo:** `/productos/traslado360#precios` y `/productos/bienraiz360` (simetría). `/productos/divorcio360` guest. Login `abogado@demo.ec` → Bandeja ↔ Resumen del bufete sin salto de menú.
+
+### 2026-09-10 — LegalStation landing premium
+- Hero brand-first: video local `/videos/legalstation-hero.mp4` + overlay + mark SVG + slogan exacto; CTA por rol.
+- Fallback poster + `prefers-reduced-motion` sin autoplay.
+- Secciones con container 1200px, ritmo vertical, cards producto 3-up alineadas, pasos y enterprise limpios.
+- Header marketing alineado al mismo container; mark SVG compartido.
+
+**Demo:** `/` guest → Ver qué puedo tramitar → `#catalogo`. Spot 375px (sin overflow-x). Reduced motion: poster estático.
+
+### 2026-09-10 — Landing layout polish
+- Causa hueco derecho: pricing 1-col estrecha → grid 3 planes (Starter / Professional / Enterprise).
+- Cards: `--shadow-md` + hover `translateY(-3px)` / `--shadow-lg` (landing only; reduced-motion sin transform).
+- Secciones: base `--bg` vs soft `--bg-muted` para contraste sutil.
+- Header: `a.btn` ya no hereda underline ni `a:hover` verde-sobre-verde; Ingresar ghost + Evaluar primary legible.
+
+**Demo:** `/` guest → hover “Evaluar mi caso” (texto blanco). Scroll `#precios` — tres cards. Spot 1440 y 375.
+
+### 2026-09-10 — Cards shine / tilt / FAQ
+- Eliminada `#sistema` (redundante con `#flujo`).
+- Productos live: tilt 3D sutil (desktop fine pointer; off en touch / reduced-motion).
+- Pricing: Professional con shine border teal + badge “Más popular”.
+- `#faq` tras precios: marquee desktop / accordion móvil; copy alineado al demo.
+- Variedad: flujo tipográfico, enterprise outline, sin deps nuevas.
+
+**Demo:** `/` guest → hover productos → `#precios` (brillo en Professional) → `#faq`. Spot 375 (accordion + pricing 1-col).
+
+### 2026-09-10 — Expediente CaseProgress (ES)
+- Componente reutilizable `app-case-progress`: recorrido marketing + línea de estados del expediente (10 estados API, labels sin tocar backend).
+- Home `/#flujo`: “De la recepción a la finalización” (Recepción → Expediente digital → Revisión → Firma → Finalización); sin “Intake/Cierre” en UI.
+- Expediente `/caso/:id`: misma UI para Divorcio360 / Traslado360 / BienRaiz360; checks, etapa activa, próximos atenuados, línea animada, `prefers-reduced-motion`.
+- Sitios producto `#flujo` (Traslado/BienRaiz) reutilizan el mismo componente.
+
+**Demo:** `/` → `#flujo` (clic etapas). Login `cliente@demo.ec` → expediente → Línea de estados. Spot móvil: recorrido vertical.
+
+### 2026-09-10 — CaseProgress sin overlap + Auth system
+- Recorrido: rail + labels; descripción única en panel inferior (horizontal); vertical ≤960px; animación línea → detalle.
+- Auth workspace: canvas `--bg` + **dos cartas** (form | foto) con gap fino y margen chico; cada una con borde/`radius-xl`; móvil form-only. Forgot demo sin API.
+
+**Demo:** `/#flujo` desktop sin textos solapados. `/auth` → margen de fondo alrededor del shell grande + mitad visual.

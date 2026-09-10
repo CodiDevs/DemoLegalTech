@@ -65,8 +65,8 @@ import { DataTableComponent } from '../../../shared/data-table.component';
 })
 export class Fase2MobileComponent {
   screens = [
-    { title: 'Mi expediente', lines: ['Caso #1', 'Revisión jurídica', 'Documentos aprobados', 'Timeline 10 estados'] },
-    { title: 'Timeline', lines: ['01 Información recibida', '02 Documentos pendientes', '03 Revisión jurídica (actual)'] },
+    { title: 'Mi expediente', lines: ['Caso #1', 'Revisión jurídica', 'Documentos aprobados', 'Línea de 10 estados'] },
+    { title: 'Línea de estados', lines: ['01 Información recibida', '02 Documentos pendientes', '03 Revisión jurídica (actual)'] },
     { title: 'Firma', lines: ['Minuta lista', 'Canvas firma', 'Evidencia IP/fecha'] },
   ];
   roadmap = [
@@ -81,7 +81,7 @@ export class Fase2MobileComponent {
     { key: 'native', label: 'Nativa (Fase 2)' },
   ];
   compareRows = [
-    { feature: 'Timeline expediente', pwa: 'Sí', native: 'Sí' },
+    { feature: 'Línea de estados del expediente', pwa: 'Sí', native: 'Sí' },
     { feature: 'Push notifications', pwa: 'Limitado', native: 'Sí' },
     { feature: 'Firma ECI', pwa: 'Canvas mock', native: 'SDK nativo' },
     { feature: 'Offline', pwa: 'Parcial', native: 'Sí' },
