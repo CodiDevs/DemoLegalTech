@@ -13,7 +13,7 @@ import { IconComponent } from '../../shared/icon.component';
     <app-product-flow-shell
       theme="legalstation"
       [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Panel notario' }]"
-      eyebrow="Notaría demo"
+      eyebrow="Notaría"
       title="Bandeja notarial"
       subtitle="Aprueba documentos, comparecencia y acta — rol notario."
     >

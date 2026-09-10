@@ -46,8 +46,8 @@ interface ActivityItem {
         <div>
           <h1>Resumen del bufete</h1>
           <p class="muted">
-            Demo de Fase 2 con las cifras del bufete. Los conteos de casos salen de este entorno.
-            Ingresos y tiempos son datos de demostración.
+            Cifras del bufete y actividad reciente. Los conteos de casos salen de este entorno;
+            ingresos y tiempos son estimaciones de referencia.
           </p>
         </div>
         <a routerLink="/abogado" class="btn btn-primary">
@@ -91,11 +91,11 @@ interface ActivityItem {
             <dd class="tabular">{{ formatCount(metrics.casos_finalizados) }}</dd>
           </div>
           <div>
-            <dt>Ingreso del mes <span class="adv-demo">(demo)</span></dt>
+            <dt>Ingreso del mes</dt>
             <dd class="tabular">{{ formatUsd(metrics.ingreso_mes_usd) }}</dd>
           </div>
           <div>
-            <dt>Tiempo medio <span class="adv-demo">(demo)</span></dt>
+            <dt>Tiempo medio</dt>
             <dd class="tabular">{{ formatDays(metrics.tiempo_promedio_dias) }}</dd>
           </div>
         </dl>
@@ -149,10 +149,10 @@ interface ActivityItem {
         @if (revenue.length) {
           <section class="fase2-section" aria-labelledby="adv-rev-h">
             <h2 id="adv-rev-h">Ingresos por producto</h2>
-            <p class="muted">Cifras de demostración.</p>
+            <p class="muted">Cifras de referencia.</p>
             <div class="panel adv-table-wrap">
               <table>
-                <caption class="sr-only">Ingresos de demostración por producto, importe y número de casos</caption>
+                <caption class="sr-only">Ingresos por producto, importe y número de casos</caption>
                 <thead>
                   <tr>
                     <th scope="col">Producto</th>
@@ -177,7 +177,7 @@ interface ActivityItem {
         @if (funnel.length) {
           <section class="fase2-section" aria-labelledby="adv-funnel-h">
             <h2 id="adv-funnel-h">Embudo</h2>
-            <p class="muted">Cifras de demostración.</p>
+            <p class="muted">Cifras de referencia.</p>
             <ol class="panel adv-list">
               @for (step of funnel; track step.step) {
                 <li>
@@ -192,7 +192,7 @@ interface ActivityItem {
         @if (activity.length) {
           <section class="fase2-section" aria-labelledby="adv-act-h">
             <h2 id="adv-act-h">Actividad reciente</h2>
-            <p class="muted">Eventos de demostración.</p>
+            <p class="muted">Eventos recientes.</p>
             <ul class="panel adv-list">
               @for (item of activity; track $index) {
                 <li>

@@ -1380,6 +1380,9 @@
 
     .ls-shine-slot {
       filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--primary) 14%, transparent));
+      transition:
+        transform 200ms var(--ease),
+        filter 200ms var(--ease);
     }
 
     .ls-steps {
@@ -1418,6 +1421,12 @@
           transform 200ms var(--ease),
           box-shadow 200ms var(--ease),
           border-color 200ms var(--ease);
+      }
+
+      /* Lift the shine host so featured border + card elevate together */
+      .ls-shine-slot:hover {
+        transform: translateY(-3px);
+        filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--primary) 20%, transparent));
       }
 
       .ls-product-card:hover {
@@ -1460,7 +1469,8 @@
         animation: none;
       }
 
-      .ls-plan-card:not(.featured):hover {
+      .ls-plan-card:not(.featured):hover,
+      .ls-shine-slot:hover {
         transform: none;
       }
     }

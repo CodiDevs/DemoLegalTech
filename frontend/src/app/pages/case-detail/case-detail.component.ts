@@ -8,6 +8,8 @@ import { AuthService } from '../../core/auth.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
 import { ScheduledMeetingCardComponent } from '../../shared/scheduled-meeting-card.component';
+import { CaseProgressComponent } from '../../shared/case-progress.component';
+import { buildCaseProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
 import { getProductSite, productThemeFromCase } from '../../shared/product-sites.data';
 
 interface CaseAction {
@@ -19,7 +21,16 @@ interface CaseAction {
 @Component({
   selector: 'app-case-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, DecimalPipe, DatePipe, ProductFlowShellComponent, MeetingSchedulerComponent, ScheduledMeetingCardComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    DecimalPipe,
+    DatePipe,
+    ProductFlowShellComponent,
+    MeetingSchedulerComponent,
+    ScheduledMeetingCardComponent,
+    CaseProgressComponent,
+  ],
   template: `
     @if (data) {
       <app-product-flow-shell
@@ -43,14 +54,12 @@ interface CaseAction {
         <div class="layout">
           <section class="panel">
             <h2>Línea de estados</h2>
-            <ol class="timeline">
-              @for (key of stateKeys; track key) {
-                <li [class.done]="key <= data.case.status" [class.current]="key === data.case.status">
-                  <span class="num">{{ key }}</span>
-                  <span>{{ data.states[key] }}</span>
-                </li>
-              }
-            </ol>
+            <app-case-progress
+              variant="case"
+              layout="vertical"
+              [stages]="progressStages"
+              ariaLabel="Línea de estados del expediente"
+            />
           </section>
 
           <section class="stack">
@@ -178,17 +187,6 @@ interface CaseAction {
     .banner { padding: 0.85rem 1rem; border-radius: 10px; background: oklch(0.94 0.03 210); margin-bottom: 1rem; }
     .banner.warn { background: oklch(0.95 0.04 85); }
     .layout { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 1.25rem; }
-    .timeline { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.45rem; }
-    .timeline li {
-      display: grid; grid-template-columns: 2.2rem 1fr; gap: 0.5rem; align-items: center;
-      color: var(--ink-soft); opacity: 0.55;
-    }
-    .timeline li.done { opacity: 1; color: var(--ink); }
-    .timeline li.current .num { background: var(--brand); color: white; }
-    .num {
-      width: 2rem; height: 2rem; border-radius: 999px; display: grid; place-items: center;
-      font-size: 0.75rem; font-weight: 700; background: var(--line);
-    }
     .actions-panel { text-align: center; }
     .actions-panel h2 { text-align: left; margin-bottom: var(--space-4); }
     .actions-grid {
@@ -239,7 +237,7 @@ export class CaseDetailComponent implements OnInit {
   outputs: any[] = [];
   signatures: any[] = [];
   clientMessages: any[] = [];
-  stateKeys = ['01','02','03','04','05','06','07','08','09','10'];
+  progressStages: CaseProgressStage[] = [];
   consultStorageKey = '';
   theme = productThemeFromCase();
 
@@ -268,6 +266,11 @@ export class CaseDetailComponent implements OnInit {
       this.data = d;
       this.theme = productThemeFromCase(d.case?.product);
       this.clientMessages = d.client_messages || [];
+      this.progressStages = buildCaseProgressStages(
+        d.case?.status || '01',
+        d.states || {},
+        d.events || [],
+      );
     });
     this.api.listDocs(id).subscribe((d) => this.docs = d);
     this.api.listOutputs(id).subscribe((o) => this.outputs = o);

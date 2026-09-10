@@ -25,11 +25,12 @@ gsap.registerPlugin(ScrollTrigger);
     <div class="hsvr-root" #root>
       <section class="hsvr-benefit" #benefitRef>
         <div class="hsvr-benefit-inner">
+          <p class="hsvr-brand">Divorcio360</p>
           <div class="hsvr-headline-wrap">
             <h1
               class="hsvr-headline"
               #paraRef
-              aria-label="Tu trámite con un plan claro de principio a fin"
+              aria-label="Mutuo acuerdo. Un expediente claro."
             >
               @for (word of headlineWords; track word) {
                 <span class="reveal-word">{{ word }}</span>
@@ -46,12 +47,6 @@ gsap.registerPlugin(ScrollTrigger);
 
             @if (auth.isLoggedIn && auth.user()?.role === 'cliente') {
               <a href="#flujo" class="hsvr-btn hsvr-btn-outline">Cómo funciona</a>
-            } @else if (!auth.isLoggedIn) {
-              <a
-                routerLink="/auth"
-                [queryParams]="authQuery"
-                class="hsvr-btn hsvr-btn-outline"
-              >Ingresar</a>
             }
           </div>
         </div>
@@ -71,7 +66,7 @@ gsap.registerPlugin(ScrollTrigger);
               <div class="hsvr-mock" aria-hidden="true">
                 <div class="hsvr-mock-bar">
                   <span></span><span></span><span></span>
-                  <strong>{{ site.name }} · expediente de ejemplo</strong>
+                  <strong>{{ site.name }} · expediente</strong>
                 </div>
                 <div class="hsvr-mock-body">
                   @for (s of site.workflow; track s.n) {
@@ -136,19 +131,28 @@ gsap.registerPlugin(ScrollTrigger);
       z-index: 2;
     }
 
+    .hsvr-brand {
+      margin: 0 0 1.25rem;
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--primary-border);
+    }
+
     .hsvr-headline-wrap {
       width: 100%;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.35rem;
     }
 
     .hsvr-headline {
-      margin: 0;
-      max-width: 15ch;
+      margin: 0 auto;
+      max-width: 12ch;
       font-family: var(--font-display);
-      font-size: clamp(2.35rem, 6vw, 4.75rem);
+      font-size: clamp(2.75rem, 7vw, 5.25rem);
       font-weight: 600;
-      line-height: 1.04;
-      letter-spacing: -0.04em;
+      line-height: 1.02;
+      letter-spacing: -0.045em;
       color: var(--text-inverse);
       text-wrap: balance;
     }
@@ -376,7 +380,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
     returnUrl: '/productos/divorcio360',
   };
   @Input() subText =
-    'Evalúa si tu caso encaja y recorre una demostración del expediente, los documentos y la firma.';
+    'Evalúa si tu caso encaja. Luego documentos, consulta, firma y cierre en un solo expediente.';
 
   readonly site = PRODUCT_SITES['divorcio360'];
 
@@ -387,14 +391,14 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
   @ViewChild('videoBoxRef') videoBoxRef?: ElementRef<HTMLElement>;
 
   headlineWords = [
-    'Tu', 'trámite', 'con', 'un', 'plan', 'claro', 'de', 'principio', 'a', 'fin',
+    'Mutuo', 'acuerdo.', 'Un', 'expediente', 'claro.',
   ];
 
   videoOverlayWords = [
-    'Seguimiento', 'claro', 'en', 'cada', 'etapa.',
+    'Cada', 'etapa,', 'visible.',
   ];
 
-  videoOverlayLabel = 'Seguimiento claro en cada etapa';
+  videoOverlayLabel = 'Cada etapa, visible';
 
   private gsapCtx?: gsap.Context;
   private gsapMedia?: ReturnType<typeof gsap.matchMedia>;

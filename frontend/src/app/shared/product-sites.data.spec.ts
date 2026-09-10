@@ -28,7 +28,7 @@ describe('product-sites.data', () => {
     expect(getProductQuestionnairePath('divorcio360')).toBe('/cuestionario');
   });
 
-  it('publica solo métricas verificables dentro de la demostración', () => {
+  it('publica métricas de producto sin copy de demo', () => {
     const site = PRODUCT_SITES['divorcio360'];
     const visibleCopy = JSON.stringify({
       heroLede: site.heroLede,
@@ -38,9 +38,9 @@ describe('product-sites.data', () => {
       plans: site.plans,
     });
 
-    expect(site.stats.map((stat) => stat.value)).toEqual(['6 etapas', '1 expediente', '$349 demo']);
+    expect(site.stats.map((stat) => stat.value)).toEqual(['6 etapas', '1 expediente', '$349']);
     expect(site.plans.length).toBe(1);
     expect(visibleCopy).not.toMatch(/24\/7|1 click|SLA|timeline|intake|mismo costo/i);
-    expect(visibleCopy).toContain('demostración');
+    expect(visibleCopy).not.toMatch(/demo|demostración/i);
   });
 });

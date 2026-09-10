@@ -46,7 +46,7 @@ describe('DivorcioLandingComponent', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
   });
 
-  it('renderiza una sola demostración del expediente', () => {
+  it('renderiza un solo mock de expediente en el hero', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
 

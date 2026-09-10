@@ -18,6 +18,7 @@ export interface StatItem {
       class="ls-stats"
       [class.theme-divorcio]="theme === 'divorcio'"
       [class.ls-stats--band]="variant === 'band'"
+      [class.ls-stats--4]="stats.length === 4"
     >
       @for (s of stats; track s.label) {
         <article class="ls-stat">
@@ -38,6 +39,10 @@ export interface StatItem {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
+    }
+
+    .ls-stats--4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .ls-stats.theme-divorcio {
@@ -108,6 +113,11 @@ export interface StatItem {
 
     .ls-stats--band .ls-stat:nth-child(3n) { border-right: 0; }
     .ls-stats--band .ls-stat:nth-last-child(-n+3) { border-bottom: 0; }
+
+    .ls-stats--4.ls-stats--band .ls-stat:nth-child(3n) { border-right: 1px solid var(--border); }
+    .ls-stats--4.ls-stats--band .ls-stat:nth-child(2n) { border-right: 0; }
+    .ls-stats--4.ls-stats--band .ls-stat:nth-last-child(-n+3) { border-bottom: 1px solid var(--border); }
+    .ls-stats--4.ls-stats--band .ls-stat:nth-last-child(-n+2) { border-bottom: 0; }
 
     .ls-stats--band .ls-stat-icon { display: none; }
 

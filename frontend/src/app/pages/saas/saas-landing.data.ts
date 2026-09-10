@@ -1,11 +1,48 @@
 import { LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
+import { IconName } from '../../shared/icon.component';
 
-export const LEGALSTATION_WORKFLOW = [
-  { n: 1, title: 'Intake', desc: 'Cuestionario y clasificación automática del caso.' },
-  { n: 2, title: 'Expediente', desc: 'Documentos, pago y mensajes en un solo lugar.' },
-  { n: 3, title: 'Revisión', desc: 'Operador aprueba, genera minuta y comunica al cliente.' },
-  { n: 4, title: 'Firma', desc: 'Firma electrónica con evidencia y notificaciones.' },
-  { n: 5, title: 'Cierre', desc: 'Notaría, registro y archivo con auditoría completa.' },
+export const LEGALSTATION_WORKFLOW: {
+  id: string;
+  n: number;
+  title: string;
+  desc: string;
+  icon: IconName;
+}[] = [
+  {
+    id: 'recepcion',
+    n: 1,
+    title: 'Recepción del caso',
+    desc: 'Cuestionario y clasificación automática del caso.',
+    icon: 'clipboard',
+  },
+  {
+    id: 'expediente',
+    n: 2,
+    title: 'Expediente digital',
+    desc: 'Documentos, pago y mensajes en un solo lugar.',
+    icon: 'folder',
+  },
+  {
+    id: 'revision',
+    n: 3,
+    title: 'Revisión',
+    desc: 'Operador aprueba, genera minuta y comunica al cliente.',
+    icon: 'eye',
+  },
+  {
+    id: 'firma',
+    n: 4,
+    title: 'Firma',
+    desc: 'Firma electrónica con evidencia y notificaciones.',
+    icon: 'signature',
+  },
+  {
+    id: 'finalizacion',
+    n: 5,
+    title: 'Finalización',
+    desc: 'Notaría, registro y archivo con auditoría completa.',
+    icon: 'flag',
+  },
 ];
 
 export const LEGALSTATION_PLANS = [
@@ -29,12 +66,12 @@ export const LEGALSTATION_FAQ = [
   {
     question: '¿Qué es LegalStation?',
     answer:
-      'Una plataforma legal-tech para tramitar divorcio, traslado vehicular e inmuebles con intake digital, expediente y operadores.',
+      'Una plataforma legal-tech para tramitar divorcio, traslado vehicular e inmuebles con recepción digital del caso, expediente y operadores.',
   },
   {
     question: '¿Cómo funciona?',
     answer:
-      'Eliges el producto, completas el cuestionario, pagas el trámite y das seguimiento al expediente hasta firma y cierre.',
+      'Eliges el producto, completas el cuestionario, pagas el trámite y das seguimiento al expediente hasta firma y finalización.',
   },
   {
     question: '¿Qué trámites puedo realizar?',
@@ -44,7 +81,7 @@ export const LEGALSTATION_FAQ = [
   {
     question: '¿Necesito crear una cuenta?',
     answer:
-      'Sí, para guardar el expediente, pagar y ver el estado. Puedes empezar el intake y autenticarte cuando el flujo lo pida.',
+      'Sí, para guardar el expediente, pagar y ver el estado. Puedes empezar el cuestionario y autenticarte cuando el flujo lo pida.',
   },
   {
     question: '¿Puedo consultar el estado de mi trámite?',
@@ -69,7 +106,7 @@ export const LEGALSTATION_FAQ = [
   {
     question: '¿Qué sucede después de iniciar mi trámite?',
     answer:
-      'Se crea el expediente: puedes cargar documentos, el operador revisa, y el flujo sigue a firma y cierre según el producto.',
+      'Se crea el expediente: puedes cargar documentos, el operador revisa, y el flujo sigue a firma y finalización según el producto.',
   },
   {
     question: '¿Puedo consultar mis expedientes desde LegalStation?',

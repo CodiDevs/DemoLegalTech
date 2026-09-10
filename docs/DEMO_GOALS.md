@@ -31,6 +31,8 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | LegalStation landing premium | `/` hero video + brand lockup; secciones/container unificados; cards 3-up | 2026-09-10 |
 | done | Landing layout polish | Precios 3-up; cards elevadas; a.btn hover fix; secciones soft diferenciadas | 2026-09-10 |
 | done | Cards shine / tilt / FAQ | `/` productos 3D, Professional shine, FAQ post-precios; sin `#sistema` | 2026-09-10 |
+| done | Expediente CaseProgress ES | `/#flujo` + `/caso/:id` Línea de estados; mismo componente multi-producto | 2026-09-10 |
+| done | CaseProgress fix + Auth system | `#flujo` sin overlap; `/auth` layout + forgot demo | 2026-09-10 |
 
 ## Entries
 
@@ -351,3 +353,17 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 - Variedad: flujo tipográfico, enterprise outline, sin deps nuevas.
 
 **Demo:** `/` guest → hover productos → `#precios` (brillo en Professional) → `#faq`. Spot 375 (accordion + pricing 1-col).
+
+### 2026-09-10 — Expediente CaseProgress (ES)
+- Componente reutilizable `app-case-progress`: recorrido marketing + línea de estados del expediente (10 estados API, labels sin tocar backend).
+- Home `/#flujo`: “De la recepción a la finalización” (Recepción → Expediente digital → Revisión → Firma → Finalización); sin “Intake/Cierre” en UI.
+- Expediente `/caso/:id`: misma UI para Divorcio360 / Traslado360 / BienRaiz360; checks, etapa activa, próximos atenuados, línea animada, `prefers-reduced-motion`.
+- Sitios producto `#flujo` (Traslado/BienRaiz) reutilizan el mismo componente.
+
+**Demo:** `/` → `#flujo` (clic etapas). Login `cliente@demo.ec` → expediente → Línea de estados. Spot móvil: recorrido vertical.
+
+### 2026-09-10 — CaseProgress sin overlap + Auth system
+- Recorrido: rail + labels; descripción única en panel inferior (horizontal); vertical ≤960px; animación línea → detalle.
+- Auth workspace: canvas `--bg` + **dos cartas** (form | foto) con gap fino y margen chico; cada una con borde/`radius-xl`; móvil form-only. Forgot demo sin API.
+
+**Demo:** `/#flujo` desktop sin textos solapados. `/auth` → margen de fondo alrededor del shell grande + mitad visual.

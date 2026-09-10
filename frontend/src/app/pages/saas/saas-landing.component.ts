@@ -1,6 +1,8 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LEGALSTATION_CATALOG, ProductCatalogEntry, getProductQuestionnairePath, setActiveProduct } from '../../shared/product-sites.data';
+import { CaseProgressComponent } from '../../shared/case-progress.component';
+import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
 import { IconComponent } from '../../shared/icon.component';
 import { LandingFaqComponent } from '../../shared/ui/landing-faq.component';
 import { ShineBorderComponent } from '../../shared/ui/shine-border.component';
@@ -23,6 +25,7 @@ import {
     TiltCardComponent,
     ShineBorderComponent,
     LandingFaqComponent,
+    CaseProgressComponent,
   ],
   template: `
     <div class="landing-page legalstation-landing">
@@ -66,7 +69,7 @@ import {
 
           <div class="soon-wrap">
             <h3>Próximamente</h3>
-            <p class="lp-muted">Herramientas en preparación que aún no abren intake.</p>
+            <p class="lp-muted">Herramientas en preparación que aún no abren cuestionario.</p>
             <ul class="lp-list-tt soon-list">
               @for (p of comingSoon; track p.id) {
                 <li class="soon-item">
@@ -88,17 +91,19 @@ import {
         <div class="lp-shell">
           <div class="lp-section-head">
             <p class="lp-eyebrow">Recorrido</p>
-            <h2>Del intake al cierre</h2>
-            <p>Cinco pasos del expediente en la plataforma.</p>
+            <h2>De la recepción a la finalización</h2>
+            <p>Cinco etapas del expediente en la plataforma.</p>
           </div>
-          <div class="lp-steps ls-steps ls-choreo">
-            @for (s of workflow; track s.title; let i = $index) {
-              <article class="lp-step" [style.--i]="i">
-                <div class="lp-step-num">{{ s.n }}</div>
-                <h3>{{ s.title }}</h3>
-                <p>{{ s.desc }}</p>
-              </article>
-            }
+          <div class="ls-progress ls-choreo">
+            <app-case-progress
+              variant="marketing"
+              layout="auto"
+              [interactive]="true"
+              [stages]="journeyStages"
+              [focusIndex]="journeyFocus"
+              ariaLabel="Recorrido del trámite LegalStation"
+              (stageSelect)="onJourneySelect($event.index)"
+            />
           </div>
         </div>
       </section>
@@ -278,6 +283,11 @@ import {
       transition: opacity 180ms var(--ease), transform 180ms var(--ease);
     }
 
+    .ls-progress {
+      margin-top: 0.5rem;
+      padding: 0.25rem 0 0.5rem;
+    }
+
     @media (max-width: 960px) {
       .lp-enterprise { grid-template-columns: 1fr; }
       .ls-pricing-grid { grid-template-columns: 1fr; }
@@ -293,7 +303,8 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   toast = '';
   liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
   comingSoon = LEGALSTATION_CATALOG.filter((p) => !p.live);
-  workflow = LEGALSTATION_WORKFLOW;
+  journeyFocus = 1;
+  journeyStages: CaseProgressStage[] = buildMarketingProgressStages(LEGALSTATION_WORKFLOW, 1);
   plans = LEGALSTATION_PLANS;
   enterprise = LEGALSTATION_ENTERPRISE;
   faq = LEGALSTATION_FAQ;
@@ -331,6 +342,11 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
     if (!p.route) return;
     setActiveProduct(p.id);
     void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
+  }
+
+  onJourneySelect(index: number): void {
+    this.journeyFocus = index;
+    this.journeyStages = buildMarketingProgressStages(LEGALSTATION_WORKFLOW, index);
   }
 
   notify(name: string): void {

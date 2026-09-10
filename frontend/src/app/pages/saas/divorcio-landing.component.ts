@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import {
@@ -8,12 +8,29 @@ import {
 } from '../../shared/product-sites.data';
 import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
 import { LandingStatisticsComponent } from './landing-statistics.component';
-import { IconComponent } from '../../shared/icon.component';
+import { IconComponent, IconName } from '../../shared/icon.component';
+import { CaseProgressComponent } from '../../shared/case-progress.component';
+import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
+
+const DIVORCIO_FLOW_ICONS: IconName[] = [
+  'clipboard',
+  'check-circle',
+  'folder',
+  'video',
+  'signature',
+  'building',
+];
 
 @Component({
   selector: 'app-divorcio-landing',
   standalone: true,
-  imports: [RouterLink, HeroScrollVideoPinRevealComponent, LandingStatisticsComponent, IconComponent],
+  imports: [
+    RouterLink,
+    HeroScrollVideoPinRevealComponent,
+    LandingStatisticsComponent,
+    IconComponent,
+    CaseProgressComponent,
+  ],
   template: `
     <div class="landing-page divorcio-landing">
       <nav class="lp-shell lp-crumb" aria-label="Ruta de navegación">
@@ -24,28 +41,12 @@ import { IconComponent } from '../../shared/icon.component';
 
       <app-hero-scroll-video-pin-reveal />
 
-      <section class="lp-section soft" id="flujo">
+      <section class="lp-section" id="sistema">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Seis pasos conectados. <span class="lp-highlight">Un solo expediente.</span></h2>
-            <p>Desde la calificación hasta la notaría, sin saltar entre herramientas.</p>
-          </div>
-          <div #stepsRoot class="lp-steps lp-steps--flow" [class.lp-steps-in]="stepsRevealed">
-            @for (s of site.workflow; track s.title; let i = $index) {
-              <article class="lp-step" [style.--lp-i]="i">
-                <div class="lp-step-num">{{ s.n }}</div>
-                <h3>{{ s.title }}</h3>
-                <p>{{ s.desc }}</p>
-              </article>
-            }
-          </div>
-        </div>
-      </section>
-
-      <section class="lp-section">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <h2>Diseñado para <span class="lp-highlight">firmas y clientes.</span></h2>
+            <p class="lp-eyebrow">El sistema</p>
+            <h2>Un expediente compartido. <span class="lp-highlight">Acciones visibles.</span></h2>
+            <p>Cliente y operador trabajan sobre la misma información, sin herramientas sueltas.</p>
           </div>
           <div class="lp-values lp-values--rules">
             @for (v of site.values ?? []; track v.title) {
@@ -58,10 +59,31 @@ import { IconComponent } from '../../shared/icon.component';
         </div>
       </section>
 
-      <section class="lp-section soft" id="capacidades">
+      <section class="lp-section soft" id="flujo">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Qué muestra esta demostración</h2>
+            <p class="lp-eyebrow">El flujo</p>
+            <h2>Seis pasos. <span class="lp-highlight">Un recorrido.</span></h2>
+            <p>De la calificación a la notaría, sin saltar entre sistemas.</p>
+          </div>
+          <app-case-progress
+            variant="marketing"
+            layout="auto"
+            [interactive]="true"
+            [stages]="journeyStages"
+            [focusIndex]="journeyFocus"
+            ariaLabel="Recorrido Divorcio360"
+            (stageSelect)="onJourneySelect($event.index)"
+          />
+        </div>
+      </section>
+
+      <section class="lp-section" id="capacidades">
+        <div class="lp-shell">
+          <div class="lp-section-head">
+            <p class="lp-eyebrow">La prueba</p>
+            <h2>Capacidades del recorrido</h2>
+            <p>Lo esencial del producto, medido en etapas, expediente y honorario de referencia.</p>
           </div>
           <app-landing-statistics theme="divorcio" variant="band" [stats]="site.stats" />
         </div>
@@ -70,8 +92,9 @@ import { IconComponent } from '../../shared/icon.component';
       <section class="lp-section soft" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <h2>Un valor orientativo, sin suscripción</h2>
-            <p>El monto mostrado pertenece a la demostración y no constituye una cotización.</p>
+            <p class="lp-eyebrow">Precio</p>
+            <h2>Un valor orientativo, <span class="lp-highlight">sin suscripción.</span></h2>
+            <p>Honorario de referencia para el recorrido completo. No incluye gastos notariales.</p>
           </div>
           <div class="lp-pricing">
             @for (plan of site.plans; track plan.name) {
@@ -93,7 +116,7 @@ import { IconComponent } from '../../shared/icon.component';
             }
           </div>
           <p class="lp-price-note">
-            Si el resultado no encaja en este recorrido, la demostración no genera un cobro automático.
+            Si el resultado no encaja en este recorrido, no se genera un cobro automático.
           </p>
         </div>
       </section>
@@ -129,13 +152,46 @@ import { IconComponent } from '../../shared/icon.component';
       content: none;
     }
 
+    .divorcio-landing .lp-section {
+      padding-block: clamp(4.5rem, 9vw, 7.5rem);
+    }
+
     .divorcio-landing .lp-section-head {
       margin-inline: 0;
+      margin-bottom: clamp(2rem, 4vw, 3.25rem);
       text-align: left;
+      max-width: 40rem;
+    }
+
+    .divorcio-landing .lp-eyebrow {
+      margin-bottom: 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    .divorcio-landing .lp-section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4.4vw, 3.35rem);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.035em;
+      max-width: 16ch;
+    }
+
+    .divorcio-landing .lp-section-head p {
+      max-width: 34rem;
+      font-size: clamp(1.02rem, 1.6vw, 1.15rem);
+      line-height: 1.65;
+      color: var(--text-secondary);
     }
 
     .divorcio-landing .lp-pricing {
-      grid-template-columns: minmax(0, 44rem);
+      grid-template-columns: minmax(0, 28rem);
+      max-width: 28rem;
+      margin-inline: 0;
       justify-content: start;
     }
 
@@ -160,9 +216,25 @@ import { IconComponent } from '../../shared/icon.component';
       background: var(--lp-border);
     }
 
+    .divorcio-landing .lp-value h3 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
     .divorcio-landing .lp-cta-inner {
       background: var(--primary-hover);
       text-align: left;
+      padding-block: clamp(3rem, 6vw, 4.5rem);
+    }
+
+    .divorcio-landing .lp-cta-inner h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      max-width: 16ch;
     }
 
     .divorcio-landing .lp-cta-inner::before,
@@ -177,8 +249,10 @@ import { IconComponent } from '../../shared/icon.component';
     .lp-price-note {
       color: var(--text-muted);
       font-size: var(--text-sm);
+      margin-top: var(--space-4);
     }
 
+    #sistema,
     #flujo,
     #capacidades,
     #precios {
@@ -199,17 +273,19 @@ import { IconComponent } from '../../shared/icon.component';
       }
 
       .divorcio-landing .lp-section {
-        padding-block: var(--space-7);
+        padding-block: var(--space-8);
+      }
+
+      .divorcio-landing .lp-section-head h2 {
+        max-width: none;
       }
     }
   `]
 })
-export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DivorcioLandingComponent implements OnInit {
   readonly site = PRODUCT_SITES['divorcio360'];
-
-  @ViewChild('stepsRoot') stepsRoot?: ElementRef<HTMLElement>;
-  stepsRevealed = false;
-  private stepsObserver?: IntersectionObserver;
+  journeyFocus = 0;
+  journeyStages: CaseProgressStage[] = [];
 
   constructor(public auth: AuthService) {}
 
@@ -235,28 +311,23 @@ export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestro
 
   ngOnInit(): void {
     setActiveProduct('divorcio360');
+    this.rebuildJourney();
   }
 
-  ngAfterViewInit(): void {
-    const el = this.stepsRoot?.nativeElement;
-    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || !el || typeof IntersectionObserver === 'undefined') {
-      return;
-    }
-
-    this.stepsObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          this.stepsRevealed = true;
-          this.stepsObserver?.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    this.stepsObserver.observe(el);
+  onJourneySelect(index: number): void {
+    this.journeyFocus = index;
+    this.rebuildJourney();
   }
 
-  ngOnDestroy(): void {
-    this.stepsObserver?.disconnect();
+  private rebuildJourney(): void {
+    const steps = this.site.workflow.map((step, index) => ({
+      id: String(step.n),
+      n: step.n,
+      title: step.title,
+      desc: step.desc,
+      icon: DIVORCIO_FLOW_ICONS[index] || ('flag' as IconName),
+      screen: step.screen,
+    }));
+    this.journeyStages = buildMarketingProgressStages(steps, this.journeyFocus);
   }
 }
