@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/codidevs/divorcio360/internal/auth"
@@ -85,24 +86,71 @@ func (s *Service) PatchMasterTemplate(w http.ResponseWriter, r *http.Request) {
 	write(w, map[string]any{"ok": true, "template_id": id, "version": body.Version})
 }
 
+func mockAIBrief(caseID int) (summary string, recs []string, risk string) {
+	summary = "Documentos legibles, sin inconsistencias detectadas."
+	recs = []string{"Aprobar documentos y preparar minuta"}
+	risk = "Verificar mediación si hay menores"
+	if caseID == 1 {
+		summary = "Apto vía notarial. Falta aprobación jurídica."
+		recs = []string{"Aprobar cédula y partida", "Generar minuta", "Enviar a firma"}
+	}
+	return
+}
+
 func (s *Service) AIAnalyze(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		CaseID int `json:"case_id"`
 	}
 	_ = json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body)
-	summary := "Análisis mock LegalStation: documentos legibles, sin inconsistencias detectadas."
-	recs := []string{"Aprobar documentos y preparar minuta"}
-	if body.CaseID == 1 {
-		summary = "Expediente #1: apto vía notarial. Pendiente aprobación jurídica."
-		recs = []string{"Aprobar cédula y partida", "Generar minuta", "Enviar a firma"}
-	}
+	summary, recs, risk := mockAIBrief(body.CaseID)
 	write(w, map[string]any{
 		"demo": true, "case_id": body.CaseID, "summary": summary,
-		"risks":           []string{"Verificar mediación si hay menores"},
+		"risks":           []string{risk},
 		"recommendations": recs, "confidence": 0.87,
 		"cross_check": []map[string]any{{"field": "Cédula vs partida", "status": "ok", "detail": "Coinciden"}},
-		"chat":        []map[string]string{{"role": "user", "text": "¿Listo para minuta?"}, {"role": "assistant", "text": summary}},
 	})
+}
+
+func (s *Service) AIChat(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		CaseID  int    `json:"case_id"`
+		Message string `json:"message"`
+	}
+	_ = json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body)
+	msg := strings.TrimSpace(body.Message)
+	if msg == "" {
+		writeErr(w, http.StatusBadRequest, "message requerido")
+		return
+	}
+	summary, recs, risk := mockAIBrief(body.CaseID)
+	write(w, map[string]any{
+		"demo": true, "case_id": body.CaseID, "reply": mockAIChatReply(msg, body.CaseID, summary, recs, risk),
+	})
+}
+
+func mockAIChatReply(msg string, caseID int, summary string, recs []string, risk string) string {
+	q := strings.ToLower(msg)
+	next := recs[0]
+	who := "este expediente"
+	if caseID > 0 {
+		who = "el expediente #" + strconv.Itoa(caseID)
+	}
+	switch {
+	case strings.Contains(q, "minuta"):
+		return "Minuta: todavía no. Primero " + strings.ToLower(next) + ". Después se genera y pasa a firma."
+	case strings.Contains(q, "menor") || strings.Contains(q, "mediac"):
+		return "Riesgo en " + who + ": " + risk + "."
+	case strings.Contains(q, "firma"):
+		return "Firma viene después de minuta. Ahora: " + next + "."
+	case strings.Contains(q, "riesgo"):
+		return risk + ". El resto del cruce (cédula vs partida) coincide."
+	case strings.Contains(q, "documento") || strings.Contains(q, "cédula") || strings.Contains(q, "cedula") || strings.Contains(q, "partida"):
+		return "Cédula y partida coinciden. Siguiente: " + next + "."
+	case strings.Contains(q, "sigue") || strings.Contains(q, "siguiente") || strings.Contains(q, "ahora"):
+		return "En " + who + " toca: " + next + "."
+	default:
+		return summary + " En " + who + " el siguiente paso es " + strings.ToLower(next) + "."
+	}
 }
 
 func (s *Service) SatjeSync(w http.ResponseWriter, r *http.Request) {
@@ -161,7 +209,10 @@ func (s *Service) BillingRecurring(w http.ResponseWriter, r *http.Request) {
 	tenant := s.loadTenant()
 	planID, _ := tenant["plan"].(string)
 	tenant["plan_label"] = planLabel(planID)
-	tenant["referral_link"] = "http://localhost:4200/productos/divorcio360?ref=abogado" + strconv.FormatInt(u.ID, 10)
+	slug := referralSlug(u.FullName, u.ID)
+	tenant["referral_slug"] = slug
+	tenant["referral_link"] = "https://legalstation.ec/divorcio360/r/" + slug
+	tenant["referral_path"] = "/productos/divorcio360?ref=" + slug
 	tenant["commission_pct"] = 15
 	tenant["platform_pct"] = 85
 	tenant["suggested_client_price_usd"] = 349
@@ -211,6 +262,33 @@ func planLabel(planID string) string {
 	default:
 		return planID
 	}
+}
+
+func referralSlug(name string, id int64) string {
+	s := strings.ToLower(strings.TrimSpace(name))
+	s = strings.NewReplacer(
+		"á", "a", "é", "e", "í", "i", "ó", "o", "ú", "u", "ü", "u", "ñ", "n",
+		".", "", ",", "",
+	).Replace(s)
+	var b strings.Builder
+	dash := false
+	for _, r := range s {
+		ok := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+		if ok {
+			b.WriteRune(r)
+			dash = false
+			continue
+		}
+		if (r == ' ' || r == '-' || r == '_') && !dash && b.Len() > 0 {
+			b.WriteByte('-')
+			dash = true
+		}
+	}
+	out := strings.Trim(b.String(), "-")
+	if out == "" {
+		return "abogado" + strconv.FormatInt(id, 10)
+	}
+	return out
 }
 
 func (s *Service) loadMasterTemplates() []map[string]any {
@@ -332,7 +410,12 @@ func max(a, b int) int {
 }
 
 func write(w http.ResponseWriter, v any) {
+	writeStatus(w, http.StatusOK, v)
+}
+
+func writeStatus(w http.ResponseWriter, code int, v any) {
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(v)
 }
 

@@ -21,7 +21,15 @@ interface TemplateDraft {
   standalone: true,
   imports: [FormsModule, StatusBadgeComponent],
   template: `
-    <h1>Modelos de documentos</h1>
+    <header class="tpl-head">
+      <div>
+        <h1>Modelos de documentos</h1>
+        <p class="lede">Crea, duplica y edita. Los originales del sistema no se borran.</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="openCreate()" [disabled]="busy">
+        Nueva plantilla
+      </button>
+    </header>
 
     @if (loadError) {
       <div class="panel fase2-state-error" role="alert">
@@ -51,7 +59,7 @@ interface TemplateDraft {
             <button type="button" class="btn btn-ghost" (click)="dup(t)" [disabled]="busy">Duplicar plantilla</button>
             <button type="button" class="btn btn-secondary" (click)="openEditor(t)" [disabled]="busy">Editar</button>
             @if (isClone(t)) {
-              <button type="button" class="btn btn-ghost" (click)="remove(t)" [disabled]="busy">Borrar</button>
+            <button type="button" class="btn btn-ghost" (click)="remove(t)" [disabled]="busy">Borrar</button>
             }
           </div>
         </article>
@@ -94,7 +102,7 @@ interface TemplateDraft {
               <button type="button" class="btn btn-primary" (click)="openEditor(preview)" [disabled]="busy">Editar</button>
             </div>
           } @else {
-            <h2 id="tpl-modal-title">Editar modelo</h2>
+            <h2 id="tpl-modal-title">{{ creating ? 'Nuevo modelo' : 'Editar modelo' }}</h2>
             <div class="field">
               <label for="tpl-name">Nombre</label>
               <input id="tpl-name" name="name" [(ngModel)]="draft.name" [disabled]="busy" />
@@ -157,7 +165,7 @@ interface TemplateDraft {
             <div class="modal-actions">
               <button type="button" class="btn btn-ghost" (click)="cancelEdit()" [disabled]="busy">Cancelar</button>
               <button type="button" class="btn btn-primary" (click)="save()" [disabled]="busy">
-                {{ busy ? 'Guardando…' : 'Guardar cambios' }}
+                {{ busy ? 'Guardando…' : (creating ? 'Crear plantilla' : 'Guardar cambios') }}
               </button>
             </div>
           }
@@ -169,6 +177,19 @@ interface TemplateDraft {
   `,
   styleUrls: ['../fase2-shared.scss'],
   styles: [`
+    .tpl-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .lede {
+      margin: var(--space-2) 0 0;
+      max-width: 48ch;
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
     .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.25rem; }
     .card { cursor: pointer; display: grid; gap: 0.5rem; }
     .card-head { display: flex; justify-content: space-between; align-items: center; }
@@ -236,6 +257,7 @@ export class Fase2TemplatesComponent implements OnInit {
   templates: any[] = [];
   versions: any[] = [];
   preview: any = null;
+  creating = false;
   modalMode: ModalMode = 'preview';
   toast = '';
   loadError = '';
@@ -292,12 +314,35 @@ export class Fase2TemplatesComponent implements OnInit {
   }
 
   openPreview(t: any): void {
+    this.creating = false;
     this.preview = t;
     this.modalMode = 'preview';
     this.formError = '';
   }
 
+  openCreate(): void {
+    if (this.busy) return;
+    this.creating = true;
+    this.preview = {
+      id: '',
+      name: 'Nuevo modelo',
+      category: 'familia',
+      status: 'diseno',
+      version: 'v0.1',
+      fields: [],
+      preview_html: '<p>Minuta en blanco.</p>',
+      source_id: 'created',
+    };
+    this.modalMode = 'edit';
+    this.formError = '';
+    this.fieldDraft = '';
+    this.draft = emptyDraft();
+    this.snapshot = this.draftKey();
+    setTimeout(() => document.getElementById('tpl-name')?.focus(), 0);
+  }
+
   openEditor(t: any): void {
+    this.creating = false;
     this.preview = t;
     this.modalMode = 'edit';
     this.formError = '';
@@ -355,18 +400,24 @@ export class Fase2TemplatesComponent implements OnInit {
     if (!this.preview || this.busy) return;
     this.busy = true;
     this.formError = '';
-    this.api.patchTemplate(this.preview.id, {
+    const body = {
       name: this.draft.name,
       category: this.draft.category,
       status: this.draft.status,
       version: this.draft.version,
       fields: this.draft.fields,
       preview_html: this.draft.preview_html,
-    }).subscribe({
+    };
+    const req = this.creating
+      ? this.api.createTemplate(body)
+      : this.api.patchTemplate(this.preview.id, body);
+    req.subscribe({
       next: (updated) => {
+        const wasCreate = this.creating;
         this.busy = false;
+        this.creating = false;
         this.snapshot = this.draftKey();
-        this.showToast('Cambios guardados');
+        this.showToast(wasCreate ? 'Plantilla creada' : 'Cambios guardados');
         this.api.mockTemplates().subscribe((d) => {
           this.templates = d.templates || [];
           this.versions = d.versions || [];
@@ -386,6 +437,13 @@ export class Fase2TemplatesComponent implements OnInit {
       const ok = await this.ask('Hay cambios sin guardar. ¿Descartarlos?', 'Descartar cambios');
       if (!ok) return;
     }
+    if (this.creating) {
+      this.creating = false;
+      this.preview = null;
+      this.modalMode = 'preview';
+      this.formError = '';
+      return;
+    }
     this.modalMode = 'preview';
     this.formError = '';
   }
@@ -401,12 +459,13 @@ export class Fase2TemplatesComponent implements OnInit {
       if (!ok) return;
     }
     this.preview = null;
+    this.creating = false;
     this.modalMode = 'preview';
     this.formError = '';
   }
 
   async remove(t: any): Promise<void> {
-    const ok = await this.ask('¿Eliminar esta copia de plantilla?', 'Borrar copia');
+    const ok = await this.ask('¿Eliminar esta plantilla?', 'Borrar plantilla');
     if (!ok) return;
     this.busy = true;
     this.api.deleteTemplate(t.id).subscribe({
@@ -416,7 +475,7 @@ export class Fase2TemplatesComponent implements OnInit {
           this.preview = null;
           this.modalMode = 'preview';
         }
-        this.showToast('Copia eliminada');
+        this.showToast('Plantilla eliminada');
         this.reload();
       },
       error: (e) => {
@@ -452,5 +511,12 @@ export class Fase2TemplatesComponent implements OnInit {
 }
 
 function emptyDraft(): TemplateDraft {
-  return { name: '', category: 'familia', status: 'diseno', version: 'v1.0', fields: [], preview_html: '' };
+  return {
+    name: 'Nuevo modelo',
+    category: 'familia',
+    status: 'diseno',
+    version: 'v0.1',
+    fields: [],
+    preview_html: '<p>Minuta en blanco.</p>',
+  };
 }

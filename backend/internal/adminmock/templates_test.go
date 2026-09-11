@@ -89,6 +89,60 @@ func TestDocumentTemplatesCRUD(t *testing.T) {
 		}
 	})
 
+	t.Run("POST create adds a deletable template", func(t *testing.T) {
+		body, _ := json.Marshal(map[string]any{
+			"name":         "Minuta Traslado Manta",
+			"category":     "movilidad",
+			"status":       "diseno",
+			"version":      "v0.1",
+			"fields":       []string{"placa"},
+			"preview_html": "<p>Traslado360</p>",
+		})
+		rec := httptest.NewRecorder()
+		req := withUser(httptest.NewRequest(http.MethodPost, "/api/v1/mock/templates", bytes.NewReader(body)))
+		svc.CreateTemplate(rec, req)
+		if rec.Code != http.StatusCreated {
+			t.Fatalf("create status %d body=%s", rec.Code, rec.Body.String())
+		}
+		var created map[string]any
+		decodeJSON(t, rec, &created)
+		id, _ := created["id"].(string)
+		if id == "" || id == "divorcio-notarial" {
+			t.Fatalf("id=%q", id)
+		}
+		if created["name"] != "Minuta Traslado Manta" {
+			t.Fatalf("name=%v", created["name"])
+		}
+		src, _ := created["source_id"].(string)
+		if src == "" {
+			t.Fatal("created template must be deletable (source_id set)")
+		}
+		p := getTemplates(t, svc)
+		if len(p.Templates) != 3 {
+			t.Fatalf("after create templates=%d want 3", len(p.Templates))
+		}
+
+		del := httptest.NewRecorder()
+		svc.DeleteTemplate(del, withID(httptest.NewRequest(http.MethodDelete, "/api/v1/mock/templates/"+id, nil), id))
+		if del.Code != http.StatusOK {
+			t.Fatalf("delete created status %d body=%s", del.Code, del.Body.String())
+		}
+		after := getTemplates(t, svc)
+		if len(after.Templates) != 2 {
+			t.Fatalf("after delete created templates=%d want 2", len(after.Templates))
+		}
+	})
+
+	t.Run("POST create rejects invalid status", func(t *testing.T) {
+		body, _ := json.Marshal(map[string]any{"name": "X", "status": "nope"})
+		rec := httptest.NewRecorder()
+		req := withUser(httptest.NewRequest(http.MethodPost, "/api/v1/mock/templates", bytes.NewReader(body)))
+		svc.CreateTemplate(rec, req)
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("create bad status %d want 400 body=%s", rec.Code, rec.Body.String())
+		}
+	})
+
 	t.Run("POST duplicate creates a named copy", func(t *testing.T) {
 		rec := httptest.NewRecorder()
 		req := withID(httptest.NewRequest(http.MethodPost, "/api/v1/mock/templates/divorcio-notarial/duplicate", nil), "divorcio-notarial")

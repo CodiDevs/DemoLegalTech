@@ -53,6 +53,92 @@ func (s *Service) Templates(w http.ResponseWriter, r *http.Request) {
 	write(w, map[string]any{"demo": true, "templates": out, "versions": versions})
 }
 
+func (s *Service) CreateTemplate(w http.ResponseWriter, r *http.Request) {
+	if err := s.ensureDocTemplates(); err != nil {
+		writeErr(w, http.StatusInternalServerError, "no se pudieron cargar las plantillas")
+		return
+	}
+	var body struct {
+		Name        string   `json:"name"`
+		Category    string   `json:"category"`
+		Status      string   `json:"status"`
+		Version     string   `json:"version"`
+		Fields      []string `json:"fields"`
+		PreviewHTML string   `json:"preview_html"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 96<<10)).Decode(&body); err != nil {
+		writeErr(w, http.StatusBadRequest, "cuerpo inválido")
+		return
+	}
+	name := strings.TrimSpace(body.Name)
+	if name == "" || utf8.RuneCountInString(name) > 120 {
+		writeErr(w, http.StatusBadRequest, "nombre inválido")
+		return
+	}
+	cat := strings.TrimSpace(body.Category)
+	if cat == "" {
+		cat = "familia"
+	}
+	if utf8.RuneCountInString(cat) > 40 {
+		writeErr(w, http.StatusBadRequest, "categoría inválida")
+		return
+	}
+	st := strings.TrimSpace(body.Status)
+	if st == "" {
+		st = "diseno"
+	}
+	if st != "activa" && st != "diseno" && st != "proximamente" {
+		writeErr(w, http.StatusBadRequest, "estado inválido")
+		return
+	}
+	ver := strings.TrimSpace(body.Version)
+	if ver == "" {
+		ver = "v0.1"
+	}
+	if utf8.RuneCountInString(ver) > 32 {
+		writeErr(w, http.StatusBadRequest, "versión inválida")
+		return
+	}
+	if len(body.PreviewHTML) > maxPreviewHTML {
+		writeErr(w, http.StatusBadRequest, "el texto de la minuta es demasiado largo")
+		return
+	}
+	fields, ferr := normalizeFields(body.Fields)
+	if ferr != "" {
+		writeErr(w, http.StatusBadRequest, ferr)
+		return
+	}
+	author := "LegalStation"
+	if u := auth.UserFrom(r.Context()); u != nil && u.FullName != "" {
+		author = u.FullName
+	}
+	now := store.Now()
+	id := fmt.Sprintf("tpl-%d", time.Now().UnixNano())
+	row := docTemplateRow{
+		ID:          id,
+		SourceID:    sql.NullString{String: "created", Valid: true},
+		Name:        name,
+		Category:    cat,
+		Status:      st,
+		Version:     ver,
+		Fields:      fields,
+		PreviewHTML: body.PreviewHTML,
+		Versions: []docVersion{
+			{TemplateID: id, Version: ver, Date: time.Now().UTC().Format("2006-01-02"), Author: author},
+		},
+	}
+	if err := s.insertDocTemplate(row, now); err != nil {
+		writeErr(w, http.StatusInternalServerError, "no se pudo crear")
+		return
+	}
+	saved, err := s.getDocTemplate(id)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "no se pudo crear")
+		return
+	}
+	writeStatus(w, http.StatusCreated, saved.toMap())
+}
+
 func (s *Service) DuplicateTemplate(w http.ResponseWriter, r *http.Request) {
 	if err := s.ensureDocTemplates(); err != nil {
 		writeErr(w, http.StatusInternalServerError, "no se pudieron cargar las plantillas")

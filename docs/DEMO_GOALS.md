@@ -410,5 +410,22 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 
 **Demo:** `cliente@demo.ec` → chip **Traslado360** vs **Divorcio360**.
 
+### 2026-09-10 — CRUD completo de plantillas
+- `/abogado/fase2/templates`: **Nueva plantilla** (POST), duplicar, editar, borrar copias/creadas.
+- Originales seed no se borran (409). Refresh conserva.
+
+**Demo:** `abogado@demo.ec` → Modelos de documentos → Nueva plantilla → Crear → F5 → Borrar.
+
+### 2026-09-10 — Asistente de revisión (escritorio)
+- `/abogado/fase2/ai`: select de expediente + ficha corta (resumen, riesgo, siguiente) + chat mock.
+- Chips: qué sigue / menores / minuta. `POST /mock/ai/chat`.
+
+**Demo:** `abogado@demo.ec` → Asistente de revisión. Cambia a #1. Chip **¿Listo para minuta?** y escribe otra pregunta.
+
+### 2026-09-10 — Link de cliente LegalStation
+- `/abogado/fase2/billing`: enlace mock `legalstation.ec/divorcio360/r/dra-ana-ruiz`, no localhost.
+- Copiar + clic abre el producto local.
+
+**Demo:** `abogado@demo.ec` → Facturación B2B. Copiar. Clic el link.
 
 
