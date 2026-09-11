@@ -65,4 +65,16 @@ describe('DivorcioLandingComponent', () => {
     expect(finalCta?.getAttribute('href')).toBe('/cuestionario');
     expect(finalCta?.textContent?.trim()).toBe('Evaluar mi caso');
   });
+
+  it('ordena los capítulos y publica galería + cifras del producto', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const ids = Array.from(root.querySelectorAll('section[id]')).map((el) => el.id);
+    expect(ids).toEqual(['sistema', 'flujo', 'capacidades', 'en-accion', 'precios']);
+    expect(root.querySelector('app-elastic-gallery')).not.toBeNull();
+    expect(root.querySelector('app-landing-statistics')).not.toBeNull();
+    expect(root.textContent).toContain('6 etapas');
+    expect(root.textContent).toContain('$349');
+    expect(root.querySelectorAll('.eg-panel').length).toBe(2);
+  });
 });

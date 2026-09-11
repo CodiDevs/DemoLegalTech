@@ -11,21 +11,21 @@
   }
 
   &.theme-legalstation {
-    --lp-accent: #3a4bb0;
-    --lp-accent-deep: #2f3d92;
-    --lp-accent-soft: #eceffa;
+    --lp-accent: var(--primary);
+    --lp-accent-deep: var(--primary-hover);
+    --lp-accent-soft: var(--primary-subtle);
   }
 
   &.theme-traslado {
     --lp-accent: var(--info);
-    --lp-accent-deep: #274e83;
+    --lp-accent-deep: color-mix(in srgb, var(--info) 78%, var(--neutral-900));
     --lp-accent-soft: var(--info-subtle);
   }
 
   &.theme-bienraiz {
-    --lp-accent: #7a5a38;
-    --lp-accent-deep: #63482c;
-    --lp-accent-soft: #f4efe7;
+    --lp-accent: var(--warning);
+    --lp-accent-deep: color-mix(in srgb, var(--warning) 82%, var(--neutral-900));
+    --lp-accent-soft: var(--warning-subtle);
   }
 
   /* Los enlaces que hacen de botón usan la escala global de botones:
@@ -283,9 +283,12 @@ body.divorcio-flow-mode .landing-page.product-flow {
 
 .up-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--lp-accent), var(--lp-accent-deep));
+  width: 100%;
+  background: var(--lp-accent);
   border-radius: inherit;
-  transition: width var(--dur-slow) var(--ease-out);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
+  transition: transform var(--dur-cine) var(--ease-out);
 }
 
 .up-slots {
@@ -545,5 +548,104 @@ body.divorcio-flow-mode .landing-page.product-flow {
     opacity: 1;
     transform: none;
     filter: blur(0);
+  }
+}
+
+@keyframes pf-swap {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes pf-check {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pf-cta-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pf-panel-enter { animation: pf-in var(--dur-cine) var(--ease-out) both; }
+.pf-state-swap { animation: pf-swap var(--dur-base) var(--ease-out) both; }
+.pf-check-pop { animation: pf-check var(--dur-slow) var(--ease-out) both; }
+.pf-cta-unlock { animation: pf-cta-in var(--dur-slow) var(--ease-out) both; }
+.pf-feedback { animation: pf-in var(--dur-base) var(--ease-out) both; }
+
+.up-format-note {
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+}
+
+.up-drop-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.up-drop-hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+}
+
+.up-err { margin-top: var(--space-4); }
+
+.up-slot.is-uploading { opacity: 0.78; }
+
+.up-slot.is-approved .up-slot-badge {
+  animation: pf-check var(--dur-slow) var(--ease-out) both;
+}
+
+.up-complete .up-checklist li.done .up-check-icon {
+  animation: pf-check var(--dur-slow) var(--ease-out) both;
+}
+
+@media (min-width: 1280px) and (max-height: 760px) {
+  .landing-page.product-flow {
+    padding-bottom: var(--space-5);
+  }
+
+  .pf-head h1 {
+    font-size: clamp(1.65rem, 2.6vw, 2.25rem);
+  }
+
+  .up-layout { gap: var(--space-4); }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .up-layout {
+    grid-template-columns: minmax(200px, 240px) 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .up-file-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .up-footer .lp-btn,
+  .up-footer .btn {
+    width: 100%;
+    justify-content: center;
   }
 }

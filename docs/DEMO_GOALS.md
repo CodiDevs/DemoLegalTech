@@ -35,6 +35,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | CaseProgress fix + Auth system | `#flujo` sin overlap; `/auth` layout + forgot demo | 2026-09-10 |
 | done | Plantillas Fase 2 editables | `abogado@demo.ec` → Modelos de documentos → Duplicar → editar → F5 | 2026-09-10 |
 | done | Cuestionario Divorcio360 neo | `/cuestionario` clay teal, Sí/No hundidos, contraste AA | 2026-09-10 |
+| done | Demo cliente máximo movimiento | `/` video → Divorcio360 pin → cuestionario → pago → docs → firma | 2026-09-11 |
 
 ## Entries
 
@@ -427,5 +428,10 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 - Copiar + clic abre el producto local.
 
 **Demo:** `abogado@demo.ec` → Facturación B2B. Copiar. Clic el link.
+
+### 2026-09-11 — Demo cliente máximo movimiento
+Recorrido comercial 16:9: home con video/fallback, Divorcio360 con pin circular y capítulos, cuestionario rápido, checkout con overlay, upload con `scaleX(--p)`, firma con evidencia.
+
+**Demo:** invitado en `/` → Abrir Divorcio360 → Evaluar mi caso → pagar → documentos → firma. Zoom 125% en 1280×720. `/abogado` no cambia de idioma visual.
 
 

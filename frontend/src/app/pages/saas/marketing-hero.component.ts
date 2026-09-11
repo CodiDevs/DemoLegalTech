@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
@@ -98,7 +99,7 @@ interface HeroAction {
       isolation: isolate;
       display: grid;
       place-items: center;
-      min-height: calc(100dvh - var(--header-height));
+      min-height: calc(100svh - var(--header-height));
       overflow: hidden;
       color: var(--text-inverse);
       background-color: var(--surface-inverse);
@@ -109,12 +110,14 @@ interface HeroAction {
 
     .mk-video {
       position: absolute;
-      inset: 0;
+      inset: -6%;
       z-index: 0;
-      width: 100%;
-      height: 100%;
+      width: 112%;
+      height: 112%;
       object-fit: cover;
       pointer-events: none;
+      transform: scale(1.06);
+      animation: mk-drift 28s var(--ease-out) alternate infinite;
     }
 
     .mk-overlay {
@@ -227,15 +230,31 @@ interface HeroAction {
     .mk-brand,
     .mk-slogan,
     .mk-cta {
-      animation: mk-in 0.5s var(--ease-out) both;
+      animation: mk-in var(--dur-cine) var(--ease-out) both;
     }
 
-    .mk-slogan { animation-delay: 0.06s; }
-    .mk-cta { animation-delay: 0.12s; }
+    .mk-slogan { animation-delay: 140ms; }
+    .mk-cta { animation-delay: 260ms; }
 
     @keyframes mk-in {
-      from { opacity: 0; transform: translateY(12px); filter: blur(6px); }
+      from { opacity: 0; transform: translateY(16px); filter: blur(8px); }
       to { opacity: 1; transform: none; filter: blur(0); }
+    }
+
+    @keyframes mk-drift {
+      from { transform: scale(1.06) translateY(0); }
+      to { transform: scale(1.12) translateY(-2.4%); }
+    }
+
+    @media (max-height: 760px) {
+      .mk-hero { min-height: calc(100svh - var(--header-height)); }
+      .mk-content { padding-block: clamp(1.1rem, 4vh, 2rem); }
+      .mk-brand { margin-bottom: 0.75rem; }
+      .mk-brand-name { font-size: clamp(2rem, 5.5vw, 3.5rem); }
+      .mk-slogan {
+        margin-bottom: 1.1rem;
+        font-size: 1rem;
+      }
     }
 
     @media (max-width: 560px) {
@@ -276,7 +295,7 @@ export class MarketingHeroComponent implements AfterViewInit {
 
   @ViewChild('videoRef') videoRef?: ElementRef<HTMLVideoElement>;
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, private cdr: ChangeDetectorRef) {}
 
   ngAfterViewInit(): void {
     this.tryPlay();
@@ -288,7 +307,10 @@ export class MarketingHeroComponent implements AfterViewInit {
     el.muted = true;
     const play = el.play();
     if (play && typeof play.catch === 'function') {
-      play.catch(() => undefined);
+      play.catch(() => {
+        this.useStaticFallback = true;
+        this.cdr.detectChanges();
+      });
     }
   }
 

@@ -13,11 +13,11 @@
     "setup": "bun install --cwd frontend && cd backend && go mod download",
     "db:reset": "bun run scripts/reset-db.ts",
     "build": "bun run build:backend && bun run build:frontend",
-    "build:frontend": "bun --cwd frontend run build",
+    "build:frontend": "bun --cwd frontend ng build",
     "build:backend": "cd backend && go build -o ../bin/api ./cmd/api",
     "test": "bun run test:backend && bun run test:frontend",
     "test:backend": "cd backend && go test ./...",
-    "test:frontend": "bun --cwd frontend run test -- --watch=false --browsers=ChromeHeadless"
+    "test:frontend": "bun --cwd frontend ng test --watch=false --browsers=ChromeHeadless"
   },
   "keywords": [
     "legalstation",

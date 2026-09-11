@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { LEGALSTATION_CATALOG, ProductCatalogEntry, getProductQuestionnairePath, setActiveProduct } from '../../shared/product-sites.data';
+import { LEGALSTATION_CATALOG, ProductCatalogEntry, setActiveProduct } from '../../shared/product-sites.data';
 import { CaseProgressComponent } from '../../shared/case-progress.component';
 import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
 import { IconComponent } from '../../shared/icon.component';
@@ -35,7 +35,7 @@ import {
         [showSecondary]="false"
       />
 
-      <section class="lp-section soft" id="catalogo">
+      <section class="lp-section soft lp-reveal" id="catalogo">
         <div class="lp-shell">
           <div class="lp-section-head">
             <p class="lp-eyebrow">En vivo</p>
@@ -55,10 +55,14 @@ import {
                 <ul class="lp-list-tt">
                   @for (f of featuredProduct.features; track f) { <li>{{ f }}</li> }
                 </ul>
-                <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(featuredProduct)">
+                <a
+                  [routerLink]="featuredProduct.route"
+                  class="lp-btn lp-btn-primary"
+                  (click)="armProduct(featuredProduct)"
+                >
                   Abrir {{ featuredProduct.name }}
                   <app-icon name="arrow-right" [size]="16" />
-                </button>
+                </a>
               </div>
             </article>
           }
@@ -75,10 +79,14 @@ import {
                     <ul class="lp-list-tt">
                       @for (f of p.features; track f) { <li>{{ f }}</li> }
                     </ul>
-                    <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(p)">
+                    <a
+                      [routerLink]="p.route"
+                      class="lp-btn lp-btn-primary"
+                      (click)="armProduct(p)"
+                    >
                       Abrir producto
                       <app-icon name="arrow-right" [size]="16" />
-                    </button>
+                    </a>
                   </div>
                 </article>
               </app-tilt-card>
@@ -105,7 +113,7 @@ import {
         </div>
       </section>
 
-      <section class="lp-section" id="flujo">
+      <section class="lp-section lp-reveal" id="flujo">
         <div class="lp-shell">
           <div class="lp-section-head">
             <p class="lp-eyebrow">Recorrido</p>
@@ -126,7 +134,7 @@ import {
         </div>
       </section>
 
-      <section class="lp-section soft" id="precios">
+      <section class="lp-section soft lp-reveal" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
             <p class="lp-eyebrow">Licencias</p>
@@ -173,7 +181,7 @@ import {
         </div>
       </section>
 
-      <section class="lp-section" id="faq">
+      <section class="lp-section lp-reveal" id="faq">
         <div class="lp-shell">
           <div class="lp-section-head">
             <p class="lp-eyebrow">Preguntas</p>
@@ -184,7 +192,7 @@ import {
         </div>
       </section>
 
-      <section class="lp-section soft" id="enterprise">
+      <section class="lp-section soft lp-reveal" id="enterprise">
         <div class="lp-shell lp-enterprise">
           <div class="lp-enterprise-copy">
             <p class="lp-eyebrow">Enterprise</p>
@@ -258,9 +266,9 @@ import {
 
     .ls-feature h3 {
       margin: 0;
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: clamp(2rem, 4vw, 3.15rem);
-      font-weight: 600;
+      font-weight: 650;
       letter-spacing: -0.03em;
       line-height: 1.08;
     }
@@ -283,9 +291,9 @@ import {
 
     .soon-wrap h3 {
       margin: 0 0 0.35rem;
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: 1.25rem;
-      font-weight: 600;
+      font-weight: 650;
     }
 
     .soon-list {
@@ -340,9 +348,9 @@ import {
     }
 
     .lp-enterprise-copy h2 {
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-      font-weight: 600;
+      font-weight: 650;
       letter-spacing: -0.03em;
       margin: 0 0 0.85rem;
       max-width: 16ch;
@@ -394,17 +402,21 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   enterprise = LEGALSTATION_ENTERPRISE;
   faq = LEGALSTATION_FAQ;
   private io?: IntersectionObserver;
+  private toastTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
 
   ngAfterViewInit(): void {
-    const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo');
+    const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo, .lp-reveal');
+    let remaining = 0;
     this.io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          entry.target.classList.add('is-choreo');
+          entry.target.classList.add('is-choreo', 'is-in-view');
           this.io?.unobserve(entry.target);
+          remaining -= 1;
+          if (remaining <= 0) this.io?.disconnect();
         }
       },
       { rootMargin: '0px 0px -12% 0px', threshold: 0.14 },
@@ -412,19 +424,30 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
     nodes.forEach((el) => {
       const rect = el.getBoundingClientRect();
       const alreadyIn = rect.top < window.innerHeight * 0.88 && rect.bottom > 0;
-      if (alreadyIn) return;
+      if (alreadyIn) {
+        el.classList.add('is-choreo', 'is-in-view');
+        return;
+      }
+      remaining += 1;
       this.io!.observe(el);
     });
+    if (remaining <= 0) this.io.disconnect();
   }
 
   ngOnDestroy(): void {
     this.io?.disconnect();
+    if (this.toastTimer !== undefined) clearTimeout(this.toastTimer);
+  }
+
+  armProduct(p: ProductCatalogEntry | null): void {
+    if (!p?.route) return;
+    setActiveProduct(p.id);
   }
 
   openProduct(p: ProductCatalogEntry | null): void {
     if (!p?.route) return;
-    setActiveProduct(p.id);
-    void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
+    this.armProduct(p);
+    void this.router.navigateByUrl(p.route);
   }
 
   onJourneySelect(index: number): void {
@@ -433,7 +456,11 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   }
 
   notify(name: string): void {
+    if (this.toastTimer !== undefined) clearTimeout(this.toastTimer);
     this.toast = `${name}: solicitud registrada. Te contactaremos pronto.`;
-    setTimeout(() => this.toast = '', 3500);
+    this.toastTimer = setTimeout(() => {
+      this.toast = '';
+      this.toastTimer = undefined;
+    }, 3500);
   }
 }

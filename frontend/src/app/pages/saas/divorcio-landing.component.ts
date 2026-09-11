@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import {
@@ -8,6 +8,7 @@ import {
 } from '../../shared/product-sites.data';
 import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
 import { LandingStatisticsComponent } from './landing-statistics.component';
+import { ElasticGalleryComponent } from './elastic-gallery.component';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { CaseProgressComponent } from '../../shared/case-progress.component';
 import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
@@ -28,6 +29,7 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
     RouterLink,
     HeroScrollVideoPinRevealComponent,
     LandingStatisticsComponent,
+    ElasticGalleryComponent,
     IconComponent,
     CaseProgressComponent,
   ],
@@ -41,16 +43,16 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
 
       <app-hero-scroll-video-pin-reveal />
 
-      <section class="lp-section" id="sistema">
+      <section class="lp-section lp-chapter lp-reveal" id="sistema">
         <div class="lp-shell">
-          <div class="lp-section-head">
+          <div class="lp-chapter-head lp-section-head">
             <p class="lp-eyebrow">El sistema</p>
             <h2>Un expediente compartido. <span class="lp-highlight">Acciones visibles.</span></h2>
             <p>Cliente y operador trabajan sobre la misma información, sin herramientas sueltas.</p>
           </div>
-          <div class="lp-values lp-values--rules">
-            @for (v of site.values ?? []; track v.title) {
-              <article class="lp-value">
+          <div class="lp-values lp-values--rules dv-principles">
+            @for (v of site.values ?? []; track v.title; let i = $index) {
+              <article class="lp-value" [style.--i]="i">
                 <h3>{{ v.title }}</h3>
                 <p>{{ v.desc }}</p>
               </article>
@@ -59,9 +61,9 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
         </div>
       </section>
 
-      <section class="lp-section soft" id="flujo">
+      <section class="lp-section soft lp-chapter lp-reveal" id="flujo">
         <div class="lp-shell">
-          <div class="lp-section-head">
+          <div class="lp-chapter-head lp-section-head">
             <p class="lp-eyebrow">El flujo</p>
             <h2>Seis pasos. <span class="lp-highlight">Un recorrido.</span></h2>
             <p>De la calificación a la notaría, sin saltar entre sistemas.</p>
@@ -78,9 +80,9 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
         </div>
       </section>
 
-      <section class="lp-section" id="capacidades">
+      <section class="lp-section lp-chapter lp-reveal" id="capacidades">
         <div class="lp-shell">
-          <div class="lp-section-head">
+          <div class="lp-chapter-head lp-section-head">
             <p class="lp-eyebrow">La prueba</p>
             <h2>Capacidades del recorrido</h2>
             <p>Lo esencial del producto, medido en etapas, expediente y honorario de referencia.</p>
@@ -89,7 +91,18 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
         </div>
       </section>
 
-      <section class="lp-section soft" id="precios">
+      <section class="lp-section soft lp-chapter lp-reveal" id="en-accion">
+        <div class="lp-shell">
+          <div class="lp-chapter-head lp-section-head">
+            <p class="lp-eyebrow">En acción</p>
+            <h2>El producto en pantalla</h2>
+            <p>Cuestionario y expediente: el mismo idioma visual que el trámite real.</p>
+          </div>
+          <app-elastic-gallery theme="divorcio" [items]="site.gallery" defaultActive="01" />
+        </div>
+      </section>
+
+      <section class="lp-section lp-chapter lp-reveal" id="precios">
         <div class="lp-shell">
           <div class="lp-section-head">
             <p class="lp-eyebrow">Precio</p>
@@ -121,7 +134,7 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
         </div>
       </section>
 
-      <section class="lp-cta-panel">
+      <section class="lp-cta-panel lp-reveal">
         <div class="lp-shell">
           <div class="lp-cta-inner">
             <h2>{{ ctaTitle }}</h2>
@@ -173,9 +186,9 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
     }
 
     .divorcio-landing .lp-section-head h2 {
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: clamp(2rem, 4.4vw, 3.35rem);
-      font-weight: 600;
+      font-weight: 650;
       line-height: 1.1;
       letter-spacing: -0.035em;
       max-width: 16ch;
@@ -217,10 +230,18 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
     }
 
     .divorcio-landing .lp-value h3 {
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: 1.35rem;
-      font-weight: 600;
+      font-weight: 650;
       letter-spacing: -0.02em;
+    }
+
+    .dv-principles {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.82fr) minmax(0, 0.82fr);
+    }
+
+    .dv-principles .lp-value:first-child {
+      padding-right: 2rem;
     }
 
     .divorcio-landing .lp-cta-inner {
@@ -230,9 +251,9 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
     }
 
     .divorcio-landing .lp-cta-inner h2 {
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: clamp(1.85rem, 3.5vw, 2.75rem);
-      font-weight: 600;
+      font-weight: 650;
       letter-spacing: -0.03em;
       max-width: 16ch;
     }
@@ -255,8 +276,13 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
     #sistema,
     #flujo,
     #capacidades,
+    #en-accion,
     #precios {
       scroll-margin-top: 5.5rem;
+    }
+
+    @media (max-width: 960px) {
+      .dv-principles { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
@@ -282,12 +308,13 @@ const DIVORCIO_FLOW_ICONS: IconName[] = [
     }
   `]
 })
-export class DivorcioLandingComponent implements OnInit {
+export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly site = PRODUCT_SITES['divorcio360'];
   journeyFocus = 0;
   journeyStages: CaseProgressStage[] = [];
+  private io?: IntersectionObserver;
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, private host: ElementRef<HTMLElement>) {}
 
   get primaryAction() {
     return getMarketingPrimaryAction(this.auth.user()?.role ?? null, 'divorcio360');
@@ -312,6 +339,28 @@ export class DivorcioLandingComponent implements OnInit {
   ngOnInit(): void {
     setActiveProduct('divorcio360');
     this.rebuildJourney();
+  }
+
+  ngAfterViewInit(): void {
+    const nodes = this.host.nativeElement.querySelectorAll('.lp-reveal');
+    this.io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-in-view');
+          this.io?.unobserve(entry.target);
+        }
+        if (![...nodes].some((el) => !el.classList.contains('is-in-view'))) {
+          this.io?.disconnect();
+        }
+      },
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.12 },
+    );
+    nodes.forEach((el) => this.io!.observe(el));
+  }
+
+  ngOnDestroy(): void {
+    this.io?.disconnect();
   }
 
   onJourneySelect(index: number): void {

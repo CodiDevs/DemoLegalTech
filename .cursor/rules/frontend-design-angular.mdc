@@ -8,6 +8,8 @@ alwaysApply: false
 
 Al recibir referencia visual (ej. talkingtree.app) y datos de API:
 
+0. **Contrato:** `docs/design.md`. No otra fuente, no otra paleta.
+
 1. **Tokens:** Extraer jerarquía, espaciado, contraste y paleta — adaptar, no copiar literal.
 2. **Stack demo:** Angular 19 standalone, SCSS, Inter body + Fraunces display. **No** migrar a React/Tailwind salvo proyecto nuevo.
 3. **Componentes UI:** `frontend/src/app/shared/` y `pages/saas/`. Patrones shadcn se portan (estados hover, skeleton, badges), no se instala shadcn en este repo.

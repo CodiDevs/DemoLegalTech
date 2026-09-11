@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthService, User } from '../../core/auth.service';
 import { MarketingHeroComponent } from './marketing-hero.component';
@@ -54,4 +54,28 @@ describe('MarketingHeroComponent CTA', () => {
     expect((abogado.nativeElement as HTMLElement).textContent).not.toContain('Ver Fase 2');
     abogado.destroy();
   });
+
+  it('muestra poster/fallback y oculta el video si falla la carga', async () => {
+    const fixture = await renderHero(null);
+    fixture.componentInstance.onVideoError();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('video')).toBeNull();
+    expect(root.querySelector('.mk-hero--static')).not.toBeNull();
+    expect(root.querySelector('.mk-cta .btn-primary')).not.toBeNull();
+    const hero = root.querySelector('.mk-hero') as HTMLElement;
+    expect(hero.style.getPropertyValue('--mk-poster')).toContain('legalstation-hero-poster');
+    fixture.destroy();
+  });
+
+  it('cae al fallback estático si autoplay se rechaza', fakeAsync(async () => {
+    spyOn(HTMLMediaElement.prototype, 'play').and.returnValue(Promise.reject(new Error('autoplay')));
+    const fixture = await renderHero(null);
+    tick();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.useStaticFallback).toBeTrue();
+    expect((fixture.nativeElement as HTMLElement).querySelector('video')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary')).not.toBeNull();
+    fixture.destroy();
+  }));
 });

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
+import { ConfirmService } from '../../core/confirm.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { ProgressStep } from '../../shared/progress-steps.component';
 import { IconComponent } from '../../shared/icon.component';
@@ -35,7 +36,7 @@ interface DocRow {
         </div>
       }
 
-      <div class="up-layout">
+      <div class="up-layout" [class.up-complete]="canContinue">
         <aside class="up-side lp-lift">
           <h3>Tu checklist</h3>
           <p class="pf-muted">Solo necesitas <strong>{{ slots.length }} documentos</strong> para continuar.</p>
@@ -53,14 +54,14 @@ interface DocRow {
             <div class="up-progress-bar" [style.--p]="progressPct / 100"></div>
           </div>
           <p class="pf-muted">{{ uploadedCount }}/{{ slots.length }} cargados</p>
-          <p class="pf-muted" style="margin-top:1rem;font-size:0.82rem">
+          <p class="pf-muted up-format-note">
             Formatos: PDF, JPG, PNG · máx. 10 MB
           </p>
         </aside>
 
         <div class="up-slots">
           @for (slot of slots; track slot.type) {
-            <div class="pf-card lp-lift up-slot">
+            <div [class]="slotClass(slot.type)">
               <div class="up-slot-head">
                 <h2>{{ slot.label }}</h2>
                 <span class="up-slot-badge" [class]="slotBadgeClass(slot.type)">{{ slotBadgeLabel(slot.type) }}</span>
@@ -95,10 +96,10 @@ interface DocRow {
                 (drop)="onDrop($event, slot.type)">
                 <input type="file" accept=".pdf,image/*" (change)="onFile($event, slot.type)" />
                 <div class="up-drop-icon"><app-icon name="upload" [size]="24" /></div>
-                <p style="margin:0;font-weight:600">
+                <p class="up-drop-title">
                   {{ latestDoc(slot.type) ? 'Arrastra para reemplazar' : 'Arrastra o haz clic para subir' }}
                 </p>
-                <p class="pf-muted" style="margin:0.35rem 0 0;font-size:0.85rem">
+                <p class="pf-muted up-drop-hint">
                   {{ uploading === slot.type ? 'Subiendo…' : 'El archivo anterior queda en historial; el abogado revisa el más reciente.' }}
                 </p>
               </label>
@@ -107,17 +108,17 @@ interface DocRow {
         </div>
       </div>
 
-      @if (error) { <p class="pf-err" style="margin-top:1rem">{{ error }}</p> }
+      @if (error) { <p class="pf-err up-err">{{ error }}</p> }
 
       <div class="up-footer">
           <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Ver expediente</a>
         @if (canContinue) {
-          <a class="lp-btn lp-btn-primary" [routerLink]="['/consulta', caseId]">Solicitar consulta</a>
+          <a class="lp-btn lp-btn-primary pf-cta-unlock" [routerLink]="['/consulta', caseId]">Solicitar consulta</a>
         } @else {
           <span class="pf-muted">Completa los {{ slots.length }} documentos para continuar.</span>
         }
         @if (canSign) {
-          <a class="lp-btn lp-btn-primary" [routerLink]="['/firma', caseId]">{{ hasSignature ? 'Volver a firmar' : 'Firmar minuta' }}</a>
+          <a class="lp-btn lp-btn-primary pf-cta-unlock" [routerLink]="['/firma', caseId]">{{ hasSignature ? 'Volver a firmar' : 'Firmar minuta' }}</a>
         } @else if (signHint) {
           <span class="pf-muted">{{ signHint }}</span>
         }
@@ -147,7 +148,7 @@ export class UploadComponent implements OnInit {
     { type: 'partida', label: 'Partida de matrimonio' },
   ];
 
-  constructor(private route: ActivatedRoute, private api: ApiService) {}
+  constructor(private route: ActivatedRoute, private api: ApiService, private confirm: ConfirmService) {}
 
   ngOnInit(): void {
     this.caseId = Number(this.route.snapshot.paramMap.get('id'));
@@ -205,6 +206,21 @@ export class UploadComponent implements OnInit {
       case 'rejected': return 'Rechazado';
       default: return 'En revisión';
     }
+  }
+
+  slotClass(type: string): Record<string, boolean> {
+    const doc = this.latestDoc(type);
+    return {
+      'pf-card': true,
+      'lp-lift': true,
+      'up-slot': true,
+      'is-uploading': this.uploading === type,
+      'is-drag': this.drag === type,
+      'is-pending': !doc,
+      'is-approved': doc?.review_status === 'approved',
+      'is-rejected': doc?.review_status === 'rejected',
+      'is-review': !!doc && doc.review_status !== 'approved' && doc.review_status !== 'rejected',
+    };
   }
 
   slotBadgeClass(type: string): string {
@@ -271,8 +287,12 @@ export class UploadComponent implements OnInit {
     this.api.listDocs(this.caseId).subscribe((d) => this.docs = d);
   }
 
-  deleteDoc(doc: DocRow): void {
-    if (!confirm('¿Eliminar este archivo? Podrás subir uno nuevo después.')) return;
+  async deleteDoc(doc: DocRow): Promise<void> {
+    const ok = await this.confirm.confirm(
+      '¿Eliminar este archivo? Podrás subir uno nuevo después.',
+      'Eliminar archivo',
+    );
+    if (!ok) return;
     this.error = '';
     this.deleting = doc.id;
     this.api.deleteDoc(this.caseId, doc.id).subscribe({

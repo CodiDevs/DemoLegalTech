@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy } from '@angular/core';
 import { LandingIconComponent, LandingIconName } from './landing-icon.component';
 
 export interface StatItem {
@@ -20,8 +20,8 @@ export interface StatItem {
       [class.ls-stats--band]="variant === 'band'"
       [class.ls-stats--4]="stats.length === 4"
     >
-      @for (s of stats; track s.label) {
-        <article class="ls-stat">
+      @for (s of stats; track s.label; let i = $index) {
+        <article class="ls-stat" [style.--i]="i">
           @if (s.icon && variant !== 'band') {
             <span class="ls-stat-icon"><app-landing-icon [name]="s.icon" [size]="20" /></span>
           }
@@ -33,9 +33,11 @@ export interface StatItem {
     </div>
   `,
   styles: [`
+    :host { display: block; }
+
     .ls-stats {
-      --ls-accent: var(--lp-accent, #4455c4);
-      --ls-accent-soft: var(--lp-accent-soft, #eef0fb);
+      --ls-accent: var(--lp-accent, var(--primary));
+      --ls-accent-soft: var(--lp-accent-soft, var(--primary-subtle));
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
@@ -46,8 +48,8 @@ export interface StatItem {
     }
 
     .ls-stats.theme-divorcio {
-      --ls-accent: var(--lp-accent, #4a9e96);
-      --ls-accent-soft: var(--lp-accent-soft, #e8f6f4);
+      --ls-accent: var(--lp-accent, var(--primary));
+      --ls-accent-soft: var(--lp-accent-soft, var(--primary-subtle));
     }
 
     .ls-stat {
@@ -72,15 +74,18 @@ export interface StatItem {
     }
 
     .ls-value {
-      font-size: clamp(1.75rem, 3vw, 2.25rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
+      font-family: var(--font-sans);
+      font-size: clamp(2rem, 4vw, 3.15rem);
+      font-weight: 750;
+      letter-spacing: -0.04em;
       color: var(--text);
       line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
 
     .ls-stat h3 {
       margin: 0;
+      font-family: var(--font-sans);
       font-size: 0.95rem;
       font-weight: 700;
       color: var(--text);
@@ -121,6 +126,16 @@ export interface StatItem {
 
     .ls-stats--band .ls-stat-icon { display: none; }
 
+    :host.is-in-view .ls-stat {
+      animation: ls-stat-in var(--dur-cine) var(--ease-out) both;
+      animation-delay: calc(var(--i, 0) * 60ms);
+    }
+
+    @keyframes ls-stat-in {
+      from { opacity: 0.001; transform: translateY(16px); filter: blur(6px); }
+      to { opacity: 1; transform: none; filter: blur(0); }
+    }
+
     @media (max-width: 960px) {
       .ls-stats { grid-template-columns: 1fr 1fr; }
       .ls-stats--band .ls-stat:nth-child(3n) { border-right: 1px solid var(--border); }
@@ -139,8 +154,27 @@ export interface StatItem {
     }
   `],
 })
-export class LandingStatisticsComponent {
+export class LandingStatisticsComponent implements AfterViewInit, OnDestroy {
   @Input() theme: 'legalstation' | 'divorcio' = 'legalstation';
   @Input() variant: 'cards' | 'band' = 'cards';
   @Input() stats: StatItem[] = [];
+  private io?: IntersectionObserver;
+
+  constructor(private host: ElementRef<HTMLElement>) {}
+
+  ngAfterViewInit(): void {
+    this.io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        this.host.nativeElement.classList.add('is-in-view');
+        this.io?.disconnect();
+      },
+      { threshold: 0.18 },
+    );
+    this.io.observe(this.host.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.io?.disconnect();
+  }
 }

@@ -3,11 +3,16 @@
    Compartido por el cuestionario de Divorcio360 y el de los demás productos.
    ========================================================================= */
 
-.landing-page.product-flow .ob h1,
-.landing-page.product-flow .ob h2 {
+.landing-page.product-flow .ob h1 {
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.03em;
+}
+
+.landing-page.product-flow .ob h2 {
+  font-family: var(--font-sans);
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .ob {
@@ -184,7 +189,7 @@ body.divorcio-flow-mode .ob {
 }
 
 .ob-card h1 {
-  font-size: clamp(1.65rem, 3.4vw, 2.35rem);
+  font-size: clamp(1.85rem, 3.8vw, 2.65rem);
   line-height: var(--leading-tight);
   margin-bottom: var(--space-2);
 }
@@ -209,21 +214,21 @@ body.divorcio-flow-mode .ob {
   justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
-  min-height: var(--control-height-lg);
-  padding: var(--space-3) var(--space-4);
+  min-height: calc(var(--control-height-lg) + 4px);
+  padding: var(--space-4) var(--space-5);
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  font-size: var(--text-base);
-  font-weight: 500;
+  font-size: var(--text-lg);
+  font-weight: 550;
   text-align: left;
   white-space: normal;
   color: var(--text);
   transition:
-    transform 280ms var(--ease-out),
-    border-color 200ms var(--ease),
-    background 200ms var(--ease),
-    box-shadow 200ms var(--ease);
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
 }
 
 .ob-choice app-icon { color: var(--text-muted); }
@@ -244,6 +249,7 @@ body.divorcio-flow-mode .ob {
 .ob-choice.is-selected {
   border-color: var(--lp-accent, var(--primary));
   background: var(--lp-accent-soft, var(--primary-subtle));
+  box-shadow: 0 0 0 2px var(--lp-accent, var(--primary));
 }
 
 .ob-field { margin-bottom: var(--space-4); }
@@ -347,6 +353,23 @@ body.divorcio-flow-mode .ob {
   gap: var(--space-3);
 }
 
+.ob-card.is-apto {
+  border-color: var(--success-border);
+  box-shadow: var(--shadow-lg);
+}
+
+.ob-card.is-evaluacion {
+  border-color: var(--warning-border);
+}
+
+.ob-card.is-no_aplica {
+  border-color: var(--danger-border);
+}
+
+.ob.is-loading .btn-primary {
+  cursor: progress;
+}
+
 .ob-schedule-block {
   margin: var(--space-6) 0;
   padding: var(--space-5);
@@ -423,9 +446,18 @@ body.divorcio-flow-mode .ob {
 
 /* ---------- Responsive ---------- */
 
+@media (min-width: 1280px) and (min-height: 700px) {
+  .ob { max-width: 40rem; }
+  .ob-card { padding: var(--space-8) var(--space-7); }
+  .ob-card h1 { font-size: clamp(2.1rem, 3.4vw, 2.9rem); }
+  .ob-seg-bar { height: 6px; }
+  .ob-choice { min-height: 3.65rem; }
+}
+
 @media (max-width: 560px) {
   .ob-card { padding: var(--space-5) var(--space-4); }
   .ob-card h1 { font-size: var(--text-xl); }
+  .ob-choice { font-size: var(--text-base); padding: var(--space-3) var(--space-4); }
   .ob-note { text-align: left; }
   .ob-foot { flex-wrap: wrap; }
 }

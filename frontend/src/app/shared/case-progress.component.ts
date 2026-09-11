@@ -139,11 +139,11 @@ import {
       --cp-muted: var(--text-secondary, #5c5750);
       --cp-soft: var(--text-muted, #7d786f);
       --cp-surface: var(--surface, #fff);
-      --cp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --cp-ease: var(--ease-out);
       position: relative;
     }
 
-    .cp--marketing { --cp-node: 2.75rem; }
+    .cp--marketing { --cp-node: 3.15rem; }
     .cp--case { --cp-node: 2.25rem; --cp-gap: 0.35rem; }
 
     .cp-state {
@@ -205,16 +205,16 @@ import {
 
     .cp-rail-fill {
       position: absolute;
-      inset: 0 auto auto 0;
+      inset: 0;
       background: var(--cp-accent);
+      transform: scaleX(var(--cp-progress, 0));
       transform-origin: left center;
-      width: 0;
+      width: 100%;
       height: 100%;
     }
 
     .cp--ready .cp-rail-fill {
-      width: calc(var(--cp-progress) * 100%);
-      transition: width 620ms var(--cp-ease) 180ms;
+      transition: transform 620ms var(--cp-ease) 180ms;
     }
 
     .cp-stage {
@@ -330,8 +330,8 @@ import {
     }
 
     .cp--marketing .cp-label {
-      font-size: 0.92rem;
-      font-family: var(--font-display, var(--font-sans));
+      font-size: 1rem;
+      font-family: var(--font-sans);
       letter-spacing: -0.02em;
     }
 
@@ -388,9 +388,9 @@ import {
 
     .cp-detail-title {
       margin: 0;
-      font-family: var(--font-display, var(--font-sans));
+      font-family: var(--font-sans);
       font-size: 1.15rem;
-      font-weight: 600;
+      font-weight: 650;
       letter-spacing: -0.02em;
       color: var(--cp-ink);
     }
@@ -451,13 +451,13 @@ import {
 
     .cp--vertical .cp-rail-fill {
       width: 100%;
-      height: 0;
+      height: 100%;
+      transform: scaleY(var(--cp-progress, 0));
+      transform-origin: top center;
     }
 
     .cp--ready.cp--vertical .cp-rail-fill {
-      height: calc(var(--cp-progress) * 100%);
-      width: 100%;
-      transition: height 620ms var(--cp-ease) 180ms;
+      transition: transform 620ms var(--cp-ease) 180ms;
     }
 
     .cp--vertical .cp-hit {

@@ -106,4 +106,79 @@ describe('HeroScrollVideoPinRevealComponent', () => {
       expect(ScrollTrigger.getAll().length).toBe(0);
     }));
   });
+
+  describe('según viewport', () => {
+    const rafPending = new Map<number, FrameRequestCallback>();
+    let rafSeq = 0;
+
+    function flushScheduledFrames(): void {
+      const queued = [...rafPending.entries()];
+      rafPending.clear();
+      for (const [, callback] of queued) {
+        callback(0);
+      }
+    }
+
+    function mediaFor(query: string, active: string): MediaQueryList {
+      return {
+        matches: query === active,
+        media: query,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => true,
+      };
+    }
+
+    async function mountWith(activeQuery: string): Promise<void> {
+      rafPending.clear();
+      rafSeq = 0;
+      spyOn(window, 'matchMedia').and.callFake((q: string) => mediaFor(q, activeQuery));
+      spyOn(window, 'requestAnimationFrame').and.callFake((callback: FrameRequestCallback) => {
+        rafSeq += 1;
+        rafPending.set(rafSeq, callback);
+        return rafSeq;
+      });
+      spyOn(window, 'cancelAnimationFrame').and.callFake((id: number) => {
+        rafPending.delete(id);
+      });
+      await configureHero();
+      fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
+    }
+
+    it('arma trigger con pin en desktop y lo limpia al destruir', fakeAsync(async () => {
+      await mountWith('(min-width: 1024px)');
+      fixture.detectChanges();
+      flushScheduledFrames();
+      flushScheduledFrames();
+      tick(100);
+
+      expect(ScrollTrigger.getAll().length).toBeGreaterThan(0);
+      const pinned = ScrollTrigger.getAll().some((t) => !!t.pin);
+      expect(pinned).toBeTrue();
+
+      fixture.destroy();
+      tick(100);
+      expect(ScrollTrigger.getAll().length).toBe(0);
+    }));
+
+    it('en móvil anima el expediente sin pin largo', fakeAsync(async () => {
+      await mountWith('(max-width: 639.9px)');
+      fixture.detectChanges();
+      flushScheduledFrames();
+      flushScheduledFrames();
+      tick(100);
+
+      const mock = (fixture.nativeElement as HTMLElement).querySelector('.hsvr-mock');
+      expect(mock).not.toBeNull();
+      const pinned = ScrollTrigger.getAll().some((t) => !!t.pin);
+      expect(pinned).toBeFalse();
+
+      fixture.destroy();
+      tick(100);
+      expect(ScrollTrigger.getAll().length).toBe(0);
+    }));
+  });
 });

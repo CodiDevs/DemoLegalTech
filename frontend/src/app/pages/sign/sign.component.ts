@@ -4,13 +4,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { productThemeFromCase } from '../../shared/product-sites.data';
+import { IconComponent } from '../../shared/icon.component';
 
 type SignMode = 'upload' | 'done';
 
 @Component({
   selector: 'app-sign',
   standalone: true,
-  imports: [RouterLink, ProductFlowShellComponent],
+  imports: [RouterLink, ProductFlowShellComponent, IconComponent],
   template: `
     <app-product-flow-shell
       [theme]="theme"
@@ -32,7 +33,7 @@ type SignMode = 'upload' | 'done';
           <li [class.active]="mode === 'done'" [class.done]="mode === 'done'">Confirmación</li>
         </ol>
 
-        <div class="sign-layout">
+        <div class="sign-layout" [class.is-sending]="busy" [class.is-done]="mode === 'done'">
           @if (minutaUrl) {
             <section class="pf-card lp-lift sign-minuta">
               <div class="sign-section-head">
@@ -69,8 +70,11 @@ type SignMode = 'upload' | 'done';
               @if (error) { <p class="pf-err sign-feedback">{{ error }}</p> }
             </section>
           } @else {
-            <section class="pf-card lp-lift sign-done">
-              <div class="sign-section-head">
+            <section class="pf-card lp-lift sign-done pf-state-swap">
+              <div class="sign-success-hero">
+                <span class="sign-check pf-check-pop" aria-hidden="true">
+                  <app-icon name="check-circle" [size]="36" />
+                </span>
                 <span class="pf-badge">Paso 3</span>
                 <h2>Documento enviado</h2>
               </div>
@@ -93,7 +97,7 @@ type SignMode = 'upload' | 'done';
               }
               <div class="sign-actions">
                 <button class="lp-btn lp-btn-outline" type="button" (click)="startReupload()">Firmar de nuevo</button>
-                <a class="lp-btn lp-btn-primary" [routerLink]="['/caso', caseId]">Volver al expediente</a>
+                <a class="lp-btn lp-btn-primary pf-cta-unlock" [routerLink]="['/caso', caseId]">Volver al expediente</a>
               </div>
               <p class="pf-muted sign-note">Al subir de nuevo, el documento anterior se reemplaza.</p>
             </section>
@@ -105,98 +109,120 @@ type SignMode = 'upload' | 'done';
   styles: [`
     .sign-steps {
       display: flex;
-      gap: 0.5rem;
+      gap: var(--space-2);
       list-style: none;
       padding: 0;
-      margin: 0 0 1.5rem;
+      margin: 0 0 var(--space-5);
       flex-wrap: wrap;
     }
     .sign-steps li {
       flex: 1;
       min-width: 7rem;
       text-align: center;
-      font-size: 0.82rem;
+      font-size: var(--text-xs);
       font-weight: 600;
-      padding: 0.55rem 0.75rem;
-      border-radius: 999px;
-      background: var(--lp-bg-soft, #f5f5f5);
-      color: var(--lp-ink-muted, #666);
-      border: 1px solid var(--lp-border, #e5e5e5);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
     }
     .sign-steps li.active {
-      background: var(--lp-accent-soft);
-      color: var(--lp-accent-deep);
-      border-color: var(--lp-accent);
+      background: var(--lp-accent-soft, var(--primary-subtle));
+      color: var(--lp-accent-deep, var(--primary-hover));
+      border-color: var(--lp-accent, var(--primary));
     }
     .sign-steps li.done {
-      background: white;
-      color: var(--lp-accent-deep);
+      background: var(--surface);
+      color: var(--lp-accent-deep, var(--primary-hover));
     }
     .sign-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: var(--space-4);
       align-items: start;
     }
-    @media (max-width: 900px) {
-      .sign-layout { grid-template-columns: 1fr; }
+    .sign-layout.is-sending { opacity: 0.92; }
+    .sign-success-hero {
+      display: grid;
+      justify-items: start;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+    .sign-success-hero h2 {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: clamp(1.65rem, 3vw, 2.15rem);
+      font-weight: 650;
+    }
+    .sign-check {
+      display: grid;
+      place-items: center;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: var(--radius-full);
+      background: var(--success-subtle);
+      color: var(--success);
     }
     .sign-section-head {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
-      margin-bottom: 0.5rem;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
     }
     .sign-section-head h2 {
       margin: 0;
-      font-size: 1.15rem;
+      font-size: var(--text-lg);
+      font-family: var(--font-sans);
     }
-    .sign-frame {
-      min-height: 360px;
-      margin-top: 0.75rem;
-    }
+    .sign-frame { min-height: 360px; margin-top: var(--space-3); }
     .sign-actions {
       display: flex;
-      gap: 0.75rem;
+      gap: var(--space-3);
       flex-wrap: wrap;
-      margin-top: 1.25rem;
+      margin-top: var(--space-5);
     }
-    .sign-feedback { margin-top: 0.75rem; }
-    .sign-receipt { margin: 1rem 0; }
+    .sign-feedback { margin-top: var(--space-3); }
+    .sign-receipt { margin: var(--space-4) 0; }
     .sign-evidence {
       display: flex;
-      gap: 1.25rem;
+      gap: var(--space-5);
       align-items: flex-start;
       flex-wrap: wrap;
-      margin: 1rem 0;
-      padding: 1rem;
-      border: 1px solid var(--lp-border);
-      border-radius: var(--lp-radius-sm);
-      background: #fafafa;
+      margin: var(--space-4) 0;
+      padding: var(--space-4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg-subtle);
     }
     .sign-thumb {
       max-width: 200px;
       max-height: 100px;
       object-fit: contain;
-      border-radius: 8px;
-      border: 1px solid var(--lp-border);
-      background: white;
-      padding: 0.5rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: var(--space-2);
     }
     .sign-meta {
       margin: 0;
       display: grid;
-      gap: 0.5rem;
-      font-size: 0.88rem;
+      gap: var(--space-2);
+      font-size: var(--text-sm);
     }
     .sign-meta dt {
       font-weight: 600;
-      color: var(--lp-ink-muted);
+      color: var(--text-muted);
       margin: 0;
     }
-    .sign-meta dd { margin: 0.15rem 0 0; }
-    .sign-note { margin-top: 1rem; font-size: 0.85rem; }
-    .sign-blocked .lp-btn { margin-top: 1rem; display: inline-flex; }
+    .sign-meta dd { margin: var(--space-1) 0 0; }
+    .sign-note { margin-top: var(--space-4); font-size: var(--text-sm); }
+    .sign-blocked .lp-btn { margin-top: var(--space-4); display: inline-flex; }
+    @media (max-width: 900px) {
+      .sign-layout { grid-template-columns: 1fr; }
+      .sign-actions .lp-btn,
+      .sign-blocked .lp-btn { width: 100%; justify-content: center; }
+    }
   `],
 })
 export class SignComponent implements OnInit {
@@ -216,6 +242,10 @@ export class SignComponent implements OnInit {
     private api: ApiService,
     private sanitizer: DomSanitizer,
   ) {}
+
+  get sending(): boolean {
+    return this.busy;
+  }
 
   ngOnInit(): void {
     this.caseId = Number(this.route.snapshot.paramMap.get('id'));
@@ -257,7 +287,7 @@ export class SignComponent implements OnInit {
   }
 
   submit(): void {
-    if (!this.selectedFile) return;
+    if (!this.selectedFile || this.busy) return;
     this.busy = true;
     this.error = '';
     this.api.sign(this.caseId, this.selectedFile).subscribe({

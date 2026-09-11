@@ -1,4 +1,4 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, QuestionnaireAnswers, QuestionnaireResult } from '../../core/api.service';
@@ -37,7 +37,7 @@ interface Question {
   imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
-      <div class="ob">
+      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [class.is-loading]="submitting">
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
@@ -128,11 +128,11 @@ interface Question {
                   >Continuar</button>
                 } @else {
                   <div class="ob-choices">
-                    <button #firstChoice type="button" class="ob-choice" (click)="answer(true)">
+                    <button #firstChoice type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, true)" (click)="answer(true)">
                       <span>Sí</span>
                       <app-icon name="chevron-right" [size]="17" />
                     </button>
-                    <button type="button" class="ob-choice" (click)="answer(false)">
+                    <button type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, false)" (click)="answer(false)">
                       <span>No</span>
                       <app-icon name="chevron-right" [size]="17" />
                     </button>
@@ -298,7 +298,7 @@ interface Question {
     </div>
   `,
 })
-export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterViewInit {
+export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('firstChoice') firstChoice?: ElementRef<HTMLButtonElement>;
   @ViewChild('locationCountrySelect') locationCountrySelect?: ElementRef<HTMLSelectElement>;
   @ViewChild('noAplicaScheduler') noAplicaScheduler?: MeetingSchedulerComponent;
@@ -427,8 +427,8 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
   private cursor = 0;
   /** Preguntas ya contestadas, para volver atrás en el orden real recorrido. */
   private trail: number[] = [];
-  /** Marca para enfocar el control principal tras cambiar de paso. */
-  private pendingFocus = true;
+  private answered = new Set<AnswerKey>();
+  private restoreTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private api: ApiService,
@@ -458,7 +458,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
         next: (res) => {
           this.result = res;
           this.stage = 'result';
-          setTimeout(() => this.tryPendingMeeting(), 0);
+          this.restoreTimer = setTimeout(() => this.tryPendingMeeting(), 0);
         },
       });
     } catch { /* ignore */ }
@@ -468,17 +468,12 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     if (this.stage === 'result') this.tryPendingMeeting();
   }
 
-  private tryPendingMeeting(): void {
-    this.noAplicaScheduler?.tryPendingSave((at) => this.api.requestMeeting(at, 'divorcio360', 'no_aplica'));
+  ngOnDestroy(): void {
+    if (this.restoreTimer !== undefined) clearTimeout(this.restoreTimer);
   }
 
-  ngAfterViewChecked(): void {
-    if (!this.pendingFocus) return;
-    const el = this.locationCountrySelect?.nativeElement ?? this.firstChoice?.nativeElement;
-    if (el) {
-      this.pendingFocus = false;
-      el.focus();
-    }
+  private tryPendingMeeting(): void {
+    this.noAplicaScheduler?.tryPendingSave((at) => this.api.requestMeeting(at, 'divorcio360', 'no_aplica'));
   }
 
   get visibleQuestions(): Question[] {
@@ -539,6 +534,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
 
   answer(value: boolean): void {
     (this.answers as any)[this.current.key] = value;
+    this.answered.add(this.current.key);
     this.goForward();
   }
 
@@ -590,6 +586,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
   submitCity(): void {
     if (!this.locationComplete) return;
     this.answers.city = this.answers.city.trim();
+    this.answered.add('city');
     this.goForward();
   }
 
@@ -604,7 +601,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
 
     this.trail.push(this.cursor);
     this.cursor = next;
-    this.pendingFocus = true;
   }
 
   back(): void {
@@ -612,16 +608,15 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     if (previous === undefined) return;
     this.direction = -1;
     this.cursor = previous;
-    this.pendingFocus = true;
   }
 
   backToQuestions(): void {
     this.direction = -1;
     this.stage = 'questions';
-    this.pendingFocus = true;
   }
 
   backToReview(): void {
+    this.direction = -1;
     this.stage = 'review';
   }
 
@@ -638,7 +633,10 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     this.cursor = index;
     this.direction = -1;
     this.stage = 'questions';
-    this.pendingFocus = true;
+  }
+
+  isSelected(key: AnswerKey, value: boolean): boolean {
+    return this.answered.has(key) && this.answers[key] === value;
   }
 
   /** Primera pregunta visible después de `from`, o -1 si no queda ninguna. */

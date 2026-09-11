@@ -53,7 +53,7 @@ gsap.registerPlugin(ScrollTrigger);
 
         <div class="hsvr-video-section">
           <div class="hsvr-video-wrap" #videoWrapperRef>
-            <div class="hsvr-video-underlay" aria-hidden="true"></div>
+            <div class="hsvr-video-underlay" #underlayRef aria-hidden="true"></div>
             <div class="hsvr-video-box" #videoBoxRef>
               <p
                 class="hsvr-video-headline"
@@ -236,8 +236,12 @@ gsap.registerPlugin(ScrollTrigger);
 
     .hsvr-video-underlay {
       position: absolute;
-      inset: 0;
+      inset: -8%;
       z-index: 1;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 40%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 62%);
+      pointer-events: none;
+      will-change: transform;
     }
 
     .hsvr-video-box {
@@ -378,6 +382,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
   @ViewChild('paraRef') paraRef?: ElementRef<HTMLElement>;
   @ViewChild('videoWrapperRef') videoWrapperRef?: ElementRef<HTMLElement>;
   @ViewChild('videoBoxRef') videoBoxRef?: ElementRef<HTMLElement>;
+  @ViewChild('underlayRef') underlayRef?: ElementRef<HTMLElement>;
 
   headlineWords = [
     'Mutuo', 'acuerdo.', 'Un', 'expediente', 'claro.',
@@ -434,6 +439,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
     const para = this.paraRef?.nativeElement;
     const videoWrapper = this.videoWrapperRef?.nativeElement;
     const videoBox = this.videoBoxRef?.nativeElement;
+    const underlay = this.underlayRef?.nativeElement;
 
     if (!root || !benefit || !para || !videoWrapper || !videoBox) return;
 
@@ -489,12 +495,17 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
           },
         });
 
+        // Act 2 — circular open of the expediente
         vpTl.fromTo(
           videoBox,
           { clipPath: startCircle },
           { clipPath: 'circle(150% at 50% 50%)', ease: 'none' },
           0,
         );
+
+        if (underlay) {
+          vpTl.fromTo(underlay, { yPercent: -6 }, { yPercent: 8, ease: 'none' }, 0);
+        }
 
         if (videoWords.length) {
           vpTl.to(
@@ -510,6 +521,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
           );
         }
 
+        // Act 3 — stages light in sequence
         mockSteps.forEach((stepEl, i) => {
           vpTl.call(
             () => {
@@ -522,10 +534,40 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
         });
       };
 
-      this.gsapMedia.add(
-        '(max-width: 639.9px)',
-        () => addMockPin('circle(22% at 50% 50%)', '+=420', 0.85),
-      );
+      const addMobileStack = () => {
+        const videoWords = Array.from(videoBox.querySelectorAll('.video-reveal-word'));
+        const mockSteps = Array.from(videoBox.querySelectorAll('.hsvr-mock-step'));
+        gsap.set(videoBox, { clipPath: 'circle(22% at 50% 50%)' });
+        if (videoWords.length) gsap.set(videoWords, { opacity: 0, yPercent: 12 });
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: videoWrapper,
+            start: 'top 78%',
+            end: 'bottom 36%',
+            scrub: 0.55,
+            pin: false,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        tl.to(videoBox, { clipPath: 'circle(150% at 50% 50%)', ease: 'none' }, 0);
+        if (videoWords.length) {
+          tl.to(videoWords, { opacity: 1, yPercent: 0, stagger: 0.06, duration: 0.28, ease: 'power2.out' }, 0.2);
+        }
+        mockSteps.forEach((stepEl, i) => {
+          tl.call(
+            () => {
+              mockSteps.forEach((el) => el.classList.remove('active'));
+              stepEl.classList.add('active');
+            },
+            [],
+            0.22 + i * 0.08,
+          );
+        });
+      };
+
+      this.gsapMedia.add('(max-width: 639.9px)', () => addMobileStack());
       this.gsapMedia.add(
         '(min-width: 640px) and (max-width: 1023.9px)',
         () => addMockPin('circle(14% at 50% 50%)', '+=650', 0.95),

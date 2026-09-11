@@ -162,7 +162,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       grid-template-columns: 1fr 1fr;
       gap: var(--space-6);
       align-items: start;
-      transition: filter 0.3s ease;
+      transition: filter var(--dur-base) var(--ease);
     }
 
     .checkout-grid.is-dimmed {
@@ -296,14 +296,14 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     .pay-overlay {
       position: fixed;
       inset: 0;
-      z-index: 9990;
+      z-index: var(--z-modal);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: var(--space-4);
       background: oklch(0.12 0.02 230 / 0.62);
       backdrop-filter: blur(4px);
-      animation: overlay-in 0.25s ease;
+      animation: overlay-in var(--dur-base) var(--ease);
     }
 
     .pay-modal-shell {
@@ -329,6 +329,19 @@ type PaymentStep = 'idle' | 'processing' | 'success';
 
     .pay-modal-success {
       justify-items: center;
+      animation: pf-swap var(--dur-slow) var(--ease-out) both;
+    }
+
+    .pay-modal-success .upload-link {
+      animation: pf-cta-in var(--dur-slow) var(--ease-out) both;
+      animation-delay: 120ms;
+    }
+
+    .pay-modal-success app-animated-ticket {
+      display: block;
+      width: 100%;
+      animation: pf-in var(--dur-cine) var(--ease-out) both;
+      animation-delay: 60ms;
     }
 
     .pay-modal-title {
@@ -373,10 +386,10 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       width: 220px;
       height: 132px;
       border-radius: var(--radius-lg);
-      background: linear-gradient(135deg, #1a2f35, #2d4a52);
+      background: linear-gradient(135deg, var(--primary-active), var(--primary));
       overflow: hidden;
       box-shadow: var(--shadow-lg);
-      animation: card-float 2.4s ease-in-out infinite;
+      animation: card-float 2.4s var(--ease-out) infinite;
     }
 
     .pay-card-chip {
@@ -384,7 +397,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       top: 1.25rem; left: 1.25rem;
       width: 2.2rem; height: 1.5rem;
       border-radius: 4px;
-      background: linear-gradient(135deg, #d4af37, #f0d060);
+      background: var(--warning);
     }
 
     .pay-card-stripe {
@@ -397,7 +410,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     .pay-card-shimmer {
       position: absolute; inset: 0;
       background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.12) 50%, transparent 60%);
-      animation: shimmer 1.4s ease-in-out infinite;
+      animation: shimmer 1.4s var(--ease) infinite;
     }
 
     .upload-link {
@@ -410,7 +423,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     }
 
     .modal-enter {
-      animation: modal-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      animation: modal-pop var(--dur-slow) var(--ease-out);
     }
 
     @keyframes overlay-in {
@@ -453,6 +466,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   paidAt = new Date();
   cardLast4 = '4242';
   cart: CheckoutCart = buildCheckoutCart(34900);
+  private payTimer?: ReturnType<typeof setTimeout>;
+  private destroyed = false;
+  private prevOverflow = '';
 
   constructor(private route: ActivatedRoute, private api: ApiService, private router: Router) {}
 
@@ -486,6 +502,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    if (this.payTimer !== undefined) clearTimeout(this.payTimer);
     this.lockScroll(false);
   }
 
@@ -503,14 +521,18 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     this.api.mockPay(this.caseItem.id, this.holder, this.cardLast4).subscribe({
       next: (r) => {
+        if (this.destroyed) return;
         this.ref = r.reference || `LS-${this.caseItem!.id}`;
         this.caseItem!.paid = true;
         this.paidAt = new Date();
-        setTimeout(() => {
+        this.payTimer = setTimeout(() => {
+          if (this.destroyed || this.paymentStep !== 'processing') return;
           this.paymentStep = 'success';
         }, 1800);
       },
       error: (e) => {
+        if (this.destroyed) return;
+        if (this.payTimer !== undefined) clearTimeout(this.payTimer);
         this.paymentStep = 'idle';
         this.lockScroll(false);
         this.error = e?.error?.error || 'No pudimos procesar el pago. Inténtalo de nuevo.';
@@ -519,6 +541,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   private lockScroll(lock: boolean): void {
-    document.body.style.overflow = lock ? 'hidden' : '';
+    if (lock) {
+      this.prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return;
+    }
+    document.body.style.overflow = this.prevOverflow;
   }
 }
