@@ -17,35 +17,33 @@ interface WorkspaceNavItem {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent],
   template: `
     <div class="lawyer-workspace">
-      <div class="shell lawyer-grid">
-        <aside class="lawyer-sidebar">
-          <h2 id="lawyer-nav-casos">Casos</h2>
-          <nav aria-labelledby="lawyer-nav-casos">
-            @for (item of casosNav; track item.path) {
-              <a
-                [routerLink]="item.path"
-                routerLinkActive="on"
-                [routerLinkActiveOptions]="{ exact: !!item.exact }"
-              >
-                <app-icon [name]="item.icon" [size]="16" />
-                <span>{{ item.label }}</span>
-              </a>
-            }
-          </nav>
+      <aside class="lawyer-sidebar">
+        <h2 id="lawyer-nav-casos">Casos</h2>
+        <nav aria-labelledby="lawyer-nav-casos">
+          @for (item of casosNav; track item.path) {
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="on"
+              [routerLinkActiveOptions]="{ exact: !!item.exact }"
+            >
+              <app-icon [name]="item.icon" [size]="16" />
+              <span>{{ item.label }}</span>
+            </a>
+          }
+        </nav>
 
-          <h2 id="lawyer-nav-tools" class="lawyer-nav-section">Herramientas</h2>
-          <nav aria-labelledby="lawyer-nav-tools">
-            @for (item of visibleTools; track item.path) {
-              <a [routerLink]="item.path" routerLinkActive="on">
-                <app-icon [name]="item.icon" [size]="16" />
-                <span>{{ item.label }}</span>
-              </a>
-            }
-          </nav>
-        </aside>
-        <div class="lawyer-main">
-          <router-outlet />
-        </div>
+        <h2 id="lawyer-nav-tools" class="lawyer-nav-section">Herramientas</h2>
+        <nav aria-labelledby="lawyer-nav-tools">
+          @for (item of visibleTools; track item.path) {
+            <a [routerLink]="item.path" routerLinkActive="on">
+              <app-icon [name]="item.icon" [size]="16" />
+              <span>{{ item.label }}</span>
+            </a>
+          }
+        </nav>
+      </aside>
+      <div class="lawyer-main">
+        <router-outlet />
       </div>
     </div>
   `,

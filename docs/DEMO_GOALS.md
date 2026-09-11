@@ -384,5 +384,31 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 
 **Demo:** `/` → héroe Divorcio → `/cuestionario` Sí/No (card entra) → checkout. Spot `/productos/traslado360` cuestionario. GSAP pin en `/productos/divorcio360`.
 
+### 2026-09-10 — Bandeja abogado como cola de trabajo
+- `/abogado` deja la tabla 01–10. Carriles: Te toca / SLA / etapa. Cada fila dice la acción, no el código.
+- Default: casos que esperan al abogado. SLA primero. Enter stagger + hover translateX.
+- Sin `prefers-reduced-motion`.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → Bandeja. Carril **Te toca** vs **Todos**. Abrir un caso. Hover fila.
+
+### 2026-09-10 — Sidebar abogado a rail fijo
+- `/abogado` deja la columna-tarjeta dentro de `.shell`. Rail 248px sticky, borde derecho, full height bajo el header.
+- Activo: inset teal. Móvil: barra superior wrap.
+
+**Demo:** `abogado@demo.ec` → Bandeja y Resumen. El menú pega a la izquierda y no se encoge.
+
+### 2026-09-10 — Panel cliente como cola de trámites
+- `/cliente` deja el 2-col Expedientes + Facturas (mismo caso dos veces).
+- Carriles Te toca / En curso / Cerrados. Fila dice la acción; clic va a pagar, subir, firmar o expediente.
+- Enter stagger + hover translateX. Sin `prefers-reduced-motion`.
+
+**Demo:** `cliente@demo.ec` / `demo1234` → Tu cuenta. **Te toca** vs **Todos**. Clic **Subir** o **Abrir**.
+
+### 2026-09-10 — Filtro por tipo de trámite (cliente)
+- `/cliente` chips de producto si hay más de un tipo (Divorcio360, Traslado360, …).
+- Carril + producto se combinan. Contadores se recortan entre sí.
+
+**Demo:** `cliente@demo.ec` → chip **Traslado360** vs **Divorcio360**.
+
 
 
