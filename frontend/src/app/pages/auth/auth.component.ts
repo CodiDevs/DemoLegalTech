@@ -391,9 +391,7 @@ export class AuthComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const reduce =
-      typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    setTimeout(() => (this.layoutReady = true), reduce ? 0 : 30);
+    setTimeout(() => (this.layoutReady = true), 30);
 
     const u = this.auth.user();
     if (this.auth.isLoggedIn && u) {

@@ -765,11 +765,9 @@
   }
 
   /* Divorcio360 still uses lp-steps-in; LegalStation HOME has no entrance stagger. */
-  @media (prefers-reduced-motion: no-preference) {
-    &:not(.legalstation-landing) .lp-steps.lp-steps-in .lp-step {
-      animation: lp-step-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-      animation-delay: calc(var(--lp-i, 0) * 0.07s);
-    }
+  &:not(.legalstation-landing) .lp-steps.lp-steps-in .lp-step {
+    animation: lp-step-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--lp-i, 0) * 0.07s);
   }
 
   .lp-cap-grid {
@@ -1412,26 +1410,24 @@
       box-shadow: none;
     }
 
-    @media (prefers-reduced-motion: no-preference) {
-      .ls-plan-card:not(.featured):hover {
-        box-shadow: var(--shadow-lg);
-        border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
-        transform: translateY(-3px);
-        transition:
-          transform 200ms var(--ease),
-          box-shadow 200ms var(--ease),
-          border-color 200ms var(--ease);
-      }
+    .ls-plan-card:not(.featured):hover {
+      box-shadow: var(--shadow-lg);
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+      transform: translateY(-3px);
+      transition:
+        transform 200ms var(--ease),
+        box-shadow 200ms var(--ease),
+        border-color 200ms var(--ease);
+    }
 
-      /* Lift the shine host so featured border + card elevate together */
-      .ls-shine-slot:hover {
-        transform: translateY(-3px);
-        filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--primary) 20%, transparent));
-      }
+    /* Lift the shine host so featured border + card elevate together */
+    .ls-shine-slot:hover {
+      transform: translateY(-3px);
+      filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--primary) 20%, transparent));
+    }
 
-      .ls-product-card:hover {
-        border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
-      }
+    .ls-product-card:hover {
+      border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
     }
 
     @media (max-width: 1100px) {
@@ -1458,21 +1454,6 @@
 
     &::after {
       content: none;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .lp-product-card img { transition: none; }
-      .lp-btn-primary { transition: none; }
-      .lp-btn-primary:active { transform: none; }
-      .ls-choreo.is-choreo .ls-tilt-slot,
-      .ls-choreo.is-choreo .lp-step {
-        animation: none;
-      }
-
-      .ls-plan-card:not(.featured):hover,
-      .ls-shine-slot:hover {
-        transform: none;
-      }
     }
   }
 }

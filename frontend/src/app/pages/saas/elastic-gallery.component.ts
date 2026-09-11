@@ -139,13 +139,6 @@ export interface GalleryItem {
 
       .eg-copy { padding: 1.15rem 1.25rem 1.35rem; }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .eg-panel,
-      .eg-panel img {
-        transition: none;
-      }
-    }
   `],
 })
 export class ElasticGalleryComponent implements OnInit {

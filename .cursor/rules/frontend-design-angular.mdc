@@ -1,6 +1,6 @@
 ---
 description: Directivas de diseño frontend para LegalStation (Angular + SCSS, no React).
-globs: frontend/src/app/pages/saas/**,frontend/src/app/layout/**,frontend/src/styles/**
+globs: frontend/src/app/pages/saas/**,frontend/src/app/layout/**,frontend/src/styles/**,frontend/src/app/pages/questionnaire/**,frontend/src/app/pages/product-site/**
 alwaysApply: false
 ---
 
@@ -9,10 +9,10 @@ alwaysApply: false
 Al recibir referencia visual (ej. talkingtree.app) y datos de API:
 
 1. **Tokens:** Extraer jerarquía, espaciado, contraste y paleta — adaptar, no copiar literal.
-2. **Stack demo:** Angular 19 standalone, SCSS, Inter. **No** migrar a React/Tailwind salvo proyecto nuevo.
+2. **Stack demo:** Angular 19 standalone, SCSS, Inter body + Fraunces display. **No** migrar a React/Tailwind salvo proyecto nuevo.
 3. **Componentes UI:** `frontend/src/app/shared/` y `pages/saas/`. Patrones shadcn se portan (estados hover, skeleton, badges), no se instala shadcn en este repo.
-4. **Marcas:** LegalStation = teal primario `#2f6f68` + crema `#fdfcfa`. Divorcio360 = teal `#4a9e96` + `#f7fcfb`. No indigo `#4455c4`.
-5. **Hero:** `MarketingHeroComponent` — collage de imágenes estilo hero-section-9 (21st.dev), stats con iconos SVG.
+4. **Marcas:** LegalStation = teal `#2f6f68` + cream tokens. Un solo idioma en el camino cliente. No clay neo. No indigo `#4455c4`.
+5. **Hero:** `MarketingHeroComponent` (home video) y GSAP pin en `/productos/divorcio360`. Motion always-on — ver `demo-motion.mdc`.
 6. **Referencias React (21st.dev, Skiper):** Portar comportamiento a Angular; documentar en HANDOFF si no hay paridad 1:1.
 
 Plugins Cursor (`component-curator`, `21st-dev-bridge`): instalar desde Marketplace del IDE; no son dependencias npm.

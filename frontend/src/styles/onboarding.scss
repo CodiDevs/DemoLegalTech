@@ -1,13 +1,13 @@
-/* =========================================================================
+﻿/* =========================================================================
    Onboarding progresivo — una pregunta por pantalla.
    Compartido por el cuestionario de Divorcio360 y el de los demás productos.
    ========================================================================= */
 
 .landing-page.product-flow .ob h1,
 .landing-page.product-flow .ob h2 {
-  font-family: var(--font-sans);
-  font-weight: 650;
-  letter-spacing: var(--tracking-tight);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 .ob {
@@ -84,25 +84,37 @@ body.divorcio-flow-mode .ob {
 }
 
 .ob-seg-bar {
+  position: relative;
   display: block;
   flex: 1 1 auto;
   width: 100%;
   height: 4px;
   border-radius: 2px;
+  overflow: hidden;
   background: var(--border-strong);
   box-sizing: border-box;
+}
+
+.ob-seg-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--lp-accent, var(--primary));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 480ms var(--ease-out);
 }
 
 .ob-seg.is-done {
   cursor: pointer;
 }
 
-.ob-seg.is-done .ob-seg-bar,
-.ob-seg.is-current .ob-seg-bar {
-  background: var(--lp-accent, var(--primary));
+.ob-seg.is-done .ob-seg-bar::after,
+.ob-seg.is-current .ob-seg-bar::after {
+  transform: scaleX(1);
 }
 
-.ob-seg.is-done:hover .ob-seg-bar {
+.ob-seg.is-done:hover .ob-seg-bar::after {
   background: var(--lp-accent-deep, var(--primary-hover));
 }
 
@@ -147,18 +159,24 @@ body.divorcio-flow-mode .ob {
 /* ---------- Tarjeta ---------- */
 
 .ob-card {
-  min-height: 17.5rem; /* keeps foot/progress stable across Sí/No vs city */
-  padding: var(--space-6);
+  min-height: 17.5rem; /* keeps foot/progress stable across Si/No vs city */
+  padding: var(--space-7) var(--space-6);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  animation: ob-card-in 560ms var(--ease-out) both;
+}
+
+.ob-card.ob-card--back {
+  animation-name: ob-card-in-back;
 }
 
 .ob-icon {
   display: grid;
   place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3rem;
+  height: 3rem;
   margin-bottom: var(--space-4);
   border-radius: var(--radius-md);
   background: var(--lp-accent-soft, var(--primary-subtle));
@@ -166,8 +184,8 @@ body.divorcio-flow-mode .ob {
 }
 
 .ob-card h1 {
-  font-size: var(--text-2xl);
-  line-height: var(--leading-snug);
+  font-size: clamp(1.65rem, 3.4vw, 2.35rem);
+  line-height: var(--leading-tight);
   margin-bottom: var(--space-2);
 }
 
@@ -201,7 +219,11 @@ body.divorcio-flow-mode .ob {
   text-align: left;
   white-space: normal;
   color: var(--text);
-  /* no transition — instant selected/hover for rapid taps */
+  transition:
+    transform 280ms var(--ease-out),
+    border-color 200ms var(--ease),
+    background 200ms var(--ease),
+    box-shadow 200ms var(--ease);
 }
 
 .ob-choice app-icon { color: var(--text-muted); }
@@ -209,9 +231,15 @@ body.divorcio-flow-mode .ob {
 .ob-choice:hover {
   border-color: var(--lp-accent, var(--primary));
   background: var(--lp-accent-soft, var(--primary-subtle));
+  transform: translateX(6px);
+  box-shadow: var(--shadow-md);
 }
 
 .ob-choice:hover app-icon { color: var(--lp-accent, var(--primary)); }
+
+.ob-choice:active {
+  transform: translateX(4px) scale(0.985);
+}
 
 .ob-choice.is-selected {
   border-color: var(--lp-accent, var(--primary));
@@ -241,7 +269,7 @@ body.divorcio-flow-mode .ob {
   text-align: center;
 }
 
-/* ---------- Revisión ---------- */
+/* ---------- Revision ---------- */
 
 .ob-review {
   list-style: none;
@@ -400,4 +428,30 @@ body.divorcio-flow-mode .ob {
   .ob-card h1 { font-size: var(--text-xl); }
   .ob-note { text-align: left; }
   .ob-foot { flex-wrap: wrap; }
+}
+
+@keyframes ob-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes ob-card-in-back {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
 }

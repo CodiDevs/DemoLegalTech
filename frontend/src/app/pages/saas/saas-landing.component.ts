@@ -38,15 +38,33 @@ import {
       <section class="lp-section soft" id="catalogo">
         <div class="lp-shell">
           <div class="lp-section-head">
-            <p class="lp-eyebrow">Productos</p>
-            <h2>Trámites en vivo</h2>
+            <p class="lp-eyebrow">En vivo</p>
+            <h2>El trámite que ya corre</h2>
             <p>
-              Divorcio360, Traslado360 y BienRaiz360 abren el cuestionario ahora.
-              El resto aparece como próximos lanzamientos.
+              Divorcio360 es el flujo completo. Traslado360 y BienRaiz360 abren el mismo tipo de cuestionario.
             </p>
           </div>
-          <div class="lp-product-grid ls-product-grid ls-choreo">
-            @for (p of liveProducts; track p.id; let i = $index) {
+
+          @if (featuredProduct) {
+            <article class="ls-feature" [attr.data-product]="featuredProduct.id">
+              <img [src]="featuredProduct.showcaseImage" [alt]="featuredProduct.name" />
+              <div class="ls-feature-copy">
+                <span class="lp-badge-live">En vivo</span>
+                <h3>{{ featuredProduct.name }}</h3>
+                <p>{{ featuredProduct.tagline }}</p>
+                <ul class="lp-list-tt">
+                  @for (f of featuredProduct.features; track f) { <li>{{ f }}</li> }
+                </ul>
+                <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(featuredProduct)">
+                  Abrir {{ featuredProduct.name }}
+                  <app-icon name="arrow-right" [size]="16" />
+                </button>
+              </div>
+            </article>
+          }
+
+          <div class="lp-product-grid ls-product-grid ls-choreo ls-support-grid">
+            @for (p of supportingProducts; track p.id; let i = $index) {
               <app-tilt-card class="ls-tilt-slot" [style.--i]="i" [attr.data-product]="p.id">
                 <article class="lp-product-card ls-product-card">
                   <span class="lp-badge-live">En vivo</span>
@@ -194,6 +212,69 @@ import {
     </div>
   `,
   styles: [`
+    .ls-feature {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: clamp(1.5rem, 4vw, 3rem);
+      align-items: center;
+      margin: 0 0 clamp(2rem, 4vw, 2.75rem);
+      padding: clamp(1.15rem, 2.4vw, 1.75rem);
+      background: var(--surface);
+      border: 1px solid color-mix(in srgb, var(--primary) 32%, var(--border));
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      animation: ls-feature-in 0.7s var(--ease-out) both;
+    }
+
+    @keyframes ls-feature-in {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+        filter: blur(8px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+        filter: blur(0);
+      }
+    }
+
+    .ls-feature img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: var(--radius-lg);
+    }
+
+    .ls-feature-copy {
+      display: grid;
+      gap: 0.85rem;
+      justify-items: start;
+    }
+
+    .ls-feature-copy .lp-badge-live {
+      position: static;
+    }
+
+    .ls-feature h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.15rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+    }
+
+    .ls-feature p {
+      margin: 0;
+      max-width: 36rem;
+      font-size: 1.05rem;
+    }
+
+    .ls-support-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
     .soon-wrap {
       margin-top: clamp(2rem, 4vw, 2.75rem);
       padding-top: clamp(1.5rem, 3vw, 2rem);
@@ -291,6 +372,8 @@ import {
     @media (max-width: 960px) {
       .lp-enterprise { grid-template-columns: 1fr; }
       .ls-pricing-grid { grid-template-columns: 1fr; }
+      .ls-feature { grid-template-columns: 1fr; }
+      .ls-support-grid { grid-template-columns: 1fr !important; }
     }
 
     @media (max-width: 720px) {
@@ -302,6 +385,8 @@ import {
 export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   toast = '';
   liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
+  featuredProduct = this.liveProducts.find((p) => p.id === 'divorcio360') ?? null;
+  supportingProducts = this.liveProducts.filter((p) => p.id !== 'divorcio360');
   comingSoon = LEGALSTATION_CATALOG.filter((p) => !p.live);
   journeyFocus = 1;
   journeyStages: CaseProgressStage[] = buildMarketingProgressStages(LEGALSTATION_WORKFLOW, 1);
@@ -313,8 +398,6 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
 
   ngAfterViewInit(): void {
-    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
     const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo');
     this.io = new IntersectionObserver(
       (entries) => {
@@ -338,8 +421,8 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
     this.io?.disconnect();
   }
 
-  openProduct(p: ProductCatalogEntry): void {
-    if (!p.route) return;
+  openProduct(p: ProductCatalogEntry | null): void {
+    if (!p?.route) return;
     setActiveProduct(p.id);
     void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
   }

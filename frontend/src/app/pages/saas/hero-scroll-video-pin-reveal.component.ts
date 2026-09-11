@@ -361,17 +361,6 @@ gsap.registerPlugin(ScrollTrigger);
       .hsvr-mock { width: min(100% - 1.5rem, 28rem); }
       .hsvr-mock-bar strong { margin-left: 0.5rem; }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .hsvr-btn { transition: none; }
-      .hsvr-mock-step { transition: none; }
-      .reveal-word,
-      .video-reveal-word {
-        opacity: 1;
-        transform: none;
-        filter: none;
-      }
-    }
   `],
 })
 export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestroy {
@@ -402,7 +391,6 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
 
   private gsapCtx?: gsap.Context;
   private gsapMedia?: ReturnType<typeof gsap.matchMedia>;
-  private reducedMotion = false;
   private destroyed = false;
   private rafIds: number[] = [];
   private refreshTimer?: ReturnType<typeof setTimeout>;
@@ -414,13 +402,6 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
   }
 
   ngAfterViewInit(): void {
-    this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (this.reducedMotion) {
-      this.showStaticFallback();
-      return;
-    }
-
     const outer = requestAnimationFrame(() => {
       if (this.destroyed) return;
       const inner = requestAnimationFrame(() => {
@@ -443,21 +424,6 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
     if (this.refreshTimer !== undefined) clearTimeout(this.refreshTimer);
     this.gsapMedia?.revert();
     this.gsapCtx?.revert();
-  }
-
-  private showStaticFallback(): void {
-    const words = this.paraRef?.nativeElement.querySelectorAll('.reveal-word');
-    words?.forEach((el) => {
-      (el as HTMLElement).style.opacity = '1';
-      (el as HTMLElement).style.transform = 'none';
-    });
-    if (this.videoBoxRef?.nativeElement) {
-      this.videoBoxRef.nativeElement.style.clipPath = 'none';
-    }
-    this.rootRef?.nativeElement.querySelectorAll('.video-reveal-word').forEach((el) => {
-      (el as HTMLElement).style.opacity = '1';
-      (el as HTMLElement).style.transform = 'none';
-    });
   }
 
   private initGsap(): void {

@@ -59,7 +59,7 @@ type Stage = 'questions' | 'review' | 'done';
               <div class="ob-stage">
                 <div class="ob-card-slot">
                   @for (f of [currentField]; track f.id) {
-                    <section class="ob-card">
+                    <section class="ob-card" [class.ob-card--back]="direction === -1">
                 <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
                 <h1>{{ f.label }}</h1>
 
@@ -185,6 +185,7 @@ export class ProductQuestionnaireComponent implements OnInit {
   answers: Record<string, unknown> = {};
   fieldIndex = 0;
   stage: Stage = 'questions';
+  direction: 1 | -1 = 1;
   busy = false;
   caseId = 0;
 
@@ -257,6 +258,7 @@ export class ProductQuestionnaireComponent implements OnInit {
 
   next(): void {
     if (!this.canContinue) return;
+    this.direction = 1;
     if (this.fieldIndex < this.fields.length - 1) {
       this.fieldIndex++;
     } else {
@@ -266,6 +268,7 @@ export class ProductQuestionnaireComponent implements OnInit {
   }
 
   prev(): void {
+    this.direction = -1;
     if (this.stage === 'review') {
       this.stage = 'questions';
       this.fieldIndex = this.fields.length - 1;
@@ -278,6 +281,7 @@ export class ProductQuestionnaireComponent implements OnInit {
   editField(id: string): void {
     const idx = this.fields.findIndex((f) => f.id === id);
     if (idx >= 0) {
+      this.direction = -1;
       this.fieldIndex = idx;
       this.stage = 'questions';
       this.saveDraft();
@@ -287,6 +291,7 @@ export class ProductQuestionnaireComponent implements OnInit {
   /** Solo pasos ya respondidos (anteriores al actual). */
   goToField(index: number): void {
     if (index < 0 || index >= this.fieldIndex) return;
+    this.direction = -1;
     this.fieldIndex = index;
     this.stage = 'questions';
     this.saveDraft();

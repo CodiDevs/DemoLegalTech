@@ -3,8 +3,6 @@ import {
   Component,
   ElementRef,
   Input,
-  OnDestroy,
-  OnInit,
   ViewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -226,28 +224,18 @@ interface HeroAction {
       text-decoration: none;
     }
 
-    @media (prefers-reduced-motion: no-preference) {
-      .mk-brand,
-      .mk-slogan,
-      .mk-cta {
-        animation: mk-in 0.5s var(--ease-out) both;
-      }
-
-      .mk-slogan { animation-delay: 0.06s; }
-      .mk-cta { animation-delay: 0.12s; }
+    .mk-brand,
+    .mk-slogan,
+    .mk-cta {
+      animation: mk-in 0.5s var(--ease-out) both;
     }
+
+    .mk-slogan { animation-delay: 0.06s; }
+    .mk-cta { animation-delay: 0.12s; }
 
     @keyframes mk-in {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .mk-brand,
-      .mk-slogan,
-      .mk-cta {
-        animation: none;
-      }
+      from { opacity: 0; transform: translateY(12px); filter: blur(6px); }
+      to { opacity: 1; transform: none; filter: blur(0); }
     }
 
     @media (max-width: 560px) {
@@ -264,7 +252,7 @@ interface HeroAction {
     }
   `],
 })
-export class MarketingHeroComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MarketingHeroComponent implements AfterViewInit {
   @Input() primaryCta = 'Ver qué puedo tramitar';
   @Input() secondaryCta = 'Cómo funciona';
   @Input() primaryRoute = '/';
@@ -288,29 +276,10 @@ export class MarketingHeroComponent implements OnInit, AfterViewInit, OnDestroy 
 
   @ViewChild('videoRef') videoRef?: ElementRef<HTMLVideoElement>;
 
-  private mediaQuery?: MediaQueryList;
-  private onMqChange?: () => void;
-
   constructor(public auth: AuthService) {}
-
-  ngOnInit(): void {
-    if (typeof matchMedia === 'undefined') return;
-    this.mediaQuery = matchMedia('(prefers-reduced-motion: reduce)');
-    this.useStaticFallback = this.mediaQuery.matches;
-    this.onMqChange = () => {
-      this.useStaticFallback = !!this.mediaQuery?.matches;
-    };
-    this.mediaQuery.addEventListener?.('change', this.onMqChange);
-  }
 
   ngAfterViewInit(): void {
     this.tryPlay();
-  }
-
-  ngOnDestroy(): void {
-    if (this.mediaQuery && this.onMqChange) {
-      this.mediaQuery.removeEventListener?.('change', this.onMqChange);
-    }
   }
 
   tryPlay(): void {
@@ -364,7 +333,6 @@ export class MarketingHeroComponent implements OnInit, AfterViewInit, OnDestroy 
     const el = document.getElementById(id);
     if (!el) return;
     event.preventDefault();
-    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }

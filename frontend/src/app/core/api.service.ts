@@ -167,6 +167,18 @@ export class ApiService {
     return this.http.get('/api/v1/mock/templates');
   }
 
+  duplicateTemplate(id: string): Observable<any> {
+    return this.http.post(`/api/v1/mock/templates/${id}/duplicate`, {});
+  }
+
+  patchTemplate(id: string, body: Record<string, unknown>): Observable<any> {
+    return this.http.patch(`/api/v1/mock/templates/${id}`, body);
+  }
+
+  deleteTemplate(id: string): Observable<any> {
+    return this.http.delete(`/api/v1/mock/templates/${id}`);
+  }
+
   mockAI(caseId?: number): Observable<any> {
     return this.http.post('/api/v1/mock/ai/analyze', { case_id: caseId ?? 0 });
   }

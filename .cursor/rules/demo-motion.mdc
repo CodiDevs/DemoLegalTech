@@ -1,0 +1,23 @@
+---
+description: Demo LegalStation is always high-motion. Cinematic client path, never clay neo, never prefers-reduced-motion.
+alwaysApply: true
+---
+
+# Demo motion (always on)
+
+This repo is a **sales demo**, not production a11y-first SaaS.
+
+- **Never** gate animation on `prefers-reduced-motion`. Do not add `@media (prefers-reduced-motion)` or `matchMedia('(prefers-reduced-motion')`.
+- **Never** restore the global `animation-duration: 0.01ms !important` nuke in `tokens.scss`.
+- Default is cinematic: transform + opacity + filter. Custom easing (`--ease-out`), not bare `ease`.
+- Client path (home → product landing → cuestionario → checkout/upload/firma) = one language: cream paper, Fraunces display, teal `#2f6f68`.
+- **No** clay neumorphism (`.ob-neo`, dual inset shadows, gray Dribbble neo).
+- no-slop-ui Linear/100–200ms/no-transform does **not** apply to marketing or trámites. Workspace `/abogado` can stay denser but still animates.
+
+```scss
+/* BAD — demo looks frozen on Windows "reduce animations" */
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; } }
+
+/* GOOD — motion always runs */
+.ob-card { animation: ob-card-in 560ms var(--ease-out) both; }
+```

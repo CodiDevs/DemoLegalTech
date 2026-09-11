@@ -33,6 +33,8 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cards shine / tilt / FAQ | `/` productos 3D, Professional shine, FAQ post-precios; sin `#sistema` | 2026-09-10 |
 | done | Expediente CaseProgress ES | `/#flujo` + `/caso/:id` Línea de estados; mismo componente multi-producto | 2026-09-10 |
 | done | CaseProgress fix + Auth system | `#flujo` sin overlap; `/auth` layout + forgot demo | 2026-09-10 |
+| done | Plantillas Fase 2 editables | `abogado@demo.ec` → Modelos de documentos → Duplicar → editar → F5 | 2026-09-10 |
+| done | Cuestionario Divorcio360 neo | `/cuestionario` clay teal, Sí/No hundidos, contraste AA | 2026-09-10 |
 
 ## Entries
 
@@ -367,3 +369,20 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 - Auth workspace: canvas `--bg` + **dos cartas** (form | foto) con gap fino y margen chico; cada una con borde/`radius-xl`; móvil form-only. Forgot demo sin API.
 
 **Demo:** `/#flujo` desktop sin textos solapados. `/auth` → margen de fondo alrededor del shell grande + mitad visual.
+
+### 2026-09-10 — Plantillas Fase 2 editables
+- `Duplicar plantilla` clona de verdad (SQLite). Editor: nombre, categoría, estado, versión, campos, HTML.
+- Originales se editan; solo las copias se borran. Refresh conserva cambios. No engancha la minuta live del expediente.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → Fase 2 → Modelos de documentos → Duplicar → cambiar nombre y un párrafo → Guardar → F5. Borrar la copia. Original sigue.
+
+### 2026-09-10 — Cinemática LegalStation (A) + motion always-on
+- Demo **nunca** respeta `prefers-reduced-motion` (Windows “reducir animaciones” ya no congela el UI).
+- Fuera el clay neo de `/cuestionario`. Un idioma: cream + Fraunces + teal en cuestionario, checkout, upload y firma.
+- Pregunta entra con blur/translate; Sí/No se desplaza; progreso llena con `scaleX`.
+- Home: Divorcio360 héroe; Traslado/BienRaiz recortes.
+
+**Demo:** `/` → héroe Divorcio → `/cuestionario` Sí/No (card entra) → checkout. Spot `/productos/traslado360` cuestionario. GSAP pin en `/productos/divorcio360`.
+
+
+

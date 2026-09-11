@@ -4,25 +4,10 @@ import { provideRouter } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { DivorcioLandingComponent } from './divorcio-landing.component';
 
-function reducedMotionQuery(): MediaQueryList {
-  return {
-    matches: true,
-    media: '(prefers-reduced-motion: reduce)',
-    onchange: null,
-    addListener: () => undefined,
-    removeListener: () => undefined,
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
-    dispatchEvent: () => true,
-  };
-}
-
 describe('DivorcioLandingComponent', () => {
   let fixture: ComponentFixture<DivorcioLandingComponent>;
 
   beforeEach(async () => {
-    spyOn(window, 'matchMedia').and.returnValue(reducedMotionQuery());
-
     await TestBed.configureTestingModule({
       imports: [DivorcioLandingComponent],
       providers: [

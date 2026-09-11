@@ -85,24 +85,6 @@ func (s *Service) PatchMasterTemplate(w http.ResponseWriter, r *http.Request) {
 	write(w, map[string]any{"ok": true, "template_id": id, "version": body.Version})
 }
 
-func (s *Service) Templates(w http.ResponseWriter, r *http.Request) {
-	write(w, map[string]any{
-		"demo": true,
-		"templates": []map[string]any{
-			{
-				"id": "divorcio-notarial", "name": "Divorcio notarial mutuo consentimiento",
-				"category": "familia", "active": true, "status": "activa", "version": "v1.0",
-				"fields": []string{"{{cliente_nombre}}", "{{conyuge_nombre}}", "{{ciudad_notaria}}"},
-				"preview_html": "<p><strong>MINUTA DE DIVORCIO</strong></p><p>LegalStation · Divorcio360</p>",
-			},
-			{"id": "sucesion", "name": "Sucesión intestada", "category": "familia", "active": false, "status": "proximamente", "version": "v0.1", "fields": []string{"{{causante}}"}, "preview_html": "<p>Estate360 borrador</p>"},
-		},
-		"versions": []map[string]any{
-			{"template_id": "divorcio-notarial", "version": "v1.0", "date": "2026-08-01", "author": "LegalStation"},
-		},
-	})
-}
-
 func (s *Service) AIAnalyze(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		CaseID int `json:"case_id"`
@@ -116,10 +98,10 @@ func (s *Service) AIAnalyze(w http.ResponseWriter, r *http.Request) {
 	}
 	write(w, map[string]any{
 		"demo": true, "case_id": body.CaseID, "summary": summary,
-		"risks": []string{"Verificar mediación si hay menores"},
+		"risks":           []string{"Verificar mediación si hay menores"},
 		"recommendations": recs, "confidence": 0.87,
 		"cross_check": []map[string]any{{"field": "Cédula vs partida", "status": "ok", "detail": "Coinciden"}},
-		"chat": []map[string]string{{"role": "user", "text": "¿Listo para minuta?"}, {"role": "assistant", "text": summary}},
+		"chat":        []map[string]string{{"role": "user", "text": "¿Listo para minuta?"}, {"role": "assistant", "text": summary}},
 	})
 }
 
@@ -128,7 +110,7 @@ func (s *Service) SatjeSync(w http.ResponseWriter, r *http.Request) {
 	links, _ := s.listAllLinks()
 	write(w, map[string]any{
 		"demo": true, "status": "simulated",
-		"message": "Sincronización SATJE simulada — LegalStation demo",
+		"message":   "Sincronización SATJE simulada — LegalStation demo",
 		"last_sync": now.Format(time.RFC3339), "next_scheduled": now.Add(6 * time.Hour).Format(time.RFC3339),
 		"records_pulled": 3,
 		"records": []map[string]any{
@@ -186,7 +168,7 @@ func (s *Service) BillingRecurring(w http.ResponseWriter, r *http.Request) {
 	write(w, map[string]any{
 		"demo": true, "note": "Licencia LegalStation para bufetes — el cliente final paga honorarios por trámite, no esta suscripción.",
 		"current_tenant": tenant,
-		"plans": defaultPlans(),
+		"plans":          defaultPlans(),
 		"invoices": []map[string]any{
 			{"id": "INV-2026-08", "date": "2026-08-01", "amount_usd": 249, "status": "pagada"},
 		},

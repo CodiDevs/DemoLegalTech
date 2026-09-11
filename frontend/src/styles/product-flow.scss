@@ -502,3 +502,48 @@ body.divorcio-flow-mode .landing-page.product-flow {
 
   p { margin: 0; }
 }
+
+/* Cinematic stage — same language as landing, motion always on */
+.landing-page.product-flow .pf-head {
+  animation: pf-in 640ms var(--ease-out) both;
+}
+
+.landing-page.product-flow .pf-head h1 {
+  font-size: clamp(1.85rem, 3.2vw, 2.75rem);
+}
+
+.landing-page.product-flow .pf-card,
+.landing-page.product-flow .up-side {
+  animation: pf-in 560ms var(--ease-out) both;
+}
+
+.landing-page.product-flow .checkout-aside .pf-card,
+.landing-page.product-flow .up-layout > :nth-child(2) {
+  animation-delay: 90ms;
+}
+
+.landing-page.product-flow .lp-lift {
+  transition:
+    transform 280ms var(--ease-out),
+    box-shadow 280ms var(--ease),
+    border-color 200ms var(--ease);
+}
+
+.landing-page.product-flow .lp-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: color-mix(in srgb, var(--lp-accent) 40%, var(--border));
+}
+
+@keyframes pf-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}

@@ -72,7 +72,7 @@ interface Question {
               <div class="ob-card-slot">
                 <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
                 @for (q of [current]; track q.key) {
-                  <section class="ob-card">
+                  <section class="ob-card" [class.ob-card--back]="direction === -1">
                 <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
 
                 <h1>{{ q.text }}</h1>
@@ -161,7 +161,7 @@ interface Question {
 
         <!-- ============ Revisión ============ -->
         @if (stage === 'review') {
-          <section class="ob-card">
+          <section class="ob-card" [class.ob-card--back]="direction === -1">
             <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
             <h1>Revisa tus respuestas</h1>
             <p class="ob-hint">Toca cualquier respuesta si quieres cambiarla.</p>
@@ -212,7 +212,7 @@ interface Question {
 
         <!-- ============ Resultado ============ -->
         @if (stage === 'result' && result) {
-          <section class="ob-card" [class]="'ob-card is-' + result.code">
+          <section [class]="'ob-card is-' + result.code + (direction === -1 ? ' ob-card--back' : '')">
             <span class="ob-icon"><app-icon [name]="resultIcon" [size]="26" /></span>
 
             <h1>{{ result.title }}</h1>

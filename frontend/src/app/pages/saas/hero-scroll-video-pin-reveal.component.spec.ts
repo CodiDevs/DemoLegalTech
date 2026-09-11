@@ -43,32 +43,6 @@ describe('HeroScrollVideoPinRevealComponent', () => {
     TestBed.resetTestingModule();
   });
 
-  describe('con movimiento reducido', () => {
-    beforeEach(async () => {
-      spyOn(window, 'matchMedia').and.returnValue(motionQuery(true));
-      await configureHero();
-      fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
-      fixture.detectChanges();
-    });
-
-    it('renderiza un único H1 y la acción primaria en el primer bloque', () => {
-      const root = fixture.nativeElement as HTMLElement;
-
-      expect(root.querySelectorAll('h1').length).toBe(1);
-      expect(root.querySelector('.hsvr-intro')).toBeNull();
-      expect(root.querySelector('.hsvr-tags')).toBeNull();
-      expect(root.querySelector('.hsvr-btn-primary')?.getAttribute('href')).toBe('/cuestionario');
-    });
-
-    it('no consulta ni destruye ScrollTriggers globales al desmontarse', () => {
-      const getAllSpy = spyOn(ScrollTrigger, 'getAll').and.callThrough();
-
-      fixture.destroy();
-
-      expect(getAllSpy).not.toHaveBeenCalled();
-    });
-  });
-
   describe('con movimiento', () => {
     const rafPending = new Map<number, FrameRequestCallback>();
     let rafSeq = 0;

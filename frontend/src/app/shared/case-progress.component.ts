@@ -473,22 +473,6 @@ import {
       opacity: 0.38;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .cp-skeleton { animation: none; }
-      .cp-node,
-      .cp-rail-fill,
-      .cp-detail {
-        transition: none !important;
-        animation: none !important;
-        opacity: 1;
-        transform: none;
-      }
-      .cp--ready .cp-rail-fill,
-      .cp--ready.cp--vertical .cp-rail-fill {
-        transition: none;
-      }
-    }
-
     @keyframes cp-shimmer {
       from { background-position: 100% 0; }
       to { background-position: -100% 0; }
@@ -618,10 +602,8 @@ export class CaseProgressComponent implements OnInit, OnChanges, OnDestroy {
   private armReady(): void {
     this.ready = false;
     if (this.readyTimer) clearTimeout(this.readyTimer);
-    const reduce =
-      typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.readyTimer = setTimeout(() => {
       this.ready = true;
-    }, reduce ? 0 : 40);
+    }, 40);
   }
 }

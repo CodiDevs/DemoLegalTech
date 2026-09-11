@@ -75,18 +75,10 @@ import { Component, Input } from '@angular/core';
     @keyframes ls-shine-spin {
       to { transform: rotate(360deg); }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .shine-ring {
-        animation: none;
-        inset: 0;
-        background: var(--primary-border);
-      }
-    }
   `],
 })
 export class ShineBorderComponent {
   @Input() borderWidth = 2;
-  /** Force static border (tests / explicit). Reduced-motion also disables spin via CSS. */
+  /** Force static border (tests / explicit). */
   @Input() staticBorder = false;
 }
