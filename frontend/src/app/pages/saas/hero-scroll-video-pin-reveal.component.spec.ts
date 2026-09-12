@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { provideRouter } from '@angular/router';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AuthService } from '../../core/auth.service';
-import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
+import { HeroScrollVideoPinRevealComponent, activeStepFromProgress } from './hero-scroll-video-pin-reveal.component';
 
 function motionQuery(reduce: boolean): MediaQueryList {
   return {
@@ -33,6 +33,15 @@ function configureHero(): Promise<void> {
     ],
   }).compileComponents();
 }
+
+describe('activeStepFromProgress', () => {
+  it('deriva el índice de etapa desde el progreso, también al revertir', () => {
+    expect(activeStepFromProgress(0, 6)).toBe(0);
+    expect(activeStepFromProgress(1, 6)).toBe(5);
+    expect(activeStepFromProgress(0.5, 6)).toBe(3);
+    expect(activeStepFromProgress(-1, 6)).toBe(0);
+  });
+});
 
 describe('HeroScrollVideoPinRevealComponent', () => {
   let fixture: ComponentFixture<HeroScrollVideoPinRevealComponent>;

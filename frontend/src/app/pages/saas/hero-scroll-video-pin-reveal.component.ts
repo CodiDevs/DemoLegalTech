@@ -17,6 +17,18 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+export function activeStepFromProgress(progress: number, count: number): number {
+  if (count <= 1) return 0;
+  const t = Math.min(1, Math.max(0, progress));
+  return Math.round(t * (count - 1));
+}
+
+function syncMockSteps(steps: Element[], progress: number): void {
+  if (!steps.length) return;
+  const idx = activeStepFromProgress(progress, steps.length);
+  steps.forEach((el, i) => el.classList.toggle('active', i === idx));
+}
+
 @Component({
   selector: 'app-hero-scroll-video-pin-reveal',
   standalone: true,
@@ -492,6 +504,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
             invalidateOnRefresh: true,
             onRefresh: paintPinDark,
             onToggle: paintPinDark,
+            onUpdate: (self) => syncMockSteps(mockSteps, self.progress),
           },
         });
 
@@ -520,18 +533,6 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
             0.28,
           );
         }
-
-        // Act 3 — stages light in sequence
-        mockSteps.forEach((stepEl, i) => {
-          vpTl.call(
-            () => {
-              mockSteps.forEach((el) => el.classList.remove('active'));
-              stepEl.classList.add('active');
-            },
-            [],
-            0.18 + i * 0.1,
-          );
-        });
       };
 
       const addMobileStack = () => {
@@ -548,6 +549,7 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
             scrub: 0.55,
             pin: false,
             invalidateOnRefresh: true,
+            onUpdate: (self) => syncMockSteps(mockSteps, self.progress),
           },
         });
 
@@ -555,16 +557,6 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
         if (videoWords.length) {
           tl.to(videoWords, { opacity: 1, yPercent: 0, stagger: 0.06, duration: 0.28, ease: 'power2.out' }, 0.2);
         }
-        mockSteps.forEach((stepEl, i) => {
-          tl.call(
-            () => {
-              mockSteps.forEach((el) => el.classList.remove('active'));
-              stepEl.classList.add('active');
-            },
-            [],
-            0.22 + i * 0.08,
-          );
-        });
       };
 
       this.gsapMedia.add('(max-width: 639.9px)', () => addMobileStack());

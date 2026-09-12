@@ -1,4 +1,13 @@
-import { Component, HostListener, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+} from '@angular/core';
 
 export interface GalleryItem {
   id: string;
@@ -18,14 +27,14 @@ export interface GalleryItem {
       [class.is-empty]="!items.length"
     >
       @if (items.length) {
-        <div class="eg-track" role="listbox" [attr.aria-label]="'Galería'" tabindex="0">
+        <div class="eg-track" role="group" [attr.aria-label]="'Galería'">
           @for (item of items; track item.id) {
             <button
               type="button"
               class="eg-panel"
-              role="option"
               [class.active]="activeId === item.id"
-              [attr.aria-selected]="activeId === item.id"
+              [attr.aria-pressed]="activeId === item.id"
+              [attr.tabindex]="activeId === item.id ? 0 : -1"
               (focus)="select(item.id)"
               (click)="select(item.id)"
             >
@@ -72,10 +81,10 @@ export interface GalleryItem {
       padding: 0;
       background: var(--surface);
       opacity: 0.78;
+      transform-origin: left center;
       transition:
         opacity var(--dur-base) var(--ease-out),
-        border-color var(--dur-fast) var(--ease),
-        transform var(--dur-base) var(--ease-out);
+        border-color var(--dur-fast) var(--ease);
     }
 
     .eg-panel:hover { opacity: 0.92; border-color: color-mix(in srgb, var(--eg-accent) 45%, var(--border)); }
@@ -98,6 +107,7 @@ export interface GalleryItem {
       object-fit: cover;
       opacity: 0.72;
       transform: scale(1.04);
+      transform-origin: center center;
       transition:
         opacity var(--dur-base) var(--ease-out),
         transform var(--dur-cine) var(--ease-out);
@@ -189,10 +199,6 @@ export interface GalleryItem {
         flex: 0.62 1 0;
         height: auto;
         min-width: 0;
-        transition:
-          flex-grow var(--dur-cine) var(--ease-out),
-          opacity var(--dur-base) var(--ease-out),
-          border-color var(--dur-fast) var(--ease);
       }
 
       .eg-panel.active { flex-grow: 2.15; }
@@ -207,6 +213,11 @@ export class ElasticGalleryComponent implements OnInit, OnChanges {
 
   activeId = '';
 
+  constructor(
+    private host: ElementRef<HTMLElement>,
+    private cdr: ChangeDetectorRef,
+  ) {}
+
   ngOnInit(): void {
     this.syncActive();
   }
@@ -216,8 +227,7 @@ export class ElasticGalleryComponent implements OnInit, OnChanges {
   }
 
   select(id: string): void {
-    if (!this.items.some((item) => item.id === id)) return;
-    this.activeId = id;
+    this.moveTo(id, false);
   }
 
   @HostListener('keydown', ['$event'])
@@ -244,6 +254,45 @@ export class ElasticGalleryComponent implements OnInit, OnChanges {
     if (!this.items.length) return;
     const index = this.items.findIndex((item) => item.id === this.activeId);
     const next = Math.min(this.items.length - 1, Math.max(0, (index < 0 ? 0 : index) + delta));
-    this.activeId = this.items[next].id;
+    this.moveTo(this.items[next].id, true);
+  }
+
+  private moveTo(id: string, moveFocus: boolean): void {
+    if (!this.items.some((item) => item.id === id) || id === this.activeId) {
+      if (moveFocus) this.focusActive();
+      return;
+    }
+
+    const panels = this.panelEls();
+    const first = panels.map((el) => el.getBoundingClientRect());
+    this.activeId = id;
+    this.cdr.detectChanges();
+    this.playFlip(panels, first);
+    if (moveFocus) this.focusActive();
+  }
+
+  private panelEls(): HTMLElement[] {
+    return Array.from(this.host.nativeElement.querySelectorAll('.eg-panel'));
+  }
+
+  private focusActive(): void {
+    const idx = this.items.findIndex((item) => item.id === this.activeId);
+    this.panelEls()[idx]?.focus();
+  }
+
+  private playFlip(panels: HTMLElement[], first: DOMRect[]): void {
+    if (!window.matchMedia('(min-width: 768px)').matches) return;
+    panels.forEach((el, i) => {
+      const before = first[i];
+      if (!before || before.width < 1) return;
+      const after = el.getBoundingClientRect();
+      const dx = before.left - after.left;
+      const sx = before.width / Math.max(after.width, 1);
+      if (Math.abs(dx) < 0.5 && Math.abs(sx - 1) < 0.01) return;
+      el.animate(
+        [{ transform: `translateX(${dx}px) scaleX(${sx})` }, { transform: 'none' }],
+        { duration: 480, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+      );
+    });
   }
 }

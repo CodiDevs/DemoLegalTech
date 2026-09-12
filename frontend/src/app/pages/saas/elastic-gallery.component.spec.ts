@@ -23,8 +23,12 @@ describe('ElasticGalleryComponent', () => {
     fixture.componentInstance.items = ITEMS;
     fixture.componentInstance.defaultActive = '02';
     fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
     expect(fixture.componentInstance.activeId).toBe('02');
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('.eg-panel.active').length).toBe(1);
+    expect(root.querySelectorAll('.eg-panel.active').length).toBe(1);
+    expect(root.querySelector('[role="listbox"]')).toBeNull();
+    expect(root.querySelector('[role="option"]')).toBeNull();
+    expect(root.querySelector('[role="group"]')).not.toBeNull();
   });
 
   it('cambia selección con click, focus y flechas, y respeta límites', () => {
@@ -47,7 +51,9 @@ describe('ElasticGalleryComponent', () => {
     root.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     expect(fixture.componentInstance.activeId).toBe('03');
     root.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    fixture.detectChanges();
     expect(fixture.componentInstance.activeId).toBe('02');
+    expect(document.activeElement).toBe(buttons[1]);
   });
 
   it('muestra vacío si no hay ítems', () => {

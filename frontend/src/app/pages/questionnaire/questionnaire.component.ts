@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, QuestionnaireAnswers, QuestionnaireResult } from '../../core/api.service';
@@ -16,7 +16,7 @@ import {
   GEO_COUNTRIES,
   GeoProvince,
 } from '../../shared/ecuador-locations.data';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 type AnswerKey = keyof QuestionnaireAnswers;
 
@@ -298,7 +298,7 @@ interface Question {
     </div>
   `,
 })
-export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy {
+export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
   @ViewChild('firstChoice') firstChoice?: ElementRef<HTMLButtonElement>;
   @ViewChild('locationCountrySelect') locationCountrySelect?: ElementRef<HTMLSelectElement>;
   @ViewChild('noAplicaScheduler') noAplicaScheduler?: MeetingSchedulerComponent;
@@ -429,6 +429,9 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
   private trail: number[] = [];
   private answered = new Set<AnswerKey>();
   private restoreTimer?: ReturnType<typeof setTimeout>;
+  private restoreSub?: Subscription;
+  private pendingFocus = false;
+  private destroyed = false;
 
   constructor(
     private api: ApiService,
@@ -454,11 +457,15 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
         this.answers = { ...this.answers, ...p.answers };
         this.normalizeLocation();
       }
-      this.api.evaluate(this.answers).subscribe({
+      this.restoreSub = this.api.evaluate(this.answers).subscribe({
         next: (res) => {
+          if (this.destroyed) return;
           this.result = res;
           this.stage = 'result';
-          this.restoreTimer = setTimeout(() => this.tryPendingMeeting(), 0);
+          this.restoreTimer = setTimeout(() => {
+            if (this.destroyed) return;
+            this.tryPendingMeeting();
+          }, 0);
         },
       });
     } catch { /* ignore */ }
@@ -468,7 +475,18 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
     if (this.stage === 'result') this.tryPendingMeeting();
   }
 
+  ngAfterViewChecked(): void {
+    if (!this.pendingFocus) return;
+    this.pendingFocus = false;
+    const el = this.current.key === 'city'
+      ? this.locationCountrySelect?.nativeElement
+      : this.firstChoice?.nativeElement;
+    el?.focus();
+  }
+
   ngOnDestroy(): void {
+    this.destroyed = true;
+    this.restoreSub?.unsubscribe();
     if (this.restoreTimer !== undefined) clearTimeout(this.restoreTimer);
   }
 
@@ -601,6 +619,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.trail.push(this.cursor);
     this.cursor = next;
+    this.pendingFocus = true;
   }
 
   back(): void {
@@ -608,11 +627,13 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
     if (previous === undefined) return;
     this.direction = -1;
     this.cursor = previous;
+    this.pendingFocus = true;
   }
 
   backToQuestions(): void {
     this.direction = -1;
     this.stage = 'questions';
+    this.pendingFocus = true;
   }
 
   backToReview(): void {
@@ -633,6 +654,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
     this.cursor = index;
     this.direction = -1;
     this.stage = 'questions';
+    this.pendingFocus = true;
   }
 
   isSelected(key: AnswerKey, value: boolean): boolean {
@@ -657,6 +679,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.api.evaluate(this.answers).subscribe({
       next: (res) => {
+        if (this.destroyed) return;
         this.submitting = false;
         this.result = res;
         this.stage = 'result';
@@ -668,6 +691,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, OnDestroy 
         }));
       },
       error: () => {
+        if (this.destroyed) return;
         this.submitting = false;
         this.submitError = 'No pudimos calcular tu resultado. Revisa tu conexión e inténtalo de nuevo.';
       },

@@ -69,7 +69,10 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                   <li class="cart-item">
                     <span class="cart-item-name">{{ line.label }}</span>
                     <div class="cart-item-price">
-                      @if (line.includedInPackage) {
+                      @if (line.billedSeparately) {
+                        <span class="cart-external">Se paga en notaría</span>
+                        <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
+                      } @else if (line.includedInPackage) {
                         <span class="cart-included">Incluido</span>
                         <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
                       } @else {
@@ -96,7 +99,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                 <span>Total a pagar</span>
                 <strong>\${{ cart.totalCents / 100 | number:'1.2-2' }} USD</strong>
               </div>
-              <p class="pf-muted cart-note">Pago único · Sin suscripción</p>
+              <p class="pf-muted cart-note">Pago único · Sin suscripción. No incluye gastos notariales.</p>
             </div>
           </div>
         </div>
@@ -250,6 +253,12 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       font-size: var(--text-xs);
       font-weight: 600;
       color: var(--success);
+    }
+
+    .cart-external {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-muted);
     }
 
     .cart-ref {

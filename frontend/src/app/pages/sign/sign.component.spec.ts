@@ -56,6 +56,28 @@ describe('SignComponent', () => {
     expect(fixture.componentInstance.isPdf('/a.png')).toBeFalse();
   });
 
+  it('bloquea el formulario si getCase falla', () => {
+    api.getCase.and.returnValue(throwError(() => ({ status: 500 })));
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.signBlocked).toContain('No pudimos cargar');
+    expect(root.querySelector('.sign-blocked')).not.toBeNull();
+    expect(root.querySelector('.up-dropzone')).toBeNull();
+    expect(api.listOutputs).not.toHaveBeenCalled();
+    expect(api.sign).not.toHaveBeenCalled();
+  });
+
+  it('acepta archivo por drop', () => {
+    fixture.detectChanges();
+    const file = new File(['x'], 'f.png', { type: 'image/png' });
+    fixture.componentInstance.onDrop({
+      preventDefault() {},
+      stopPropagation() {},
+      dataTransfer: { files: [file] },
+    } as unknown as DragEvent);
+    expect(fixture.componentInstance.selectedFile?.name).toBe('f.png');
+  });
+
   it('no envía sin archivo; busy durante envío; error recuperable y reupload', () => {
     fixture.detectChanges();
     const cmp = fixture.componentInstance;

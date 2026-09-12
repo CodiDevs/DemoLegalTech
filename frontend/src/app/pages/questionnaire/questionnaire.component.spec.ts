@@ -127,26 +127,25 @@ describe('QuestionnaireComponent', () => {
     expect(nav).toHaveBeenCalledWith(['/checkout', 42]);
   });
 
-  it('cancela el timeout de restoreResult al destruir', fakeAsync(() => {
+  it('cancela restoreResult si el HTTP llega después de destroy', fakeAsync(() => {
     resume = 'result';
     sessionStorage.setItem('d360_q_result', JSON.stringify({ answers: { both_want_divorce: true } }));
-    const clearSpy = spyOn(window, 'clearTimeout').and.callThrough();
+    const pending = new Subject<QuestionnaireResult>();
+    api.evaluate.and.returnValue(pending);
     const local = TestBed.createComponent(QuestionnaireComponent);
     local.detectChanges();
-    expect(api.evaluate).toHaveBeenCalled();
     local.destroy();
-    expect(clearSpy).toHaveBeenCalled();
+    pending.next(APTO);
+    pending.complete();
     tick(20);
     expect(api.requestMeeting).not.toHaveBeenCalled();
   }));
 
-  it('expone data-stage y no fuerza foco al responder', () => {
+  it('mueve el foco al control de la nueva pregunta', () => {
     fixture.detectChanges();
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('.ob')?.getAttribute('data-stage')).toBe('questions');
-    const focusSpy = spyOn(HTMLElement.prototype, 'focus');
     cmp().answer(false);
     fixture.detectChanges();
-    expect(focusSpy).not.toHaveBeenCalled();
+    const active = document.activeElement as HTMLElement | null;
+    expect(active?.classList.contains('ob-choice')).toBeTrue();
   });
 });

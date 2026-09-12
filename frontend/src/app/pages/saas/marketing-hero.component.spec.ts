@@ -78,4 +78,27 @@ describe('MarketingHeroComponent CTA', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary')).not.toBeNull();
     fixture.destroy();
   }));
+
+  it('ignora un rechazo tardío si otra reproducción ya está activa', fakeAsync(async () => {
+    let rejectFirst: (reason: Error) => void = () => undefined;
+    const first = new Promise<void>((_, reject) => {
+      rejectFirst = reject;
+    });
+    spyOn(HTMLMediaElement.prototype, 'play').and.returnValues(
+      first as Promise<void>,
+      Promise.resolve(),
+    );
+    const fixture = await renderHero(null);
+    fixture.componentInstance.tryPlay();
+    const video = (fixture.nativeElement as HTMLElement).querySelector('video') as HTMLVideoElement | null;
+    if (video) {
+      Object.defineProperty(video, 'paused', { configurable: true, get: () => false });
+    }
+    rejectFirst(new Error('autoplay'));
+    tick();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.useStaticFallback).toBeFalse();
+    expect((fixture.nativeElement as HTMLElement).querySelector('video')).not.toBeNull();
+    fixture.destroy();
+  }));
 });

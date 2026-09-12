@@ -72,6 +72,18 @@ describe('CheckoutComponent', () => {
     expect(document.body.style.overflow).toBe('scroll');
   }));
 
+  it('rotula notaría como gasto externo y cobra solo el trámite', () => {
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+    expect(text).toContain('Gastos notariales');
+    expect(text).toContain('Se paga en notaría');
+    expect(text).toContain('$349.00');
+    expect(text).toContain('No incluye gastos notariales');
+    expect(fixture.componentInstance.cart.totalCents).toBe(34900);
+    const notary = fixture.componentInstance.cart.lines.find((line) => line.id === 'notary');
+    expect(notary?.billedSeparately).toBeTrue();
+  });
+
   it('abre éxito si el caso ya está pagado', () => {
     api.getCase.and.returnValue(of({ case: { ...CASE, paid: true } }));
     fixture.detectChanges();

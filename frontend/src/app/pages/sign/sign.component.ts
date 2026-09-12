@@ -52,7 +52,14 @@ type SignMode = 'upload' | 'done';
                 <h2>Sube tu documento firmado</h2>
               </div>
               <p class="pf-muted">Adjunta el PDF o imagen del documento ya firmado (escaneado o firmado digitalmente).</p>
-              <label class="up-dropzone" [class.has-file]="!!selectedFile">
+              <label
+                class="up-dropzone"
+                [class.has-file]="!!selectedFile"
+                [class.drag]="dragOver"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)"
+              >
                 <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onFile($event)" hidden />
                 @if (selectedFile) {
                   <strong>{{ selectedFile.name }}</strong>
@@ -232,10 +239,11 @@ export class SignComponent implements OnInit {
   error = '';
   signature: any = null;
   theme = productThemeFromCase();
-  signBlocked = '';
+  signBlocked = 'Cargando el expediente…';
   signHint = '';
   mode: SignMode = 'upload';
   selectedFile: File | null = null;
+  dragOver = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -249,24 +257,25 @@ export class SignComponent implements OnInit {
 
   ngOnInit(): void {
     this.caseId = Number(this.route.snapshot.paramMap.get('id'));
-    this.api.getCase(this.caseId).subscribe((d) => {
-      this.theme = productThemeFromCase(d.case?.product);
-      this.signHint = d.case?.sign_hint || '';
-      if (!d.case?.can_sign) {
-        this.signBlocked = d.case?.has_minuta
-          ? 'La firma aún no está habilitada para este expediente.'
-          : 'Tu abogado aún prepara la minuta. Te avisaremos cuando puedas firmar.';
-      }
-    });
-    this.api.listOutputs(this.caseId).subscribe((outs) => {
-      const m = outs.find((o: any) => o.output_type === 'minuta');
-      if (m?.url) this.minutaUrl = this.sanitizer.bypassSecurityTrustResourceUrl(m.url);
-    });
-    this.api.listSignatures(this.caseId).subscribe((sigs) => {
-      if (sigs?.length) {
-        this.signature = sigs[0];
-        this.mode = 'done';
-      }
+    this.api.getCase(this.caseId).subscribe({
+      next: (d) => {
+        this.theme = productThemeFromCase(d.case?.product);
+        this.signHint = d.case?.sign_hint || '';
+        if (!d.case?.can_sign) {
+          this.signBlocked = d.case?.has_minuta
+            ? 'La firma aún no está habilitada para este expediente.'
+            : 'Tu abogado aún prepara la minuta. Te avisaremos cuando puedas firmar.';
+          return;
+        }
+        this.signBlocked = '';
+        this.loadOutputsAndSignatures();
+      },
+      error: () => {
+        this.signBlocked = 'No pudimos cargar el expediente. Vuelve al expediente e inténtalo de nuevo.';
+        this.signHint = '';
+        this.minutaUrl = null;
+        this.signature = null;
+      },
     });
   }
 
@@ -274,6 +283,28 @@ export class SignComponent implements OnInit {
     const input = ev.target as HTMLInputElement;
     this.selectedFile = input.files?.[0] ?? null;
     this.error = '';
+  }
+
+  onDragOver(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.dragOver = true;
+  }
+
+  onDragLeave(e: DragEvent): void {
+    e.preventDefault();
+    this.dragOver = false;
+  }
+
+  onDrop(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.dragOver = false;
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      this.selectedFile = file;
+      this.error = '';
+    }
   }
 
   isPdf(url: string): boolean {
@@ -284,6 +315,19 @@ export class SignComponent implements OnInit {
     this.mode = 'upload';
     this.selectedFile = null;
     this.error = '';
+  }
+
+  private loadOutputsAndSignatures(): void {
+    this.api.listOutputs(this.caseId).subscribe((outs) => {
+      const m = outs.find((o: any) => o.output_type === 'minuta');
+      if (m?.url) this.minutaUrl = this.sanitizer.bypassSecurityTrustResourceUrl(m.url);
+    });
+    this.api.listSignatures(this.caseId).subscribe((sigs) => {
+      if (sigs?.length) {
+        this.signature = sigs[0];
+        this.mode = 'done';
+      }
+    });
   }
 
   submit(): void {

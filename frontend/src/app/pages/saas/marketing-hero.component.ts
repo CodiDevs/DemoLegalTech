@@ -292,6 +292,7 @@ export class MarketingHeroComponent implements AfterViewInit {
   readonly posterSrc = '/videos/legalstation-hero-poster.jpg';
 
   useStaticFallback = false;
+  private playAttempt = 0;
 
   @ViewChild('videoRef') videoRef?: ElementRef<HTMLVideoElement>;
 
@@ -304,10 +305,15 @@ export class MarketingHeroComponent implements AfterViewInit {
   tryPlay(): void {
     const el = this.videoRef?.nativeElement;
     if (!el || this.useStaticFallback) return;
+    if (!el.paused && el.currentTime > 0) return;
     el.muted = true;
+    const attempt = ++this.playAttempt;
     const play = el.play();
     if (play && typeof play.catch === 'function') {
       play.catch(() => {
+        if (attempt !== this.playAttempt) return;
+        const video = this.videoRef?.nativeElement;
+        if (video && !video.paused) return;
         this.useStaticFallback = true;
         this.cdr.detectChanges();
       });
