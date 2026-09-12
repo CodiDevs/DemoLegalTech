@@ -1,17 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { productThemeFromCase } from '../../shared/product-sites.data';
-import { IconComponent } from '../../shared/icon.component';
 
 type SignMode = 'upload' | 'done';
 
 @Component({
   selector: 'app-sign',
   standalone: true,
-  imports: [RouterLink, ProductFlowShellComponent, IconComponent],
+  imports: [RouterLink, ProductFlowShellComponent],
   template: `
     <app-product-flow-shell
       [theme]="theme"
@@ -27,13 +27,13 @@ type SignMode = 'upload' | 'done';
           <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Volver al expediente</a>
         </div>
       } @else {
-        <ol class="sign-steps">
+        <ol class="sign-steps" [hidden]="mode === 'done'">
           <li [class.active]="true" [class.done]="mode === 'done'">Revisar minuta</li>
           <li [class.active]="mode === 'upload'" [class.done]="mode === 'done'">Subir documento firmado</li>
           <li [class.active]="mode === 'done'" [class.done]="mode === 'done'">Confirmación</li>
         </ol>
 
-        <div class="sign-layout" [class.is-sending]="busy" [class.is-done]="mode === 'done'">
+        <div class="sign-layout sign-stage" [class.is-sending]="busy" [class.is-done]="mode === 'done'">
           @if (minutaUrl) {
             <section class="pf-card lp-lift sign-minuta">
               <div class="sign-section-head">
@@ -77,36 +77,26 @@ type SignMode = 'upload' | 'done';
               @if (error) { <p class="pf-err sign-feedback">{{ error }}</p> }
             </section>
           } @else {
-            <section class="pf-card lp-lift sign-done pf-state-swap">
-              <div class="sign-success-hero">
-                <span class="sign-check pf-check-pop" aria-hidden="true">
-                  <app-icon name="check-circle" [size]="36" />
-                </span>
-                <span class="pf-badge">Paso 3</span>
-                <h2>Documento enviado</h2>
-              </div>
-              <div class="pf-receipt sign-receipt">
-                <p class="pf-ok">Tu documento firmado fue enviado correctamente.</p>
-                <p class="pf-muted">El abogado lo revisará y confirmará para continuar a notaría virtual.</p>
-              </div>
+            <section class="sign-finale" aria-live="polite">
+              <img class="seal" src="/demo-scenes/legal-seal-demo.svg" width="220" height="220" alt="" />
+              <h1>Documento enviado</h1>
+              <p>El abogado lo revisará y confirmará para continuar a notaría virtual.</p>
               @if (signature) {
-                <div class="sign-evidence">
-                  @if (isPdf(signature.image_url)) {
-                    <a class="lp-btn lp-btn-outline" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
-                  } @else {
-                    <img [src]="signature.image_url" alt="Documento firmado" class="sign-thumb" />
-                  }
-                  <dl class="sign-meta">
-                    <div><dt>Fecha</dt><dd>{{ signature.signed_at }}</dd></div>
-                    <div><dt>IP</dt><dd>{{ signature.ip }}</dd></div>
-                  </dl>
-                </div>
+                <dl class="sign-meta">
+                  <div><dt>Fecha</dt><dd>{{ signature.signed_at }}</dd></div>
+                  <div><dt>IP</dt><dd>{{ signature.ip }}</dd></div>
+                </dl>
+                @if (isPdf(signature.image_url)) {
+                  <a class="lp-btn lp-btn-outline" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
+                } @else {
+                  <img [src]="signature.image_url" alt="Documento firmado" class="sign-thumb" />
+                }
               }
-              <div class="sign-actions">
+              <div class="sign-actions sign-cta-late">
                 <button class="lp-btn lp-btn-outline" type="button" (click)="startReupload()">Firmar de nuevo</button>
                 <a class="lp-btn lp-btn-primary pf-cta-unlock" [routerLink]="['/caso', caseId]">Volver al expediente</a>
               </div>
-              <p class="pf-muted sign-note">Al subir de nuevo, el documento anterior se reemplaza.</p>
+              <p class="sign-note">Al subir de nuevo, el documento anterior se reemplaza.</p>
             </section>
           }
         </div>
@@ -232,7 +222,7 @@ type SignMode = 'upload' | 'done';
     }
   `],
 })
-export class SignComponent implements OnInit {
+export class SignComponent implements OnInit, OnDestroy {
   caseId = 0;
   minutaUrl: SafeResourceUrl | null = null;
   busy = false;
@@ -244,6 +234,8 @@ export class SignComponent implements OnInit {
   mode: SignMode = 'upload';
   selectedFile: File | null = null;
   dragOver = false;
+  private destroyed = false;
+  private subs: { unsubscribe: () => void }[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -257,26 +249,60 @@ export class SignComponent implements OnInit {
 
   ngOnInit(): void {
     this.caseId = Number(this.route.snapshot.paramMap.get('id'));
-    this.api.getCase(this.caseId).subscribe({
-      next: (d) => {
-        this.theme = productThemeFromCase(d.case?.product);
-        this.signHint = d.case?.sign_hint || '';
-        if (!d.case?.can_sign) {
-          this.signBlocked = d.case?.has_minuta
-            ? 'La firma aún no está habilitada para este expediente.'
-            : 'Tu abogado aún prepara la minuta. Te avisaremos cuando puedas firmar.';
-          return;
-        }
-        this.signBlocked = '';
-        this.loadOutputsAndSignatures();
-      },
-      error: () => {
-        this.signBlocked = 'No pudimos cargar el expediente. Vuelve al expediente e inténtalo de nuevo.';
-        this.signHint = '';
-        this.minutaUrl = null;
-        this.signature = null;
-      },
-    });
+    this.subs.push(
+      this.api.getCase(this.caseId).pipe(
+        switchMap((d) => {
+          if (this.destroyed) return of(null);
+          this.theme = productThemeFromCase(d.case?.product);
+          this.signHint = d.case?.sign_hint || '';
+          if (!d.case?.can_sign) {
+            this.signBlocked = d.case?.has_minuta
+              ? 'La firma aún no está habilitada para este expediente.'
+              : 'Tu abogado aún prepara la minuta. Te avisaremos cuando puedas firmar.';
+            return of(null);
+          }
+          return forkJoin({
+            outs: this.api.listOutputs(this.caseId),
+            sigs: this.api.listSignatures(this.caseId),
+          }).pipe(
+            catchError(() => {
+              this.signBlocked = 'No pudimos confirmar la minuta. Vuelve al expediente e inténtalo de nuevo.';
+              this.minutaUrl = null;
+              this.signature = null;
+              return of(null);
+            }),
+          );
+        }),
+      ).subscribe({
+        next: (snap) => {
+          if (this.destroyed || !snap) return;
+          const minuta = snap.outs.find((o: { output_type?: string; url?: string }) => o.output_type === 'minuta');
+          if (!minuta?.url) {
+            this.signBlocked = 'Falta la minuta confirmada. Vuelve al expediente e inténtalo de nuevo.';
+            this.minutaUrl = null;
+            return;
+          }
+          this.minutaUrl = this.sanitizer.bypassSecurityTrustResourceUrl(minuta.url);
+          if (snap.sigs?.length) {
+            this.signature = snap.sigs[0];
+            this.mode = 'done';
+          }
+          this.signBlocked = '';
+        },
+        error: () => {
+          if (this.destroyed) return;
+          this.signBlocked = 'No pudimos cargar el expediente. Vuelve al expediente e inténtalo de nuevo.';
+          this.signHint = '';
+          this.minutaUrl = null;
+          this.signature = null;
+        },
+      }),
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.subs.forEach((s) => s.unsubscribe());
   }
 
   onFile(ev: Event): void {
@@ -317,34 +343,25 @@ export class SignComponent implements OnInit {
     this.error = '';
   }
 
-  private loadOutputsAndSignatures(): void {
-    this.api.listOutputs(this.caseId).subscribe((outs) => {
-      const m = outs.find((o: any) => o.output_type === 'minuta');
-      if (m?.url) this.minutaUrl = this.sanitizer.bypassSecurityTrustResourceUrl(m.url);
-    });
-    this.api.listSignatures(this.caseId).subscribe((sigs) => {
-      if (sigs?.length) {
-        this.signature = sigs[0];
-        this.mode = 'done';
-      }
-    });
-  }
-
   submit(): void {
     if (!this.selectedFile || this.busy) return;
+    const kept = this.selectedFile;
     this.busy = true;
     this.error = '';
-    this.api.sign(this.caseId, this.selectedFile).subscribe({
+    this.subs.push(this.api.sign(this.caseId, this.selectedFile).subscribe({
       next: (res) => {
+        if (this.destroyed) return;
         this.busy = false;
         this.signature = res;
         this.mode = 'done';
         this.selectedFile = null;
       },
       error: (e) => {
+        if (this.destroyed) return;
         this.busy = false;
+        this.selectedFile = kept;
         this.error = e?.error?.error || 'Error al enviar el documento';
       },
-    });
+    }));
   }
 }

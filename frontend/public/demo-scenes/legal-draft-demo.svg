@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="560" viewBox="0 0 420 560" role="img" aria-labelledby="ldTitle ldDesc">
+  <title id="ldTitle">Minuta juridica ficticia</title>
+  <desc id="ldDesc">DOCUMENTO FICTICIO - DEMO. Borrador de demostracion, no es una minuta real.</desc>
+  <rect width="420" height="560" fill="#faf7f0"/>
+  <text x="48" y="48" font-family="system-ui, sans-serif" font-size="10" letter-spacing="2.4" fill="#2f6f68">DOCUMENTO FICTICIO - DEMO</text>
+  <text x="48" y="82" font-family="Georgia, serif" font-size="20" fill="#1b1917">Minuta de divorcio</text>
+  <text x="48" y="106" font-family="system-ui, sans-serif" font-size="12" fill="#7d786f">Expediente LS-DEMO-014 | Quito</text>
+  <line x1="48" y1="122" x2="372" y2="122" stroke="#e5e3de"/>
+  <text x="48" y="156" font-family="system-ui, sans-serif" font-size="12" fill="#423e38">Comparecientes de demostracion acuerdan</text>
+  <text x="48" y="176" font-family="system-ui, sans-serif" font-size="12" fill="#423e38">disolver el vinculo por mutuo consentimiento.</text>
+  <text x="48" y="208" font-family="system-ui, sans-serif" font-size="12" fill="#5c5750">Clausula 1 - Capacidad y voluntad (ficticia).</text>
+  <text x="48" y="228" font-family="system-ui, sans-serif" font-size="12" fill="#5c5750">Clausula 2 - Bienes: no se liquidan en este acto.</text>
+  <text x="48" y="248" font-family="system-ui, sans-serif" font-size="12" fill="#5c5750">Clausula 3 - Firma electronica de prueba.</text>
+  <rect x="48" y="300" width="140" height="64" fill="none" stroke="#cfccc5"/>
+  <text x="56" y="328" font-family="Georgia, serif" font-size="18" fill="#2b2824">A. Demo</text>
+  <text x="56" y="348" font-family="system-ui, sans-serif" font-size="10" fill="#7d786f">Firma parte A</text>
+  <rect x="232" y="300" width="140" height="64" fill="none" stroke="#cfccc5"/>
+  <text x="240" y="328" font-family="Georgia, serif" font-size="18" fill="#2b2824">B. Demo</text>
+  <text x="240" y="348" font-family="system-ui, sans-serif" font-size="10" fill="#7d786f">Firma parte B</text>
+  <circle cx="340" cy="460" r="48" fill="none" stroke="#2f6f68" stroke-width="2"/>
+  <text x="340" y="456" text-anchor="middle" font-family="Georgia, serif" font-size="12" fill="#2f6f68">DEMO</text>
+  <text x="340" y="474" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" fill="#2f6f68">SIN VALOR LEGAL</text>
+  <text x="48" y="528" font-family="system-ui, sans-serif" font-size="10" fill="#a8a49b">LegalStation - escenario de producto</text>
+</svg>

@@ -3,6 +3,7 @@ import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { CheckoutComponent } from './checkout.component';
+import { chargedLineCents } from '../../shared/checkout-cart';
 
 const CASE = {
   id: 7,
@@ -76,12 +77,13 @@ describe('CheckoutComponent', () => {
     fixture.detectChanges();
     const text = (fixture.nativeElement as HTMLElement).textContent || '';
     expect(text).toContain('Gastos notariales');
-    expect(text).toContain('Se paga en notaría');
+    expect(text).toContain('Se paga por separado');
     expect(text).toContain('$349.00');
     expect(text).toContain('No incluye gastos notariales');
     expect(fixture.componentInstance.cart.totalCents).toBe(34900);
     const notary = fixture.componentInstance.cart.lines.find((line) => line.id === 'notary');
     expect(notary?.billedSeparately).toBeTrue();
+    expect(chargedLineCents(fixture.componentInstance.cart)).toBe(fixture.componentInstance.cart.totalCents);
   });
 
   it('abre éxito si el caso ya está pagado', () => {
@@ -89,4 +91,27 @@ describe('CheckoutComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.paymentStep).toBe('success');
   });
+
+  it('Shift+Tab desde el overlay no escapa el diálogo', fakeAsync(() => {
+    fixture.detectChanges();
+    fixture.componentInstance.pay();
+    tick(1800);
+    fixture.detectChanges();
+    const overlay = (fixture.nativeElement as HTMLElement).querySelector('.pay-overlay') as HTMLElement;
+    expect(overlay).not.toBeNull();
+    overlay.focus();
+    const outsider = document.createElement('a');
+    outsider.href = '#outside';
+    outsider.textContent = 'out';
+    document.body.prepend(outsider);
+    document.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    }));
+    expect(document.activeElement).not.toBe(outsider);
+    expect(overlay.contains(document.activeElement)).toBeTrue();
+    outsider.remove();
+  }));
 });

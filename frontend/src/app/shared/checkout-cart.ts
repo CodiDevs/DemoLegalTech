@@ -114,6 +114,13 @@ export function buildCheckoutCart(
   };
 }
 
+/** Suma de líneas cobradas aquí (excluye incluidos y billedSeparately). */
+export function chargedLineCents(cart: CheckoutCart): number {
+  return cart.lines
+    .filter((line) => line.applies && !line.includedInPackage && !line.billedSeparately)
+    .reduce((sum, line) => sum + line.referenceCents, 0);
+}
+
 export function parseQuestionnaire(raw?: string | Record<string, unknown>): Partial<QuestionnaireAnswers> {
   if (!raw) return {};
   if (typeof raw === 'object') return raw as Partial<QuestionnaireAnswers>;

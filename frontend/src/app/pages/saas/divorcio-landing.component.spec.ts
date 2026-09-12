@@ -70,11 +70,11 @@ describe('DivorcioLandingComponent', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     const ids = Array.from(root.querySelectorAll('section[id]')).map((el) => el.id);
-    expect(ids).toEqual(['sistema', 'flujo', 'capacidades', 'en-accion', 'precios']);
-    expect(root.querySelector('app-elastic-gallery')).not.toBeNull();
-    expect(root.querySelector('app-landing-statistics')).not.toBeNull();
+    expect(ids).toEqual(['sistema', 'evidencia', 'flujo', 'precios']);
+    expect(root.querySelector('app-elastic-gallery')).toBeNull();
+    expect(root.querySelector('app-landing-statistics')).toBeNull();
     expect(root.textContent).toContain('6 etapas');
     expect(root.textContent).toContain('$349');
-    expect(root.querySelectorAll('.eg-panel').length).toBe(2);
+    expect(root.querySelector('app-demo-case-window')).not.toBeNull();
   });
 });

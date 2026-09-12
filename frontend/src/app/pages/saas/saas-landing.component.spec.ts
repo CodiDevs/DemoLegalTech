@@ -48,7 +48,7 @@ describe('SaasLandingComponent', () => {
   it('lleva el CTA de Divorcio360 a la landing del producto, no al cuestionario', () => {
     fixture.detectChanges();
     const featured = (fixture.nativeElement as HTMLElement).querySelector(
-      '.ls-feature .lp-btn-primary',
+      '.ls-hero-cta',
     );
     expect(featured?.getAttribute('href')).toBe('/productos/divorcio360');
     expect(featured?.getAttribute('href')).not.toBe('/cuestionario');

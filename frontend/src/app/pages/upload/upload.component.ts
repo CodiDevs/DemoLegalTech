@@ -36,32 +36,30 @@ interface DocRow {
         </div>
       }
 
-      <div class="up-layout" [class.up-complete]="canContinue">
-        <aside class="up-side lp-lift">
-          <h3>Tu checklist</h3>
-          <p class="pf-muted">Solo necesitas <strong>{{ slots.length }} documentos</strong> para continuar.</p>
-          <ul class="up-checklist">
+      <div class="up-desk" [style.--p]="progressPct / 100" [class.up-complete]="canContinue">
+        <nav class="up-folios" aria-label="Requisitos">
+          <p class="up-folios-kicker">{{ uploadedCount }}/{{ slots.length }}</p>
+          <ol>
             @for (slot of slots; track slot.type) {
-              <li [class.done]="slotUploaded(slot.type)">
-                <span class="up-check-icon">
-                  @if (slotUploaded(slot.type)) { <app-icon name="check" [size]="16" /> }
-                </span>
-                <span>{{ slot.label }}</span>
+              <li>
+                <button
+                  type="button"
+                  class="up-folio-tab"
+                  [class.done]="slotUploaded(slot.type)"
+                  (click)="scrollSheet(slot.type)"
+                >
+                  {{ slot.label }}
+                </button>
               </li>
             }
-          </ul>
-          <div class="up-progress">
-            <div class="up-progress-bar" [style.--p]="progressPct / 100"></div>
-          </div>
-          <p class="pf-muted">{{ uploadedCount }}/{{ slots.length }} cargados</p>
-          <p class="pf-muted up-format-note">
-            Formatos: PDF, JPG, PNG · máx. 10 MB
-          </p>
-        </aside>
+          </ol>
+          <div class="up-spine" aria-hidden="true"></div>
+          <p class="pf-muted up-format-note">PDF, JPG, PNG · máx. 10 MB</p>
+        </nav>
 
-        <div class="up-slots">
+        <div class="up-table">
           @for (slot of slots; track slot.type) {
-            <div [class]="slotClass(slot.type)">
+            <article [id]="'sheet-' + slot.type" [class]="slotClass(slot.type)">
               <div class="up-slot-head">
                 <h2>{{ slot.label }}</h2>
                 <span class="up-slot-badge" [class]="slotBadgeClass(slot.type)">{{ slotBadgeLabel(slot.type) }}</span>
@@ -103,7 +101,7 @@ interface DocRow {
                   {{ uploading === slot.type ? 'Subiendo…' : 'El archivo anterior queda en historial; el abogado revisa el más reciente.' }}
                 </p>
               </label>
-            </div>
+            </article>
           }
         </div>
       </div>
@@ -211,8 +209,7 @@ export class UploadComponent implements OnInit {
   slotClass(type: string): Record<string, boolean> {
     const doc = this.latestDoc(type);
     return {
-      'pf-card': true,
-      'lp-lift': true,
+      'up-sheet': true,
       'up-slot': true,
       'is-uploading': this.uploading === type,
       'is-drag': this.drag === type,
@@ -221,6 +218,10 @@ export class UploadComponent implements OnInit {
       'is-rejected': doc?.review_status === 'rejected',
       'is-review': !!doc && doc.review_status !== 'approved' && doc.review_status !== 'rejected',
     };
+  }
+
+  scrollSheet(type: string): void {
+    document.getElementById('sheet-' + type)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   slotBadgeClass(type: string): string {

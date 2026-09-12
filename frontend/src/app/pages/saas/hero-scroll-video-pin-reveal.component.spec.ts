@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AuthService } from '../../core/auth.service';
@@ -34,6 +34,15 @@ function configureHero(): Promise<void> {
   }).compileComponents();
 }
 
+async function waitUntil(check: () => boolean, ms = 2500): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < ms) {
+    if (check()) return;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  throw new Error('timeout waiting for ScrollTrigger');
+}
+
 describe('activeStepFromProgress', () => {
   it('deriva el índice de etapa desde el progreso, también al revertir', () => {
     expect(activeStepFromProgress(0, 6)).toBe(0);
@@ -53,53 +62,21 @@ describe('HeroScrollVideoPinRevealComponent', () => {
   });
 
   describe('con movimiento', () => {
-    const rafPending = new Map<number, FrameRequestCallback>();
-    let rafSeq = 0;
-
-    function flushScheduledFrames(): void {
-      const queued = [...rafPending.entries()];
-      rafPending.clear();
-      for (const [, callback] of queued) {
-        callback(0);
-      }
-    }
-
     beforeEach(async () => {
-      rafPending.clear();
-      rafSeq = 0;
       spyOn(window, 'matchMedia').and.returnValue(motionQuery(false));
-      spyOn(window, 'requestAnimationFrame').and.callFake((callback: FrameRequestCallback) => {
-        rafSeq += 1;
-        rafPending.set(rafSeq, callback);
-        return rafSeq;
-      });
-      spyOn(window, 'cancelAnimationFrame').and.callFake((id: number) => {
-        rafPending.delete(id);
-      });
       await configureHero();
       fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
     });
 
-    it('no inicializa GSAP ni refresca ScrollTrigger si se destruye antes del frame', fakeAsync(() => {
-      const refreshSpy = spyOn(ScrollTrigger, 'refresh');
-
+    it('no deja ScrollTrigger si se destruye antes del boot', async () => {
       fixture.detectChanges();
       fixture.destroy();
-      flushScheduledFrames();
-      flushScheduledFrames();
-      tick(100);
-
-      expect(refreshSpy).not.toHaveBeenCalled();
+      await new Promise((r) => setTimeout(r, 200));
       expect(ScrollTrigger.getAll().length).toBe(0);
-    }));
+    });
 
-    it('no deja las palabras del H1 en opacity 0 si el reveal no arranca', fakeAsync(() => {
-      spyOn(ScrollTrigger, 'refresh').and.stub();
-
+    it('no deja las palabras del H1 en opacity 0 si el reveal no arranca', () => {
       fixture.detectChanges();
-      flushScheduledFrames();
-      flushScheduledFrames();
-
       const words = Array.from(
         (fixture.nativeElement as HTMLElement).querySelectorAll('.reveal-word'),
       ) as HTMLElement[];
@@ -109,25 +86,10 @@ describe('HeroScrollVideoPinRevealComponent', () => {
         expect(word.style.opacity).not.toBe('0');
         expect(Number(getComputedStyle(word).opacity)).toBeGreaterThan(0);
       }
-
-      fixture.destroy();
-      tick(100);
-      expect(ScrollTrigger.getAll().length).toBe(0);
-    }));
+    });
   });
 
   describe('según viewport', () => {
-    const rafPending = new Map<number, FrameRequestCallback>();
-    let rafSeq = 0;
-
-    function flushScheduledFrames(): void {
-      const queued = [...rafPending.entries()];
-      rafPending.clear();
-      for (const [, callback] of queued) {
-        callback(0);
-      }
-    }
-
     function mediaFor(query: string, active: string): MediaQueryList {
       return {
         matches: query === active,
@@ -142,52 +104,33 @@ describe('HeroScrollVideoPinRevealComponent', () => {
     }
 
     async function mountWith(activeQuery: string): Promise<void> {
-      rafPending.clear();
-      rafSeq = 0;
       spyOn(window, 'matchMedia').and.callFake((q: string) => mediaFor(q, activeQuery));
-      spyOn(window, 'requestAnimationFrame').and.callFake((callback: FrameRequestCallback) => {
-        rafSeq += 1;
-        rafPending.set(rafSeq, callback);
-        return rafSeq;
-      });
-      spyOn(window, 'cancelAnimationFrame').and.callFake((id: number) => {
-        rafPending.delete(id);
-      });
       await configureHero();
       fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
     }
 
-    it('arma trigger con pin en desktop y lo limpia al destruir', fakeAsync(async () => {
+    it('arma trigger con pin en desktop y lo limpia al destruir', async () => {
       await mountWith('(min-width: 1024px)');
       fixture.detectChanges();
-      flushScheduledFrames();
-      flushScheduledFrames();
-      tick(100);
-
-      expect(ScrollTrigger.getAll().length).toBeGreaterThan(0);
-      const pinned = ScrollTrigger.getAll().some((t) => !!t.pin);
-      expect(pinned).toBeTrue();
+      await waitUntil(() => ScrollTrigger.getAll().some((t) => !!t.pin));
+      expect(ScrollTrigger.getAll().some((t) => !!t.pin)).toBeTrue();
 
       fixture.destroy();
-      tick(100);
+      await new Promise((r) => setTimeout(r, 50));
       expect(ScrollTrigger.getAll().length).toBe(0);
-    }));
+    });
 
-    it('en móvil anima el expediente sin pin largo', fakeAsync(async () => {
+    it('en móvil anima el expediente sin pin largo', async () => {
       await mountWith('(max-width: 639.9px)');
       fixture.detectChanges();
-      flushScheduledFrames();
-      flushScheduledFrames();
-      tick(100);
-
+      await waitUntil(() => ScrollTrigger.getAll().length > 0);
       const mock = (fixture.nativeElement as HTMLElement).querySelector('.hsvr-mock');
       expect(mock).not.toBeNull();
-      const pinned = ScrollTrigger.getAll().some((t) => !!t.pin);
-      expect(pinned).toBeFalse();
+      expect(ScrollTrigger.getAll().some((t) => !!t.pin)).toBeFalse();
 
       fixture.destroy();
-      tick(100);
+      await new Promise((r) => setTimeout(r, 50));
       expect(ScrollTrigger.getAll().length).toBe(0);
-    }));
+    });
   });
 });

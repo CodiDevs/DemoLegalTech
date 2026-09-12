@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -24,9 +24,13 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       subtitle="Un solo cobro — sin suscripción mensual."
     >
       @if (caseItem) {
-        <div class="checkout-grid" [class.is-dimmed]="isModalOpen">
-          <div class="checkout-col">
-            <div class="pf-card lp-lift checkout-form">
+        <div
+          class="checkout-grid ck-vault"
+          [class.is-dimmed]="isModalOpen"
+          [attr.inert]="isModalOpen ? '' : null"
+        >
+          <div class="checkout-col ck-card-stage">
+            <div class="pf-card lp-lift checkout-form ck-card-face">
               <div class="pf-field">
                 <label>Titular</label>
                 <input [(ngModel)]="holder" [disabled]="formLocked" />
@@ -60,17 +64,17 @@ type PaymentStep = 'idle' | 'processing' | 'success';
           <div class="checkout-col checkout-aside">
             <div class="pf-card lp-lift order-summary">
               <div class="cart-head">
-                <h2>Resumen del pedido</h2>
+                <h2>Expediente de cobro</h2>
                 <span class="cart-badge">{{ productName }}</span>
               </div>
 
-              <ul class="cart-items" aria-label="Ítems del carrito">
+              <ul class="cart-items ck-folios" aria-label="Ítems del carrito">
                 @for (line of cart.lines; track line.id) {
-                  <li class="cart-item">
+                  <li class="cart-item ck-folio" [class.is-external]="line.billedSeparately">
                     <span class="cart-item-name">{{ line.label }}</span>
                     <div class="cart-item-price">
                       @if (line.billedSeparately) {
-                        <span class="cart-external">Se paga en notaría</span>
+                        <span class="cart-external">Se paga por separado</span>
                         <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
                       } @else if (line.includedInPackage) {
                         <span class="cart-included">Incluido</span>
@@ -109,6 +113,8 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     @if (isModalOpen && caseItem) {
       <div
         class="pay-overlay"
+        #payOverlay
+        tabindex="-1"
         role="dialog"
         aria-modal="true"
         [attr.aria-labelledby]="paymentStep === 'processing' ? 'pay-modal-processing' : 'pay-modal-success'"
@@ -139,15 +145,17 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                 <p class="pay-modal-sub">Tu comprobante se emitió correctamente</p>
               </div>
 
-              <app-animated-ticket
-                [receiptOnly]="true"
-                [ticketId]="ref"
-                [amount]="caseItem.amount_cents / 100"
-                [date]="paidAt"
-                [cardHolder]="holder"
-                [last4Digits]="cardLast4"
-                [barcodeValue]="ref"
-              />
+              <div class="pay-printer">
+                <app-animated-ticket
+                  [receiptOnly]="true"
+                  [ticketId]="ref"
+                  [amount]="caseItem.amount_cents / 100"
+                  [date]="paidAt"
+                  [cardHolder]="holder"
+                  [last4Digits]="cardLast4"
+                  [barcodeValue]="ref"
+                />
+              </div>
 
               <a class="lp-btn lp-btn-primary upload-link" [routerLink]="['/upload', caseItem.id]">
                 Subir mis documentos
@@ -461,7 +469,8 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     }
   `],
 })
-export class CheckoutComponent implements OnInit, OnDestroy {
+export class CheckoutComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('payOverlay') payOverlay?: ElementRef<HTMLElement>;
   caseItem: CaseItem | null = null;
   holder = 'Carlos Mendoza';
   card = '4242 4242 4242 4242';
@@ -478,6 +487,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private payTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
   private prevOverflow = '';
+  private lastFocus: HTMLElement | null = null;
+  private modalFocused = false;
 
   constructor(private route: ActivatedRoute, private api: ApiService, private router: Router) {}
 
@@ -493,6 +504,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.api.getCase(id).subscribe({
       next: (d) => {
+        if (this.destroyed) return;
         this.caseItem = d.case;
         this.theme = productThemeFromCase(d.case?.product);
         this.productName = getProductDisplayName(d.case?.product || 'divorcio360');
@@ -514,6 +526,49 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.destroyed = true;
     if (this.payTimer !== undefined) clearTimeout(this.payTimer);
     this.lockScroll(false);
+    this.lastFocus?.focus();
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.isModalOpen && !this.modalFocused) {
+      this.lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      this.payOverlay?.nativeElement.focus();
+      this.modalFocused = true;
+    }
+    if (!this.isModalOpen) this.modalFocused = false;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  trapTab(event: KeyboardEvent): void {
+    if (!this.isModalOpen || event.key !== 'Tab') return;
+    const root = this.payOverlay?.nativeElement;
+    if (!root) return;
+    const nodes = Array.from(
+      root.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'),
+    ).filter((el) => !el.hasAttribute('disabled'));
+    const active = document.activeElement as HTMLElement | null;
+    const inside = !!active && (active === root || root.contains(active));
+    if (!nodes.length) {
+      event.preventDefault();
+      root.focus();
+      return;
+    }
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (!inside) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+    if (event.shiftKey && (active === first || active === root)) {
+      event.preventDefault();
+      last.focus();
+      return;
+    }
+    if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   @HostListener('document:keydown.escape')

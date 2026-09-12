@@ -58,9 +58,9 @@ describe('LegalPageComponent', () => {
     const privacy = shellRoutes.find((route) => route.path === 'legal/privacidad');
     const terms = shellRoutes.find((route) => route.path === 'legal/terminos');
 
-    expect(privacy?.component).toBe(LegalPageComponent);
+    expect(privacy?.loadComponent).toEqual(jasmine.any(Function));
     expect(privacy?.data).toEqual({ legalDocument: 'privacy' });
-    expect(terms?.component).toBe(LegalPageComponent);
+    expect(terms?.loadComponent).toEqual(jasmine.any(Function));
     expect(terms?.data).toEqual({ legalDocument: 'terms' });
   });
 });

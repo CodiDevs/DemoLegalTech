@@ -80,7 +80,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroTitle: 'Divorcio por mutuo acuerdo',
     heroHighlight: 'con seguimiento claro.',
     heroLede: 'Evalúa si tu caso encaja. Luego documentos, consulta, firma y cierre en un solo expediente.',
-    heroImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
+    heroImage: '/demo-scenes/legal-draft-demo.svg',
     ctaTitle: 'Evalúa si tu caso encaja',
     workflow: [
       {
@@ -155,8 +155,8 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       },
     ],
     gallery: [
-      { id: '01', title: 'Cuestionario Divorcio360', category: 'Cuestionario', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario divorcio' },
-      { id: '02', title: 'Expediente', category: 'Línea de estados', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Expediente' },
+      { id: '01', title: 'Cuestionario Divorcio360', category: 'Cuestionario', src: '/demo-scenes/legal-draft-demo.svg', alt: 'Minuta ficticia DEMO' },
+      { id: '02', title: 'Expediente', category: 'Línea de estados', src: '/demo-scenes/identity-demo.svg', alt: 'Identidad ficticia DEMO' },
     ],
     testimonials: [
       { quote: 'Resolvimos el divorcio sin ir dos veces a la notaría.', author: 'Ana R.', role: 'Cliente · Quito' },
@@ -204,7 +204,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroTitle: 'Traslado vehicular',
     heroHighlight: 'sin filas ni trámites.',
     heroLede: 'Mutuo acuerdo, pago único y reunión notarial virtual — al mismo costo que presencial, desde tu pantalla.',
-    heroImage: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1400&q=80',
+    heroImage: '/demo-scenes/identity-demo.svg',
     ctaTitle: '¿Listo para tu traslado?',
     workflow: [
       { n: 1, title: 'Cuestionario', desc: 'Datos del vehículo y acuerdo entre partes.', screen: 'Registro' },
@@ -221,10 +221,10 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { label: 'Reuniones', value: '2', detail: 'Consulta abogado + notaría virtual.', icon: 'users' },
     ],
     gallery: [
-      { id: '01', title: 'Cuestionario Traslado360', category: 'Cuestionario', src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80', alt: 'Formulario traslado' },
-      { id: '02', title: 'Pago único', category: 'Pago', src: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=900&q=80', alt: 'Pago trámite' },
-      { id: '03', title: 'Expediente trazable', category: 'Línea de estados', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Expediente' },
-      { id: '04', title: 'Reunión notarial', category: 'Notaría', src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80', alt: 'Videollamada notario' },
+      { id: '01', title: 'Cuestionario Traslado360', category: 'Cuestionario', src: '/demo-scenes/legal-draft-demo.svg', alt: 'Formulario traslado' },
+      { id: '02', title: 'Pago único', category: 'Pago', src: '/demo-scenes/signature-demo.svg', alt: 'Pago trámite' },
+      { id: '03', title: 'Expediente trazable', category: 'Línea de estados', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Expediente' },
+      { id: '04', title: 'Reunión notarial', category: 'Notaría', src: '/demo-scenes/legal-seal-demo.svg', alt: 'Videollamada notario' },
     ],
     testimonials: [
       { quote: 'Vendimos el auto en un día — sin ir a la notaría dos veces.', author: 'María V.', role: 'Cliente · Quito' },
@@ -276,7 +276,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroTitle: 'Traslado de inmueble',
     heroHighlight: 'al mismo costo, sin filas.',
     heroLede: 'Dominio de terreno o propiedad con comparecencia digital — pago único por trámite, sin membresía.',
-    heroImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=80',
+    heroImage: '/demo-scenes/marriage-record-demo.svg',
     ctaTitle: '¿Listo para tu traslado de inmueble?',
     workflow: [
       { n: 1, title: 'Cuestionario', desc: 'Datos del inmueble y partes de acuerdo.', screen: 'Registro' },
@@ -293,10 +293,10 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { label: 'Comparecencia', value: 'Virtual', detail: 'Notario en videollamada guiada.', icon: 'building' },
     ],
     gallery: [
-      { id: '01', title: 'Cuestionario BienRaiz360', category: 'Cuestionario', src: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=900&q=80', alt: 'Formulario inmueble' },
-      { id: '02', title: 'Honorario único', category: 'Precios', src: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=900&q=80', alt: 'Pago único' },
-      { id: '03', title: 'Línea de estados del expediente', category: 'Expediente', src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80', alt: 'Estados trámite' },
-      { id: '04', title: 'Consulta abogado', category: 'Consulta', src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80', alt: 'Videollamada' },
+      { id: '01', title: 'Cuestionario BienRaiz360', category: 'Cuestionario', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Formulario inmueble' },
+      { id: '02', title: 'Honorario único', category: 'Precios', src: '/demo-scenes/signature-demo.svg', alt: 'Pago único' },
+      { id: '03', title: 'Línea de estados del expediente', category: 'Expediente', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Estados trámite' },
+      { id: '04', title: 'Consulta abogado', category: 'Consulta', src: '/demo-scenes/legal-seal-demo.svg', alt: 'Videollamada' },
     ],
     testimonials: [
       { quote: 'Trasladamos el terreno familiar sin perder un día en filas.', author: 'Carlos M.', role: 'Cliente · Guayaquil' },
@@ -352,7 +352,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroTitle: 'Firma electrónica',
     heroHighlight: 'para documentos legales.',
     heroLede: 'Sobres de firma, auditoría y plantillas reutilizables en un hub de firma acreditada.',
-    heroImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1400&q=80',
+    heroImage: '/demo-scenes/signature-demo.svg',
     ctaTitle: '¿Listo para firmar?',
     workflow: [
       { n: 1, title: 'Evaluar caso', desc: 'Define el tipo de documento y firmantes.', screen: 'Registro' },
@@ -404,7 +404,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroTitle: 'CRM de expedientes',
     heroHighlight: 'para operadores legales.',
     heroLede: 'Bandeja, alertas SLA, pipeline kanban y notas visibles al cliente.',
-    heroImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80',
+    heroImage: '/demo-scenes/legal-seal-demo.svg',
     ctaTitle: '¿Listo para operar expedientes?',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Tipo de operación y volumen.', screen: 'Registro' },
@@ -444,7 +444,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroTitle: 'Cumplimiento LOPDP',
     heroHighlight: 'y auditoría de datos.',
     heroLede: 'Consentimiento, trazas de acceso y exportes para cumplimiento normativo.',
-    heroImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1400&q=80',
+    heroImage: '/demo-scenes/paper-fibers.svg',
     ctaTitle: '¿Listo para cumplir LOPDP?',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Alcance de datos personales.', screen: 'Registro' },
@@ -480,7 +480,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroTitle: 'Agenda notarial',
     heroHighlight: 'y comparecencia digital.',
     heroLede: 'Directorio de notarías, comparecencia y seguimiento hasta acta emitida.',
-    heroImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
+    heroImage: '/demo-scenes/legal-seal-demo.svg',
     ctaTitle: '¿Listo para agendar notaría?',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Tipo de acto notarial.', screen: 'Registro' },
@@ -552,8 +552,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'divorcio360', name: 'Divorcio360', tagline: 'Mutuo consentimiento con cuestionario, pago y expediente trazable.',
     pillDesc: 'Contratos de divorcio notarial', icon: 'scale', iconBg: '#e8efe6',
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
-    showcaseImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
+    image: '/demo-scenes/legal-draft-demo.svg',
+    showcaseImage: '/demo-scenes/legal-draft-demo.svg',
     showcaseDesc: 'Cuestionario inteligente, pago, expediente de 10 estados y firma — el flujo completo en vivo.',
     features: ['Cuestionario inteligente', '10 estados de trámite', 'Firma y minuta'],
     live: true, route: '/productos/divorcio360',
@@ -561,8 +561,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'traslado360', name: 'Traslado360', tagline: 'Traslado vehicular con acuerdo mutuo y firma notarial.',
     pillDesc: 'Traslado de vehículo', icon: 'file', iconBg: '#e8f4f8',
-    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80',
-    showcaseImage: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1400&q=80',
+    image: '/demo-scenes/identity-demo.svg',
+    showcaseImage: '/demo-scenes/identity-demo.svg',
     showcaseDesc: 'Mutuo acuerdo, pago único, documentos y reunión virtual con notario.',
     features: ['Sitio producto completo', 'Pago único', 'Consulta + notaría virtual'],
     live: true, route: '/productos/traslado360',
@@ -570,8 +570,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'bienraiz360', name: 'BienRaiz360', tagline: 'Traslado de bienes inmuebles con comparecencia digital.',
     pillDesc: 'Traslado de inmueble', icon: 'building', iconBg: '#f0ebe3',
-    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-    showcaseImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=80',
+    image: '/demo-scenes/marriage-record-demo.svg',
+    showcaseImage: '/demo-scenes/marriage-record-demo.svg',
     showcaseDesc: 'Traslado de dominio de terreno o inmueble con reunión virtual.',
     features: ['Sitio producto completo', 'Honorario único', 'Expediente trazable'],
     live: true, route: '/productos/bienraiz360',
@@ -579,8 +579,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'signdesk', name: 'SignDesk', tagline: 'Hub de firma electrónica para documentos legales.',
     pillDesc: 'Firma ECI integrada', icon: 'pen', iconBg: '#f5ebe3',
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80',
-    showcaseImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1400&q=80',
+    image: '/demo-scenes/signature-demo.svg',
+    showcaseImage: '/demo-scenes/signature-demo.svg',
     showcaseDesc: 'Sobres de firma, auditoría legal y plantillas reutilizables.',
     features: ['Sobre de firma', 'Auditoría legal', 'Plantillas reutilizables'],
     live: false, route: '/productos/signdesk',
@@ -588,8 +588,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'matterflow', name: 'MatterFlow', tagline: 'Bandeja, SLA y pipeline para operadores jurídicos.',
     pillDesc: 'CRM de expedientes', icon: 'folder', iconBg: '#e3eef5',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
-    showcaseImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80',
+    image: '/demo-scenes/legal-seal-demo.svg',
+    showcaseImage: '/demo-scenes/legal-seal-demo.svg',
     showcaseDesc: 'Bandeja operador, alertas SLA, pipeline kanban y notas al cliente.',
     features: ['Vista kanban', 'Alertas SLA', 'Notas al cliente'],
     live: false, route: '/productos/matterflow',
@@ -597,8 +597,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'compliancehub', name: 'ComplianceHub', tagline: 'Consentimiento, retención y exportes de cumplimiento.',
     pillDesc: 'Cumplimiento LOPDP', icon: 'shield', iconBg: '#e3f5ef',
-    image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
-    showcaseImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1400&q=80',
+    image: '/demo-scenes/paper-fibers.svg',
+    showcaseImage: '/demo-scenes/paper-fibers.svg',
     showcaseDesc: 'Consentimiento en registro, trazas de acceso y exportes de auditoría.',
     features: ['Registro LOPDP', 'Trazas de acceso', 'Reportes de auditoría'],
     live: false, route: '/productos/compliancehub',
@@ -606,8 +606,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'notarylink', name: 'NotaryLink', tagline: 'Agenda, comparecencia y seguimiento de actas.',
     pillDesc: 'Agenda notarial EC', icon: 'building', iconBg: '#f0ebe3',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-    showcaseImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=80',
+    image: '/demo-scenes/legal-seal-demo.svg',
+    showcaseImage: '/demo-scenes/legal-seal-demo.svg',
     showcaseDesc: 'Directorio de notarías, comparecencia y sync SATJE.',
     features: ['Directorio notarías', 'Estado comparecencia', 'Sync SATJE'],
     live: false, route: '/productos/notarylink',

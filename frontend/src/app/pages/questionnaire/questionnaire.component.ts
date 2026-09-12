@@ -1,4 +1,5 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, QuestionnaireAnswers, QuestionnaireResult } from '../../core/api.service';
@@ -37,10 +38,13 @@ interface Question {
   imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
-      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [class.is-loading]="submitting">
+      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [attr.data-cat]="currentCategory" [class.is-loading]="submitting">
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
+          <p class="ob-counter" aria-hidden="true">
+            {{ pad(position) }} / {{ pad(visibleQuestions.length) }}
+          </p>
           <div class="ob-questions">
             <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + position + ' de ' + visibleQuestions.length">
               <div class="ob-segments">
@@ -69,10 +73,10 @@ interface Question {
             </div>
 
             <div class="ob-stage">
-              <div class="ob-card-slot">
+              <div class="ob-sheet-slot">
                 <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
                 @for (q of [current]; track q.key) {
-                  <section class="ob-card" [class.ob-card--back]="direction === -1">
+                  <section class="ob-sheet" [class.ob-sheet--back]="direction === -1">
                 <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
 
                 <h1>{{ q.text }}</h1>
@@ -161,7 +165,7 @@ interface Question {
 
         <!-- ============ Revisión ============ -->
         @if (stage === 'review') {
-          <section class="ob-card" [class.ob-card--back]="direction === -1">
+          <section class="ob-sheet ob-folios" [class.ob-sheet--back]="direction === -1">
             <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
             <h1>Revisa tus respuestas</h1>
             <p class="ob-hint">Toca cualquier respuesta si quieres cambiarla.</p>
@@ -212,7 +216,7 @@ interface Question {
 
         <!-- ============ Resultado ============ -->
         @if (stage === 'result' && result) {
-          <section [class]="'ob-card is-' + result.code + (direction === -1 ? ' ob-card--back' : '')">
+          <section [class]="'ob-sheet ob-verdict is-' + result.code + (direction === -1 ? ' ob-sheet--back' : '')">
             <span class="ob-icon"><app-icon [name]="resultIcon" [size]="26" /></span>
 
             <h1>{{ result.title }}</h1>
@@ -440,6 +444,8 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     private route: ActivatedRoute,
   ) {}
 
+  private destroyRef = inject(DestroyRef);
+
   ngOnInit(): void {
     setActiveProduct('divorcio360');
     this.normalizeLocation();
@@ -457,7 +463,9 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
         this.answers = { ...this.answers, ...p.answers };
         this.normalizeLocation();
       }
-      this.restoreSub = this.api.evaluate(this.answers).subscribe({
+      this.restoreSub = this.api.evaluate(this.answers).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
         next: (res) => {
           if (this.destroyed) return;
           this.result = res;
@@ -504,6 +512,21 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
 
   get position(): number {
     return this.visibleQuestions.findIndex((q) => q.key === this.current.key) + 1;
+  }
+
+  pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  get currentCategory(): string {
+    const k = this.current?.key;
+    if (k === 'city' || k === 'ids_valid' || k === 'marriage_in_ecuador') return 'identity';
+    if (k === 'have_children' || k === 'minor_dependents' || k === 'custody_regulated' || k === 'has_mediation_acta') {
+      return 'family';
+    }
+    if (k === 'have_assets' || k === 'conjugal_society' || k === 'want_liquidate_assets') return 'assets';
+    if (k === 'someone_abroad') return 'abroad';
+    return 'pact';
   }
 
   get progressPercent(): number {
@@ -677,7 +700,9 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.submitting = true;
     this.submitError = '';
 
-    this.api.evaluate(this.answers).subscribe({
+    this.api.evaluate(this.answers).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
       next: (res) => {
         if (this.destroyed) return;
         this.submitting = false;
@@ -703,7 +728,9 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.submitting = true;
     this.submitError = '';
 
-    this.api.createCase(this.result.code, this.locationLabel, this.answers).subscribe({
+    this.api.createCase(this.result.code, this.locationLabel, this.answers).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
       next: (c) => void this.router.navigate(['/checkout', c.id]),
       error: () => {
         this.submitting = false;

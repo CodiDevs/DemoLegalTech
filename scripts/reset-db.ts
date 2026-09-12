@@ -85,6 +85,7 @@ async function resetDb() {
   console.log(`\n${colors.green("✔ Base de datos reseteada con éxito.")}`);
   console.log(`Al iniciar el backend con ${colors.bold(colors.cyan("bun run dev"))}, se creará automáticamente el seed demo:`);
   console.log(`  • Caso #1: Divorcio360 en estado ${colors.bold("03 — Revisión jurídica")}`);
+  console.log(`  • Caso firma: Divorcio360 en estado ${colors.bold("04 — minuta lista / can_sign")}`);
   console.log(`  • Usuarios: ${colors.cyan("cliente@demo.ec")}, ${colors.cyan("abogado@demo.ec")}, ${colors.cyan("notario@demo.ec")} (pass: ${colors.cyan("demo1234")})\n`);
 }
 

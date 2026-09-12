@@ -6,6 +6,7 @@ import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
 import { getActiveProduct, getProductSite, getProductQuestionnairePath, getMarketingPrimaryAction, setActiveProduct, detectProductFromPath } from '../shared/product-sites.data';
 import { IconComponent, IconName } from '../shared/icon.component';
+import { RouteCurtainComponent } from '../shared/motion/route-curtain.component';
 
 const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/consulta', '/firma', '/caso', '/intake', '/productos/traslado360/cuestionario', '/productos/bienraiz360/cuestionario'];
 
@@ -32,9 +33,10 @@ interface ProductSwitcherItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent, RouteCurtainComponent],
   template: `
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <app-route-curtain />
 
     <header
       class="site-header"
@@ -314,10 +316,10 @@ interface ProductSwitcherItem {
     .site-header.on-marketing {
       padding: 0;
       pointer-events: auto;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
+      background: color-mix(in srgb, var(--bg) 62%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
     .site-header.on-marketing .header-bar {

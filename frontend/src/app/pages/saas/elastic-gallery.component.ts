@@ -196,12 +196,17 @@ export interface GalleryItem {
       }
 
       .eg-panel {
-        flex: 0.62 1 0;
+        flex: 0 0 22%;
+        width: 22%;
         height: auto;
         min-width: 0;
+        transition: border-color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
       }
 
-      .eg-panel.active { flex-grow: 2.15; }
+      .eg-panel.active {
+        flex: 0 0 56%;
+        width: 56%;
+      }
       .eg-copy { padding: 1.15rem 1.25rem 1.35rem; }
     }
   `],

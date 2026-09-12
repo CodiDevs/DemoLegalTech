@@ -36,6 +36,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Plantillas Fase 2 editables | `abogado@demo.ec` → Modelos de documentos → Duplicar → editar → F5 | 2026-09-10 |
 | done | Cuestionario Divorcio360 neo | `/cuestionario` clay teal, Sí/No hundidos, contraste AA | 2026-09-10 |
 | done | Demo cliente máximo movimiento | `/` video → Divorcio360 pin → cuestionario → pago → docs → firma | 2026-09-11 |
+| done | Recorrido cinematográfico Expediente vivo | `/` tráiler → Divorcio360 cámara → `/cuestionario` → `/checkout/:id` → `/upload/:id` → `/firma/:id` | 2026-09-11 |
 
 ## Entries
 
@@ -434,4 +435,26 @@ Recorrido comercial 16:9: home con video/fallback, Divorcio360 con pin circular 
 
 **Demo:** invitado en `/` → Abrir Divorcio360 → Evaluar mi caso → pagar → documentos → firma. Zoom 125% en 1280×720. `/abogado` no cambia de idioma visual.
 
+### 2026-09-11 — Recorrido cinematográfico Expediente vivo
+Cliente path como película: home tráiler (video + wordmark + dossier), Divorcio360 pin 260vh + 4 escenas, cuestionario monumental, checkout bóveda (notaría *Se paga por separado*), mesa de upload, firma con sello full-screen.
+
+**Credenciales:** `cliente@demo.ec` / `demo1234`.
+
+**Walkthrough 8 min**
+1. `bun run reset-db` + `bun run dev`.
+2. `/` → CTA **Abrir Divorcio360** (cortina de hoja).
+3. `/productos/divorcio360` — pin: círculo teal abre expediente. Scroll atrás reproduce etapas.
+4. **Evaluar mi caso** → `/cuestionario` (o login si pide cuenta).
+5. Pago `$349` — gastos notariales aparte. Overlay + ticket.
+6. Upload cédula/partida.
+7. Firma: expediente seed `can_sign` (status 04, minuta lista). `/firma/:id` → sello DEMO.
+
+**Fixture firma:** segundo caso cliente con docs aprobados + minuta real (`backend/demo-fixtures`). No falsea gates. Firma fail-closed: snapshot `getCase` + outputs + firmas.
+
+**No tocar:** `/abogado` y `/abogado/fase2/admin`.
+
+### 2026-09-11 — Cierre P1/P2 recorrido cinematic
+SVG demo UTF-8. Firma no abre sin minuta. Overlay checkout atrapa Shift+Tab. Cortina siempre montada (abogado→home sí, abogado↔fase2 no). Cuestionario `ob-sheet`. Upload hojas 52vh. Pin usa `ScrollSceneDirective`. Seed copia PDFs o falla.
+
+**Demo:** `bun run reset-db` + `bun run dev`. Login cliente. Caso 04 → `/firma/:id` bloqueado hasta minuta. `/abogado` sin View Transitions.
 

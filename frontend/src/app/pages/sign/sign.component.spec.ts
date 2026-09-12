@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { SignComponent } from './sign.component';
 
@@ -46,6 +46,8 @@ describe('SignComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.signBlocked).toContain('minuta');
     expect((fixture.nativeElement as HTMLElement).querySelector('.sign-blocked')).not.toBeNull();
+    expect(api.listOutputs).not.toHaveBeenCalled();
+    expect(api.listSignatures).not.toHaveBeenCalled();
   });
 
   it('carga firma previa como done', () => {
@@ -65,6 +67,36 @@ describe('SignComponent', () => {
     expect(root.querySelector('.up-dropzone')).toBeNull();
     expect(api.listOutputs).not.toHaveBeenCalled();
     expect(api.sign).not.toHaveBeenCalled();
+  });
+
+  it('no desbloquea hasta el snapshot de minuta', () => {
+    const outs = new Subject<{ output_type: string; url: string }[]>();
+    api.listOutputs.and.returnValue(outs);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.signBlocked).toContain('Cargando');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.up-dropzone')).toBeNull();
+    expect(api.listOutputs).toHaveBeenCalled();
+    expect(api.listSignatures).toHaveBeenCalled();
+
+    outs.next([{ output_type: 'minuta', url: '/m.pdf' }]);
+    outs.complete();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.signBlocked).toBe('');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.up-dropzone')).not.toBeNull();
+  });
+
+  it('sigue bloqueada si outputs no traen minuta', () => {
+    api.listOutputs.and.returnValue(of([{ output_type: 'otro', url: '/x.pdf' }]));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.signBlocked).toContain('Falta la minuta');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.up-dropzone')).toBeNull();
+  });
+
+  it('sigue bloqueada si listOutputs falla', () => {
+    api.listOutputs.and.returnValue(throwError(() => ({ status: 500 })));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.signBlocked).toContain('No pudimos confirmar la minuta');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.up-dropzone')).toBeNull();
   });
 
   it('acepta archivo por drop', () => {
