@@ -76,7 +76,7 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
                   @if (error) { <p class="pf-err">{{ error }}</p> }
                   <button
                     type="button"
-                    class="lp-btn lp-btn-primary"
+                    class="btn btn-primary"
                     [disabled]="busy"
                     (click)="requestConsult()"
                   >
@@ -90,8 +90,8 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
         </div>
 
         <div class="up-footer">
-          <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseItem.id]">Ver expediente</a>
-          <a class="lp-btn lp-btn-outline" [routerLink]="['/upload', caseItem.id]">Volver a documentos</a>
+          <a class="btn btn-secondary" [routerLink]="['/caso', caseItem.id]">Ver expediente</a>
+          <a class="btn btn-secondary" [routerLink]="['/upload', caseItem.id]">Volver a documentos</a>
         </div>
       </app-product-flow-shell>
     }

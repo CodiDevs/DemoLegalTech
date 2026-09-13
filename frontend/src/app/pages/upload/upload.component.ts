@@ -109,14 +109,14 @@ interface DocRow {
       @if (error) { <p class="pf-err up-err">{{ error }}</p> }
 
       <div class="up-footer">
-          <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Ver expediente</a>
+          <a class="btn btn-secondary" [routerLink]="['/caso', caseId]">Ver expediente</a>
         @if (canContinue) {
-          <a class="lp-btn lp-btn-primary pf-cta-unlock" [routerLink]="['/consulta', caseId]">Solicitar consulta</a>
+          <a class="btn btn-primary pf-cta-unlock" [routerLink]="['/consulta', caseId]">Solicitar consulta</a>
         } @else {
           <span class="pf-muted">Completa los {{ slots.length }} documentos para continuar.</span>
         }
         @if (canSign) {
-          <a class="lp-btn lp-btn-primary pf-cta-unlock" [routerLink]="['/firma', caseId]">{{ hasSignature ? 'Volver a firmar' : 'Firmar minuta' }}</a>
+          <a class="btn btn-primary pf-cta-unlock" [routerLink]="['/firma', caseId]">{{ hasSignature ? 'Volver a firmar' : 'Firmar minuta' }}</a>
         } @else if (signHint) {
           <span class="pf-muted">{{ signHint }}</span>
         }

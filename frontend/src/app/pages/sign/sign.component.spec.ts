@@ -128,7 +128,7 @@ describe('SignComponent', () => {
     expect(cmp.mode).toBe('done');
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Documento enviado');
-    const cta = (fixture.nativeElement as HTMLElement).querySelector('a.lp-btn-primary');
+    const cta = (fixture.nativeElement as HTMLElement).querySelector('a.btn-primary');
     expect(cta?.getAttribute('href')).toBe('/caso/4');
 
     cmp.startReupload();
