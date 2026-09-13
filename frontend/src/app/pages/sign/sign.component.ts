@@ -5,6 +5,7 @@ import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { productThemeFromCase } from '../../shared/product-sites.data';
+import { ESIGN_FEE_CENTS, signatureChannelLabel } from '../../shared/esign';
 
 type SignMode = 'upload' | 'done';
 
@@ -18,7 +19,7 @@ type SignMode = 'upload' | 'done';
       [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Firma virtual' }]"
       eyebrow="Firma electrónica"
       title="Firma tu minuta"
-      subtitle="Revisa el documento del notario y sube tu documento firmado — 100% virtual, con evidencia de fecha e IP."
+      subtitle="Revisa la minuta. Sube tu documento ya firmado, o usa la firma de LegalStation (se cobra aparte)."
     >
       @if (signBlocked) {
         <div class="pf-card lp-lift sign-blocked">
@@ -29,7 +30,7 @@ type SignMode = 'upload' | 'done';
       } @else {
         <ol class="sign-steps" [hidden]="mode === 'done'">
           <li [class.active]="true" [class.done]="mode === 'done'">Revisar minuta</li>
-          <li [class.active]="mode === 'upload'" [class.done]="mode === 'done'">Subir documento firmado</li>
+          <li [class.active]="mode === 'upload'" [class.done]="mode === 'done'">Elegir cómo firmar</li>
           <li [class.active]="mode === 'done'" [class.done]="mode === 'done'">Confirmación</li>
         </ol>
 
@@ -49,9 +50,11 @@ type SignMode = 'upload' | 'done';
             <section class="pf-card lp-lift sign-upload-wrap">
               <div class="sign-section-head">
                 <span class="pf-badge">Paso 2</span>
-                <h2>Sube tu documento firmado</h2>
+                <h2>Cómo firmar</h2>
               </div>
-              <p class="pf-muted">Adjunta el PDF o imagen del documento ya firmado (escaneado o firmado digitalmente).</p>
+              <p class="pf-muted">Elige una vía. Subir tu documento no cobra extra. La firma de LegalStation sí, aparte del trámite.</p>
+              <h3 class="sign-path-title">Ya tengo el documento firmado</h3>
+              <p class="pf-muted">PDF o imagen de tu firma electrónica o escaneo. Sin costo extra aquí.</p>
               <label
                 class="up-dropzone"
                 [class.has-file]="!!selectedFile"
@@ -71,18 +74,30 @@ type SignMode = 'upload' | 'done';
               </label>
               <div class="sign-actions">
                 <button class="btn btn-primary" type="button" (click)="submit()" [disabled]="busy || !selectedFile">
-                  {{ busy ? 'Enviando…' : 'Enviar documento firmado' }}
+                  {{ busy && !payingPlatform ? 'Enviando…' : 'Enviar documento firmado' }}
                 </button>
+              </div>
+              <p class="sign-or" aria-hidden="true">o</p>
+              <div class="sign-platform">
+                <h3 class="sign-path-title">Firmar con LegalStation</h3>
+                <p class="sign-platform-price">{{ esignFeeLabel }} USD</p>
+                <p class="pf-muted">Aplicamos un sello electrónico demo a tu minuta. Se cobra aparte, no está en el paquete del trámite. Payphone mock.</p>
+                <div class="sign-actions">
+                  <button class="btn btn-primary" type="button" (click)="submitPlatform()" [disabled]="busy">
+                    {{ payingPlatform ? 'Cobrando…' : 'Pagar ' + esignFeeLabel + ' y firmar' }}
+                  </button>
+                </div>
               </div>
               @if (error) { <p class="pf-err sign-feedback">{{ error }}</p> }
             </section>
           } @else {
             <section class="sign-finale" aria-live="polite">
               <img class="seal" src="/demo-scenes/legal-seal-demo.svg" width="220" height="220" alt="" />
-              <h1>Documento enviado</h1>
-              <p>El abogado lo revisará y confirmará para continuar a notaría virtual.</p>
+              <h1>{{ signature?.channel === 'platform' ? 'Firma aplicada' : 'Documento enviado' }}</h1>
+              <p>{{ finaleCopy }}</p>
               @if (signature) {
                 <dl class="sign-meta">
+                  <div><dt>Vía</dt><dd>{{ signatureChannelLabel(signature.channel) }}</dd></div>
                   <div><dt>Fecha</dt><dd>{{ signature.signed_at }}</dd></div>
                   <div><dt>IP</dt><dd>{{ signature.ip }}</dd></div>
                 </dl>
@@ -96,12 +111,21 @@ type SignMode = 'upload' | 'done';
                 <button class="btn btn-secondary" type="button" (click)="startReupload()">Firmar de nuevo</button>
                 <a class="btn btn-primary pf-cta-unlock" [routerLink]="['/caso', caseId]">Volver al expediente</a>
               </div>
-              <p class="sign-note">Al subir de nuevo, el documento anterior se reemplaza.</p>
+              <p class="sign-note">Al firmar de nuevo, el documento anterior se reemplaza.</p>
             </section>
           }
         </div>
       }
     </app-product-flow-shell>
+
+    @if (payingPlatform) {
+      <div class="pay-overlay" role="dialog" aria-modal="true" aria-labelledby="esign-pay-title">
+        <div class="pay-modal">
+          <h2 id="esign-pay-title">Procesando cobro de firma…</h2>
+          <p class="pf-muted">{{ esignFeeLabel }} USD · Payphone demo</p>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     .sign-steps {
@@ -215,6 +239,79 @@ type SignMode = 'upload' | 'done';
     .sign-meta dd { margin: var(--space-1) 0 0; }
     .sign-note { margin-top: var(--space-4); font-size: var(--text-sm); }
     .sign-blocked .btn { margin-top: var(--space-4); display: inline-flex; }
+    .sign-path-title {
+      margin: var(--space-4) 0 var(--space-2);
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      font-weight: 650;
+    }
+    .sign-or {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: var(--space-3);
+      align-items: center;
+      margin: var(--space-5) 0;
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .sign-or::before,
+    .sign-or::after {
+      content: '';
+      height: 1px;
+      background: var(--border);
+    }
+    .sign-platform {
+      padding: var(--space-5);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-lg);
+      background: var(--primary-subtle);
+      animation: pf-in 560ms var(--ease-out) 80ms both;
+    }
+    .sign-platform .sign-path-title { margin-top: 0; }
+    .sign-platform-price {
+      margin: 0 0 var(--space-2);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--primary-hover);
+    }
+    .sign-platform .sign-actions { margin-top: var(--space-4); }
+    .pay-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-modal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+      background: oklch(0.12 0.02 230 / 0.62);
+      backdrop-filter: blur(4px);
+      animation: overlay-in var(--dur-base) var(--ease);
+    }
+    .pay-modal {
+      width: min(100%, 22rem);
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-6);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      animation: pf-in 480ms var(--ease-out) both;
+    }
+    .pay-modal h2 {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: var(--text-lg);
+    }
+    @keyframes overlay-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
     @media (max-width: 900px) {
       .sign-layout { grid-template-columns: 1fr; }
       .sign-actions .btn,
@@ -234,6 +331,9 @@ export class SignComponent implements OnInit, OnDestroy {
   mode: SignMode = 'upload';
   selectedFile: File | null = null;
   dragOver = false;
+  payingPlatform = false;
+  readonly esignFeeLabel = `$${(ESIGN_FEE_CENTS / 100).toFixed(2)}`;
+  readonly signatureChannelLabel = signatureChannelLabel;
   private destroyed = false;
   private subs: { unsubscribe: () => void }[] = [];
 
@@ -245,6 +345,13 @@ export class SignComponent implements OnInit, OnDestroy {
 
   get sending(): boolean {
     return this.busy;
+  }
+
+  get finaleCopy(): string {
+    if (this.signature?.channel === 'platform') {
+      return `LegalStation aplicó la firma electrónica. Cobro aparte de ${this.esignFeeLabel} (demo Payphone). El abogado revisa y confirma.`;
+    }
+    return 'El abogado lo revisará y confirmará para continuar a notaría virtual.';
   }
 
   ngOnInit(): void {
@@ -341,14 +448,16 @@ export class SignComponent implements OnInit, OnDestroy {
     this.mode = 'upload';
     this.selectedFile = null;
     this.error = '';
+    this.payingPlatform = false;
   }
 
   submit(): void {
     if (!this.selectedFile || this.busy) return;
     const kept = this.selectedFile;
     this.busy = true;
+    this.payingPlatform = false;
     this.error = '';
-    this.subs.push(this.api.sign(this.caseId, this.selectedFile).subscribe({
+    this.subs.push(this.api.sign(this.caseId, this.selectedFile, 'upload').subscribe({
       next: (res) => {
         if (this.destroyed) return;
         this.busy = false;
@@ -361,6 +470,29 @@ export class SignComponent implements OnInit, OnDestroy {
         this.busy = false;
         this.selectedFile = kept;
         this.error = e?.error?.error || 'Error al enviar el documento';
+      },
+    }));
+  }
+
+  submitPlatform(): void {
+    if (this.busy) return;
+    this.busy = true;
+    this.payingPlatform = true;
+    this.error = '';
+    this.subs.push(this.api.sign(this.caseId, null, 'platform').subscribe({
+      next: (res) => {
+        if (this.destroyed) return;
+        this.busy = false;
+        this.payingPlatform = false;
+        this.signature = res;
+        this.mode = 'done';
+        this.selectedFile = null;
+      },
+      error: (e) => {
+        if (this.destroyed) return;
+        this.busy = false;
+        this.payingPlatform = false;
+        this.error = e?.error?.error || 'Error al cobrar la firma de plataforma';
       },
     }));
   }

@@ -103,7 +103,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                 <span>Total a pagar</span>
                 <strong>\${{ cart.totalCents / 100 | number:'1.2-2' }} USD</strong>
               </div>
-              <p class="pf-muted cart-note">Pago único · Sin suscripción. No incluye gastos notariales.</p>
+              <p class="pf-muted cart-note">Pago único · Sin suscripción. No incluye gastos notariales ni firma electrónica de plataforma.</p>
             </div>
           </div>
         </div>

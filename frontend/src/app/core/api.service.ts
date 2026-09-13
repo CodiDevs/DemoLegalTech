@@ -149,9 +149,12 @@ export class ApiService {
     return this.http.delete(`/api/v1/cases/${caseId}/documents/${docId}`);
   }
 
-  sign(id: number, file: File): Observable<any> {
+  sign(id: number, file: File | null, channel: 'upload' | 'platform' = 'upload'): Observable<any> {
     const fd = new FormData();
-    fd.append('file', file);
+    fd.append('channel', channel);
+    if (file) {
+      fd.append('file', file);
+    }
     return this.http.post(`/api/v1/cases/${id}/signatures`, fd);
   }
 

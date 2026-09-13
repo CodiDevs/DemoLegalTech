@@ -6,6 +6,7 @@ import { ApiService } from '../../core/api.service';
 import { ConfirmService } from '../../core/confirm.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent } from '../../shared/icon.component';
+import { signatureChannelLabel } from '../../shared/esign';
 
 const Q_LABELS: Record<string, string> = {
   both_want_divorce: 'Ambos desean divorciarse',
@@ -181,7 +182,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
               <div class="panel">
                 <h2>Documentos firmados del cliente</h2>
                 @if (ws.signatures.length) {
-                  <p class="muted">Revisa el documento subido antes de confirmar en el panel derecho (estado 05).</p>
+                  <p class="muted">Revisa el documento (subido por el cliente o firma LegalStation) antes de confirmar en el panel derecho (estado 05).</p>
                   @for (s of ws.signatures; track s.id) {
                     <div class="sig">
                       @if (isPdfSig(s.image_url)) {
@@ -189,7 +190,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                       } @else {
                         <img [src]="s.image_url" alt="documento firmado del cliente" />
                       }
-                      <p class="muted">IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
+                      <p class="muted">{{ sigChannel(s) }} · IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
                     </div>
                   }
                 } @else if (ws.case.status === '04' || ws.case.status === '05') {
@@ -446,6 +447,10 @@ export class LawyerCaseComponent implements OnInit {
 
   isPdfSig(url: string): boolean {
     return /\.pdf(\?|$)/i.test(url || '');
+  }
+
+  sigChannel(s: { channel?: string }): string {
+    return signatureChannelLabel(s.channel);
   }
 
   onMinutaFile(ev: Event): void {

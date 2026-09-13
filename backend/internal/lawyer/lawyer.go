@@ -34,18 +34,18 @@ type ActionDef struct {
 }
 
 type Workspace struct {
-	Case          cases.Case              `json:"case"`
-	Events        []cases.Event           `json:"events"`
-	Notes         []cases.Note            `json:"notes"`
-	Documents     []Document              `json:"documents"`
-	Signatures    []Signature             `json:"signatures"`
-	Outputs       []Output                `json:"outputs"`
-	States        map[string]string       `json:"states"`
-	NextActions   []ActionDef             `json:"next_actions"`
-	Blockers      []string                `json:"blockers"`
-	Questionnaire map[string]any          `json:"questionnaire"`
-	RequiredDocs  []products.RequiredDoc  `json:"required_docs"`
-	StageHint     string                  `json:"stage_hint"`
+	Case          cases.Case             `json:"case"`
+	Events        []cases.Event          `json:"events"`
+	Notes         []cases.Note           `json:"notes"`
+	Documents     []Document             `json:"documents"`
+	Signatures    []Signature            `json:"signatures"`
+	Outputs       []Output               `json:"outputs"`
+	States        map[string]string      `json:"states"`
+	NextActions   []ActionDef            `json:"next_actions"`
+	Blockers      []string               `json:"blockers"`
+	Questionnaire map[string]any         `json:"questionnaire"`
+	RequiredDocs  []products.RequiredDoc `json:"required_docs"`
+	StageHint     string                 `json:"stage_hint"`
 }
 
 type Document struct {
@@ -62,10 +62,11 @@ type Document struct {
 }
 
 type Signature struct {
-	ID        int64  `json:"id"`
-	ImageURL  string `json:"image_url"`
-	IP        string `json:"ip"`
-	SignedAt  string `json:"signed_at"`
+	ID       int64  `json:"id"`
+	ImageURL string `json:"image_url"`
+	IP       string `json:"ip"`
+	SignedAt string `json:"signed_at"`
+	Channel  string `json:"channel"`
 }
 
 type Output struct {
@@ -253,15 +254,15 @@ func (s *Service) GenerateMinuta(w http.ResponseWriter, r *http.Request) {
 	var q map[string]any
 	_ = json.Unmarshal([]byte(c.QuestionnaireJSON), &q)
 	data := map[string]any{
-		"ClientName":  c.ClientName,
-		"City":        c.City,
-		"AmountUSD":   fmt.Sprintf("%.2f", float64(c.AmountCents)/100),
-		"Date":        store.Now(),
-		"BothDivorce": boolLabel(q, "both_want_divorce"),
-		"MarriageEC":  boolLabel(q, "marriage_in_ecuador"),
+		"ClientName":   c.ClientName,
+		"City":         c.City,
+		"AmountUSD":    fmt.Sprintf("%.2f", float64(c.AmountCents)/100),
+		"Date":         store.Now(),
+		"BothDivorce":  boolLabel(q, "both_want_divorce"),
+		"MarriageEC":   boolLabel(q, "marriage_in_ecuador"),
 		"HaveChildren": boolLabel(q, "have_children"),
-		"HaveAssets":  boolLabel(q, "have_assets"),
-		"IDsValid":    boolLabel(q, "ids_valid"),
+		"HaveAssets":   boolLabel(q, "have_assets"),
+		"IDsValid":     boolLabel(q, "ids_valid"),
 	}
 	tmplPath := filepath.Join(s.UploadDir, "..", "internal", "lawyer", "templates", "minuta.html")
 	if _, err := os.Stat(tmplPath); err != nil {
@@ -631,7 +632,7 @@ func (s *Service) listDocuments(caseID int64) ([]Document, error) {
 }
 
 func (s *Service) listSignatures(caseID int64) ([]Signature, error) {
-	rows, err := s.DB.Query(`SELECT id, image_path, ip, signed_at FROM signatures WHERE case_id=? ORDER BY id`, caseID)
+	rows, err := s.DB.Query(`SELECT id, image_path, ip, signed_at, COALESCE(channel,'upload') FROM signatures WHERE case_id=? ORDER BY id`, caseID)
 	if err != nil {
 		return nil, err
 	}
@@ -640,7 +641,7 @@ func (s *Service) listSignatures(caseID int64) ([]Signature, error) {
 	for rows.Next() {
 		var sg Signature
 		var path string
-		if err := rows.Scan(&sg.ID, &path, &sg.IP, &sg.SignedAt); err != nil {
+		if err := rows.Scan(&sg.ID, &path, &sg.IP, &sg.SignedAt, &sg.Channel); err != nil {
 			return nil, err
 		}
 		sg.ImageURL = "/api/v1/files/" + path

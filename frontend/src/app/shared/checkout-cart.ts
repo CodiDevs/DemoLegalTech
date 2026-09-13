@@ -1,4 +1,7 @@
 import { QuestionnaireAnswers } from '../core/api.service';
+import { ESIGN_FEE_CENTS } from './esign';
+
+export { ESIGN_FEE_CENTS } from './esign';
 
 export interface CheckoutCartLine {
   id: string;
@@ -86,6 +89,14 @@ export function buildCheckoutCart(
       id: 'notary',
       label: 'Gastos notariales',
       referenceCents: NOTARY_FEE_CENTS,
+      applies: true,
+      includedInPackage: false,
+      billedSeparately: true,
+    },
+    {
+      id: 'esign',
+      label: 'Firma electrónica LegalStation',
+      referenceCents: ESIGN_FEE_CENTS,
       applies: true,
       includedInPackage: false,
       billedSeparately: true,

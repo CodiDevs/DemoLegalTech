@@ -113,7 +113,8 @@ CREATE TABLE IF NOT EXISTS signatures (
   image_path TEXT NOT NULL,
   ip TEXT NOT NULL,
   user_agent TEXT DEFAULT '',
-  signed_at TEXT NOT NULL
+  signed_at TEXT NOT NULL,
+  channel TEXT NOT NULL DEFAULT 'upload'
 );
 
 CREATE TABLE IF NOT EXISTS case_outputs (
@@ -143,6 +144,7 @@ func (db *DB) migrateColumns() error {
 		`ALTER TABLE documents ADD COLUMN review_note TEXT DEFAULT ''`,
 		`ALTER TABLE documents ADD COLUMN reviewed_by INTEGER REFERENCES users(id)`,
 		`ALTER TABLE documents ADD COLUMN reviewed_at TEXT DEFAULT ''`,
+		`ALTER TABLE signatures ADD COLUMN channel TEXT NOT NULL DEFAULT 'upload'`,
 	}
 	for _, q := range alters {
 		if _, err := db.Exec(q); err != nil {

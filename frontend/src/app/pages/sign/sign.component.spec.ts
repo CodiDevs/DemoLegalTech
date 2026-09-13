@@ -135,4 +135,35 @@ describe('SignComponent', () => {
     expect(cmp.mode).toBe('upload');
     expect(cmp.selectedFile).toBeNull();
   });
+
+  it('muestra firma de plataforma como cobro aparte y llama sign con channel platform', () => {
+    api.sign.and.returnValue(of({
+      image_url: '/firma.pdf',
+      signed_at: '2026-09-13',
+      ip: '1.1.1.1',
+      channel: 'platform',
+      fee_cents: 1500,
+    }));
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('$15.00');
+    expect(root.textContent).toContain('Firmar con LegalStation');
+    const cmp = fixture.componentInstance;
+    cmp.submitPlatform();
+    expect(api.sign).toHaveBeenCalledWith(4, null, 'platform');
+    expect(cmp.mode).toBe('done');
+    expect(cmp.payingPlatform).toBeFalse();
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Firma aplicada');
+  });
+
+  it('no cobra plataforma si el envío falla', () => {
+    api.sign.and.returnValue(throwError(() => ({ error: { error: 'cobro' } })));
+    fixture.detectChanges();
+    const cmp = fixture.componentInstance;
+    cmp.submitPlatform();
+    expect(cmp.mode).toBe('upload');
+    expect(cmp.payingPlatform).toBeFalse();
+    expect(cmp.error).toBe('cobro');
+  });
 });

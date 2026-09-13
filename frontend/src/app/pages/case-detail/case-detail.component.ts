@@ -11,6 +11,7 @@ import { ScheduledMeetingCardComponent } from '../../shared/scheduled-meeting-ca
 import { CaseProgressComponent } from '../../shared/case-progress.component';
 import { buildCaseProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
 import { getProductSite, productThemeFromCase } from '../../shared/product-sites.data';
+import { signatureChannelLabel } from '../../shared/esign';
 
 interface CaseAction {
   label: string;
@@ -145,8 +146,12 @@ interface CaseAction {
               @if (!signatures.length) { <p class="muted">Sin firmas aún.</p> }
               @for (s of signatures; track s.id) {
                 <div class="sig">
-                  <img [src]="s.image_url" alt="firma" />
-                  <p>IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
+                  @if (isPdfSig(s.image_url)) {
+                    <a class="btn btn-secondary" [href]="s.image_url" target="_blank">Ver documento firmado</a>
+                  } @else {
+                    <img [src]="s.image_url" alt="firma" />
+                  }
+                  <p>{{ signatureChannelLabel(s.channel) }} · IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
                 </div>
               }
             </div>
@@ -327,6 +332,12 @@ export class CaseDetailComponent implements OnInit {
       cedula: 'Cédula', partida: 'Partida', matricula: 'Matrícula', titulo: 'Título', acuerdo: 'Acuerdo mutuo',
     };
     return labels[type] || type;
+  }
+
+  readonly signatureChannelLabel = signatureChannelLabel;
+
+  isPdfSig(url: string): boolean {
+    return /\.pdf(\?|$)/i.test(url || '');
   }
 }
 

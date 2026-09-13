@@ -9,5 +9,8 @@ describe('checkout cart arithmetic', () => {
     expect(notary?.billedSeparately).toBeTrue();
     expect(notary?.referenceCents).toBe(NOTARY_FEE_CENTS);
     expect(chargedLineCents(cart)).not.toBe(cart.totalCents + NOTARY_FEE_CENTS);
+    const esign = cart.lines.find((line) => line.id === 'esign');
+    expect(esign?.billedSeparately).toBeTrue();
+    expect(esign?.referenceCents).toBe(1500);
   });
 });

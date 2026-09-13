@@ -40,6 +40,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Client journey handoff fixes | Guest product Q → auth(`next=checkout`) → expediente; unpaid → checkout; Mis expedientes por producto | 2026-09-13 |
 | done | Client journey visual language | Traslado/BienRaiz teal; cuestionario sheet; header Fraunces; botones trámite | 2026-09-13 |
 | done | Home y product homes design.md | `/` + Divorcio/Traslado/BienRaiz: cream cards, grid de estaciones, mock plano | 2026-09-13 |
+| done | Firma plataforma vs documento propio | `/firma/:id` — subir PDF propio ($0) o firma LegalStation $15 aparte (Payphone mock) | 2026-09-13 |
 
 ## Entries
 
@@ -486,4 +487,13 @@ Home `/` y landings de producto usan el mismo papel cream, cards `--radius-lg` /
 1. `/` desktop: Cinco estaciones alineadas, sin barra horizontal; “Otras ventanas” y Enterprise en cream con texto oscuro sobre card blanca.
 2. `/productos/divorcio360`: Cliente/Abogado a la misma altura; `#flujo` mock centrado; Resultado cambia el expediente; `#evidencia` en papel cream.
 3. `/productos/traslado360` y `/productos/bienraiz360`: hero 2 col + mock con sombra; planes a la misma base; ~390px sin scroll de documento.
+
+### 2026-09-13 — Firma propia o LegalStation ($15 aparte)
+`/firma/:id` tiene dos vías. Subir el PDF/imagen ya firmado no cobra extra. Firmar con LegalStation aplica el fixture `firma-demo.pdf` y registra un cobro mock Payphone de $15 (`payphone_esign_mock`), aparte del paquete. Checkout muestra la línea como “se paga por separado”.
+
+**Demo:**
+1. Login `cliente@demo.ec` / `demo1234`. Expediente seed listo para firmar (status 04 + minuta).
+2. `/firma/:id`: minuta a la izquierda. Derecha: dropzone propio, o **Pagar $15.00 y firmar**.
+3. Plataforma: overlay Payphone demo → sello → estado 05. Abogado `/abogado/caso/:id` pestaña Firmas ve “Firma LegalStation ($15 aparte)”.
+4. Checkout del trámite: línea “Firma electrónica LegalStation / Se paga por separado”. El $349 no la incluye.
 
