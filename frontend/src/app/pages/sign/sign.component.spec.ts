@@ -110,6 +110,29 @@ describe('SignComponent', () => {
     expect(fixture.componentInstance.selectedFile?.name).toBe('f.png');
   });
 
+  it('muestra el lienzo de LegalStation antes de cobrar', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.sign-pad')).not.toBeNull();
+    expect(root.textContent).toContain('Limpiar');
+    expect(root.textContent).toContain('Confirmar');
+    expect(root.textContent).not.toContain('Pagar $15.00 y firmar');
+  });
+
+  it('confirma la firma del lienzo y entonces permite pagar', () => {
+    fixture.detectChanges();
+    const cmp = fixture.componentInstance;
+    const canvas = (fixture.nativeElement as HTMLElement).querySelector('.sign-pad') as HTMLCanvasElement;
+    spyOn(canvas, 'toDataURL').and.returnValue('data:image/png;base64,xx');
+    cmp.padDirty = true;
+    cmp.confirmPlatformPad();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(cmp.platformSignatureDataUrl).toBe('data:image/png;base64,xx');
+    expect(root.textContent).toContain('Firma registrada');
+    expect(root.textContent).toContain('Pagar $15.00 y firmar');
+  });
+
   it('no envía sin archivo; busy durante envío; error recuperable y reupload', () => {
     fixture.detectChanges();
     const cmp = fixture.componentInstance;

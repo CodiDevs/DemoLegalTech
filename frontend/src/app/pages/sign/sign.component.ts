@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
@@ -83,12 +83,32 @@ type SignMode = 'upload' | 'done';
               <div class="sign-platform">
                 <h3 class="sign-path-title">Firmar con LegalStation</h3>
                 <p class="sign-platform-price">{{ esignFeeLabel }} USD</p>
-                <p class="pf-muted">Aplicamos un sello electrónico demo a tu minuta. Se cobra aparte, no está en el paquete del trámite. Payphone mock.</p>
-                <div class="sign-actions">
-                  <button class="btn btn-primary" type="button" (click)="submitPlatform()" [disabled]="busy">
-                    {{ payingPlatform ? 'Cobrando…' : 'Pagar ' + esignFeeLabel + ' y firmar' }}
-                  </button>
-                </div>
+                <p class="pf-muted">Dibuja tu firma. Luego cobramos {{ esignFeeLabel }} (Payphone mock) y aplicamos el sello a la minuta.</p>
+                @if (!platformSignatureDataUrl) {
+                  <canvas
+                    #signPad
+                    class="sign-pad"
+                    (pointerdown)="onPadDown($event)"
+                    (pointermove)="onPadMove($event)"
+                    (pointerup)="onPadUp()"
+                    (pointercancel)="onPadUp()"
+                  ></canvas>
+                  <div class="sign-actions">
+                    <button class="btn btn-secondary" type="button" (click)="clearPlatformPad()">Limpiar</button>
+                    <button class="btn btn-primary" type="button" (click)="confirmPlatformPad()" [disabled]="!padDirty">
+                      Confirmar
+                    </button>
+                  </div>
+                } @else {
+                  <p class="sign-pad-ok">Firma registrada</p>
+                  <img class="sign-pad-preview" [src]="platformSignatureDataUrl" alt="Firma capturada" />
+                  <div class="sign-actions">
+                    <button class="btn btn-secondary" type="button" (click)="clearPlatformPad()">Limpiar</button>
+                    <button class="btn btn-primary" type="button" (click)="submitPlatform()" [disabled]="busy">
+                      {{ payingPlatform ? 'Cobrando…' : 'Pagar ' + esignFeeLabel + ' y firmar' }}
+                    </button>
+                  </div>
+                }
               </div>
               @if (error) { <p class="pf-err sign-feedback">{{ error }}</p> }
             </section>
@@ -345,6 +365,32 @@ type SignMode = 'upload' | 'done';
       color: var(--primary-hover);
     }
     .sign-platform .sign-actions { margin-top: var(--space-4); }
+    .sign-pad {
+      display: block;
+      width: 100%;
+      height: 11rem;
+      margin-top: var(--space-4);
+      background: #faf7f0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .sign-pad-ok {
+      margin: var(--space-4) 0 var(--space-2);
+      font-family: var(--font-sans);
+      font-weight: 650;
+      color: var(--primary-hover);
+    }
+    .sign-pad-preview {
+      display: block;
+      width: 100%;
+      max-height: 8rem;
+      object-fit: contain;
+      background: #faf7f0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
     .pay-overlay {
       position: fixed;
       inset: 0;
@@ -383,9 +429,13 @@ type SignMode = 'upload' | 'done';
       .sign-actions .btn,
       .sign-blocked .btn { width: 100%; justify-content: center; }
     }
+    .sign-pad:focus-visible {
+      outline: 2px solid var(--primary-border);
+      outline-offset: 2px;
+    }
   `],
 })
-export class SignComponent implements OnInit, OnDestroy {
+export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
   caseId = 0;
   minutaUrl: SafeResourceUrl | null = null;
   busy = false;
@@ -398,10 +448,16 @@ export class SignComponent implements OnInit, OnDestroy {
   selectedFile: File | null = null;
   dragOver = false;
   payingPlatform = false;
+  platformSignatureDataUrl = '';
+  padDirty = false;
+  @ViewChild('signPad') signPad?: ElementRef<HTMLCanvasElement>;
   readonly esignFeeLabel = `$${(ESIGN_FEE_CENTS / 100).toFixed(2)}`;
   readonly signatureChannelLabel = signatureChannelLabel;
   private destroyed = false;
   private subs: { unsubscribe: () => void }[] = [];
+  private padCtx: CanvasRenderingContext2D | null = null;
+  private padDrawing = false;
+  private padPrepared = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -478,6 +534,84 @@ export class SignComponent implements OnInit, OnDestroy {
     this.subs.forEach((s) => s.unsubscribe());
   }
 
+  ngAfterViewChecked(): void {
+    if (this.mode !== 'upload' || this.platformSignatureDataUrl) return;
+    const canvas = this.signPad?.nativeElement;
+    if (!canvas || this.padPrepared) return;
+    this.preparePad(canvas);
+  }
+
+  private preparePad(canvas: HTMLCanvasElement): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const ratio = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth || 640;
+    const cssH = canvas.clientHeight || 176;
+    canvas.width = Math.round(cssW * ratio);
+    canvas.height = Math.round(cssH * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.fillStyle = '#faf7f0';
+    ctx.fillRect(0, 0, cssW, cssH);
+    ctx.strokeStyle = '#2f6f68';
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    this.padCtx = ctx;
+    this.padPrepared = true;
+    this.padDirty = false;
+  }
+
+  private padPoint(e: PointerEvent): { x: number; y: number } | null {
+    const canvas = this.signPad?.nativeElement;
+    if (!canvas) return null;
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  onPadDown(e: PointerEvent): void {
+    const ctx = this.padCtx;
+    const p = this.padPoint(e);
+    if (!ctx || !p) return;
+    e.preventDefault();
+    this.signPad?.nativeElement.setPointerCapture(e.pointerId);
+    this.padDrawing = true;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }
+
+  onPadMove(e: PointerEvent): void {
+    if (!this.padDrawing || !this.padCtx) return;
+    const p = this.padPoint(e);
+    if (!p) return;
+    this.padCtx.lineTo(p.x, p.y);
+    this.padCtx.stroke();
+    this.padDirty = true;
+  }
+
+  onPadUp(): void {
+    this.padDrawing = false;
+  }
+
+  clearPlatformPad(): void {
+    this.platformSignatureDataUrl = '';
+    this.padPrepared = false;
+    this.padDirty = false;
+    this.padCtx = null;
+    this.error = '';
+  }
+
+  confirmPlatformPad(): void {
+    const canvas = this.signPad?.nativeElement;
+    if (!canvas || !this.padDirty) {
+      this.error = 'Dibuja tu firma antes de confirmar.';
+      return;
+    }
+    this.platformSignatureDataUrl = canvas.toDataURL('image/png');
+    this.padPrepared = false;
+    this.padCtx = null;
+    this.error = '';
+  }
+
   onFile(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     this.selectedFile = input.files?.[0] ?? null;
@@ -529,6 +663,7 @@ export class SignComponent implements OnInit, OnDestroy {
     this.selectedFile = null;
     this.error = '';
     this.payingPlatform = false;
+    this.clearPlatformPad();
   }
 
   submit(): void {
