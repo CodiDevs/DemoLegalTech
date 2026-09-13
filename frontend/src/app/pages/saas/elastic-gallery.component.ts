@@ -196,8 +196,8 @@ export interface GalleryItem {
       }
 
       .eg-panel {
-        flex: 0 0 22%;
-        width: 22%;
+        flex: 1 1 14%;
+        width: auto;
         height: auto;
         min-width: 0;
         transition: border-color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
@@ -205,7 +205,7 @@ export interface GalleryItem {
 
       .eg-panel.active {
         flex: 0 0 56%;
-        width: 56%;
+        width: auto;
       }
       .eg-copy { padding: 1.15rem 1.25rem 1.35rem; }
     }

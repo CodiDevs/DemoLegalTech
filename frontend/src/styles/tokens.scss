@@ -13,6 +13,7 @@
   --neutral-300: #cfccc5;
   --neutral-400: #a8a49b;
   --neutral-500: #7d786f;
+  --neutral-550: #6e6a62;
   --neutral-600: #5c5750;
   --neutral-700: #423e38;
   --neutral-800: #2b2824;
@@ -33,7 +34,7 @@
   /* ---------- Texto ---------- */
   --text:            var(--neutral-800);
   --text-secondary:  var(--neutral-600);
-  --text-muted:      var(--neutral-500);
+  --text-muted:      var(--neutral-550);
   --text-on-primary: #ffffff;
   --text-inverse:    var(--neutral-25);
 
@@ -45,7 +46,7 @@
   --primary-border: #bedcd8;
 
   /* ---------- Estados ---------- */
-  --success:        #2f7d51;
+  --success:        #2b7749;
   --success-subtle: #e6f2ea;
   --success-border: #b9dcc6;
 
