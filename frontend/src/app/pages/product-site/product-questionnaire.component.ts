@@ -143,6 +143,9 @@ type Stage = 'questions' | 'review' | 'done';
                 <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="prepareGuestCheckout()">
                   Registrarme para continuar
                 </a>
+                <a [routerLink]="['/auth']" [queryParams]="loginParams" class="btn btn-secondary btn-block" (click)="prepareGuestCheckout()">
+                  Ya tengo cuenta
+                </a>
               }
             </section>
           }
@@ -247,6 +250,13 @@ export class ProductQuestionnaireComponent implements OnInit {
       product: this.site?.id,
       returnUrl: getProductQuestionnairePath(this.site?.slug || ''),
       next: 'checkout',
+    };
+  }
+
+  get loginParams() {
+    return {
+      ...this.authParams,
+      mode: 'login',
     };
   }
 
