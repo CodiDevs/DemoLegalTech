@@ -102,7 +102,7 @@
   }
 
   .lp-section {
-    padding: 6.25rem 0;
+    padding: var(--space-8) 0;
   }
 
   .lp-section.soft {
@@ -116,10 +116,10 @@
   }
 
   .lp-chapter {
-    min-height: 72svh;
+    min-height: 0;
     display: grid;
-    align-content: center;
-    padding-block: clamp(4rem, 10svh, 8rem);
+    align-content: start;
+    padding-block: var(--space-8);
   }
 
   .lp-chapter-head {
@@ -878,13 +878,15 @@
 
   .lp-plan {
     background: var(--surface);
+    color: var(--text);
     border: 1px solid var(--lp-border);
-    border-radius: var(--lp-radius);
+    border-radius: var(--radius-lg);
     padding: 1.75rem 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    box-shadow: 0 6px 24px rgb(27 25 23 / 0.05);
+    height: 100%;
+    box-shadow: var(--shadow-md);
   }
 
   .lp-plan.featured {
@@ -917,6 +919,7 @@
   }
 
   .lp-plan-price {
+    font-family: var(--font-sans);
     font-size: 2rem;
     font-weight: 700;
     color: var(--lp-ink);
@@ -961,7 +964,7 @@
   }
 
   .lp-cta-panel {
-    padding: 3rem 0 5rem;
+    padding: var(--space-7) 0 var(--space-9);
   }
 
   .lp-cta-inner {
@@ -1116,13 +1119,16 @@
 
   .ps-mock-ui {
     position: relative;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     border: 1px solid var(--border);
     background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-md);
     min-height: 280px;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
   }
 
   .ps-mock-bar {
@@ -1239,7 +1245,7 @@
   }
 
   @media (max-width: 720px) {
-    .lp-section { padding: 3.5rem 0; }
+    .lp-section { padding: var(--space-7) 0; }
     .lp-tool-grid,
     .lp-pill-row,
     .lp-product-grid,
@@ -1260,8 +1266,8 @@
   @media (min-width: 1280px) and (min-aspect-ratio: 16/10) {
     .lp-section,
     .lp-chapter {
-      min-height: 78svh;
-      padding-block: clamp(4.5rem, 12svh, 8.5rem);
+      min-height: 0;
+      padding-block: var(--space-9);
     }
 
     .lp-section-head h2 {
@@ -1270,7 +1276,7 @@
   }
 
   @media (min-width: 1024px) and (max-width: 1279px) and (max-height: 800px) {
-    .lp-section { padding-block: clamp(3.5rem, 8svh, 5.5rem); }
+    .lp-section { padding-block: var(--space-7); }
   }
 
   &.legalstation-landing {

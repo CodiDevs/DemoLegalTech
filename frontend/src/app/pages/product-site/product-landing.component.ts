@@ -184,7 +184,7 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
   `,
   styles: [`
     .ps-landing {
-      overflow-x: hidden;
+      min-width: 0;
     }
 
     .crumb-row {
@@ -221,7 +221,7 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
     .ps-hero-copy h1 {
       font-size: clamp(var(--text-2xl), 3.2vw, var(--text-4xl));
       margin: var(--space-2) 0;
-      max-width: 16ch;
+      max-width: 22ch;
     }
 
     .ps-lede {
@@ -250,9 +250,11 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
     .ps-timeline-item {
       text-align: left;
       border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
+      border-radius: var(--radius-lg);
       padding: var(--space-4);
       background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
       cursor: pointer;
       font: inherit;
       display: grid;
@@ -313,9 +315,11 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
     .ps-preview {
       margin-top: var(--space-5);
       padding: var(--space-5);
-      border-radius: var(--radius-xl);
-      background: var(--bg-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      color: var(--text);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
     }
 
     .lp-testimonials {
@@ -327,9 +331,11 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
     .ps-quote {
       margin: 0;
       padding: var(--space-5);
-      border-radius: var(--radius-xl);
+      border-radius: var(--radius-lg);
       background: var(--surface);
+      color: var(--text);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
     }
 
     .ps-quote p {

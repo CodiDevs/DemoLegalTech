@@ -106,10 +106,9 @@ function syncMockSteps(steps: Element[], progress: number): void {
   styles: [`
     :host {
       display: block;
-      width: 100vw;
-      max-width: 100vw;
-      margin-left: calc(50% - 50vw);
-      margin-right: calc(50% - 50vw);
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
 
     .hsvr-root,

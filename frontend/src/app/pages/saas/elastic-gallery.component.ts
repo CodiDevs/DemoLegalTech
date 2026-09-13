@@ -53,6 +53,13 @@ export interface GalleryItem {
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
     .eg {
       --eg-accent: var(--lp-accent, var(--primary));
       width: 100%;

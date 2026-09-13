@@ -64,16 +64,20 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
       <app-cinematic-scene sceneId="flujo" [act]="2" theme="cream">
         <p class="cine-kicker">Todo el recorrido</p>
         <h2 class="cine-title">Cuestionario, pago, docs y firma. Un marco.</h2>
-        <div class="dv-flow-switch">
-          @for (step of site.workflow; track step.n; let i = $index) {
-            @if (i < 4) {
-              <button type="button" class="lp-btn lp-btn-outline" (click)="journeyFocus = i">
-                {{ step.screen }}
-              </button>
+        <div class="ls-journey">
+          <div class="dv-flow-switch">
+            @for (step of site.workflow; track step.n; let i = $index) {
+              @if (i < 4) {
+                <button type="button" class="lp-btn lp-btn-outline" (click)="journeyFocus = i">
+                  {{ step.screen }}
+                </button>
+              }
             }
-          }
+          </div>
+          <div class="ls-journey-preview">
+            <app-demo-case-window [mode]="flowMode" [activeStep]="journeyFocus + 1" />
+          </div>
         </div>
-        <app-demo-case-window [mode]="flowMode" [activeStep]="journeyFocus + 1" />
       </app-cinematic-scene>
 
       <app-cinematic-scene sceneId="precios" [act]="2" theme="cream">

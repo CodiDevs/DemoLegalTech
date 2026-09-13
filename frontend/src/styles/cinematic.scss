@@ -710,18 +710,23 @@
 .dv-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100svh - var(--header-height));
-  gap: 0;
+  gap: var(--space-4);
+  min-height: 0;
 }
 
 .dv-split > article {
-  padding: clamp(2rem, 5vw, 4rem);
+  padding: var(--space-6);
   display: grid;
-  align-content: center;
+  align-content: start;
+  gap: var(--space-3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .dv-split > article:first-child {
-  background: var(--bg);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .dv-split > article:last-child {
@@ -754,8 +759,9 @@
 }
 
 .dv-price-stage .amount {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(4.5rem, 12vw, 8rem);
+  font-weight: 650;
   letter-spacing: -0.06em;
   line-height: 0.88;
   color: var(--primary);
