@@ -102,7 +102,20 @@ import { IconComponent } from '../../shared/icon.component';
     .crumb a { color: var(--text-secondary); text-decoration: none; }
     .crumb a:hover { color: var(--primary); }
     .head { margin-bottom: var(--space-5); }
-    .head p { margin: var(--space-1) 0 0; }
+    .head h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.85rem, 3vw, 2.5rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    .head p {
+      margin: var(--space-2) 0 0;
+      max-width: 48ch;
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
     .list { display: grid; gap: var(--space-3); }
     .item { display: grid; gap: var(--space-3); }
     .item-link { text-decoration: none; color: inherit; display: block; }
