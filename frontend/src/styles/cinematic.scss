@@ -1060,9 +1060,9 @@
 
 .up-sheet,
 .up-slot {
-  min-height: min(52vh, 28rem);
+  min-height: 0;
   display: grid;
-  align-content: space-between;
+  align-content: start;
   background: #faf7f0;
   border: 1px solid var(--border);
   border-radius: 0;
