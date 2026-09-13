@@ -106,9 +106,9 @@ export interface LandingFaqItem {
 
     .faq-card h3 {
       margin: 0 0 0.45rem;
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: 0.98rem;
-      font-weight: 600;
+      font-weight: 650;
       letter-spacing: -0.02em;
       color: var(--text);
       line-height: 1.35;
@@ -144,7 +144,7 @@ export interface LandingFaqItem {
       border: 0;
       background: transparent;
       color: var(--text);
-      font-family: var(--font-display);
+      font-family: var(--font-sans);
       font-size: 1rem;
       font-weight: 600;
       text-align: left;
