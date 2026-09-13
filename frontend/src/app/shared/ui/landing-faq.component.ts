@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
 
 export interface LandingFaqItem {
   question: string;
@@ -9,54 +9,35 @@ export interface LandingFaqItem {
   selector: 'app-landing-faq',
   standalone: true,
   template: `
-    <div class="faq" [class.faq--marquee]="showMarquee">
-      @if (showMarquee) {
-        <div class="faq-scroller">
-          @for (row of rows; track row.id) {
-            <div
-              class="faq-row"
-              [class.faq-row--right]="row.direction === 'right'"
-              [style.--dur]="row.duration"
-            >
-              <div class="faq-track">
-                @for (item of row.items; track item.question + '-a') {
+    <div class="faq faq--marquee">
+      <div class="faq-scroller">
+        @for (row of rows; track row.id) {
+          <div
+            class="faq-row"
+            [class.faq-row--right]="row.direction === 'right'"
+            [style.--dur]="row.duration"
+          >
+            <div class="faq-track">
+              <div class="faq-set">
+                @for (item of row.items; track $index) {
                   <article class="faq-card">
                     <h3>{{ item.question }}</h3>
                     <p>{{ item.answer }}</p>
                   </article>
                 }
-                @for (item of row.items; track item.question + '-b') {
-                  <article class="faq-card" aria-hidden="true">
+              </div>
+              <div class="faq-set" aria-hidden="true">
+                @for (item of row.items; track $index) {
+                  <article class="faq-card">
                     <h3>{{ item.question }}</h3>
                     <p>{{ item.answer }}</p>
                   </article>
                 }
               </div>
             </div>
-          }
-        </div>
-      } @else {
-        <div class="faq-accordion">
-          @for (item of items; track item.question; let i = $index) {
-            <div class="faq-acc-item" [class.is-open]="openIndex === i">
-              <button
-                type="button"
-                class="faq-acc-btn"
-                [attr.aria-expanded]="openIndex === i"
-                (click)="toggle(i)"
-              >
-                <span>{{ item.question }}</span>
-                <span class="faq-acc-mark" aria-hidden="true">{{ openIndex === i ? '−' : '+' }}</span>
-              </button>
-              @if (openIndex === i) {
-                <div class="faq-acc-panel">
-                  <p>{{ item.answer }}</p>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
+          </div>
+        }
+      </div>
     </div>
   `,
   styles: [`
@@ -65,23 +46,23 @@ export interface LandingFaqItem {
     .faq-scroller {
       display: grid;
       gap: 0.85rem;
-      margin: 0 calc(-1 * clamp(1rem, 4vw, 1.5rem));
+      margin: 0 calc(-1 * clamp(1rem, 4vw, 2rem));
     }
 
     .faq-row {
       overflow: hidden;
+      isolation: isolate;
       mask-image: linear-gradient(
         to right,
         transparent,
-        #000 6%,
-        #000 94%,
+        #000 5%,
+        #000 95%,
         transparent
       );
     }
 
     .faq-track {
       display: flex;
-      gap: 0.85rem;
       width: max-content;
       animation: ls-faq-marquee var(--dur, 55s) linear infinite;
     }
@@ -94,8 +75,16 @@ export interface LandingFaqItem {
       animation-play-state: paused;
     }
 
+    .faq-set {
+      display: flex;
+      flex: none;
+      gap: 0.85rem;
+      padding-right: 0.85rem;
+    }
+
     .faq-card {
-      flex: 0 0 min(18.5rem, 72vw);
+      flex: 0 0 18.5rem;
+      box-sizing: border-box;
       padding: 1.1rem 1.15rem;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border);
@@ -121,88 +110,36 @@ export interface LandingFaqItem {
       color: var(--text-secondary);
     }
 
-    .faq-accordion {
-      display: grid;
-      gap: 0.5rem;
-      max-width: 44rem;
-    }
-
-    .faq-acc-item {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
-      overflow: hidden;
-    }
-
-    .faq-acc-btn {
-      display: flex;
-      width: 100%;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 1rem 1.15rem;
-      border: 0;
-      background: transparent;
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 1rem;
-      font-weight: 600;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .faq-acc-btn:hover,
-    .faq-acc-btn:focus-visible {
-      background: var(--bg-muted);
-      outline: none;
-    }
-
-    .faq-acc-mark {
-      flex: none;
-      color: var(--primary);
-      font-size: 1.25rem;
-      line-height: 1;
-    }
-
-    .faq-acc-panel {
-      padding: 0 1.15rem 1.1rem;
-    }
-
-    .faq-acc-panel p {
-      margin: 0;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: var(--text-secondary);
+    @media (max-width: 420px) {
+      .faq-card {
+        flex-basis: min(18.5rem, calc(100vw - 3rem));
+      }
     }
 
     @keyframes ls-faq-marquee {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-50%, 0, 0); }
     }
   `],
 })
-export class LandingFaqComponent implements OnInit, OnDestroy {
+export class LandingFaqComponent implements OnInit, OnChanges {
   @Input({ required: true }) items: LandingFaqItem[] = [];
-
-  showMarquee = true;
-  openIndex: number | null = 0;
 
   rows: { id: string; direction: 'left' | 'right'; duration: string; items: LandingFaqItem[] }[] = [];
 
-  private mqNarrow?: MediaQueryList;
-  private onMq = () => this.syncMode();
-
   ngOnInit(): void {
-    if (typeof matchMedia !== 'undefined') {
-      this.mqNarrow = matchMedia('(max-width: 768px)');
-      this.mqNarrow.addEventListener('change', this.onMq);
-      this.syncMode();
-    }
+    this.rows = this.buildRows();
+  }
 
+  ngOnChanges(): void {
+    this.rows = this.buildRows();
+  }
+
+  private buildRows() {
     const durations = ['52s', '64s', '58s'];
     const buckets: LandingFaqItem[][] = [[], [], []];
     this.items.forEach((item, i) => buckets[i % 3].push(item));
-    this.rows = buckets
+    return buckets
       .filter((b) => b.length > 0)
       .map((items, i) => ({
         id: `row-${i}`,
@@ -211,17 +148,5 @@ export class LandingFaqComponent implements OnInit, OnDestroy {
         items,
       }));
   }
-
-  ngOnDestroy(): void {
-    this.mqNarrow?.removeEventListener('change', this.onMq);
-  }
-
-  syncMode(): void {
-    const narrow = this.mqNarrow?.matches ?? false;
-    this.showMarquee = !narrow;
-  }
-
-  toggle(i: number): void {
-    this.openIndex = this.openIndex === i ? null : i;
-  }
 }
+

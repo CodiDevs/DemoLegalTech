@@ -300,22 +300,13 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  /** Entrada de la estación elegida + cambio de vista del expediente. */
+  /** Cambia la vista del expediente sin mover el nodo del rail. */
   private playJourney(): void {
-    const root = this.host.nativeElement as HTMLElement;
-    const ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
-    const station = root.querySelectorAll<HTMLElement>('.ls-station')[this.journeyFocus];
-    station?.animate(
-      [{ transform: 'translateY(10px)', opacity: 0.55 }, { transform: 'none', opacity: 1 }],
-      { duration: 360, easing: ease },
+    const body = this.host.nativeElement.querySelector<HTMLElement>('#flujo .demo-case-body');
+    body?.animate(
+      [{ transform: 'translateY(10px)', opacity: 0.4 }, { transform: 'none', opacity: 1 }],
+      { duration: 380, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
     );
-    setTimeout(() => {
-      const body = root.querySelector<HTMLElement>('#flujo .demo-case-body');
-      body?.animate(
-        [{ transform: 'translateY(14px)', opacity: 0 }, { transform: 'none', opacity: 1 }],
-        { duration: 380, easing: ease },
-      );
-    });
   }
 
   notify(name: string): void {
