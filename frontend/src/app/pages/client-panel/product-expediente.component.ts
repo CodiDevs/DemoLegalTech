@@ -56,7 +56,7 @@ import { IconComponent } from '../../shared/icon.component';
         <div class="list">
           @for (c of cases; track c.id) {
             <div class="panel item">
-              <a class="item-link" [routerLink]="['/caso', c.id]">
+              <a class="item-link" [routerLink]="rowLink(c)">
                 <app-payment-card
                   [title]="'Expediente #' + c.id"
                   [subtitle]="c.status_label + ' · ' + (c.city || '—')"
@@ -64,10 +64,16 @@ import { IconComponent } from '../../shared/icon.component';
                   [paid]="c.paid"
                 />
               </a>
-              @if (c.sign_hint) {
+              @if (!c.paid) {
+                <p class="hint">Completa el pago para continuar.</p>
+                <a class="btn btn-primary sign-cta" [routerLink]="['/checkout', c.id]">
+                  <app-icon name="credit-card" [size]="16" />
+                  Pagar
+                </a>
+              } @else if (c.sign_hint) {
                 <p class="hint">{{ c.sign_hint }}</p>
               }
-              @if (c.can_sign) {
+              @if (c.paid && c.can_sign) {
                 <a class="btn btn-primary sign-cta" [routerLink]="['/firma', c.id]">
                   <app-icon name="signature" [size]="16" />
                   {{ c.has_signature ? 'Volver a firmar' : 'Firmar documento' }}
@@ -175,5 +181,13 @@ export class ProductExpedienteComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  /** Same routing as /cliente so unpaid cases never dead-end on /caso. */
+  rowLink(c: CaseItem): (string | number)[] {
+    if (!c.paid) return ['/checkout', c.id];
+    if (c.can_sign) return ['/firma', c.id];
+    if (c.status === '02') return ['/upload', c.id];
+    return ['/caso', c.id];
   }
 }
