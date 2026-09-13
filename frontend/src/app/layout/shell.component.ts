@@ -392,9 +392,10 @@ interface ProductSwitcherItem {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2);
+      font-family: var(--font-display);
       font-size: var(--text-base);
-      font-weight: 650;
-      letter-spacing: var(--tracking-tight);
+      font-weight: 600;
+      letter-spacing: -0.03em;
       color: var(--text);
       text-decoration: none;
       margin-right: auto;
@@ -425,6 +426,7 @@ interface ProductSwitcherItem {
     .brand-text { display: grid; line-height: 1.2; }
 
     .brand-text small {
+      font-family: var(--font-sans);
       font-size: var(--text-xs);
       font-weight: 500;
       color: var(--text-muted);
