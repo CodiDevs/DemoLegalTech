@@ -166,19 +166,19 @@ import {
         <app-landing-faq [items]="faq" />
       </app-cinematic-scene>
 
-      <app-cinematic-scene sceneId="enterprise" [act]="1" theme="ink">
+      <app-cinematic-scene sceneId="enterprise" [act]="1" theme="cream">
         <p class="cine-kicker">Enterprise</p>
         <h2 class="cine-title">Aislamiento para firmas</h2>
         <p class="cine-lede">Instancia dedicada, SSO y SLA. Solicita una consulta comercial.</p>
-        <button type="button" class="lp-btn lp-btn-primary" (click)="notify('Enterprise')">Solicitar consulta</button>
-        <div class="lp-enterprise-grid" style="margin-top:2rem">
+        <div class="ls-enterprise-grid">
           @for (e of enterprise; track e.title) {
-            <article>
+            <article class="ls-enterprise-card">
               <h3>{{ e.title }}</h3>
               <p>{{ e.desc }}</p>
             </article>
           }
         </div>
+        <button type="button" class="lp-btn lp-btn-primary" (click)="notify('Enterprise')">Solicitar consulta</button>
       </app-cinematic-scene>
 
       @if (toast) {
@@ -206,14 +206,6 @@ import {
     }
     .ls-license-plate .price small { font-size: 1.1rem; margin-left: 0.35rem; }
     .toast-fade { opacity: 1; }
-    .lp-enterprise-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-    @media (max-width: 720px) {
-      .lp-enterprise-grid { grid-template-columns: 1fr; }
-    }
   `],
 })
 export class SaasLandingComponent implements AfterViewInit, OnDestroy {

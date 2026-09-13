@@ -577,6 +577,48 @@
   }
 }
 
+.ls-enterprise-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0 0 var(--space-6);
+  align-items: stretch;
+}
+
+.ls-enterprise-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-5);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.ls-enterprise-card h3 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.ls-enterprise-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+@media (max-width: 720px) {
+  .ls-enterprise-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .ls-license-plate {
   max-width: 42rem;
   padding: clamp(2rem, 5vw, 3.5rem);
