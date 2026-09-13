@@ -82,17 +82,6 @@ import {
             </article>
           }
         </div>
-        <div class="soon-wrap">
-          <h3>Próximamente</h3>
-          <ul class="lp-list-tt soon-list">
-            @for (p of comingSoon; track p.id) {
-              <li class="soon-item">
-                <span><strong>{{ p.name }}</strong>: {{ p.pillDesc }}</span>
-                <button type="button" class="lp-btn lp-btn-outline" (click)="notify(p.name)">Explorar</button>
-              </li>
-            }
-          </ul>
-        </div>
       </app-cinematic-scene>
 
       <app-cinematic-scene sceneId="flujo" [act]="1" theme="cream">
@@ -198,14 +187,6 @@ import {
       font-size: clamp(2rem, 4vw, 3rem);
     }
     .ls-license-plate .price small { font-size: 1.1rem; margin-left: 0.35rem; }
-    .soon-wrap { margin-top: 2.5rem; }
-    .soon-item {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 0.75rem;
-      padding-block: 0.85rem;
-      border-bottom: 1px solid color-mix(in srgb, #fff 12%, transparent);
-    }
     .toast-fade { opacity: 1; }
     .lp-enterprise-grid {
       display: grid;
@@ -213,7 +194,7 @@ import {
       gap: 1rem;
     }
     @media (max-width: 720px) {
-      .soon-item, .lp-enterprise-grid { grid-template-columns: 1fr; }
+      .lp-enterprise-grid { grid-template-columns: 1fr; }
     }
   `],
 })
@@ -222,7 +203,6 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
   featuredProduct = this.liveProducts.find((p) => p.id === 'divorcio360') ?? null;
   supportingProducts = this.liveProducts.filter((p) => p.id !== 'divorcio360');
-  comingSoon = LEGALSTATION_CATALOG.filter((p) => !p.live);
   workflow = LEGALSTATION_WORKFLOW;
   journeyFocus = 1;
   plans = LEGALSTATION_PLANS;
