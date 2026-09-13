@@ -105,16 +105,14 @@
   border: 1px solid color-mix(in srgb, var(--primary) 34%, var(--border));
   background: color-mix(in srgb, var(--surface) 92%, var(--primary-subtle));
   color: var(--text);
-  box-shadow: 0 28px 80px rgb(27 25 23 / 0.22);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
-  transform: perspective(1200px) rotateX(6deg) rotateY(-8deg);
-  transform-origin: 80% 100%;
   animation: demo-case-lift 900ms var(--ease-out) both;
 }
 
 .demo-case[data-mode='payment'],
 .demo-case[data-mode='signature'] {
-  transform: perspective(1200px) rotateX(2deg);
+  transform: none;
 }
 
 .demo-case-bar {
@@ -207,12 +205,12 @@
 
 @keyframes demo-case-lift {
   from {
-    opacity: 0.35;
-    transform: perspective(1200px) rotateX(14deg) translateY(18%);
+    opacity: 0;
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
-    transform: perspective(1200px) rotateX(6deg) rotateY(-8deg);
+    transform: none;
   }
 }
 
@@ -350,7 +348,22 @@
   margin-top: 3rem;
 }
 
-/* Recorrido: línea de tiempo con nodos, sin scroll horizontal */
+.ls-journey {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.ls-journey-preview {
+  display: block;
+  width: 100%;
+}
+
+.ls-journey-preview .demo-case {
+  width: 100%;
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
 .ls-rail-wrap {
   position: relative;
   --rail-node: 2.75rem;

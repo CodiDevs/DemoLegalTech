@@ -88,34 +88,36 @@ import {
         <p class="cine-kicker">Recorrido</p>
         <h2 class="cine-title">Cinco estaciones. Un expediente.</h2>
         <p class="cine-lede">El dossier avanza por recepción, documentos, revisión, firma y cierre.</p>
-        <div class="ls-rail-wrap ls-choreo lp-reveal" [style.--fill]="railFill">
-          <div class="ls-rail-track" aria-hidden="true">
-            <span class="ls-rail-fill"></span>
-            <span class="ls-rail-packet"></span>
+        <div class="ls-journey">
+          <div class="ls-rail-wrap ls-choreo lp-reveal" [style.--fill]="railFill">
+            <div class="ls-rail-track" aria-hidden="true">
+              <span class="ls-rail-fill"></span>
+              <span class="ls-rail-packet"></span>
+            </div>
+            <div class="ls-rail" role="list" (keydown)="onRailKey($event)">
+              @for (step of workflow; track step.id; let i = $index) {
+                <button
+                  type="button"
+                  class="ls-station"
+                  role="listitem"
+                  [style.--i]="i"
+                  [class.is-focus]="journeyFocus === i"
+                  [class.is-past]="i < journeyFocus"
+                  [attr.aria-current]="journeyFocus === i ? 'step' : null"
+                  (click)="onJourneySelect(i)"
+                >
+                  <span class="ls-station-node" aria-hidden="true">
+                    <app-icon [name]="step.icon" [size]="18" />
+                  </span>
+                  <span class="ls-station-num">0{{ step.n }}</span>
+                  <h3>{{ step.title }}</h3>
+                  <p>{{ step.desc }}</p>
+                </button>
+              }
+            </div>
           </div>
-          <div class="ls-rail" role="list" (keydown)="onRailKey($event)">
-            @for (step of workflow; track step.id; let i = $index) {
-              <button
-                type="button"
-                class="ls-station"
-                role="listitem"
-                [style.--i]="i"
-                [class.is-focus]="journeyFocus === i"
-                [class.is-past]="i < journeyFocus"
-                [attr.aria-current]="journeyFocus === i ? 'step' : null"
-                (click)="onJourneySelect(i)"
-              >
-                <span class="ls-station-node" aria-hidden="true">
-                  <app-icon [name]="step.icon" [size]="18" />
-                </span>
-                <span class="ls-station-num">0{{ step.n }}</span>
-                <h3>{{ step.title }}</h3>
-                <p>{{ step.desc }}</p>
-              </button>
-            }
-          </div>
+          <app-demo-case-window class="ls-journey-preview" [mode]="journeyMode" [activeStep]="journeyFocus + 1" />
         </div>
-        <app-demo-case-window [mode]="journeyMode" [activeStep]="journeyFocus + 1" />
       </app-cinematic-scene>
 
       <app-cinematic-scene sceneId="precios" [act]="1" theme="cream">
