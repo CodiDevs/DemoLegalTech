@@ -617,7 +617,11 @@ export class AuthComponent implements OnInit {
 
       this.api.createCase(result, city, questionnaire, this.product).subscribe({
         next: (c) => this.go(`/checkout/${c.id}`),
-        error: () => this.go('/cliente'),
+        error: () => {
+          this.submitting = false;
+          this.serverError =
+            'Entraste bien, pero no pudimos crear tu expediente. Inténtalo de nuevo en unos segundos.';
+        },
       });
       return;
     }
