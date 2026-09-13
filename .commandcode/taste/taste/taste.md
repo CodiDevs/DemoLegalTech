@@ -5,4 +5,6 @@
 - For client-facing demos, prefers maximalist, high-impact presentation: large-scale structural redesigns, abundant motion, monumental visual elements, and theatrical transitions—not incremental polish, minor tweaks, or microanimations. Confidence: 1.0
 - Wants spectacular frontend motion without sacrificing stability; expects designs to be reviewed and changes planned before implementation, with error prevention treated as a hard requirement. Confidence: 0.85
 - Uses Brave as the primary browser; for headless frontend tests, locate `brave.exe` and set it as `CHROME_BIN` when Google Chrome is unavailable. Confidence: 1.0
+- Wants page sections laid out so every item is visible at once without scrolling; treats a horizontally-scrolling rail/carousel ("hay que hacer scroll") as a defect to redesign away, preferring an evenly-distributed grid. Confidence: 0.7
+- Dislikes the word "demo" in client-facing/visible copy; prefers honest substitutes like "de ejemplo" or "ficticio" instead of labeling UI, mocks, or docs as DEMO. Confidence: 0.55
 - Handles git commits on their own and expects the agent to leave changes uncommitted; asks the agent to diagnose merge/push blockers (behind/ahead counts, dry-run conflict checks) rather than to commit or push for them. Confidence: 0.6

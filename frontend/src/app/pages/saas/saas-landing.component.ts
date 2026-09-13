@@ -88,20 +88,32 @@ import {
         <p class="cine-kicker">Recorrido</p>
         <h2 class="cine-title">Cinco estaciones. Un expediente.</h2>
         <p class="cine-lede">El dossier avanza por recepción, documentos, revisión, firma y cierre.</p>
-        <div class="ls-rail ls-choreo lp-reveal" role="list">
-          @for (step of workflow; track step.id; let i = $index) {
-            <button
-              type="button"
-              class="ls-station"
-              role="listitem"
-              [attr.aria-current]="journeyFocus === i ? 'step' : null"
-              (click)="onJourneySelect(i)"
-            >
-              <span class="cine-kicker">0{{ step.n }}</span>
-              <h3>{{ step.title }}</h3>
-              <p>{{ step.desc }}</p>
-            </button>
-          }
+        <div class="ls-rail-wrap ls-choreo lp-reveal" [style.--fill]="railFill">
+          <div class="ls-rail-track" aria-hidden="true">
+            <span class="ls-rail-fill"></span>
+            <span class="ls-rail-packet"></span>
+          </div>
+          <div class="ls-rail" role="list" (keydown)="onRailKey($event)">
+            @for (step of workflow; track step.id; let i = $index) {
+              <button
+                type="button"
+                class="ls-station"
+                role="listitem"
+                [style.--i]="i"
+                [class.is-focus]="journeyFocus === i"
+                [class.is-past]="i < journeyFocus"
+                [attr.aria-current]="journeyFocus === i ? 'step' : null"
+                (click)="onJourneySelect(i)"
+              >
+                <span class="ls-station-node" aria-hidden="true">
+                  <app-icon [name]="step.icon" [size]="18" />
+                </span>
+                <span class="ls-station-num">0{{ step.n }}</span>
+                <h3>{{ step.title }}</h3>
+                <p>{{ step.desc }}</p>
+              </button>
+            }
+          </div>
         </div>
         <app-demo-case-window [mode]="journeyMode" [activeStep]="journeyFocus + 1" />
       </app-cinematic-scene>
@@ -216,10 +228,14 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
 
   get journeyMode(): DemoCaseMode {
-    if (this.journeyFocus <= 1) return 'overview';
-    if (this.journeyFocus === 2) return 'documents';
+    if (this.journeyFocus === 0) return 'overview';
+    if (this.journeyFocus <= 2) return 'documents';
     if (this.journeyFocus === 3) return 'signature';
     return 'payment';
+  }
+
+  get railFill(): number {
+    return (this.journeyFocus + 0.5) / this.workflow.length;
   }
 
   ngAfterViewInit(): void {
@@ -267,7 +283,41 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   }
 
   onJourneySelect(index: number): void {
+    if (index === this.journeyFocus || !this.workflow[index]) return;
     this.journeyFocus = index;
+    this.playJourney();
+  }
+
+  onRailKey(event: KeyboardEvent): void {
+    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (!delta) return;
+    event.preventDefault();
+    const next = Math.min(this.workflow.length - 1, Math.max(0, this.journeyFocus + delta));
+    if (next === this.journeyFocus) return;
+    this.journeyFocus = next;
+    this.playJourney();
+    queueMicrotask(() => {
+      const stations = this.host.nativeElement.querySelectorAll<HTMLElement>('.ls-station');
+      stations[next]?.focus();
+    });
+  }
+
+  /** Entrada de la estación elegida + cambio de vista del expediente. */
+  private playJourney(): void {
+    const root = this.host.nativeElement as HTMLElement;
+    const ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
+    const station = root.querySelectorAll<HTMLElement>('.ls-station')[this.journeyFocus];
+    station?.animate(
+      [{ transform: 'translateY(10px)', opacity: 0.55 }, { transform: 'none', opacity: 1 }],
+      { duration: 360, easing: ease },
+    );
+    setTimeout(() => {
+      const body = root.querySelector<HTMLElement>('#flujo .demo-case-body');
+      body?.animate(
+        [{ transform: 'translateY(14px)', opacity: 0 }, { transform: 'none', opacity: 1 }],
+        { duration: 380, easing: ease },
+      );
+    });
   }
 
   notify(name: string): void {

@@ -96,7 +96,7 @@ export const LEGALSTATION_FAQ = [
   {
     question: '¿Mis documentos están protegidos?',
     answer:
-      'El acceso al expediente es por cuenta autenticada. En demo no hay cifrado empresarial adicional; en producción aplica el despliegue del operador.',
+      'El acceso al expediente es por cuenta autenticada. En este entorno de ejemplo no hay cifrado empresarial adicional; en producción aplica el despliegue del operador.',
   },
   {
     question: '¿Cómo funciona el pago?',

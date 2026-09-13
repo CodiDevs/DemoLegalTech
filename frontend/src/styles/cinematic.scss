@@ -349,22 +349,198 @@
   margin-top: 3rem;
 }
 
+/* Recorrido: línea de tiempo con nodos, sin scroll horizontal */
+.ls-rail-wrap {
+  position: relative;
+  --rail-node: 2.75rem;
+  padding-top: var(--rail-node);
+}
+
+.ls-rail-track {
+  position: absolute;
+  top: var(--rail-node);
+  left: calc((100% - 4rem) / 10);
+  right: calc((100% - 4rem) / 10);
+  height: 2px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.ls-rail-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--fill, 0.5) * 100%);
+  border-radius: inherit;
+  background: var(--primary);
+  transform-origin: left center;
+  transition: width 560ms var(--ease-out);
+}
+
+.ls-rail-packet {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--fill, 0.5) * 100%);
+  width: 0.6rem;
+  height: 0.6rem;
+  margin: -0.3rem 0 0 -0.3rem;
+  border-radius: 50%;
+  background: var(--primary);
+  transition: left 560ms var(--ease-out);
+  animation: ls-packet 2.6s var(--ease-out) infinite;
+}
+
+@keyframes ls-packet {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent); }
+  70% { box-shadow: 0 0 0 0.65rem color-mix(in srgb, var(--primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent); }
+}
+
 .ls-rail {
-  display: flex;
-  gap: 1.25rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 1rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
 }
 
 .ls-station {
-  flex: 0 0 min(72vw, 22rem);
-  min-height: 42vh;
-  scroll-snap-align: start;
-  padding: 1.5rem;
+  position: relative;
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  padding: 1.75rem 1.15rem 1.25rem;
+  text-align: left;
   background: var(--surface);
   border: 1px solid var(--border);
-  transform: translateZ(0);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    translate 260ms var(--ease-out),
+    border-color 200ms var(--ease),
+    background 200ms var(--ease),
+    box-shadow 260ms var(--ease-out);
+}
+
+.ls-station:hover {
+  translate: 0 -3px;
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  box-shadow: var(--shadow-md);
+}
+
+.ls-station.is-focus {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--surface) 88%, var(--primary-subtle));
+  box-shadow: var(--shadow-md);
+}
+
+.ls-station h3 {
+  font-size: 1.0625rem;
+  line-height: 1.25;
+}
+
+.ls-station p {
+  font-size: 0.85rem;
+}
+
+.ls-station-node {
+  position: absolute;
+  top: calc(var(--rail-node) * -1 + 1.5rem);
+  left: 50%;
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--primary);
+  transition:
+    background 220ms var(--ease),
+    color 220ms var(--ease),
+    border-color 220ms var(--ease),
+    box-shadow 260ms var(--ease-out),
+    scale 300ms var(--ease-out);
+}
+
+.ls-station.is-past .ls-station-node,
+.ls-station.is-focus .ls-station-node {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-on-primary);
+}
+
+.ls-station.is-focus .ls-station-node {
+  scale: 1.08;
+  box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.ls-station-num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+}
+
+.ls-rail-wrap.is-choreo .ls-rail-fill {
+  animation: ls-fill-in 820ms var(--ease-out) 140ms both;
+}
+
+.ls-rail-wrap.is-choreo .ls-station {
+  animation: ls-in 0.5s var(--ease-out) both;
+  animation-delay: calc(180ms + var(--i, 0) * 70ms);
+}
+
+@keyframes ls-fill-in {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (max-width: 1100px) {
+  .ls-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ls-rail-track {
+    display: none;
+  }
+
+  .ls-rail-wrap {
+    padding-top: 0;
+  }
+
+  .ls-station-node {
+    position: static;
+    translate: none;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .ls-station {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.35rem 0.85rem;
+    padding: 1.1rem 1.15rem;
+  }
+
+  .ls-station-node {
+    grid-row: span 3;
+  }
+
+  .ls-station-num {
+    grid-column: 2;
+  }
+
+  .ls-station h3,
+  .ls-station p {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 620px) {
+  .ls-rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .ls-license-plate {

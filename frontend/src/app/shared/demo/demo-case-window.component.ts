@@ -10,7 +10,7 @@ export type DemoCaseMode = 'overview' | 'documents' | 'payment' | 'signature';
     <div class="demo-case" [attr.data-mode]="mode" role="img" [attr.aria-label]="label">
       <header class="demo-case-bar">
         <span></span><span></span><span></span>
-        <strong>{{ site.name }} · expediente DEMO</strong>
+        <strong>{{ site.name }} · expediente de ejemplo</strong>
       </header>
       <div class="demo-case-body">
         @if (mode === 'overview') {
@@ -32,9 +32,9 @@ export type DemoCaseMode = 'overview' | 'documents' | 'payment' | 'signature';
           <p class="demo-case-kicker">Mesa documental</p>
           <h3>Folios en revisión</h3>
           <ul class="demo-case-docs">
-            <li>Cédula · DEMO · aprobado</li>
-            <li>Partida · DEMO · aprobado</li>
-            <li>Minuta · DEMO · lista para firma</li>
+            <li>Cédula · folio de ejemplo · aprobado</li>
+            <li>Partida · folio de ejemplo · aprobado</li>
+            <li>Minuta · folio de ejemplo · lista para firma</li>
           </ul>
         }
         @if (mode === 'payment') {
@@ -45,7 +45,7 @@ export type DemoCaseMode = 'overview' | 'documents' | 'payment' | 'signature';
         @if (mode === 'signature') {
           <p class="demo-case-kicker">Firma virtual</p>
           <h3>Documento enviado</h3>
-          <p>Sello DEMO · IP de prueba · evidencia de fecha.</p>
+          <p>Sello de ejemplo · IP de prueba · evidencia de fecha.</p>
         }
       </div>
     </div>
@@ -61,6 +61,6 @@ export class DemoCaseWindowComponent {
   }
 
   get label(): string {
-    return `Ventana de expediente de demostración, modo ${this.mode}`;
+    return `Ventana de expediente de ejemplo, modo ${this.mode}`;
   }
 }

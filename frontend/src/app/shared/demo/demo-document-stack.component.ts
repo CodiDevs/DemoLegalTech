@@ -13,7 +13,7 @@ export interface DemoSheet {
       @for (sheet of sheets; track sheet.src; let i = $index) {
         <figure class="demo-sheet" [style.--i]="i">
           <img [src]="sheet.src" [alt]="sheet.alt" width="420" height="560" />
-          <figcaption>DOCUMENTO FICTICIO · DEMO</figcaption>
+          <figcaption>DOCUMENTO FICTICIO</figcaption>
         </figure>
       }
     </div>
@@ -22,8 +22,8 @@ export interface DemoSheet {
 export class DemoDocumentStackComponent {
   @Input() variant: 'stack' | 'orbit' | 'archive' = 'stack';
   @Input() sheets: DemoSheet[] = [
-    { src: '/demo-scenes/identity-demo.svg', alt: 'Identidad ficticia DEMO' },
-    { src: '/demo-scenes/marriage-record-demo.svg', alt: 'Partida ficticia DEMO' },
-    { src: '/demo-scenes/legal-draft-demo.svg', alt: 'Minuta ficticia DEMO' },
+    { src: '/demo-scenes/identity-demo.svg', alt: 'Identidad ficticia' },
+    { src: '/demo-scenes/marriage-record-demo.svg', alt: 'Partida ficticia' },
+    { src: '/demo-scenes/legal-draft-demo.svg', alt: 'Minuta ficticia' },
   ];
 }

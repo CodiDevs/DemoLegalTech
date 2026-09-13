@@ -85,6 +85,24 @@ describe('SaasLandingComponent', () => {
     expect(disconnect).toHaveBeenCalled();
   });
 
+  it('recorrido: cinco estaciones en una fila, foco con flechas y progreso del rail', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const stations = Array.from(root.querySelectorAll('.ls-rail .ls-station'));
+
+    expect(stations.length).toBe(5);
+    expect(stations.filter((s) => s.classList.contains('is-focus')).length).toBe(1);
+    expect(root.querySelectorAll('.ls-station-node svg, .ls-station-node img').length).toBe(5);
+
+    const cmp = fixture.componentInstance;
+    expect(cmp.railFill).toBeCloseTo(0.3, 5);
+
+    stations[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(cmp.journeyFocus).toBe(2);
+    expect(cmp.railFill).toBeCloseTo(0.5, 5);
+    expect(cmp.journeyMode).toBe('documents');
+  });
+
   it('pinta los tres planes de licencia con precio, items y CTA', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
