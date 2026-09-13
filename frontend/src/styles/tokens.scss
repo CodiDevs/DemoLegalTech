@@ -119,6 +119,7 @@
   --dur-fast: 150ms;
   --dur-base: 240ms;
   --dur-slow: 420ms;
+  --dur-cine: 560ms; /* theatrical chapter enter; still transform/opacity/filter */
   --ease:     cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -572,19 +573,4 @@ input[type='radio'] {
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }

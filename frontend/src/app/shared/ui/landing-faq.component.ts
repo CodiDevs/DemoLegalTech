@@ -190,15 +190,12 @@ export class LandingFaqComponent implements OnInit, OnDestroy {
   rows: { id: string; direction: 'left' | 'right'; duration: string; items: LandingFaqItem[] }[] = [];
 
   private mqNarrow?: MediaQueryList;
-  private mqReduce?: MediaQueryList;
   private onMq = () => this.syncMode();
 
   ngOnInit(): void {
     if (typeof matchMedia !== 'undefined') {
       this.mqNarrow = matchMedia('(max-width: 768px)');
-      this.mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
       this.mqNarrow.addEventListener('change', this.onMq);
-      this.mqReduce.addEventListener('change', this.onMq);
       this.syncMode();
     }
 
@@ -217,13 +214,11 @@ export class LandingFaqComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mqNarrow?.removeEventListener('change', this.onMq);
-    this.mqReduce?.removeEventListener('change', this.onMq);
   }
 
   syncMode(): void {
-    const reduce = this.mqReduce?.matches ?? false;
     const narrow = this.mqNarrow?.matches ?? false;
-    this.showMarquee = !reduce && !narrow;
+    this.showMarquee = !narrow;
   }
 
   toggle(i: number): void {

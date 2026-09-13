@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="240" viewBox="0 0 420 240" role="img" aria-labelledby="sgTitle sgDesc">
+  <title id="sgTitle">Trazo de firma ficticio</title>
+  <desc id="sgDesc">DOCUMENTO FICTICIO - DEMO. Firma inventada para la demostracion.</desc>
+  <rect width="420" height="240" fill="#faf7f0"/>
+  <text x="24" y="28" font-family="system-ui, sans-serif" font-size="10" letter-spacing="2.2" fill="#2f6f68">DOCUMENTO FICTICIO - DEMO</text>
+  <path d="M36 150 C 70 40, 110 210, 160 110 S 240 40, 280 130 S 340 180, 384 96" fill="none" stroke="#1b1917" stroke-width="3" stroke-linecap="round"/>
+  <line x1="36" y1="176" x2="384" y2="176" stroke="#cfccc5"/>
+  <text x="36" y="204" font-family="system-ui, sans-serif" font-size="12" fill="#5c5750">Firma de demostracion - no vinculante</text>
+</svg>

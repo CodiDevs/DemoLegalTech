@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="280" viewBox="0 0 420 280" role="img" aria-labelledby="idTitle idDesc">
+  <title id="idTitle">Documento de identidad ficticio</title>
+  <desc id="idDesc">DOCUMENTO FICTICIO - DEMO. No reproduce una cedula real.</desc>
+  <rect width="420" height="280" rx="12" fill="#eef3f1"/>
+  <rect x="0" y="0" width="12" height="280" fill="#2f6f68"/>
+  <text x="32" y="36" font-family="system-ui, sans-serif" font-size="10" letter-spacing="2.4" fill="#2f6f68">DOCUMENTO FICTICIO - DEMO</text>
+  <text x="32" y="68" font-family="Georgia, serif" font-size="20" fill="#1b1917">Identidad de prueba</text>
+  <rect x="32" y="88" width="72" height="92" fill="#d7e4e1"/>
+  <text x="68" y="140" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#5c5750">FOTO</text>
+  <text x="120" y="112" font-family="system-ui, sans-serif" font-size="13" fill="#423e38">Nombre: Persona Demo</text>
+  <text x="120" y="136" font-family="system-ui, sans-serif" font-size="13" fill="#423e38">N.: 000-000-000</text>
+  <text x="120" y="160" font-family="system-ui, sans-serif" font-size="13" fill="#423e38">Nacionalidad: EC</text>
+  <text x="32" y="228" font-family="Georgia, serif" font-size="28" fill="#2f6f68" opacity="0.28">DEMO</text>
+  <text x="32" y="258" font-family="system-ui, sans-serif" font-size="10" fill="#7d786f">No es un documento de identidad oficial</text>
+</svg>

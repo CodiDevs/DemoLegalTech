@@ -65,18 +65,6 @@ import {
         transform: none;
       }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .tilt-body {
-        transform: none !important;
-        transition: none;
-      }
-
-      :host ::ng-deep .tilt-z-media,
-      :host ::ng-deep .tilt-z-copy {
-        transform: none;
-      }
-    }
   `],
 })
 export class TiltCardComponent implements OnDestroy {
@@ -92,11 +80,9 @@ export class TiltCardComponent implements OnDestroy {
   private raf = 0;
   private enabled = true;
 
-  constructor() {
+    constructor() {
     if (typeof matchMedia !== 'undefined') {
-      const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      this.enabled = fine && !reduce;
+      this.enabled = matchMedia('(hover: hover) and (pointer: fine)').matches;
     }
   }
 

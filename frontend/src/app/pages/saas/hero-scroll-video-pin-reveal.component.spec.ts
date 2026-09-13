@@ -1,9 +1,9 @@
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AuthService } from '../../core/auth.service';
-import { HeroScrollVideoPinRevealComponent } from './hero-scroll-video-pin-reveal.component';
+import { HeroScrollVideoPinRevealComponent, activeStepFromProgress } from './hero-scroll-video-pin-reveal.component';
 
 function motionQuery(reduce: boolean): MediaQueryList {
   return {
@@ -34,6 +34,24 @@ function configureHero(): Promise<void> {
   }).compileComponents();
 }
 
+async function waitUntil(check: () => boolean, ms = 2500): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < ms) {
+    if (check()) return;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  throw new Error('timeout waiting for ScrollTrigger');
+}
+
+describe('activeStepFromProgress', () => {
+  it('deriva el índice de etapa desde el progreso, también al revertir', () => {
+    expect(activeStepFromProgress(0, 6)).toBe(0);
+    expect(activeStepFromProgress(1, 6)).toBe(5);
+    expect(activeStepFromProgress(0.5, 6)).toBe(3);
+    expect(activeStepFromProgress(-1, 6)).toBe(0);
+  });
+});
+
 describe('HeroScrollVideoPinRevealComponent', () => {
   let fixture: ComponentFixture<HeroScrollVideoPinRevealComponent>;
 
@@ -43,80 +61,22 @@ describe('HeroScrollVideoPinRevealComponent', () => {
     TestBed.resetTestingModule();
   });
 
-  describe('con movimiento reducido', () => {
-    beforeEach(async () => {
-      spyOn(window, 'matchMedia').and.returnValue(motionQuery(true));
-      await configureHero();
-      fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
-      fixture.detectChanges();
-    });
-
-    it('renderiza un único H1 y la acción primaria en el primer bloque', () => {
-      const root = fixture.nativeElement as HTMLElement;
-
-      expect(root.querySelectorAll('h1').length).toBe(1);
-      expect(root.querySelector('.hsvr-intro')).toBeNull();
-      expect(root.querySelector('.hsvr-tags')).toBeNull();
-      expect(root.querySelector('.hsvr-btn-primary')?.getAttribute('href')).toBe('/cuestionario');
-    });
-
-    it('no consulta ni destruye ScrollTriggers globales al desmontarse', () => {
-      const getAllSpy = spyOn(ScrollTrigger, 'getAll').and.callThrough();
-
-      fixture.destroy();
-
-      expect(getAllSpy).not.toHaveBeenCalled();
-    });
-  });
-
   describe('con movimiento', () => {
-    const rafPending = new Map<number, FrameRequestCallback>();
-    let rafSeq = 0;
-
-    function flushScheduledFrames(): void {
-      const queued = [...rafPending.entries()];
-      rafPending.clear();
-      for (const [, callback] of queued) {
-        callback(0);
-      }
-    }
-
     beforeEach(async () => {
-      rafPending.clear();
-      rafSeq = 0;
       spyOn(window, 'matchMedia').and.returnValue(motionQuery(false));
-      spyOn(window, 'requestAnimationFrame').and.callFake((callback: FrameRequestCallback) => {
-        rafSeq += 1;
-        rafPending.set(rafSeq, callback);
-        return rafSeq;
-      });
-      spyOn(window, 'cancelAnimationFrame').and.callFake((id: number) => {
-        rafPending.delete(id);
-      });
       await configureHero();
       fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
     });
 
-    it('no inicializa GSAP ni refresca ScrollTrigger si se destruye antes del frame', fakeAsync(() => {
-      const refreshSpy = spyOn(ScrollTrigger, 'refresh');
-
+    it('no deja ScrollTrigger si se destruye antes del boot', async () => {
       fixture.detectChanges();
       fixture.destroy();
-      flushScheduledFrames();
-      flushScheduledFrames();
-      tick(100);
-
-      expect(refreshSpy).not.toHaveBeenCalled();
+      await new Promise((r) => setTimeout(r, 200));
       expect(ScrollTrigger.getAll().length).toBe(0);
-    }));
+    });
 
-    it('no deja las palabras del H1 en opacity 0 si el reveal no arranca', fakeAsync(() => {
-      spyOn(ScrollTrigger, 'refresh').and.stub();
-
+    it('no deja las palabras del H1 en opacity 0 si el reveal no arranca', () => {
       fixture.detectChanges();
-      flushScheduledFrames();
-      flushScheduledFrames();
-
       const words = Array.from(
         (fixture.nativeElement as HTMLElement).querySelectorAll('.reveal-word'),
       ) as HTMLElement[];
@@ -126,10 +86,51 @@ describe('HeroScrollVideoPinRevealComponent', () => {
         expect(word.style.opacity).not.toBe('0');
         expect(Number(getComputedStyle(word).opacity)).toBeGreaterThan(0);
       }
+    });
+  });
+
+  describe('según viewport', () => {
+    function mediaFor(query: string, active: string): MediaQueryList {
+      return {
+        matches: query === active,
+        media: query,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => true,
+      };
+    }
+
+    async function mountWith(activeQuery: string): Promise<void> {
+      spyOn(window, 'matchMedia').and.callFake((q: string) => mediaFor(q, activeQuery));
+      await configureHero();
+      fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
+    }
+
+    it('arma trigger con pin en desktop y lo limpia al destruir', async () => {
+      await mountWith('(min-width: 1024px)');
+      fixture.detectChanges();
+      await waitUntil(() => ScrollTrigger.getAll().some((t) => !!t.pin));
+      expect(ScrollTrigger.getAll().some((t) => !!t.pin)).toBeTrue();
 
       fixture.destroy();
-      tick(100);
+      await new Promise((r) => setTimeout(r, 50));
       expect(ScrollTrigger.getAll().length).toBe(0);
-    }));
+    });
+
+    it('en móvil anima el expediente sin pin largo', async () => {
+      await mountWith('(max-width: 639.9px)');
+      fixture.detectChanges();
+      await waitUntil(() => ScrollTrigger.getAll().length > 0);
+      const mock = (fixture.nativeElement as HTMLElement).querySelector('.hsvr-mock');
+      expect(mock).not.toBeNull();
+      expect(ScrollTrigger.getAll().some((t) => !!t.pin)).toBeFalse();
+
+      fixture.destroy();
+      await new Promise((r) => setTimeout(r, 50));
+      expect(ScrollTrigger.getAll().length).toBe(0);
+    });
   });
 });

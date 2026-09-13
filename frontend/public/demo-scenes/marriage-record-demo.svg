@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="560" viewBox="0 0 420 560" role="img" aria-labelledby="mrTitle mrDesc">
+  <title id="mrTitle">Partida de matrimonio ficticia</title>
+  <desc id="mrDesc">DOCUMENTO FICTICIO - DEMO. Datos inventados, no es un registro civil.</desc>
+  <rect width="420" height="560" fill="#f7f4ec"/>
+  <rect x="18" y="18" width="384" height="524" fill="none" stroke="#2b2824" stroke-width="1.5"/>
+  <text x="210" y="56" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#1b1917">Registro civil - DEMO</text>
+  <text x="210" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" letter-spacing="2" fill="#2f6f68">DOCUMENTO FICTICIO - DEMO</text>
+  <line x1="48" y1="104" x2="372" y2="104" stroke="#cfccc5"/>
+  <text x="48" y="136" font-family="system-ui, sans-serif" font-size="11" fill="#5c5750">Folio 014 | Tomo ficticio</text>
+  <text x="48" y="178" font-family="Georgia, serif" font-size="16" fill="#1b1917">Contrato de matrimonio (simulado)</text>
+  <text x="48" y="214" font-family="system-ui, sans-serif" font-size="13" fill="#423e38">Parte A - persona demostracion</text>
+  <text x="48" y="236" font-family="system-ui, sans-serif" font-size="13" fill="#423e38">Parte B - persona demostracion</text>
+  <text x="48" y="272" font-family="system-ui, sans-serif" font-size="12" fill="#7d786f">Lugar: Quito (escenario de prueba)</text>
+  <text x="48" y="294" font-family="system-ui, sans-serif" font-size="12" fill="#7d786f">Fecha: 11 - 09 - 2018</text>
+  <rect x="250" y="400" width="120" height="120" fill="none" stroke="#2f6f68" stroke-width="2"/>
+  <text x="310" y="458" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#2f6f68">SELLO</text>
+  <text x="310" y="478" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#2f6f68">DEMO</text>
+  <text x="48" y="520" font-family="system-ui, sans-serif" font-size="10" fill="#a8a49b">Sin valor registral - uso exclusivo de demostracion</text>
+</svg>

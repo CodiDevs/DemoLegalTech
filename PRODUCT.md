@@ -14,17 +14,16 @@ Este repositorio es una demostración. Clientes, integraciones, valores y plazos
 
 ## Visual language
 
-- Base neutra cálida, superficies planas y teal jurídico desde `frontend/src/styles/tokens.scss`.
-- Fraunces en headings e Inter en texto. Esta pareja es una excepción deliberada al filtro no-slop porque distingue contenido editorial de controles operativos.
-- Sin gradientes decorativos, glassmorphism, glows, botones pill ni hover con transform.
-- Radios máximos: `var(--radius-lg)` para contenedores y `var(--radius-md)` para controles.
+- Un idioma en el camino cliente: cream paper, Fraunces display, Inter body, teal `#2f6f68` desde `frontend/src/styles/tokens.scss`.
+- Sin clay neumorphism (`.ob-neo`), sin Dribbble gray dual-shadow.
+- Home privilegia Divorcio360 como trámite héroe; Traslado/BienRaiz son recortes, no tres cards iguales.
 
 ## Motion
 
-- Una firma expresiva: reveal circular del expediente en el hero.
-- Entradas breves con opacity/transform; sin blur.
-- Menús y hover usan color u opacidad entre 100ms y 200ms.
-- `prefers-reduced-motion` muestra todo el contenido sin pin ni autoplay.
+- Demo always-on. No `prefers-reduced-motion`. Ver `.cursor/rules/demo-motion.mdc`.
+- Firma expresiva: GSAP pin/clip-path en `/productos/divorcio360`, más enter de pregunta (opacity + translateY + blur) en el trámite.
+- Sí/No y CTAs se mueven (transform). Custom easing `--ease-out`.
+- Checkout, upload y firma heredan el mismo stage que el cuestionario.
 
 ## Conversion
 

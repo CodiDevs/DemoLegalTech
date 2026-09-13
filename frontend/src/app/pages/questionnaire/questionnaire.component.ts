@@ -1,4 +1,5 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, QuestionnaireAnswers, QuestionnaireResult } from '../../core/api.service';
@@ -16,7 +17,7 @@ import {
   GEO_COUNTRIES,
   GeoProvince,
 } from '../../shared/ecuador-locations.data';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 type AnswerKey = keyof QuestionnaireAnswers;
 
@@ -37,10 +38,13 @@ interface Question {
   imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
-      <div class="ob">
+      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [attr.data-cat]="currentCategory" [class.is-loading]="submitting">
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
+          <p class="ob-counter" aria-hidden="true">
+            {{ pad(position) }} / {{ pad(visibleQuestions.length) }}
+          </p>
           <div class="ob-questions">
             <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + position + ' de ' + visibleQuestions.length">
               <div class="ob-segments">
@@ -69,10 +73,10 @@ interface Question {
             </div>
 
             <div class="ob-stage">
-              <div class="ob-card-slot">
+              <div class="ob-sheet-slot">
                 <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
                 @for (q of [current]; track q.key) {
-                  <section class="ob-card">
+                  <section class="ob-sheet" [class.ob-sheet--back]="direction === -1">
                 <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
 
                 <h1>{{ q.text }}</h1>
@@ -128,11 +132,11 @@ interface Question {
                   >Continuar</button>
                 } @else {
                   <div class="ob-choices">
-                    <button #firstChoice type="button" class="ob-choice" (click)="answer(true)">
+                    <button #firstChoice type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, true)" (click)="answer(true)">
                       <span>Sí</span>
                       <app-icon name="chevron-right" [size]="17" />
                     </button>
-                    <button type="button" class="ob-choice" (click)="answer(false)">
+                    <button type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, false)" (click)="answer(false)">
                       <span>No</span>
                       <app-icon name="chevron-right" [size]="17" />
                     </button>
@@ -161,7 +165,7 @@ interface Question {
 
         <!-- ============ Revisión ============ -->
         @if (stage === 'review') {
-          <section class="ob-card">
+          <section class="ob-sheet ob-folios" [class.ob-sheet--back]="direction === -1">
             <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
             <h1>Revisa tus respuestas</h1>
             <p class="ob-hint">Toca cualquier respuesta si quieres cambiarla.</p>
@@ -212,7 +216,7 @@ interface Question {
 
         <!-- ============ Resultado ============ -->
         @if (stage === 'result' && result) {
-          <section class="ob-card" [class]="'ob-card is-' + result.code">
+          <section [class]="'ob-sheet ob-verdict is-' + result.code + (direction === -1 ? ' ob-sheet--back' : '')">
             <span class="ob-icon"><app-icon [name]="resultIcon" [size]="26" /></span>
 
             <h1>{{ result.title }}</h1>
@@ -298,7 +302,7 @@ interface Question {
     </div>
   `,
 })
-export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterViewInit {
+export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
   @ViewChild('firstChoice') firstChoice?: ElementRef<HTMLButtonElement>;
   @ViewChild('locationCountrySelect') locationCountrySelect?: ElementRef<HTMLSelectElement>;
   @ViewChild('noAplicaScheduler') noAplicaScheduler?: MeetingSchedulerComponent;
@@ -427,8 +431,11 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
   private cursor = 0;
   /** Preguntas ya contestadas, para volver atrás en el orden real recorrido. */
   private trail: number[] = [];
-  /** Marca para enfocar el control principal tras cambiar de paso. */
-  private pendingFocus = true;
+  private answered = new Set<AnswerKey>();
+  private restoreTimer?: ReturnType<typeof setTimeout>;
+  private restoreSub?: Subscription;
+  private pendingFocus = false;
+  private destroyed = false;
 
   constructor(
     private api: ApiService,
@@ -436,6 +443,8 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     private router: Router,
     private route: ActivatedRoute,
   ) {}
+
+  private destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     setActiveProduct('divorcio360');
@@ -454,11 +463,17 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
         this.answers = { ...this.answers, ...p.answers };
         this.normalizeLocation();
       }
-      this.api.evaluate(this.answers).subscribe({
+      this.restoreSub = this.api.evaluate(this.answers).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
         next: (res) => {
+          if (this.destroyed) return;
           this.result = res;
           this.stage = 'result';
-          setTimeout(() => this.tryPendingMeeting(), 0);
+          this.restoreTimer = setTimeout(() => {
+            if (this.destroyed) return;
+            this.tryPendingMeeting();
+          }, 0);
         },
       });
     } catch { /* ignore */ }
@@ -468,17 +483,23 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     if (this.stage === 'result') this.tryPendingMeeting();
   }
 
-  private tryPendingMeeting(): void {
-    this.noAplicaScheduler?.tryPendingSave((at) => this.api.requestMeeting(at, 'divorcio360', 'no_aplica'));
-  }
-
   ngAfterViewChecked(): void {
     if (!this.pendingFocus) return;
-    const el = this.locationCountrySelect?.nativeElement ?? this.firstChoice?.nativeElement;
-    if (el) {
-      this.pendingFocus = false;
-      el.focus();
-    }
+    this.pendingFocus = false;
+    const el = this.current.key === 'city'
+      ? this.locationCountrySelect?.nativeElement
+      : this.firstChoice?.nativeElement;
+    el?.focus();
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.restoreSub?.unsubscribe();
+    if (this.restoreTimer !== undefined) clearTimeout(this.restoreTimer);
+  }
+
+  private tryPendingMeeting(): void {
+    this.noAplicaScheduler?.tryPendingSave((at) => this.api.requestMeeting(at, 'divorcio360', 'no_aplica'));
   }
 
   get visibleQuestions(): Question[] {
@@ -491,6 +512,21 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
 
   get position(): number {
     return this.visibleQuestions.findIndex((q) => q.key === this.current.key) + 1;
+  }
+
+  pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  get currentCategory(): string {
+    const k = this.current?.key;
+    if (k === 'city' || k === 'ids_valid' || k === 'marriage_in_ecuador') return 'identity';
+    if (k === 'have_children' || k === 'minor_dependents' || k === 'custody_regulated' || k === 'has_mediation_acta') {
+      return 'family';
+    }
+    if (k === 'have_assets' || k === 'conjugal_society' || k === 'want_liquidate_assets') return 'assets';
+    if (k === 'someone_abroad') return 'abroad';
+    return 'pact';
   }
 
   get progressPercent(): number {
@@ -539,6 +575,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
 
   answer(value: boolean): void {
     (this.answers as any)[this.current.key] = value;
+    this.answered.add(this.current.key);
     this.goForward();
   }
 
@@ -590,6 +627,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
   submitCity(): void {
     if (!this.locationComplete) return;
     this.answers.city = this.answers.city.trim();
+    this.answered.add('city');
     this.goForward();
   }
 
@@ -622,6 +660,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
   }
 
   backToReview(): void {
+    this.direction = -1;
     this.stage = 'review';
   }
 
@@ -641,6 +680,10 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     this.pendingFocus = true;
   }
 
+  isSelected(key: AnswerKey, value: boolean): boolean {
+    return this.answered.has(key) && this.answers[key] === value;
+  }
+
   /** Primera pregunta visible después de `from`, o -1 si no queda ninguna. */
   private nextVisibleAfter(from: number): number {
     for (let i = from + 1; i < this.all.length; i++) {
@@ -657,8 +700,11 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     this.submitting = true;
     this.submitError = '';
 
-    this.api.evaluate(this.answers).subscribe({
+    this.api.evaluate(this.answers).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
       next: (res) => {
+        if (this.destroyed) return;
         this.submitting = false;
         this.result = res;
         this.stage = 'result';
@@ -670,6 +716,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
         }));
       },
       error: () => {
+        if (this.destroyed) return;
         this.submitting = false;
         this.submitError = 'No pudimos calcular tu resultado. Revisa tu conexión e inténtalo de nuevo.';
       },
@@ -681,7 +728,9 @@ export class QuestionnaireComponent implements OnInit, AfterViewChecked, AfterVi
     this.submitting = true;
     this.submitError = '';
 
-    this.api.createCase(this.result.code, this.locationLabel, this.answers).subscribe({
+    this.api.createCase(this.result.code, this.locationLabel, this.answers).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
       next: (c) => void this.router.navigate(['/checkout', c.id]),
       error: () => {
         this.submitting = false;

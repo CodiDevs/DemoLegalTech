@@ -1,13 +1,12 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { LEGALSTATION_CATALOG, ProductCatalogEntry, getProductQuestionnairePath, setActiveProduct } from '../../shared/product-sites.data';
-import { CaseProgressComponent } from '../../shared/case-progress.component';
-import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
+import { LEGALSTATION_CATALOG, ProductCatalogEntry, setActiveProduct } from '../../shared/product-sites.data';
 import { IconComponent } from '../../shared/icon.component';
 import { LandingFaqComponent } from '../../shared/ui/landing-faq.component';
-import { ShineBorderComponent } from '../../shared/ui/shine-border.component';
-import { TiltCardComponent } from '../../shared/ui/tilt-card.component';
 import { MarketingHeroComponent } from './marketing-hero.component';
+import { CinematicSceneComponent } from '../../shared/motion/cinematic-scene.component';
+import { DemoCaseWindowComponent, DemoCaseMode } from '../../shared/demo/demo-case-window.component';
+import { DemoDocumentStackComponent } from '../../shared/demo/demo-document-stack.component';
 import {
   LEGALSTATION_ENTERPRISE,
   LEGALSTATION_FAQ,
@@ -22,171 +21,157 @@ import {
     RouterLink,
     MarketingHeroComponent,
     IconComponent,
-    TiltCardComponent,
-    ShineBorderComponent,
     LandingFaqComponent,
-    CaseProgressComponent,
+    CinematicSceneComponent,
+    DemoCaseWindowComponent,
+    DemoDocumentStackComponent,
   ],
   template: `
     <div class="landing-page legalstation-landing">
       <app-marketing-hero
-        primaryCta="Ver qué puedo tramitar"
-        primaryFragment="catalogo"
+        primaryCta="Abrir Divorcio360"
+        primaryRoute="/productos/divorcio360"
         [showSecondary]="false"
       />
 
-      <section class="lp-section soft" id="catalogo">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <p class="lp-eyebrow">Productos</p>
-            <h2>Trámites en vivo</h2>
-            <p>
-              Divorcio360, Traslado360 y BienRaiz360 abren el cuestionario ahora.
-              El resto aparece como próximos lanzamientos.
-            </p>
-          </div>
-          <div class="lp-product-grid ls-product-grid ls-choreo">
-            @for (p of liveProducts; track p.id; let i = $index) {
-              <app-tilt-card class="ls-tilt-slot" [style.--i]="i" [attr.data-product]="p.id">
-                <article class="lp-product-card ls-product-card">
-                  <span class="lp-badge-live">En vivo</span>
-                  <img class="tilt-z-media" [src]="p.image" [alt]="p.name" loading="lazy" />
-                  <div class="lp-product-body tilt-z-copy">
-                    <h3>{{ p.name }}</h3>
-                    <p>{{ p.tagline }}</p>
-                    <ul class="lp-list-tt">
-                      @for (f of p.features; track f) { <li>{{ f }}</li> }
-                    </ul>
-                    <button type="button" class="lp-btn lp-btn-primary" (click)="openProduct(p)">
-                      Abrir producto
-                      <app-icon name="arrow-right" [size]="16" />
-                    </button>
-                  </div>
-                </article>
-              </app-tilt-card>
-            }
-          </div>
-
-          <div class="soon-wrap">
-            <h3>Próximamente</h3>
-            <p class="lp-muted">Herramientas en preparación que aún no abren cuestionario.</p>
-            <ul class="lp-list-tt soon-list">
-              @for (p of comingSoon; track p.id) {
-                <li class="soon-item">
-                  <span>
-                    <strong>{{ p.name }}</strong>
-                    <span class="lp-muted">: {{ p.pillDesc }}</span>
-                  </span>
-                  <button type="button" class="lp-btn lp-btn-outline" (click)="notify(p.name)">
-                    Explorar
-                  </button>
-                </li>
-              }
+      <app-cinematic-scene sceneId="catalogo" [act]="1" theme="cream">
+        <div class="ls-hero-product lp-reveal">
+          <div>
+            <p class="cine-kicker">En vivo</p>
+            <h2 class="cine-title">Divorcio360 abre el expediente</h2>
+            <p class="cine-lede">{{ featuredProduct?.tagline }}</p>
+            <ul class="lp-list-tt">
+              @for (f of featuredProduct?.features; track f) { <li>{{ f }}</li> }
             </ul>
+            <a
+              [routerLink]="featuredProduct?.route"
+              class="lp-btn lp-btn-primary ls-hero-cta"
+              (click)="armProduct(featuredProduct)"
+            >
+              Abrir {{ featuredProduct?.name }}
+              <app-icon name="arrow-right" [size]="16" />
+            </a>
+          </div>
+          <div>
+            <app-demo-document-stack variant="stack" />
+            <app-demo-case-window class="ls-feature" mode="overview" [activeStep]="3" />
           </div>
         </div>
-      </section>
+      </app-cinematic-scene>
 
-      <section class="lp-section" id="flujo">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <p class="lp-eyebrow">Recorrido</p>
-            <h2>De la recepción a la finalización</h2>
-            <p>Cinco etapas del expediente en la plataforma.</p>
-          </div>
-          <div class="ls-progress ls-choreo">
-            <app-case-progress
-              variant="marketing"
-              layout="auto"
-              [interactive]="true"
-              [stages]="journeyStages"
-              [focusIndex]="journeyFocus"
-              ariaLabel="Recorrido del trámite LegalStation"
-              (stageSelect)="onJourneySelect($event.index)"
-            />
-          </div>
+      <app-cinematic-scene [act]="1" theme="ink">
+        <p class="cine-kicker">También en vivo</p>
+        <h2 class="cine-title">Otras ventanas del mismo sistema</h2>
+        <div class="ls-side-windows ls-choreo lp-reveal">
+          @for (p of supportingProducts; track p.id; let i = $index) {
+            <article class="ls-offset-window" [style.--i]="i" [attr.data-product]="p.id">
+              <span class="lp-badge-live">En vivo</span>
+              <h3>{{ p.name }}</h3>
+              <p>{{ p.tagline }}</p>
+              <ul class="lp-list-tt">
+                @for (f of p.features; track f) { <li>{{ f }}</li> }
+              </ul>
+              <a [routerLink]="p.route" class="lp-btn lp-btn-primary" (click)="armProduct(p)">
+                Abrir producto
+              </a>
+            </article>
+          }
         </div>
-      </section>
-
-      <section class="lp-section soft" id="precios">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <p class="lp-eyebrow">Licencias</p>
-            <h2>Licencia para operar la plataforma</h2>
-            <p>Tarifas para operadores. El cliente del trámite no paga esta licencia.</p>
-          </div>
-          <div class="ls-pricing-grid">
-            @for (plan of plans; track plan.name) {
-              @if (plan.featured) {
-                <app-shine-border class="ls-shine-slot">
-                  <article class="lp-plan ls-plan-card featured">
-                    <span class="lp-plan-tag">Más popular</span>
-                    <h3>{{ plan.name }}</h3>
-                    <p class="lp-muted">{{ plan.audience }}</p>
-                    <div class="lp-plan-price">\${{ plan.price }}<small>/mes</small></div>
-                    <ul>
-                      @for (item of plan.items; track item) { <li>{{ item }}</li> }
-                    </ul>
-                    <a
-                      routerLink="/auth"
-                      [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
-                      class="lp-btn lp-btn-primary"
-                    >Ver licencia</a>
-                  </article>
-                </app-shine-border>
-              } @else {
-                <article class="lp-plan ls-plan-card">
-                  <span class="lp-plan-tag is-spacer">Más popular</span>
-                  <h3>{{ plan.name }}</h3>
-                  <p class="lp-muted">{{ plan.audience }}</p>
-                  <div class="lp-plan-price">\${{ plan.price }}<small>/mes</small></div>
-                  <ul>
-                    @for (item of plan.items; track item) { <li>{{ item }}</li> }
-                  </ul>
-                  <a
-                    routerLink="/auth"
-                    [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
-                    class="lp-btn lp-btn-outline"
-                  >Ver licencia</a>
-                </article>
-              }
+        <div class="soon-wrap">
+          <h3>Próximamente</h3>
+          <ul class="lp-list-tt soon-list">
+            @for (p of comingSoon; track p.id) {
+              <li class="soon-item">
+                <span><strong>{{ p.name }}</strong>: {{ p.pillDesc }}</span>
+                <button type="button" class="lp-btn lp-btn-outline" (click)="notify(p.name)">Explorar</button>
+              </li>
             }
-          </div>
+          </ul>
         </div>
-      </section>
+      </app-cinematic-scene>
 
-      <section class="lp-section" id="faq">
-        <div class="lp-shell">
-          <div class="lp-section-head">
-            <p class="lp-eyebrow">Preguntas</p>
-            <h2>Antes de empezar</h2>
-            <p>Respuestas cortas sobre trámites, cuenta, documentos y seguimiento.</p>
-          </div>
-          <app-landing-faq [items]="faq" />
+      <app-cinematic-scene sceneId="flujo" [act]="1" theme="cream">
+        <p class="cine-kicker">Recorrido</p>
+        <h2 class="cine-title">Cinco estaciones. Un expediente.</h2>
+        <p class="cine-lede">El dossier avanza por recepción, documentos, revisión, firma y cierre.</p>
+        <div class="ls-rail ls-choreo lp-reveal" role="list">
+          @for (step of workflow; track step.id; let i = $index) {
+            <button
+              type="button"
+              class="ls-station"
+              role="listitem"
+              [attr.aria-current]="journeyFocus === i ? 'step' : null"
+              (click)="onJourneySelect(i)"
+            >
+              <span class="cine-kicker">0{{ step.n }}</span>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.desc }}</p>
+            </button>
+          }
         </div>
-      </section>
+        <app-demo-case-window [mode]="journeyMode" [activeStep]="journeyFocus + 1" />
+      </app-cinematic-scene>
 
-      <section class="lp-section soft" id="enterprise">
-        <div class="lp-shell lp-enterprise">
-          <div class="lp-enterprise-copy">
-            <p class="lp-eyebrow">Enterprise</p>
-            <h2>Para firmas que necesitan aislamiento</h2>
-            <p>
-              Instancia dedicada, SSO y SLA para firmas que necesitan datos aislados.
-              Solicita una consulta comercial.
-            </p>
-            <button type="button" class="lp-btn lp-btn-primary" (click)="notify('Enterprise')">Solicitar consulta</button>
-          </div>
-          <div class="lp-enterprise-grid">
-            @for (e of enterprise; track e.title) {
-              <article class="lp-value ls-enterprise-card">
-                <h3>{{ e.title }}</h3>
-                <p>{{ e.desc }}</p>
-              </article>
-            }
-          </div>
+      <app-cinematic-scene sceneId="precios" [act]="1" theme="cream">
+        <p class="cine-kicker">Licencia</p>
+        <div class="ls-license-plate">
+          <p class="cine-kicker">Más usada</p>
+          <h2>{{ featuredPlan.name }}</h2>
+          <p>{{ featuredPlan.audience }}</p>
+          <div class="price">\${{ featuredPlan.price }}<small>/mes</small></div>
+          <ul>
+            @for (item of featuredPlan.items; track item) { <li>{{ item }}</li> }
+          </ul>
+          <a
+            routerLink="/auth"
+            [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
+            class="lp-btn lp-btn-primary"
+          >Ver licencia</a>
         </div>
-      </section>
+        <div class="ls-plan-type">
+          @for (plan of sidePlans; track plan.name) {
+            <article>
+              <div>
+                <h3>{{ plan.name }}</h3>
+                <p class="lp-muted">{{ plan.audience }}</p>
+              </div>
+              <strong>\${{ plan.price }}</strong>
+            </article>
+          }
+        </div>
+      </app-cinematic-scene>
+
+      <app-cinematic-scene sceneId="faq" [act]="1">
+        <p class="cine-kicker">Preguntas</p>
+        <h2 class="cine-title">Antes de empezar</h2>
+        <app-landing-faq [items]="faq" />
+      </app-cinematic-scene>
+
+      <app-cinematic-scene sceneId="enterprise" [act]="1" theme="ink">
+        <p class="cine-kicker">Enterprise</p>
+        <h2 class="cine-title">Aislamiento para firmas</h2>
+        <p class="cine-lede">Instancia dedicada, SSO y SLA. Solicita una consulta comercial.</p>
+        <button type="button" class="lp-btn lp-btn-primary" (click)="notify('Enterprise')">Solicitar consulta</button>
+        <div class="lp-enterprise-grid" style="margin-top:2rem">
+          @for (e of enterprise; track e.title) {
+            <article>
+              <h3>{{ e.title }}</h3>
+              <p>{{ e.desc }}</p>
+            </article>
+          }
+        </div>
+      </app-cinematic-scene>
+
+      <app-cinematic-scene [act]="1" theme="cream">
+        <div class="ls-close-cta lp-reveal">
+          <p class="cine-kicker">Cierre</p>
+          <h2 class="cine-title">El expediente vuelve a la portada</h2>
+          <p class="cine-lede">Abre Divorcio360 y recorre el trámite como una sola película.</p>
+          <a routerLink="/productos/divorcio360" class="lp-btn lp-btn-primary ls-hero-cta" (click)="armProduct(featuredProduct)">
+            Abrir Divorcio360
+          </a>
+        </div>
+      </app-cinematic-scene>
 
       @if (toast) {
         <div class="lp-toast toast-fade" role="status" aria-live="polite">{{ toast }}</div>
@@ -194,134 +179,75 @@ import {
     </div>
   `,
   styles: [`
-    .soon-wrap {
-      margin-top: clamp(2rem, 4vw, 2.75rem);
-      padding-top: clamp(1.5rem, 3vw, 2rem);
-      border-top: 1px solid var(--border);
+    .legalstation-landing { background: var(--bg); }
+    .ls-hero-product app-demo-case-window { display: block; margin-top: 1.5rem; }
+    .ls-offset-window h3 {
+      margin: 0.5rem 0 0.65rem;
+      font-family: var(--font-sans);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      letter-spacing: -0.03em;
     }
-
-    .soon-wrap h3 {
-      margin: 0 0 0.35rem;
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      font-weight: 600;
+    .ls-license-plate h2 {
+      margin: 0 0 0.4rem;
+      font-family: var(--font-sans);
+      font-size: clamp(2rem, 4vw, 3rem);
     }
-
-    .soon-list {
-      max-width: 44rem;
-      margin-top: 0.85rem;
-    }
-
+    .ls-license-plate .price small { font-size: 1.1rem; margin-left: 0.35rem; }
+    .soon-wrap { margin-top: 2.5rem; }
     .soon-item {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 0.75rem 1rem;
-      align-items: center;
+      gap: 0.75rem;
       padding-block: 0.85rem;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid color-mix(in srgb, #fff 12%, transparent);
     }
-
-    .soon-item:last-child {
-      border-bottom: 0;
-    }
-
-    .ls-pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1.25rem;
-      align-items: stretch;
-    }
-
-    .ls-shine-slot,
-    .ls-tilt-slot {
-      display: block;
-      height: 100%;
-      min-width: 0;
-    }
-
-    .ls-plan-card {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .ls-plan-card .lp-btn {
-      margin-top: auto;
-      align-self: stretch;
-      justify-content: center;
-    }
-
-    .lp-enterprise {
-      display: grid;
-      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
-      gap: clamp(1.75rem, 4vw, 3rem);
-      align-items: start;
-    }
-
-    .lp-enterprise-copy h2 {
-      font-family: var(--font-display);
-      font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-      font-weight: 600;
-      letter-spacing: -0.03em;
-      margin: 0 0 0.85rem;
-      max-width: 16ch;
-    }
-
-    .lp-enterprise-copy p {
-      margin-bottom: 1.25rem;
-      max-width: 36rem;
-    }
-
+    .toast-fade { opacity: 1; }
     .lp-enterprise-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
-
-    .toast-fade {
-      opacity: 1;
-      transition: opacity 180ms var(--ease), transform 180ms var(--ease);
-    }
-
-    .ls-progress {
-      margin-top: 0.5rem;
-      padding: 0.25rem 0 0.5rem;
-    }
-
-    @media (max-width: 960px) {
-      .lp-enterprise { grid-template-columns: 1fr; }
-      .ls-pricing-grid { grid-template-columns: 1fr; }
-    }
-
     @media (max-width: 720px) {
-      .soon-item { grid-template-columns: 1fr; }
-      .lp-enterprise-grid { grid-template-columns: 1fr; }
+      .soon-item, .lp-enterprise-grid { grid-template-columns: 1fr; }
     }
-  `]
+  `],
 })
 export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   toast = '';
   liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
+  featuredProduct = this.liveProducts.find((p) => p.id === 'divorcio360') ?? null;
+  supportingProducts = this.liveProducts.filter((p) => p.id !== 'divorcio360');
   comingSoon = LEGALSTATION_CATALOG.filter((p) => !p.live);
+  workflow = LEGALSTATION_WORKFLOW;
   journeyFocus = 1;
-  journeyStages: CaseProgressStage[] = buildMarketingProgressStages(LEGALSTATION_WORKFLOW, 1);
   plans = LEGALSTATION_PLANS;
+  featuredPlan = LEGALSTATION_PLANS.find((p) => p.featured) ?? LEGALSTATION_PLANS[1];
+  sidePlans = LEGALSTATION_PLANS.filter((p) => !p.featured);
   enterprise = LEGALSTATION_ENTERPRISE;
   faq = LEGALSTATION_FAQ;
   private io?: IntersectionObserver;
+  private toastTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
 
+  get journeyMode(): DemoCaseMode {
+    if (this.journeyFocus <= 1) return 'overview';
+    if (this.journeyFocus === 2) return 'documents';
+    if (this.journeyFocus === 3) return 'signature';
+    return 'payment';
+  }
+
   ngAfterViewInit(): void {
-    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
-    const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo');
+    const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo, .lp-reveal');
+    let remaining = 0;
     this.io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          entry.target.classList.add('is-choreo');
+          entry.target.classList.add('is-choreo', 'is-in-view');
           this.io?.unobserve(entry.target);
+          remaining -= 1;
+          if (remaining <= 0) this.io?.disconnect();
         }
       },
       { rootMargin: '0px 0px -12% 0px', threshold: 0.14 },
@@ -329,28 +255,42 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
     nodes.forEach((el) => {
       const rect = el.getBoundingClientRect();
       const alreadyIn = rect.top < window.innerHeight * 0.88 && rect.bottom > 0;
-      if (alreadyIn) return;
+      if (alreadyIn) {
+        el.classList.add('is-choreo', 'is-in-view');
+        return;
+      }
+      remaining += 1;
       this.io!.observe(el);
     });
+    if (remaining <= 0) this.io.disconnect();
   }
 
   ngOnDestroy(): void {
     this.io?.disconnect();
+    if (this.toastTimer !== undefined) clearTimeout(this.toastTimer);
   }
 
-  openProduct(p: ProductCatalogEntry): void {
-    if (!p.route) return;
+  armProduct(p: ProductCatalogEntry | null): void {
+    if (!p?.route) return;
     setActiveProduct(p.id);
-    void this.router.navigateByUrl(getProductQuestionnairePath(p.id));
+  }
+
+  openProduct(p: ProductCatalogEntry | null): void {
+    if (!p?.route) return;
+    this.armProduct(p);
+    void this.router.navigateByUrl(p.route);
   }
 
   onJourneySelect(index: number): void {
     this.journeyFocus = index;
-    this.journeyStages = buildMarketingProgressStages(LEGALSTATION_WORKFLOW, index);
   }
 
   notify(name: string): void {
+    if (this.toastTimer !== undefined) clearTimeout(this.toastTimer);
     this.toast = `${name}: solicitud registrada. Te contactaremos pronto.`;
-    setTimeout(() => this.toast = '', 3500);
+    this.toastTimer = setTimeout(() => {
+      this.toast = '';
+      this.toastTimer = undefined;
+    }, 3500);
   }
 }

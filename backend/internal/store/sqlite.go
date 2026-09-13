@@ -208,6 +208,19 @@ CREATE TABLE IF NOT EXISTS mock_master_template_edits (
   note TEXT DEFAULT '',
   updated_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS mock_document_templates (
+  id TEXT PRIMARY KEY,
+  source_id TEXT,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'familia',
+  status TEXT NOT NULL DEFAULT 'diseno',
+  version TEXT NOT NULL DEFAULT 'v1.0',
+  fields_json TEXT NOT NULL DEFAULT '[]',
+  preview_html TEXT NOT NULL DEFAULT '',
+  versions_json TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 `
 	if _, err := db.Exec(mockTables); err != nil {
 		return err

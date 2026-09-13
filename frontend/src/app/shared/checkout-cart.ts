@@ -9,6 +9,8 @@ export interface CheckoutCartLine {
   applies: boolean;
   /** Si está cubierto por el paquete (muestra «Incluido»). */
   includedInPackage: boolean;
+  /** Gasto que no se cobra aquí (notaría, tasas). */
+  billedSeparately?: boolean;
 }
 
 export interface CheckoutCart {
@@ -82,10 +84,11 @@ export function buildCheckoutCart(
     },
     {
       id: 'notary',
-      label: 'Valor del notario',
+      label: 'Gastos notariales',
       referenceCents: NOTARY_FEE_CENTS,
       applies: true,
       includedInPackage: false,
+      billedSeparately: true,
     },
   ];
 
@@ -109,6 +112,13 @@ export function buildCheckoutCart(
     discountCents,
     totalCents: totalCents,
   };
+}
+
+/** Suma de líneas cobradas aquí (excluye incluidos y billedSeparately). */
+export function chargedLineCents(cart: CheckoutCart): number {
+  return cart.lines
+    .filter((line) => line.applies && !line.includedInPackage && !line.billedSeparately)
+    .reduce((sum, line) => sum + line.referenceCents, 0);
 }
 
 export function parseQuestionnaire(raw?: string | Record<string, unknown>): Partial<QuestionnaireAnswers> {

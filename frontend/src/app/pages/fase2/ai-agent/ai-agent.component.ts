@@ -1,129 +1,428 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../../core/api.service';
-import { StatusBadgeComponent } from '../../../shared/status-badge.component';
+import { IconComponent } from '../../../shared/icon.component';
+import { getProductDisplayName } from '../../../shared/product-sites.data';
+
+interface AIResult {
+  summary: string;
+  risks: string[];
+  recommendations: string[];
+}
+
+interface ChatMsg {
+  role: 'user' | 'assistant';
+  text: string;
+}
 
 @Component({
   selector: 'app-fase2-ai',
   standalone: true,
-  imports: [FormsModule, StatusBadgeComponent, DecimalPipe],
+  imports: [FormsModule, RouterLink, IconComponent],
   template: `
-    <h1>Asistente de revisión</h1>
+    <div class="desk">
+      <header class="desk-head">
+        <h1>Asistente de revisión</h1>
+        <div class="tools">
+          <label class="sr-only" for="caseId">Expediente</label>
+          <select id="caseId" [(ngModel)]="selectedCaseId" (ngModelChange)="onCaseChange($event)">
+            <option [ngValue]="0">Sin expediente</option>
+            @for (c of cases; track c.id) {
+              <option [ngValue]="c.id">#{{ c.id }} — {{ c.client_name || 'Cliente' }}</option>
+            }
+          </select>
+          @if (selectedCaseId > 0) {
+            <a class="btn btn-ghost" [routerLink]="['/abogado/caso', selectedCaseId]">
+              Abrir
+              <app-icon name="arrow-right" [size]="16" />
+            </a>
+          }
+        </div>
+      </header>
 
-    <div class="panel controls">
-      <label for="caseId">Expediente a analizar</label>
-      <select id="caseId" [(ngModel)]="selectedCaseId">
-        <option [ngValue]="0">Expediente genérico</option>
-        @for (c of cases; track c.id) {
-          <option [ngValue]="c.id">#{{ c.id }} — {{ c.client_name }} ({{ c.status_label }})</option>
-        }
-      </select>
-      <button class="btn btn-primary" type="button" (click)="run()" [disabled]="loading">
-        {{ loading ? 'Analizando…' : 'Analizar expediente' }}
-      </button>
-    </div>
+      @if (casesError) {
+        <div class="panel state" role="alert">
+          <strong>No cargaron los expedientes</strong>
+          <button type="button" class="btn btn-secondary" (click)="loadCases()">Reintentar</button>
+        </div>
+      } @else {
+        <div class="board">
+          <aside class="brief panel">
+            @if (loading && !data) {
+              <p class="muted"><span class="spinner" aria-hidden="true"></span> Leyendo…</p>
+            } @else if (analyzeError && !data) {
+              <p class="muted">El análisis no respondió.</p>
+              <button type="button" class="btn btn-secondary" (click)="run()">Reintentar</button>
+            } @else if (data) {
+              <p class="brief-k">{{ selectedLabel }}</p>
+              @if (selectedCase; as c) {
+                <p class="muted">{{ productName(c) }} · {{ c.status_label }}</p>
+              }
+              <p class="brief-sum">{{ data.summary }}</p>
+              @if (data.risks?.[0]; as risk) {
+                <p class="brief-risk">
+                  <app-icon name="alert-triangle" [size]="16" />
+                  {{ risk }}
+                </p>
+              }
+              @if (data.recommendations?.[0]; as next) {
+                <p class="brief-next"><span>Siguiente</span> {{ next }}</p>
+              }
+            }
+          </aside>
 
-    @if (data) {
-      <div class="layout">
-        <div class="stack">
-          <div class="panel fase2-preview-card">
-            <h2>Resumen ejecutivo</h2>
-            <p>{{ data.summary }}</p>
-            <div class="gauge-wrap">
-              <div class="gauge" [style.--pct]="data.confidence * 100 + '%'">
-                <span>{{ (data.confidence * 100) | number:'1.0-0' }}%</span>
-              </div>
-              <p class="muted">Confianza del análisis</p>
+          <section class="chat panel" aria-label="Chat con el asistente">
+            <div class="chat-log" #log>
+              @for (m of messages; track $index) {
+                <div class="bubble" [class.me]="m.role === 'user'">{{ m.text }}</div>
+              }
+              @if (chatLoading) {
+                <div class="bubble pending" aria-live="polite">Escribiendo…</div>
+              }
             </div>
-          </div>
-
-          <div class="panel fase2-preview-card">
-            <h2>Riesgos</h2>
-            @for (r of data.risks; track r) {
-              <app-status-badge [label]="r" variant="warn" />
-            }
-          </div>
-
-          <div class="panel fase2-preview-card">
-            <h2>Recomendaciones</h2>
-            <ul>
-              @for (r of data.recommendations; track r) { <li>{{ r }}</li> }
-            </ul>
-          </div>
+            <div class="chips" role="group" aria-label="Preguntas">
+              @for (q of prompts; track q) {
+                <button type="button" class="chip" (click)="ask(q)" [disabled]="chatLoading">{{ q }}</button>
+              }
+            </div>
+            <form class="composer" (ngSubmit)="send()">
+              <label class="sr-only" for="aiDraft">Mensaje</label>
+              <input
+                id="aiDraft"
+                name="draft"
+                type="text"
+                [(ngModel)]="draft"
+                placeholder="Pregunta sobre este expediente"
+                autocomplete="off"
+                [disabled]="chatLoading"
+              />
+              <button class="btn btn-primary" type="submit" [disabled]="chatLoading || !draft.trim()">
+                Enviar
+              </button>
+            </form>
+          </section>
         </div>
-
-        <div class="stack">
-          <div class="panel fase2-preview-card">
-            <h2>Cross-check documentos</h2>
-            @for (c of data.cross_check; track c.field) {
-              <div class="check-row">
-                <app-status-badge [label]="c.status === 'ok' ? 'OK' : 'Alerta'" [variant]="c.status === 'ok' ? 'ok' : 'warn'" />
-                <div>
-                  <strong>{{ c.field }}</strong>
-                  <p class="muted">{{ c.detail }}</p>
-                </div>
-              </div>
-            }
-          </div>
-
-          <div class="panel fase2-preview-card chat">
-            <h2>Asistente (simulado)</h2>
-            @for (m of data.chat; track $index) {
-              <div class="msg" [class.user]="m.role === 'user'">{{ m.text }}</div>
-            }
-          </div>
-
-          <button type="button" class="btn btn-ghost" disabled title="Fase 2 mock">
-            Exportar informe PDF (Fase 2)
-          </button>
-        </div>
-      </div>
-    }
+      }
+    </div>
   `,
-  styleUrls: ['../fase2-shared.scss'],
   styles: [`
-    .controls { display: grid; gap: 0.75rem; max-width: 480px; margin-top: 1rem; }
-    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
-    .stack { display: grid; gap: 1rem; align-content: start; }
-    .gauge-wrap { text-align: center; margin-top: 1rem; }
-    .gauge {
-      width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 0.5rem;
-      background: conic-gradient(var(--brand) var(--pct), var(--line) 0);
-      display: grid; place-items: center;
+    .desk {
+      display: grid;
+      gap: var(--space-4);
+      padding-block: var(--space-1) var(--space-6);
     }
-    .gauge span {
-      width: 72px; height: 72px; border-radius: 50%; background: white;
-      display: grid; place-items: center; font-weight: 700; font-size: 1.1rem;
+
+    .desk-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-3);
+      animation: desk-in 480ms var(--ease-out) both;
     }
-    .check-row { display: flex; gap: 0.75rem; padding: 0.5rem 0; border-top: 1px solid var(--line); }
-    .check-row:first-of-type { border-top: 0; }
-    .check-row p { margin: 0; font-size: 0.85rem; }
-    .chat .msg {
-      padding: 0.65rem 0.85rem; border-radius: 10px; margin-bottom: 0.5rem;
-      background: oklch(0.96 0.01 230); font-size: 0.9rem;
+
+    .desk-head h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
     }
-    .chat .msg.user { background: oklch(0.94 0.02 210); margin-left: 1.5rem; }
-    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+    .tools {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .tools select {
+      min-width: 16rem;
+      max-width: 28rem;
+    }
+
+    .tools .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+      gap: var(--space-4);
+      align-items: stretch;
+      min-height: calc(100dvh - var(--header-height) - 9rem);
+    }
+
+    .brief {
+      display: grid;
+      align-content: start;
+      gap: var(--space-3);
+      animation: desk-in 520ms var(--ease-out) both;
+    }
+
+    .brief-k {
+      margin: 0;
+      font-weight: 650;
+      font-size: var(--text-sm);
+    }
+
+    .brief-sum {
+      margin: 0;
+      font-size: var(--text-sm);
+      line-height: 1.5;
+    }
+
+    .brief-risk {
+      display: flex;
+      gap: var(--space-2);
+      align-items: flex-start;
+      margin: 0;
+      font-size: var(--text-sm);
+      color: var(--warning);
+    }
+
+    .brief-risk app-icon { flex-shrink: 0; margin-top: 1px; }
+
+    .brief-next {
+      margin: 0;
+      font-size: var(--text-sm);
+    }
+
+    .brief-next span {
+      display: block;
+      font-size: var(--text-xs);
+      font-weight: 650;
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .muted {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+
+    .chat {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto auto;
+      gap: var(--space-3);
+      min-height: 22rem;
+      max-height: calc(100dvh - var(--header-height) - 9rem);
+      animation: desk-in 560ms var(--ease-out) both;
+    }
+
+    .chat-log {
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: var(--space-2);
+      padding-right: 2px;
+      scrollbar-width: thin;
+    }
+
+    .bubble {
+      max-width: 42rem;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--bg-muted);
+      font-size: var(--text-sm);
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .bubble.me {
+      justify-self: end;
+      background: var(--primary-subtle);
+      color: var(--primary-active, var(--primary));
+    }
+
+    .bubble.pending { color: var(--text-muted); font-style: italic; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .chip {
+      min-height: 2rem;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: var(--text-xs);
+      font-weight: 600;
+    }
+
+    .chip:hover:not(:disabled) {
+      border-color: var(--primary-border);
+      color: var(--primary);
+    }
+
+    .composer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-2);
+    }
+
+    .state {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    @keyframes desk-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+        filter: blur(6px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+        filter: blur(0);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .board {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+      .chat {
+        max-height: none;
+        min-height: 24rem;
+      }
+      .tools select { min-width: 0; flex: 1 1 12rem; }
+    }
   `]
 })
 export class Fase2AiComponent implements OnInit {
+  @ViewChild('log') log?: ElementRef<HTMLElement>;
+
   cases: CaseItem[] = [];
-  selectedCaseId = 1;
-  data: any = null;
+  selectedCaseId = 0;
+  data: AIResult | null = null;
   loading = false;
+  casesError = false;
+  analyzeError = false;
+  messages: ChatMsg[] = [];
+  draft = '';
+  chatLoading = false;
+  readonly prompts = ['¿Qué sigue ahora?', '¿Hay menores?', '¿Listo para minuta?'];
+
+  private analyzeSeq = 0;
+  private chatSeq = 0;
 
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
-    this.api.listCases().subscribe((c) => this.cases = c);
+    this.loadCases();
+  }
+
+  get selectedCase(): CaseItem | undefined {
+    return this.cases.find((c) => c.id === this.selectedCaseId);
+  }
+
+  get selectedLabel(): string {
+    const c = this.selectedCase;
+    if (!c) return 'Sin expediente';
+    return `#${c.id} — ${c.client_name || 'Cliente'}`;
+  }
+
+  productName(c: CaseItem): string {
+    return getProductDisplayName(c.product || 'divorcio360');
+  }
+
+  loadCases(): void {
+    this.casesError = false;
+    this.api.listCases().subscribe({
+      next: (list) => {
+        this.cases = [...list].sort((a, b) => {
+          const aw = a.status === '03' ? 0 : 1;
+          const bw = b.status === '03' ? 0 : 1;
+          return aw - bw || b.id - a.id;
+        });
+        this.selectedCaseId = this.cases.some((c) => c.id === 1) ? 1 : (this.cases[0]?.id ?? 0);
+        this.run();
+      },
+      error: () => {
+        this.casesError = true;
+      },
+    });
+  }
+
+  onCaseChange(id: number): void {
+    this.selectedCaseId = id;
+    this.messages = [];
+    this.run();
   }
 
   run(): void {
+    const n = ++this.analyzeSeq;
     this.loading = true;
+    this.analyzeError = false;
     this.api.mockAI(this.selectedCaseId).subscribe({
-      next: (d) => { this.data = d; this.loading = false; },
-      error: () => { this.loading = false; },
+      next: (d) => {
+        if (n !== this.analyzeSeq) return;
+        this.data = d;
+        this.loading = false;
+        this.messages = [{ role: 'assistant', text: this.seedText() }];
+        this.stickChat();
+      },
+      error: () => {
+        if (n !== this.analyzeSeq) return;
+        this.loading = false;
+        this.analyzeError = true;
+      },
+    });
+  }
+
+  ask(q: string): void {
+    this.draft = q;
+    this.send();
+  }
+
+  send(): void {
+    const text = this.draft.trim();
+    if (!text || this.chatLoading) return;
+    this.draft = '';
+    this.messages = [...this.messages, { role: 'user', text }];
+    this.stickChat();
+    const n = ++this.chatSeq;
+    this.chatLoading = true;
+    this.api.mockAIChat(this.selectedCaseId, text).subscribe({
+      next: (res) => {
+        if (n !== this.chatSeq) return;
+        this.chatLoading = false;
+        this.messages = [...this.messages, { role: 'assistant', text: res.reply || 'Sin respuesta.' }];
+        this.stickChat();
+      },
+      error: () => {
+        if (n !== this.chatSeq) return;
+        this.chatLoading = false;
+        this.messages = [...this.messages, { role: 'assistant', text: 'El asistente no respondió. Reintenta.' }];
+        this.stickChat();
+      },
+    });
+  }
+
+  private seedText(): string {
+    return 'Revisé el expediente. Pregunta por minuta, menores o el siguiente paso.';
+  }
+
+  private stickChat(): void {
+    queueMicrotask(() => {
+      const el = this.log?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
     });
   }
 }

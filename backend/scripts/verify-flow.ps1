@@ -62,4 +62,19 @@ if ($wsFinal.case.status -ne '04') { throw 'Expected status 04 after minuta uplo
 if ($wsFinal.blockers.Count -gt 0) { throw 'Expected no blockers at 04 with minuta' }
 if (-not ($wsFinal.outputs | Where-Object { $_.output_type -eq 'minuta' })) { throw 'Expected minuta output' }
 
+Write-Host '=== Sign-ready Divorcio360 fixture ==='
+$cases = Invoke-RestMethod -Uri "$base/cases" -Headers $hc
+$signCase = @($cases) | Where-Object { $_.can_sign -eq $true -and $_.product -eq 'divorcio360' } | Select-Object -First 1
+if (-not $signCase) { throw 'Expected a divorcio360 case with can_sign' }
+$sid = $signCase.id
+Write-Host "sign-ready case #$sid status=$($signCase.status) can_sign=$($signCase.can_sign)"
+Set-Content -Path "$tmpdir\firma.pdf" -Value 'firma demo'
+$signResp = curl.exe -s -w "`n%{http_code}" -H "Authorization: Bearer $token" -F "file=@$tmpdir\firma.pdf" "$base/cases/$sid/signatures"
+$signLines = $signResp -split "`n"
+$signCode = $signLines[-1]
+if ($signCode -ne '201') { throw "Sign should return 201, got $signCode" }
+$wsSign = Invoke-RestMethod -Uri "$base/cases/$sid/workspace" -Headers $h
+Write-Host "after sign status=$($wsSign.case.status)"
+if ($wsSign.case.status -ne '05') { throw 'Expected status 05 after client signature' }
+
 Write-Host 'ALL CHECKS PASSED'

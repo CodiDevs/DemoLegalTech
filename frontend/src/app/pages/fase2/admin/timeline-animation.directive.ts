@@ -16,16 +16,9 @@ export class TimelineAnimationDirective implements AfterViewInit {
 
   constructor(private el: ElementRef<HTMLElement>, private renderer: Renderer2) {}
 
-  ngAfterViewInit(): void {
-    if (this.prefersReducedMotion()) return;
-
+    ngAfterViewInit(): void {
     const node = this.el.nativeElement;
     this.renderer.addClass(node, 'adv-stat-animate');
     this.renderer.setAttribute(node, 'data-anim', String(this.animationNum));
-  }
-
-  private prefersReducedMotion(): boolean {
-    return typeof matchMedia === 'function'
-      && matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 }

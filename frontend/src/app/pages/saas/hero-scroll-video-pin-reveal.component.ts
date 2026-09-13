@@ -1,26 +1,34 @@
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   Input,
-  OnDestroy,
   ViewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AuthService } from '../../core/auth.service';
 import {
   PRODUCT_SITES,
   getMarketingPrimaryAction,
 } from '../../shared/product-sites.data';
+import { DemoDocumentStackComponent } from '../../shared/demo/demo-document-stack.component';
+import { ScrollSceneDirective } from '../../shared/motion/scroll-scene.directive';
 
-gsap.registerPlugin(ScrollTrigger);
+export function activeStepFromProgress(progress: number, count: number): number {
+  if (count <= 1) return 0;
+  const t = Math.min(1, Math.max(0, progress));
+  return Math.round(t * (count - 1));
+}
+
+function syncMockSteps(steps: Element[], progress: number): void {
+  if (!steps.length) return;
+  const idx = activeStepFromProgress(progress, steps.length);
+  steps.forEach((el, i) => el.classList.toggle('active', i === idx));
+}
 
 @Component({
   selector: 'app-hero-scroll-video-pin-reveal',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DemoDocumentStackComponent, ScrollSceneDirective],
   template: `
     <div class="hsvr-root" #root>
       <section class="hsvr-benefit" #benefitRef>
@@ -52,9 +60,18 @@ gsap.registerPlugin(ScrollTrigger);
         </div>
 
         <div class="hsvr-video-section">
-          <div class="hsvr-video-wrap" #videoWrapperRef>
-            <div class="hsvr-video-underlay" aria-hidden="true"></div>
+          <div
+            class="hsvr-video-wrap"
+            #videoWrapperRef
+            appScrollScene
+            [appScrollScenePin]="true"
+            appScrollSceneEnd="+=260%"
+            (sceneProgress)="onPinProgress($event)"
+          >
+            <div class="hsvr-video-underlay" #underlayRef aria-hidden="true"></div>
             <div class="hsvr-video-box" #videoBoxRef>
+              <div class="hsvr-cover" #coverRef aria-hidden="true"></div>
+              <app-demo-document-stack class="hsvr-orbit" variant="orbit" />
               <p
                 class="hsvr-video-headline"
                 [attr.aria-label]="videoOverlayLabel"
@@ -63,7 +80,7 @@ gsap.registerPlugin(ScrollTrigger);
                   <span class="video-reveal-word">{{ word }}</span>
                 }
               </p>
-              <div class="hsvr-mock" aria-hidden="true">
+              <div class="hsvr-mock" #mockRef aria-hidden="true">
                 <div class="hsvr-mock-bar">
                   <span></span><span></span><span></span>
                   <strong>{{ site.name }} · expediente</strong>
@@ -163,6 +180,17 @@ gsap.registerPlugin(ScrollTrigger);
       opacity: 1;
       transform-origin: left center;
       margin-right: 0.22em;
+      animation: hsvr-word-in 420ms var(--ease-out) both;
+    }
+
+    .reveal-word:nth-child(2) { animation-delay: 35ms; }
+    .reveal-word:nth-child(3) { animation-delay: 70ms; }
+    .reveal-word:nth-child(4) { animation-delay: 105ms; }
+    .reveal-word:nth-child(5) { animation-delay: 140ms; }
+
+    @keyframes hsvr-word-in {
+      from { transform: translateY(12%); }
+      to { transform: none; }
     }
 
     .hsvr-sub {
@@ -236,8 +264,12 @@ gsap.registerPlugin(ScrollTrigger);
 
     .hsvr-video-underlay {
       position: absolute;
-      inset: 0;
+      inset: -8%;
       z-index: 1;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 40%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 62%);
+      pointer-events: none;
+      will-change: transform;
     }
 
     .hsvr-video-box {
@@ -253,15 +285,39 @@ gsap.registerPlugin(ScrollTrigger);
       z-index: 2;
       padding: clamp(1.25rem, 4vw, 2.5rem) 1.25rem 3.5rem;
       box-sizing: border-box;
+      clip-path: circle(10% at 50% 50%);
+    }
+
+    .hsvr-cover {
+      position: absolute;
+      inset: 18%;
+      border-radius: 50%;
+      background: #2f6f68;
+      z-index: 1;
+      pointer-events: none;
+      transform: scale(1);
+      transform-origin: 50% 50%;
+    }
+
+    .hsvr-orbit {
+      position: absolute;
+      inset: 8% 12%;
+      z-index: 1;
+      opacity: 0.55;
+      pointer-events: none;
     }
 
     .hsvr-mock {
+      position: relative;
+      z-index: 3;
       width: min(36rem, calc(100% - 3rem));
       border-radius: var(--radius-lg);
       border: 1px solid color-mix(in srgb, var(--primary-border) 38%, transparent);
       background: color-mix(in srgb, var(--surface-inverse) 88%, var(--primary));
       box-shadow: none;
       overflow: hidden;
+      transform: scale(0.3);
+      transform-origin: 50% 50%;
     }
 
     .hsvr-mock-bar {
@@ -351,30 +407,21 @@ gsap.registerPlugin(ScrollTrigger);
       display: inline-block;
       transform-origin: center center;
       margin-right: 0.2em;
+      opacity: 0;
     }
 
     :host ::ng-deep .pin-spacer {
       background-color: var(--surface-inverse) !important;
     }
 
-    @media (max-width: 639px) {
+    @media (max-width: 639.9px) {
+      .hsvr-video-box { clip-path: circle(22% at 50% 50%); }
       .hsvr-mock { width: min(100% - 1.5rem, 28rem); }
       .hsvr-mock-bar strong { margin-left: 0.5rem; }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .hsvr-btn { transition: none; }
-      .hsvr-mock-step { transition: none; }
-      .reveal-word,
-      .video-reveal-word {
-        opacity: 1;
-        transform: none;
-        filter: none;
-      }
-    }
   `],
 })
-export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestroy {
+export class HeroScrollVideoPinRevealComponent {
   @Input() authQuery: Record<string, string> = {
     product: 'divorcio360',
     returnUrl: '/productos/divorcio360',
@@ -384,11 +431,10 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
 
   readonly site = PRODUCT_SITES['divorcio360'];
 
-  @ViewChild('root') rootRef?: ElementRef<HTMLElement>;
-  @ViewChild('benefitRef') benefitRef?: ElementRef<HTMLElement>;
-  @ViewChild('paraRef') paraRef?: ElementRef<HTMLElement>;
-  @ViewChild('videoWrapperRef') videoWrapperRef?: ElementRef<HTMLElement>;
   @ViewChild('videoBoxRef') videoBoxRef?: ElementRef<HTMLElement>;
+  @ViewChild('underlayRef') underlayRef?: ElementRef<HTMLElement>;
+  @ViewChild('coverRef') coverRef?: ElementRef<HTMLElement>;
+  @ViewChild('mockRef') mockRef?: ElementRef<HTMLElement>;
 
   headlineWords = [
     'Mutuo', 'acuerdo.', 'Un', 'expediente', 'claro.',
@@ -400,176 +446,43 @@ export class HeroScrollVideoPinRevealComponent implements AfterViewInit, OnDestr
 
   videoOverlayLabel = 'Cada etapa, visible';
 
-  private gsapCtx?: gsap.Context;
-  private gsapMedia?: ReturnType<typeof gsap.matchMedia>;
-  private reducedMotion = false;
-  private destroyed = false;
-  private rafIds: number[] = [];
-  private refreshTimer?: ReturnType<typeof setTimeout>;
-
   constructor(public auth: AuthService) {}
 
   get primaryAction() {
     return getMarketingPrimaryAction(this.auth.user()?.role ?? null, 'divorcio360');
   }
 
-  ngAfterViewInit(): void {
-    this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (this.reducedMotion) {
-      this.showStaticFallback();
-      return;
-    }
-
-    const outer = requestAnimationFrame(() => {
-      if (this.destroyed) return;
-      const inner = requestAnimationFrame(() => {
-        if (this.destroyed) return;
-        this.initGsap();
-        this.refreshTimer = setTimeout(() => {
-          if (this.destroyed) return;
-          ScrollTrigger.refresh();
-        }, 100);
+  onPinProgress(progress: number): void {
+    const t = Math.min(1, Math.max(0, progress));
+    const box = this.videoBoxRef?.nativeElement;
+    const cover = this.coverRef?.nativeElement;
+    const mock = this.mockRef?.nativeElement;
+    const underlay = this.underlayRef?.nativeElement;
+    const startR = window.matchMedia('(max-width: 639.9px)').matches
+      ? 22
+      : window.matchMedia('(max-width: 1023.9px)').matches
+        ? 14
+        : 10;
+    if (box) {
+      box.style.clipPath = `circle(${startR + t * (150 - startR)}% at 50% 50%)`;
+      const words = Array.from(box.querySelectorAll<HTMLElement>('.video-reveal-word'));
+      words.forEach((el, i) => {
+        const local = Math.min(1, Math.max(0, (t - 0.28 - i * 0.08) / 0.35));
+        el.style.opacity = String(local);
+        el.style.transform = `translateY(${(1 - local) * 18}%)`;
       });
-      this.rafIds.push(inner);
-    });
-    this.rafIds.push(outer);
-  }
-
-  ngOnDestroy(): void {
-    this.destroyed = true;
-    for (const id of this.rafIds) cancelAnimationFrame(id);
-    this.rafIds = [];
-    if (this.refreshTimer !== undefined) clearTimeout(this.refreshTimer);
-    this.gsapMedia?.revert();
-    this.gsapCtx?.revert();
-  }
-
-  private showStaticFallback(): void {
-    const words = this.paraRef?.nativeElement.querySelectorAll('.reveal-word');
-    words?.forEach((el) => {
-      (el as HTMLElement).style.opacity = '1';
-      (el as HTMLElement).style.transform = 'none';
-    });
-    if (this.videoBoxRef?.nativeElement) {
-      this.videoBoxRef.nativeElement.style.clipPath = 'none';
+      syncMockSteps(Array.from(box.querySelectorAll('.hsvr-mock-step')), t);
     }
-    this.rootRef?.nativeElement.querySelectorAll('.video-reveal-word').forEach((el) => {
-      (el as HTMLElement).style.opacity = '1';
-      (el as HTMLElement).style.transform = 'none';
-    });
-  }
-
-  private initGsap(): void {
-    if (this.destroyed) return;
-
-    const root = this.rootRef?.nativeElement;
-    const benefit = this.benefitRef?.nativeElement;
-    const para = this.paraRef?.nativeElement;
-    const videoWrapper = this.videoWrapperRef?.nativeElement;
-    const videoBox = this.videoBoxRef?.nativeElement;
-
-    if (!root || !benefit || !para || !videoWrapper || !videoBox) return;
-
-    const paintPinDark = (self: ScrollTrigger) => {
-      const st = self as ScrollTrigger & { spacer?: HTMLElement; pin?: HTMLElement };
-      if (st.spacer) st.spacer.style.backgroundColor = 'var(--surface-inverse)';
-      if (st.pin) st.pin.style.backgroundColor = 'var(--surface-inverse)';
-    };
-
-    this.gsapCtx = gsap.context(() => {
-      const words = Array.from(para.querySelectorAll('.reveal-word'));
-
-      if (words.length) {
-        gsap.from(words, {
-          opacity: 0,
-          yPercent: 12,
-          stagger: 0.035,
-          duration: 0.42,
-          ease: 'power2.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: para,
-            start: 'top 82%',
-            once: true,
-          },
-        });
-      }
-
-      this.gsapMedia = gsap.matchMedia();
-
-      const addMockPin = (startCircle: string, endPx: string, scrub: number) => {
-        gsap.set(videoBox, { clipPath: startCircle });
-
-        const videoWords = Array.from(videoBox.querySelectorAll('.video-reveal-word'));
-        if (videoWords.length) {
-          gsap.set(videoWords, { opacity: 0, yPercent: 18 });
-        }
-
-        const mockSteps = Array.from(videoBox.querySelectorAll('.hsvr-mock-step'));
-
-        const vpTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: videoWrapper,
-            start: 'top top',
-            end: endPx,
-            scrub,
-            pin: true,
-            pinSpacing: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onRefresh: paintPinDark,
-            onToggle: paintPinDark,
-          },
-        });
-
-        vpTl.fromTo(
-          videoBox,
-          { clipPath: startCircle },
-          { clipPath: 'circle(150% at 50% 50%)', ease: 'none' },
-          0,
-        );
-
-        if (videoWords.length) {
-          vpTl.to(
-            videoWords,
-            {
-              opacity: 1,
-              yPercent: 0,
-              stagger: 0.08,
-              ease: 'power2.out',
-              duration: 0.35,
-            },
-            0.28,
-          );
-        }
-
-        mockSteps.forEach((stepEl, i) => {
-          vpTl.call(
-            () => {
-              mockSteps.forEach((el) => el.classList.remove('active'));
-              stepEl.classList.add('active');
-            },
-            [],
-            0.18 + i * 0.1,
-          );
-        });
-      };
-
-      this.gsapMedia.add(
-        '(max-width: 639.9px)',
-        () => addMockPin('circle(22% at 50% 50%)', '+=420', 0.85),
-      );
-      this.gsapMedia.add(
-        '(min-width: 640px) and (max-width: 1023.9px)',
-        () => addMockPin('circle(14% at 50% 50%)', '+=650', 0.95),
-      );
-      this.gsapMedia.add(
-        '(min-width: 1024px)',
-        () => addMockPin('circle(10% at 50% 50%)', '+=900', 1),
-      );
-    }, root);
-
-    ScrollTrigger.refresh();
+    if (cover) {
+      cover.style.transform = `scale(${1 + t * 11})`;
+      cover.style.opacity = String(1 - t);
+    }
+    if (mock) {
+      const s = 0.3 + Math.min(1, Math.max(0, (t - 0.18) / 0.82)) * 0.7;
+      mock.style.transform = `scale(${s})`;
+    }
+    if (underlay) {
+      underlay.style.transform = `translateY(${-6 + t * 14}%)`;
+    }
   }
 }

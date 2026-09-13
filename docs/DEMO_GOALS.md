@@ -33,6 +33,10 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cards shine / tilt / FAQ | `/` productos 3D, Professional shine, FAQ post-precios; sin `#sistema` | 2026-09-10 |
 | done | Expediente CaseProgress ES | `/#flujo` + `/caso/:id` Línea de estados; mismo componente multi-producto | 2026-09-10 |
 | done | CaseProgress fix + Auth system | `#flujo` sin overlap; `/auth` layout + forgot demo | 2026-09-10 |
+| done | Plantillas Fase 2 editables | `abogado@demo.ec` → Modelos de documentos → Duplicar → editar → F5 | 2026-09-10 |
+| done | Cuestionario Divorcio360 neo | `/cuestionario` clay teal, Sí/No hundidos, contraste AA | 2026-09-10 |
+| done | Demo cliente máximo movimiento | `/` video → Divorcio360 pin → cuestionario → pago → docs → firma | 2026-09-11 |
+| done | Recorrido cinematográfico Expediente vivo | `/` tráiler → Divorcio360 cámara → `/cuestionario` → `/checkout/:id` → `/upload/:id` → `/firma/:id` | 2026-09-11 |
 
 ## Entries
 
@@ -367,3 +371,90 @@ Superseded by “Divorcio360 no-slop repair”; do not use this section as the c
 - Auth workspace: canvas `--bg` + **dos cartas** (form | foto) con gap fino y margen chico; cada una con borde/`radius-xl`; móvil form-only. Forgot demo sin API.
 
 **Demo:** `/#flujo` desktop sin textos solapados. `/auth` → margen de fondo alrededor del shell grande + mitad visual.
+
+### 2026-09-10 — Plantillas Fase 2 editables
+- `Duplicar plantilla` clona de verdad (SQLite). Editor: nombre, categoría, estado, versión, campos, HTML.
+- Originales se editan; solo las copias se borran. Refresh conserva cambios. No engancha la minuta live del expediente.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → Fase 2 → Modelos de documentos → Duplicar → cambiar nombre y un párrafo → Guardar → F5. Borrar la copia. Original sigue.
+
+### 2026-09-10 — Cinemática LegalStation (A) + motion always-on
+- Demo **nunca** respeta `prefers-reduced-motion` (Windows “reducir animaciones” ya no congela el UI).
+- Fuera el clay neo de `/cuestionario`. Un idioma: cream + Fraunces + teal en cuestionario, checkout, upload y firma.
+- Pregunta entra con blur/translate; Sí/No se desplaza; progreso llena con `scaleX`.
+- Home: Divorcio360 héroe; Traslado/BienRaiz recortes.
+
+**Demo:** `/` → héroe Divorcio → `/cuestionario` Sí/No (card entra) → checkout. Spot `/productos/traslado360` cuestionario. GSAP pin en `/productos/divorcio360`.
+
+### 2026-09-10 — Bandeja abogado como cola de trabajo
+- `/abogado` deja la tabla 01–10. Carriles: Te toca / SLA / etapa. Cada fila dice la acción, no el código.
+- Default: casos que esperan al abogado. SLA primero. Enter stagger + hover translateX.
+- Sin `prefers-reduced-motion`.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → Bandeja. Carril **Te toca** vs **Todos**. Abrir un caso. Hover fila.
+
+### 2026-09-10 — Sidebar abogado a rail fijo
+- `/abogado` deja la columna-tarjeta dentro de `.shell`. Rail 248px sticky, borde derecho, full height bajo el header.
+- Activo: inset teal. Móvil: barra superior wrap.
+
+**Demo:** `abogado@demo.ec` → Bandeja y Resumen. El menú pega a la izquierda y no se encoge.
+
+### 2026-09-10 — Panel cliente como cola de trámites
+- `/cliente` deja el 2-col Expedientes + Facturas (mismo caso dos veces).
+- Carriles Te toca / En curso / Cerrados. Fila dice la acción; clic va a pagar, subir, firmar o expediente.
+- Enter stagger + hover translateX. Sin `prefers-reduced-motion`.
+
+**Demo:** `cliente@demo.ec` / `demo1234` → Tu cuenta. **Te toca** vs **Todos**. Clic **Subir** o **Abrir**.
+
+### 2026-09-10 — Filtro por tipo de trámite (cliente)
+- `/cliente` chips de producto si hay más de un tipo (Divorcio360, Traslado360, …).
+- Carril + producto se combinan. Contadores se recortan entre sí.
+
+**Demo:** `cliente@demo.ec` → chip **Traslado360** vs **Divorcio360**.
+
+### 2026-09-10 — CRUD completo de plantillas
+- `/abogado/fase2/templates`: **Nueva plantilla** (POST), duplicar, editar, borrar copias/creadas.
+- Originales seed no se borran (409). Refresh conserva.
+
+**Demo:** `abogado@demo.ec` → Modelos de documentos → Nueva plantilla → Crear → F5 → Borrar.
+
+### 2026-09-10 — Asistente de revisión (escritorio)
+- `/abogado/fase2/ai`: select de expediente + ficha corta (resumen, riesgo, siguiente) + chat mock.
+- Chips: qué sigue / menores / minuta. `POST /mock/ai/chat`.
+
+**Demo:** `abogado@demo.ec` → Asistente de revisión. Cambia a #1. Chip **¿Listo para minuta?** y escribe otra pregunta.
+
+### 2026-09-10 — Link de cliente LegalStation
+- `/abogado/fase2/billing`: enlace mock `legalstation.ec/divorcio360/r/dra-ana-ruiz`, no localhost.
+- Copiar + clic abre el producto local.
+
+**Demo:** `abogado@demo.ec` → Facturación B2B. Copiar. Clic el link.
+
+### 2026-09-11 — Demo cliente máximo movimiento
+Recorrido comercial 16:9: home con video/fallback, Divorcio360 con pin circular y capítulos, cuestionario rápido, checkout con overlay, upload con `scaleX(--p)`, firma con evidencia.
+
+**Demo:** invitado en `/` → Abrir Divorcio360 → Evaluar mi caso → pagar → documentos → firma. Zoom 125% en 1280×720. `/abogado` no cambia de idioma visual.
+
+### 2026-09-11 — Recorrido cinematográfico Expediente vivo
+Cliente path como película: home tráiler (video + wordmark + dossier), Divorcio360 pin 260vh + 4 escenas, cuestionario monumental, checkout bóveda (notaría *Se paga por separado*), mesa de upload, firma con sello full-screen.
+
+**Credenciales:** `cliente@demo.ec` / `demo1234`.
+
+**Walkthrough 8 min**
+1. `bun run reset-db` + `bun run dev`.
+2. `/` → CTA **Abrir Divorcio360** (cortina de hoja).
+3. `/productos/divorcio360` — pin: círculo teal abre expediente. Scroll atrás reproduce etapas.
+4. **Evaluar mi caso** → `/cuestionario` (o login si pide cuenta).
+5. Pago `$349` — gastos notariales aparte. Overlay + ticket.
+6. Upload cédula/partida.
+7. Firma: expediente seed `can_sign` (status 04, minuta lista). `/firma/:id` → sello DEMO.
+
+**Fixture firma:** segundo caso cliente con docs aprobados + minuta real (`backend/demo-fixtures`). No falsea gates. Firma fail-closed: snapshot `getCase` + outputs + firmas.
+
+**No tocar:** `/abogado` y `/abogado/fase2/admin`.
+
+### 2026-09-11 — Cierre P1/P2 recorrido cinematic
+SVG demo UTF-8. Firma no abre sin minuta. Overlay checkout atrapa Shift+Tab. Cortina siempre montada (abogado→home sí, abogado↔fase2 no). Cuestionario `ob-sheet`. Upload hojas 52vh. Pin usa `ScrollSceneDirective`. Seed copia PDFs o falla.
+
+**Demo:** `bun run reset-db` + `bun run dev`. Login cliente. Caso 04 → `/firma/:id` bloqueado hasta minuta. `/abogado` sin View Transitions.
+

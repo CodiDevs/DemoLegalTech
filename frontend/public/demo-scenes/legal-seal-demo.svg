@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-labelledby="sealTitle sealDesc">
+  <title id="sealTitle">Sello ficticio DEMO</title>
+  <desc id="sealDesc">DOCUMENTO FICTICIO - DEMO. No es un sello oficial.</desc>
+  <circle cx="120" cy="120" r="108" fill="none" stroke="#2f6f68" stroke-width="6"/>
+  <circle cx="120" cy="120" r="92" fill="none" stroke="#2f6f68" stroke-width="2" stroke-dasharray="4 6"/>
+  <text x="120" y="108" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#1b1917" font-weight="700">DEMO</text>
+  <text x="120" y="132" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" letter-spacing="2.2" fill="#2f6f68">DOCUMENTO FICTICIO</text>
+  <text x="120" y="150" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" fill="#5c5750">NO OFICIAL - LEGALSTATION</text>
+</svg>

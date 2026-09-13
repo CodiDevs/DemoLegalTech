@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -24,9 +24,13 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       subtitle="Un solo cobro — sin suscripción mensual."
     >
       @if (caseItem) {
-        <div class="checkout-grid" [class.is-dimmed]="isModalOpen">
-          <div class="checkout-col">
-            <div class="pf-card lp-lift checkout-form">
+        <div
+          class="checkout-grid ck-vault"
+          [class.is-dimmed]="isModalOpen"
+          [attr.inert]="isModalOpen ? '' : null"
+        >
+          <div class="checkout-col ck-card-stage">
+            <div class="pf-card lp-lift checkout-form ck-card-face">
               <div class="pf-field">
                 <label>Titular</label>
                 <input [(ngModel)]="holder" [disabled]="formLocked" />
@@ -60,16 +64,19 @@ type PaymentStep = 'idle' | 'processing' | 'success';
           <div class="checkout-col checkout-aside">
             <div class="pf-card lp-lift order-summary">
               <div class="cart-head">
-                <h2>Resumen del pedido</h2>
+                <h2>Expediente de cobro</h2>
                 <span class="cart-badge">{{ productName }}</span>
               </div>
 
-              <ul class="cart-items" aria-label="Ítems del carrito">
+              <ul class="cart-items ck-folios" aria-label="Ítems del carrito">
                 @for (line of cart.lines; track line.id) {
-                  <li class="cart-item">
+                  <li class="cart-item ck-folio" [class.is-external]="line.billedSeparately">
                     <span class="cart-item-name">{{ line.label }}</span>
                     <div class="cart-item-price">
-                      @if (line.includedInPackage) {
+                      @if (line.billedSeparately) {
+                        <span class="cart-external">Se paga por separado</span>
+                        <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
+                      } @else if (line.includedInPackage) {
                         <span class="cart-included">Incluido</span>
                         <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
                       } @else {
@@ -96,7 +103,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                 <span>Total a pagar</span>
                 <strong>\${{ cart.totalCents / 100 | number:'1.2-2' }} USD</strong>
               </div>
-              <p class="pf-muted cart-note">Pago único · Sin suscripción</p>
+              <p class="pf-muted cart-note">Pago único · Sin suscripción. No incluye gastos notariales.</p>
             </div>
           </div>
         </div>
@@ -106,6 +113,8 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     @if (isModalOpen && caseItem) {
       <div
         class="pay-overlay"
+        #payOverlay
+        tabindex="-1"
         role="dialog"
         aria-modal="true"
         [attr.aria-labelledby]="paymentStep === 'processing' ? 'pay-modal-processing' : 'pay-modal-success'"
@@ -136,15 +145,17 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                 <p class="pay-modal-sub">Tu comprobante se emitió correctamente</p>
               </div>
 
-              <app-animated-ticket
-                [receiptOnly]="true"
-                [ticketId]="ref"
-                [amount]="caseItem.amount_cents / 100"
-                [date]="paidAt"
-                [cardHolder]="holder"
-                [last4Digits]="cardLast4"
-                [barcodeValue]="ref"
-              />
+              <div class="pay-printer">
+                <app-animated-ticket
+                  [receiptOnly]="true"
+                  [ticketId]="ref"
+                  [amount]="caseItem.amount_cents / 100"
+                  [date]="paidAt"
+                  [cardHolder]="holder"
+                  [last4Digits]="cardLast4"
+                  [barcodeValue]="ref"
+                />
+              </div>
 
               <a class="lp-btn lp-btn-primary upload-link" [routerLink]="['/upload', caseItem.id]">
                 Subir mis documentos
@@ -162,7 +173,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       grid-template-columns: 1fr 1fr;
       gap: var(--space-6);
       align-items: start;
-      transition: filter 0.3s ease;
+      transition: filter var(--dur-base) var(--ease);
     }
 
     .checkout-grid.is-dimmed {
@@ -252,6 +263,12 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       color: var(--success);
     }
 
+    .cart-external {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
     .cart-ref {
       font-size: var(--text-xs);
       color: var(--text-muted);
@@ -296,14 +313,14 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     .pay-overlay {
       position: fixed;
       inset: 0;
-      z-index: 9990;
+      z-index: var(--z-modal);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: var(--space-4);
       background: oklch(0.12 0.02 230 / 0.62);
       backdrop-filter: blur(4px);
-      animation: overlay-in 0.25s ease;
+      animation: overlay-in var(--dur-base) var(--ease);
     }
 
     .pay-modal-shell {
@@ -329,6 +346,19 @@ type PaymentStep = 'idle' | 'processing' | 'success';
 
     .pay-modal-success {
       justify-items: center;
+      animation: pf-swap var(--dur-slow) var(--ease-out) both;
+    }
+
+    .pay-modal-success .upload-link {
+      animation: pf-cta-in var(--dur-slow) var(--ease-out) both;
+      animation-delay: 120ms;
+    }
+
+    .pay-modal-success app-animated-ticket {
+      display: block;
+      width: 100%;
+      animation: pf-in var(--dur-cine) var(--ease-out) both;
+      animation-delay: 60ms;
     }
 
     .pay-modal-title {
@@ -373,10 +403,10 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       width: 220px;
       height: 132px;
       border-radius: var(--radius-lg);
-      background: linear-gradient(135deg, #1a2f35, #2d4a52);
+      background: linear-gradient(135deg, var(--primary-active), var(--primary));
       overflow: hidden;
       box-shadow: var(--shadow-lg);
-      animation: card-float 2.4s ease-in-out infinite;
+      animation: card-float 2.4s var(--ease-out) infinite;
     }
 
     .pay-card-chip {
@@ -384,7 +414,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       top: 1.25rem; left: 1.25rem;
       width: 2.2rem; height: 1.5rem;
       border-radius: 4px;
-      background: linear-gradient(135deg, #d4af37, #f0d060);
+      background: var(--warning);
     }
 
     .pay-card-stripe {
@@ -397,7 +427,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     .pay-card-shimmer {
       position: absolute; inset: 0;
       background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.12) 50%, transparent 60%);
-      animation: shimmer 1.4s ease-in-out infinite;
+      animation: shimmer 1.4s var(--ease) infinite;
     }
 
     .upload-link {
@@ -410,7 +440,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     }
 
     .modal-enter {
-      animation: modal-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      animation: modal-pop var(--dur-slow) var(--ease-out);
     }
 
     @keyframes overlay-in {
@@ -439,7 +469,8 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     }
   `],
 })
-export class CheckoutComponent implements OnInit, OnDestroy {
+export class CheckoutComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('payOverlay') payOverlay?: ElementRef<HTMLElement>;
   caseItem: CaseItem | null = null;
   holder = 'Carlos Mendoza';
   card = '4242 4242 4242 4242';
@@ -453,6 +484,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   paidAt = new Date();
   cardLast4 = '4242';
   cart: CheckoutCart = buildCheckoutCart(34900);
+  private payTimer?: ReturnType<typeof setTimeout>;
+  private destroyed = false;
+  private prevOverflow = '';
+  private lastFocus: HTMLElement | null = null;
+  private modalFocused = false;
 
   constructor(private route: ActivatedRoute, private api: ApiService, private router: Router) {}
 
@@ -468,6 +504,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.api.getCase(id).subscribe({
       next: (d) => {
+        if (this.destroyed) return;
         this.caseItem = d.case;
         this.theme = productThemeFromCase(d.case?.product);
         this.productName = getProductDisplayName(d.case?.product || 'divorcio360');
@@ -486,7 +523,52 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    if (this.payTimer !== undefined) clearTimeout(this.payTimer);
     this.lockScroll(false);
+    this.lastFocus?.focus();
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.isModalOpen && !this.modalFocused) {
+      this.lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      this.payOverlay?.nativeElement.focus();
+      this.modalFocused = true;
+    }
+    if (!this.isModalOpen) this.modalFocused = false;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  trapTab(event: KeyboardEvent): void {
+    if (!this.isModalOpen || event.key !== 'Tab') return;
+    const root = this.payOverlay?.nativeElement;
+    if (!root) return;
+    const nodes = Array.from(
+      root.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'),
+    ).filter((el) => !el.hasAttribute('disabled'));
+    const active = document.activeElement as HTMLElement | null;
+    const inside = !!active && (active === root || root.contains(active));
+    if (!nodes.length) {
+      event.preventDefault();
+      root.focus();
+      return;
+    }
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (!inside) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+    if (event.shiftKey && (active === first || active === root)) {
+      event.preventDefault();
+      last.focus();
+      return;
+    }
+    if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   @HostListener('document:keydown.escape')
@@ -503,14 +585,18 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     this.api.mockPay(this.caseItem.id, this.holder, this.cardLast4).subscribe({
       next: (r) => {
+        if (this.destroyed) return;
         this.ref = r.reference || `LS-${this.caseItem!.id}`;
         this.caseItem!.paid = true;
         this.paidAt = new Date();
-        setTimeout(() => {
+        this.payTimer = setTimeout(() => {
+          if (this.destroyed || this.paymentStep !== 'processing') return;
           this.paymentStep = 'success';
         }, 1800);
       },
       error: (e) => {
+        if (this.destroyed) return;
+        if (this.payTimer !== undefined) clearTimeout(this.payTimer);
         this.paymentStep = 'idle';
         this.lockScroll(false);
         this.error = e?.error?.error || 'No pudimos procesar el pago. Inténtalo de nuevo.';
@@ -519,6 +605,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   private lockScroll(lock: boolean): void {
-    document.body.style.overflow = lock ? 'hidden' : '';
+    if (lock) {
+      this.prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return;
+    }
+    document.body.style.overflow = this.prevOverflow;
   }
 }

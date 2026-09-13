@@ -4,25 +4,10 @@ import { provideRouter } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { DivorcioLandingComponent } from './divorcio-landing.component';
 
-function reducedMotionQuery(): MediaQueryList {
-  return {
-    matches: true,
-    media: '(prefers-reduced-motion: reduce)',
-    onchange: null,
-    addListener: () => undefined,
-    removeListener: () => undefined,
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
-    dispatchEvent: () => true,
-  };
-}
-
 describe('DivorcioLandingComponent', () => {
   let fixture: ComponentFixture<DivorcioLandingComponent>;
 
   beforeEach(async () => {
-    spyOn(window, 'matchMedia').and.returnValue(reducedMotionQuery());
-
     await TestBed.configureTestingModule({
       imports: [DivorcioLandingComponent],
       providers: [
@@ -79,5 +64,17 @@ describe('DivorcioLandingComponent', () => {
     expect(planCta?.textContent?.trim()).toBe('Evaluar mi caso');
     expect(finalCta?.getAttribute('href')).toBe('/cuestionario');
     expect(finalCta?.textContent?.trim()).toBe('Evaluar mi caso');
+  });
+
+  it('ordena los capítulos y publica galería + cifras del producto', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const ids = Array.from(root.querySelectorAll('section[id]')).map((el) => el.id);
+    expect(ids).toEqual(['sistema', 'evidencia', 'flujo', 'precios']);
+    expect(root.querySelector('app-elastic-gallery')).toBeNull();
+    expect(root.querySelector('app-landing-statistics')).toBeNull();
+    expect(root.textContent).toContain('6 etapas');
+    expect(root.textContent).toContain('$349');
+    expect(root.querySelector('app-demo-case-window')).not.toBeNull();
   });
 });

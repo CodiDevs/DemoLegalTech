@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/api.service';
 import { DataTableComponent } from '../../../shared/data-table.component';
 import { StatusBadgeComponent } from '../../../shared/status-badge.component';
+import { IconComponent } from '../../../shared/icon.component';
 
 @Component({
   selector: 'app-fase2-billing',
   standalone: true,
-  imports: [DataTableComponent, StatusBadgeComponent],
+  imports: [RouterLink, DataTableComponent, StatusBadgeComponent, IconComponent],
   template: `
     <h1>Licencia LegalStation para bufetes</h1>
     <p class="muted">{{ data?.note }}</p>
@@ -24,11 +26,21 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
           <div class="bar"><span [style.width.%]="usagePct"></span></div>
         </div>
       </div>
-      <div class="panel fase2-preview-card link-card lp-lift">
+      <div class="panel link-card">
         <h2>Tu link para clientes</h2>
-        <p class="muted">Comparte este enlace — el cliente paga honorarios por trámite (pago único), no la licencia SaaS.</p>
-        <code class="ref-link">{{ data.current_tenant.referral_link }}</code>
-        <p class="muted">Precio sugerido al cliente: \${{ data.current_tenant.suggested_client_price_usd }} por trámite Divorcio360.</p>
+        <p class="muted">Comparte LegalStation. El cliente paga el trámite, no la licencia del bufete.</p>
+        <div class="share">
+          <span class="share-mark" aria-hidden="true"><app-icon name="scale" [size]="18" /></span>
+          <a class="share-url" [routerLink]="referralRoute" [queryParams]="referralQuery">
+            <span class="share-brand">LegalStation</span>
+            <span class="share-line">legalstation.ec{{ referralPrettyPath }}</span>
+          </a>
+          <button type="button" class="btn btn-secondary" (click)="copyLink()">
+            <app-icon [name]="copied ? 'check' : 'clipboard'" [size]="16" />
+            {{ copied ? 'Copiado' : 'Copiar' }}
+          </button>
+        </div>
+        <p class="muted">Precio sugerido: \${{ data.current_tenant.suggested_client_price_usd }} · Divorcio360</p>
       </div>
     }
 
@@ -91,8 +103,59 @@ import { StatusBadgeComponent } from '../../../shared/status-badge.component';
       display: grid; place-items: center; z-index: 50; padding: 1rem;
     }
     .modal { max-width: 420px; width: 100%; }
-    .ref-link { display: block; padding: 0.75rem; background: var(--border); border-radius: 8px; word-break: break-all; font-size: 0.85rem; margin: 0.75rem 0; }
     .link-card { margin-top: 1rem; }
+    .share {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-3);
+      align-items: center;
+      margin: var(--space-4) 0;
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--primary-border);
+      border-radius: var(--radius-lg);
+      background: var(--primary-subtle);
+    }
+    .share-mark {
+      display: grid;
+      place-items: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: var(--radius-md);
+      background: var(--primary);
+      color: #fff;
+    }
+    .share-url {
+      display: grid;
+      gap: 0.1rem;
+      min-width: 0;
+      text-decoration: none;
+      color: inherit;
+    }
+    .share-brand {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-sm);
+      letter-spacing: -0.02em;
+      color: var(--primary);
+    }
+    .share-line {
+      font-size: var(--text-sm);
+      font-weight: 650;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .share .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+    @media (max-width: 640px) {
+      .share { grid-template-columns: auto minmax(0, 1fr); }
+      .share .btn { grid-column: 1 / -1; }
+    }
     @media (max-width: 900px) { .plans { grid-template-columns: 1fr; } }
   `]
 })
@@ -101,6 +164,8 @@ export class Fase2BillingComponent implements OnInit {
   annual = false;
   modal = '';
   upgradePlanId = '';
+  copied = false;
+  private copyTimer: ReturnType<typeof setTimeout> | null = null;
   invoiceCols = [
     { key: 'id', label: 'Factura', mono: true },
     { key: 'date', label: 'Fecha' },
@@ -120,6 +185,41 @@ export class Fase2BillingComponent implements OnInit {
         amount_usd: '$' + i.amount_usd,
         status: i.status,
       }));
+    });
+  }
+
+  get referralPrettyPath(): string {
+    const raw = String(this.data?.current_tenant?.referral_link || '');
+    const m = raw.match(/legalstation\.ec(\/.*)$/i);
+    if (m) return m[1];
+    const slug = this.data?.current_tenant?.referral_slug;
+    if (slug) return `/divorcio360/r/${slug}`;
+    return '/divorcio360';
+  }
+
+  get referralRoute(): string {
+    const path = String(this.data?.current_tenant?.referral_path || '/productos/divorcio360');
+    return path.split('?')[0];
+  }
+
+  get referralQuery(): Record<string, string> {
+    const path = String(this.data?.current_tenant?.referral_path || '');
+    const q = path.split('?')[1];
+    if (!q) return {};
+    const out: Record<string, string> = {};
+    for (const part of q.split('&')) {
+      const [k, v] = part.split('=');
+      if (k) out[k] = decodeURIComponent(v || '');
+    }
+    return out;
+  }
+
+  copyLink(): void {
+    const url = String(this.data?.current_tenant?.referral_link || `https://legalstation.ec${this.referralPrettyPath}`);
+    void navigator.clipboard.writeText(url).then(() => {
+      this.copied = true;
+      if (this.copyTimer) clearTimeout(this.copyTimer);
+      this.copyTimer = setTimeout(() => { this.copied = false; }, 1600);
     });
   }
 

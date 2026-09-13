@@ -247,15 +247,6 @@ import { AUTH_COPY } from './auth-copy.data';
         min-height: calc(100dvh - var(--header-height, 3.75rem));
       }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .al-brand,
-      .al-body {
-        opacity: 1;
-        transform: none;
-        transition: none;
-      }
-    }
   `],
 })
 export class AuthLayoutComponent {
