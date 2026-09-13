@@ -55,6 +55,11 @@
 .cine-scene[data-theme='ink'] .cine-title {
   font-family: var(--font-display);
   font-weight: 600;
+  color: var(--text-inverse);
+}
+
+.cine-scene[data-theme='teal'] .cine-title {
+  color: var(--text-on-primary);
 }
 
 .cine-scene .cine-lede {

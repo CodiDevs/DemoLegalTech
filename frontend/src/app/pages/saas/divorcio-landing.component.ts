@@ -54,7 +54,7 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
         </div>
       </app-cinematic-scene>
 
-      <app-cinematic-scene sceneId="evidencia" [act]="2" theme="ink">
+      <app-cinematic-scene sceneId="evidencia" [act]="2" theme="cream">
         <p class="cine-kicker">Cada etapa deja evidencia</p>
         <h2 class="cine-title">{{ site.stats[0].value }} · {{ site.stats[2].value }}</h2>
         <p class="cine-lede">{{ site.stats[0].detail }} Honorario de referencia {{ site.stats[2].value }}.</p>
