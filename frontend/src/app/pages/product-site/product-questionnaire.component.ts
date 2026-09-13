@@ -140,7 +140,7 @@ type Stage = 'questions' | 'review' | 'done';
                   @else { Crear mi expediente }
                 </button>
               } @else {
-                <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="saveDraft()">
+                <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="prepareGuestCheckout()">
                   Registrarme para continuar
                 </a>
               }
@@ -306,18 +306,34 @@ export class ProductQuestionnaireComponent implements OnInit {
     return String(v ?? '—');
   }
 
+  /** Guest → auth → createCase: seed the same cache Divorcio uses. */
+  prepareGuestCheckout(): void {
+    this.saveDraft();
+    this.seedCheckoutResult();
+  }
+
+  private seedCheckoutResult(): void {
+    if (!this.site) return;
+    const city = String(this.answers['city'] || 'Quito');
+    const answers = { ...this.answers, product: this.site.id };
+    setActiveProduct(this.site.id);
+    sessionStorage.setItem(
+      'd360_q_result',
+      JSON.stringify({ result: 'apto', city, answers, product: this.site.id }),
+    );
+  }
+
   start(): void {
     if (!this.site) return;
     this.busy = true;
     const city = String(this.answers['city'] || 'Quito');
     const q = { ...this.answers, product: this.site.id };
+    this.seedCheckoutResult();
     this.api.createCase('apto', city, q, this.site.id).subscribe({
       next: (c) => {
         this.caseId = c.id;
         this.stage = 'done';
         this.busy = false;
-        setActiveProduct(this.site!.id);
-        sessionStorage.setItem('d360_q_result', JSON.stringify({ result: 'apto', city, answers: q, product: this.site!.id }));
       },
       error: () => { this.busy = false; },
     });
