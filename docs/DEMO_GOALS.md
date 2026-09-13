@@ -39,6 +39,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Recorrido cinematográfico Expediente vivo | `/` tráiler → Divorcio360 cámara → `/cuestionario` → `/checkout/:id` → `/upload/:id` → `/firma/:id` | 2026-09-11 |
 | done | Client journey handoff fixes | Guest product Q → auth(`next=checkout`) → expediente; unpaid → checkout; Mis expedientes por producto | 2026-09-13 |
 | done | Client journey visual language | Traslado/BienRaiz teal; cuestionario sheet; header Fraunces; botones trámite | 2026-09-13 |
+| done | Home y product homes design.md | `/` + Divorcio/Traslado/BienRaiz: cream cards, grid de estaciones, mock plano | 2026-09-13 |
 
 ## Entries
 
@@ -477,4 +478,12 @@ Alineación del camino cliente a `docs/design.md`: un idioma teal `#2f6f68`, Fra
 2. Cuestionario Traslado: folio `01 / 0N`, hoja papel, Sí/No a dos columnas como Divorcio360.
 3. Checkout / upload / firma: mismos `.btn` que el cuestionario. H1 Fraunces.
 4. `/productos/traslado360/expediente`: H1 Fraunces, densidad workspace.
+
+### 2026-09-13 — Home y product homes design.md
+Home `/` y landings de producto usan el mismo papel cream, cards `--radius-lg` / `--shadow-md`, y secciones a alto de contenido (solo el hero es 100svh). Estaciones en grid de contenedor; mock de expediente plano y centrado; Traslado/BienRaiz sin `overflow-x: hidden` ni títulos a 16ch.
+
+**Demo:**
+1. `/` desktop: Cinco estaciones alineadas, sin barra horizontal; “Otras ventanas” y Enterprise en cream con texto oscuro sobre card blanca.
+2. `/productos/divorcio360`: Cliente/Abogado a la misma altura; `#flujo` mock centrado; Resultado cambia el expediente; `#evidencia` en papel cream.
+3. `/productos/traslado360` y `/productos/bienraiz360`: hero 2 col + mock con sombra; planes a la misma base; ~390px sin scroll de documento.
 
