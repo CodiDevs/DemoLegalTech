@@ -328,6 +328,7 @@
   padding: 1.5rem 1.5rem 0;
   overflow: hidden;
   background: var(--surface);
+  color: var(--text);
   border: 1px solid var(--border);
 }
 
@@ -411,6 +412,7 @@
   padding: 1.75rem 1.15rem 1.25rem;
   text-align: left;
   background: var(--surface);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -436,10 +438,12 @@
 .ls-station h3 {
   font-size: 1.0625rem;
   line-height: 1.25;
+  color: var(--text);
 }
 
 .ls-station p {
   font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 .ls-station-node {

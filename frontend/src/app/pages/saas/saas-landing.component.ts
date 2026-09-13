@@ -192,6 +192,10 @@ import {
       font-family: var(--font-sans);
       font-size: clamp(1.8rem, 3vw, 2.6rem);
       letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    .ls-offset-window p {
+      color: var(--text-secondary);
     }
     .ls-license-plate h2 {
       margin: 0 0 0.4rem;
