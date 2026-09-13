@@ -38,13 +38,30 @@ interface Question {
   imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
+      <div class="form-stage" aria-hidden="true" [attr.data-cat]="currentCategory">
+        <span class="form-stage-texture"></span>
+        <span class="form-stage-glow form-stage-glow--a"></span>
+        <span class="form-stage-glow form-stage-glow--b"></span>
+        <span class="form-stage-sweep"></span>
+        <span class="form-stage-ruling"></span>
+        <span class="form-stage-seal"></span>
+        <span class="form-stage-wash" data-wash="identity"></span>
+        <span class="form-stage-wash" data-wash="family"></span>
+        <span class="form-stage-wash" data-wash="assets"></span>
+        <span class="form-stage-wash" data-wash="abroad"></span>
+        <span class="form-stage-wash" data-wash="pact"></span>
+        <span class="form-stage-vignette"></span>
+      </div>
+
       <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [attr.data-cat]="currentCategory" [class.is-loading]="submitting">
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
-          <p class="ob-counter" aria-hidden="true">
-            {{ pad(position) }} / {{ pad(visibleQuestions.length) }}
-          </p>
+          @for (p of [position]; track p) {
+            <p class="ob-counter" aria-hidden="true">
+              {{ pad(p) }} / {{ pad(visibleQuestions.length) }}
+            </p>
+          }
           <div class="ob-questions">
             <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + position + ' de ' + visibleQuestions.length">
               <div class="ob-segments">
@@ -171,8 +188,8 @@ interface Question {
             <p class="ob-hint">Toca cualquier respuesta si quieres cambiarla.</p>
 
             <ul class="ob-review">
-              @for (row of reviewRows; track row.key) {
-                <li>
+              @for (row of reviewRows; track row.key; let i = $index) {
+                <li [style.--i]="i">
                   <button type="button" class="ob-review-row" (click)="editAnswer(row.key)">
                     <span class="ob-review-label">{{ row.label }}</span>
                     <span class="ob-review-value">
@@ -224,7 +241,7 @@ interface Question {
 
             @if (result.price_usd > 0) {
               <div class="ob-price">
-                <span class="ob-price-value">\${{ result.price_usd }}</span>
+                <span class="ob-price-value">\${{ displayPrice }}</span>
                 <span class="ob-price-note">Pago único, todo incluido</span>
               </div>
             }
@@ -289,6 +306,7 @@ interface Question {
             }
 
             <p class="ob-note is-centered">Evaluación orientativa. No sustituye una consulta legal.</p>
+            <span class="ob-verdict-stamp" aria-hidden="true"></span>
           </section>
 
           <div class="ob-foot">
@@ -429,6 +447,9 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
 
   /** Índice en `all` de la pregunta actual. */
   private cursor = 0;
+  /** Precio del veredicto que sube al mostrarse el resultado. */
+  displayPrice = 0;
+  private priceRaf?: number;
   /** Preguntas ya contestadas, para volver atrás en el orden real recorrido. */
   private trail: number[] = [];
   private answered = new Set<AnswerKey>();
@@ -496,6 +517,23 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.destroyed = true;
     this.restoreSub?.unsubscribe();
     if (this.restoreTimer !== undefined) clearTimeout(this.restoreTimer);
+    if (this.priceRaf !== undefined) cancelAnimationFrame(this.priceRaf);
+  }
+
+  /** Sube el precio del veredicto (rAF, sin dependencias). */
+  private tweenPrice(target: number): void {
+    if (this.priceRaf !== undefined) cancelAnimationFrame(this.priceRaf);
+    this.displayPrice = 0;
+    const start = performance.now();
+    const duration = 720;
+    const step = (now: number) => {
+      if (this.destroyed) return;
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      this.displayPrice = Math.round(target * eased);
+      this.priceRaf = t < 1 ? requestAnimationFrame(step) : undefined;
+    };
+    this.priceRaf = requestAnimationFrame(step);
   }
 
   private tryPendingMeeting(): void {
@@ -709,6 +747,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
         this.result = res;
         this.stage = 'result';
         this.direction = 1;
+        this.tweenPrice(res.price_usd);
         sessionStorage.setItem('d360_q_result', JSON.stringify({
           result: res.code,
           city: this.locationLabel,

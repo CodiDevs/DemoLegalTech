@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 96" preserveAspectRatio="none" role="presentation">
+  <g fill="none" stroke-linecap="square">
+    <path d="M0 95.5h1200" stroke="#2b2824" stroke-opacity="0.085" stroke-width="1" />
+    <path d="M88 0v96" stroke="#2f6f68" stroke-opacity="0.075" stroke-width="1" />
+    <path d="M0 0.5h1200" stroke="#2b2824" stroke-opacity="0.03" stroke-width="1" />
+  </g>
+</svg>

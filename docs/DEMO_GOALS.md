@@ -497,3 +497,11 @@ Home `/` y landings de producto usan el mismo papel cream, cards `--radius-lg` /
 3. Plataforma: overlay Payphone demo → sello → estado 05. Abogado `/abogado/caso/:id` pestaña Firmas ve “Firma LegalStation ($15 aparte)”.
 4. Checkout del trámite: línea “Firma electrónica LegalStation / Se paga por separado”. El $349 no la incluye.
 
+### 2026-09-13 — Stage del formulario + recorrido en fila + sello demo fuera del home
+- Home: el mock del expediente y el stack de documentos ya no dicen “DEMO” (`expediente de ejemplo`, `folio de ejemplo`, `Sello de ejemplo`, `DOCUMENTO FICTICIO`). Legales y `/auth` conservan su aviso.
+- Recorrido `#flujo`: 5 estaciones en una fila (fin del scroll lateral), línea de progreso con paquete, nodos con icono, foco con click y ←/→.
+- Formulario: stage propio “mesa de expediente” (textura, glows en deriva, barrido de luz, renglones de folio, sello de agua, lavado por categoría, viñeta) con entrada escalonada de la hoja, contador que rueda, barrido de tinta y sello al elegir, sello de veredicto con anillo y precio que sube.
+- Motion siempre activo. Solo `transform/opacity/filter`: cero propiedades de layout.
+
+**Demo:** `/cuestionario` (elegir con sello → resultado `$349`) y `/productos/traslado360/cuestionario` (mismo stage).
+

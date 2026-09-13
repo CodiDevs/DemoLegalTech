@@ -139,6 +139,21 @@ body.divorcio-flow-mode .ob {
   pointer-events: none;
 }
 
+/* Brillo que recorre el segmento activo */
+.ob-seg.is-current .ob-seg-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 70%, transparent), transparent);
+  transform: translateX(-110%);
+  animation: ob-seg-sheen 2.6s var(--ease-out) infinite;
+}
+
+@keyframes ob-seg-sheen {
+  0% { transform: translateX(-110%); }
+  55%, 100% { transform: translateX(110%); }
+}
+
 .ob-progress-meta {
   display: flex;
   align-items: baseline;
@@ -209,6 +224,8 @@ body.divorcio-flow-mode .ob {
 }
 
 .ob-choice {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -227,17 +244,35 @@ body.divorcio-flow-mode .ob {
   transition:
     transform var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease),
-    background var(--dur-fast) var(--ease),
     box-shadow var(--dur-fast) var(--ease);
+}
+
+/* Barrido de tinta al pasar el cursor */
+.ob-choice::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, color-mix(in srgb, var(--lp-accent, var(--primary)) 16%, transparent), color-mix(in srgb, var(--lp-accent, var(--primary)) 6%, transparent));
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 380ms var(--ease-out);
+}
+
+.ob-choice > * {
+  position: relative;
+  z-index: 1;
 }
 
 .ob-choice app-icon { color: var(--text-muted); }
 
 .ob-choice:hover {
   border-color: var(--lp-accent, var(--primary));
-  background: var(--lp-accent-soft, var(--primary-subtle));
   transform: translateX(6px);
   box-shadow: var(--shadow-md);
+}
+
+.ob-choice:hover::before,
+.ob-choice:focus-visible::before {
+  clip-path: inset(0 0 0 0);
 }
 
 .ob-choice:hover app-icon { color: var(--lp-accent, var(--primary)); }
@@ -248,8 +283,26 @@ body.divorcio-flow-mode .ob {
 
 .ob-choice.is-selected {
   border-color: var(--lp-accent, var(--primary));
-  background: var(--lp-accent-soft, var(--primary-subtle));
   box-shadow: 0 0 0 2px var(--lp-accent, var(--primary));
+}
+
+.ob-choice.is-selected::before {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Sello al elegir */
+.ob-choice.is-selected::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid color-mix(in srgb, var(--lp-accent, var(--primary)) 60%, transparent);
+  animation: ob-choice-stamp 640ms var(--ease-out) both;
+}
+
+@keyframes ob-choice-stamp {
+  from { transform: scale(0.94); opacity: 0.95; }
+  to { transform: scale(1.07); opacity: 0; }
 }
 
 .ob-field { margin-bottom: var(--space-4); }
@@ -288,7 +341,18 @@ body.divorcio-flow-mode .ob {
 
 .ob-review li + li { border-top: 1px solid var(--border); }
 
+.ob-review li {
+  animation: ob-row-in 480ms var(--ease-out) both;
+  animation-delay: calc(140ms + var(--i, 0) * 45ms);
+}
+
+@keyframes ob-row-in {
+  from { opacity: 0; translate: 0 10px; }
+  to { opacity: 1; translate: none; }
+}
+
 .ob-review-row {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -305,7 +369,34 @@ body.divorcio-flow-mode .ob {
   white-space: normal;
 }
 
+/* Línea que corre bajo la fila al pasar el cursor */
+.ob-review-row::after {
+  content: '';
+  position: absolute;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: 0;
+  height: 1px;
+  background: var(--lp-accent, var(--primary));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 320ms var(--ease-out);
+}
+
+.ob-review-row:hover::after,
+.ob-review-row:focus-visible::after {
+  transform: scaleX(1);
+}
+
 .ob-review-row:hover { background: var(--bg-subtle); }
+
+.ob-review-value app-icon {
+  transition: transform 260ms var(--ease-out);
+}
+
+.ob-review-row:hover .ob-review-value app-icon {
+  transform: rotate(-14deg) translateY(-1px);
+}
 
 .ob-review-label { color: var(--text-secondary); }
 

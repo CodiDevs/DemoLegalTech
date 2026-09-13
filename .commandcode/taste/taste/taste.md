@@ -8,3 +8,5 @@
 - Wants page sections laid out so every item is visible at once without scrolling; treats a horizontally-scrolling rail/carousel ("hay que hacer scroll") as a defect to redesign away, preferring an evenly-distributed grid. Confidence: 0.7
 - Dislikes the word "demo" in client-facing/visible copy; prefers honest substitutes like "de ejemplo" or "ficticio" instead of labeling UI, mocks, or docs as DEMO. Confidence: 0.55
 - Handles git commits on their own and expects the agent to leave changes uncommitted; asks the agent to diagnose merge/push blockers (behind/ahead counts, dry-run conflict checks) rather than to commit or push for them. Confidence: 0.6
+- When asking for a redesign, wants the section to be given a purpose-built background/atmosphere (brand-consistent texture, light, depth layers) instead of the current flat surface — "un fondo que sea adecuado" is part of the ask, not optional. Confidence: 0.6
+- Wants demos to run motion always-on ("activa full motion"): no `prefers-reduced-motion` downgrade of the animation, only avoid layout-triggering properties. Confidence: 0.55

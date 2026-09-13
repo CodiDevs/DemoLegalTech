@@ -21,11 +21,23 @@ type Stage = 'questions' | 'review' | 'done';
   template: `
     @if (site) {
       <div class="landing-page product-flow" [class]="'theme-' + site.theme">
+        <div class="form-stage" aria-hidden="true">
+          <span class="form-stage-texture"></span>
+          <span class="form-stage-glow form-stage-glow--a"></span>
+          <span class="form-stage-glow form-stage-glow--b"></span>
+          <span class="form-stage-sweep"></span>
+          <span class="form-stage-ruling"></span>
+          <span class="form-stage-seal"></span>
+          <span class="form-stage-vignette"></span>
+        </div>
+
         <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction">
           @if (stage === 'questions' && currentField) {
-            <p class="ob-counter" aria-hidden="true">
-              {{ pad(stepLabel) }} / {{ pad(fields.length) }}
-            </p>
+            @for (p of [stepLabel]; track p) {
+              <p class="ob-counter" aria-hidden="true">
+                {{ pad(p) }} / {{ pad(fields.length) }}
+              </p>
+            }
             <div class="ob-questions">
               <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length">
                 <div class="ob-segments">
@@ -119,8 +131,8 @@ type Stage = 'questions' | 'review' | 'done';
               <p class="ob-hint">Confirma los datos antes de crear tu expediente de {{ site.name }}.</p>
 
               <ul class="ob-review">
-                @for (field of site.questionnaire; track field.id) {
-                  <li>
+                @for (field of site.questionnaire; track field.id; let i = $index) {
+                  <li [style.--i]="i">
                     <button type="button" class="ob-review-row" (click)="editField(field.id)">
                       <span class="ob-review-label">{{ field.label }}</span>
                       <span class="ob-review-value">{{ formatAnswer(field) }}<app-icon name="pen" [size]="14" /></span>
@@ -150,13 +162,14 @@ type Stage = 'questions' | 'review' | 'done';
           }
 
           @if (stage === 'done') {
-            <section class="ob-sheet">
+            <section class="ob-sheet is-apto">
               <span class="ob-icon"><app-icon name="check-circle" [size]="22" /></span>
               <h1>Expediente creado</h1>
               <p class="ob-hint">Continúa con el pago único para activar tu trámite de {{ site.name }}.</p>
               <a [routerLink]="['/checkout', caseId]" class="btn btn-primary btn-lg btn-block">
                 Pagar \${{ site.price }}
               </a>
+              <span class="ob-verdict-stamp" aria-hidden="true"></span>
             </section>
           }
         </div>
