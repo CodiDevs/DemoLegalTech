@@ -14,6 +14,14 @@ describe('product-sites.data', () => {
       label: 'Mis expedientes',
       path: '/cliente',
     });
+    expect(getMarketingPrimaryAction('cliente', 'traslado360')).toEqual({
+      label: 'Mis expedientes',
+      path: '/productos/traslado360/expediente',
+    });
+    expect(getMarketingPrimaryAction('cliente', 'bienraiz360')).toEqual({
+      label: 'Mis expedientes',
+      path: '/productos/bienraiz360/expediente',
+    });
     expect(getMarketingPrimaryAction('abogado', 'divorcio360')).toEqual({
       label: 'Panel de casos',
       path: '/abogado',

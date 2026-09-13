@@ -12,7 +12,7 @@ const STAGE_HINT: Record<string, string> = {
   '01': 'Completa el pago para abrir el expediente.',
   '02': 'Sube los documentos que faltan.',
   '03': 'El abogado está revisando tus documentos.',
-  '04': 'Espera la minuta del notario.',
+  '04': 'Espera la minuta del abogado.',
   '05': 'Firma la minuta.',
   '06': 'El trámite va a notaría.',
   '07': 'Pendiente la comparecencia.',

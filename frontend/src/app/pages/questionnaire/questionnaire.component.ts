@@ -254,7 +254,7 @@ interface Question {
                   <a
                     class="btn btn-secondary btn-block"
                     routerLink="/auth"
-                    [queryParams]="{ mode: 'login', product: 'divorcio360' }"
+                    [queryParams]="{ mode: 'login', next: 'checkout', result: result.code, city: locationLabel, product: 'divorcio360' }"
                   >Ya tengo cuenta</a>
                 }
               </div>
