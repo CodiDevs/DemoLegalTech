@@ -65,15 +65,20 @@ import {
         <div class="ls-side-windows ls-choreo lp-reveal">
           @for (p of supportingProducts; track p.id; let i = $index) {
             <article class="ls-offset-window" [style.--i]="i" [attr.data-product]="p.id">
-              <span class="lp-badge-live">En vivo</span>
-              <h3>{{ p.name }}</h3>
-              <p>{{ p.tagline }}</p>
-              <ul class="lp-list-tt">
-                @for (f of p.features; track f) { <li>{{ f }}</li> }
-              </ul>
-              <a [routerLink]="p.route" class="lp-btn lp-btn-primary" (click)="armProduct(p)">
-                Abrir producto
-              </a>
+              <div class="ls-offset-copy">
+                <span class="lp-badge-live">En vivo</span>
+                <h3>{{ p.name }}</h3>
+                <p>{{ p.tagline }}</p>
+                <ul class="lp-list-tt">
+                  @for (f of p.features; track f) { <li>{{ f }}</li> }
+                </ul>
+                <a [routerLink]="p.route" class="lp-btn lp-btn-primary" (click)="armProduct(p)">
+                  Abrir producto
+                </a>
+              </div>
+              <figure class="ls-offset-shot">
+                <img [src]="p.image" [alt]="p.showcaseDesc" width="960" height="720" />
+              </figure>
             </article>
           }
         </div>

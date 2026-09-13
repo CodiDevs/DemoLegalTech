@@ -272,16 +272,15 @@
   50% { translate: 6% -4%; }
 }
 
-/* Home trailer */
+/* Home trailer: one viewport. Do not use a 170svh sticky scrub —
+   .landing-page overflow-x:hidden kills sticky and leaves a blank band. */
 .mk-scene {
   position: relative;
-  height: 170svh;
 }
 
 .mk-sticky {
-  position: sticky;
-  top: 0;
-  height: 100svh;
+  position: relative;
+  min-height: 100svh;
   overflow: hidden;
 }
 
@@ -293,14 +292,12 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  transform: scale(calc(1.08 - var(--mk-p, 0) * 0.16));
   filter: saturate(0.85) contrast(1.05);
 }
 
 .mk-wordmark-mask {
   position: relative;
   z-index: 2;
-  clip-path: inset(0 0 calc(18% * (1 - var(--mk-p, 0))) 0);
 }
 
 .mk-dossier-float {
@@ -309,9 +306,6 @@
   right: clamp(4%, 8vw, 12%);
   bottom: clamp(6%, 10vh, 14%);
   width: min(28rem, 46vw);
-  transform:
-    translateY(calc(28% * (1 - var(--mk-p, 0))))
-    scale(calc(0.72 + var(--mk-p, 0) * 0.28));
 }
 
 .ls-hero-product {
@@ -329,15 +323,30 @@
 }
 
 .ls-offset-window {
-  min-height: 62vh;
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.5rem 0;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
-  transform: translateY(var(--offset, 0));
+}
+
+.ls-offset-shot {
+  margin: 1.25rem -1.5rem 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--bg-subtle);
+}
+
+.ls-offset-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .ls-offset-window:nth-child(2) {
-  --offset: 12vh;
+  margin-top: 3rem;
 }
 
 .ls-rail {
@@ -844,7 +853,7 @@
     font-size: 1.6rem;
   }
 
-  .ls-offset-window:nth-child(2) { --offset: 0; }
+  .ls-offset-window:nth-child(2) { margin-top: 0; }
   .mk-dossier-float {
     position: relative;
     right: auto;

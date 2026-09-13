@@ -561,8 +561,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'traslado360', name: 'Traslado360', tagline: 'Traslado vehicular con acuerdo mutuo y firma notarial.',
     pillDesc: 'Traslado de vehículo', icon: 'file', iconBg: '#e8f4f8',
-    image: '/demo-scenes/identity-demo.svg',
-    showcaseImage: '/demo-scenes/identity-demo.svg',
+    image: '/demo-scenes/traslado360-shot.png',
+    showcaseImage: '/demo-scenes/traslado360-shot.png',
     showcaseDesc: 'Mutuo acuerdo, pago único, documentos y reunión virtual con notario.',
     features: ['Sitio producto completo', 'Pago único', 'Consulta + notaría virtual'],
     live: true, route: '/productos/traslado360',
@@ -570,8 +570,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
   {
     id: 'bienraiz360', name: 'BienRaiz360', tagline: 'Traslado de bienes inmuebles con comparecencia digital.',
     pillDesc: 'Traslado de inmueble', icon: 'building', iconBg: '#f0ebe3',
-    image: '/demo-scenes/marriage-record-demo.svg',
-    showcaseImage: '/demo-scenes/marriage-record-demo.svg',
+    image: '/demo-scenes/bienraiz360-shot.png',
+    showcaseImage: '/demo-scenes/bienraiz360-shot.png',
     showcaseDesc: 'Traslado de dominio de terreno o inmueble con reunión virtual.',
     features: ['Sitio producto completo', 'Honorario único', 'Expediente trazable'],
     live: true, route: '/productos/bienraiz360',

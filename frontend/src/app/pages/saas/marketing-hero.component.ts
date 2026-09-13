@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   Input,
-  OnDestroy,
   ViewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -23,7 +22,7 @@ interface HeroAction {
   standalone: true,
   imports: [RouterLink, IconComponent, DemoCaseWindowComponent],
   template: `
-    <div class="mk-scene" #sceneRef [style.--mk-p]="progress">
+    <div class="mk-scene">
       <section
         class="mk-hero mk-sticky"
         [class.mk-hero--static]="useStaticFallback"
@@ -240,7 +239,7 @@ interface HeroAction {
     }
   `],
 })
-export class MarketingHeroComponent implements AfterViewInit, OnDestroy {
+export class MarketingHeroComponent implements AfterViewInit {
   @Input() primaryCta = 'Abrir Divorcio360';
   @Input() secondaryCta = 'Cómo funciona';
   @Input() primaryRoute = '/productos/divorcio360';
@@ -260,23 +259,14 @@ export class MarketingHeroComponent implements AfterViewInit, OnDestroy {
   readonly posterSrc = '/videos/legalstation-hero-poster.jpg';
 
   useStaticFallback = false;
-  progress = 0;
   private playAttempt = 0;
-  private onScroll = () => this.syncProgress();
 
   @ViewChild('videoRef') videoRef?: ElementRef<HTMLVideoElement>;
-  @ViewChild('sceneRef') sceneEl?: ElementRef<HTMLElement>;
 
   constructor(public auth: AuthService, private cdr: ChangeDetectorRef) {}
 
   ngAfterViewInit(): void {
     this.tryPlay();
-    window.addEventListener('scroll', this.onScroll, { passive: true });
-    this.syncProgress();
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.onScroll);
   }
 
   tryPlay(): void {
@@ -339,15 +329,5 @@ export class MarketingHeroComponent implements AfterViewInit, OnDestroy {
     if (!el) return;
     event.preventDefault();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  private syncProgress(): void {
-    const el = this.sceneEl?.nativeElement;
-    if (!el) return;
-    const total = el.offsetHeight - window.innerHeight;
-    const p = total <= 0 ? 0 : Math.min(1, Math.max(0, -el.getBoundingClientRect().top / total));
-    if (Math.abs(p - this.progress) < 0.008) return;
-    this.progress = p;
-    this.cdr.detectChanges();
   }
 }

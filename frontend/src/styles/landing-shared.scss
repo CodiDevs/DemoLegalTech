@@ -23,7 +23,7 @@
   font-family: var(--lp-font);
   color: var(--lp-ink);
   position: relative;
-  overflow-x: hidden;
+  overflow-x: clip;
   background: var(--lp-bg);
 
   h1 {

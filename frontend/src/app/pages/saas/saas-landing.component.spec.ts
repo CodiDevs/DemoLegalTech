@@ -45,6 +45,19 @@ describe('SaasLandingComponent', () => {
     window.IntersectionObserver = OriginalIO;
   });
 
+  it('pinta recorte fotográfico en Traslado360 y BienRaiz360', () => {
+    fixture.detectChanges();
+    const shots = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.ls-offset-shot img'),
+    ) as HTMLImageElement[];
+    expect(shots.length).toBe(2);
+    expect(shots.map((img) => img.getAttribute('src'))).toEqual([
+      '/demo-scenes/traslado360-shot.png',
+      '/demo-scenes/bienraiz360-shot.png',
+    ]);
+    expect(shots.every((img) => (img.getAttribute('alt') || '').length > 8)).toBeTrue();
+  });
+
   it('lleva el CTA de Divorcio360 a la landing del producto, no al cuestionario', () => {
     fixture.detectChanges();
     const featured = (fixture.nativeElement as HTMLElement).querySelector(
