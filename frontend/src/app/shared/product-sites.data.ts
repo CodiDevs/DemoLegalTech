@@ -518,7 +518,12 @@ export function getMarketingPrimaryAction(
   role: MarketingRole,
   product = 'divorcio360',
 ): MarketingPrimaryAction {
-  if (role === 'cliente') return { label: 'Mis expedientes', path: '/cliente' };
+  if (role === 'cliente') {
+    const id = normalizeProductId(product);
+    // Divorcio keeps the unified inbox; other products stay in-product.
+    if (id === 'divorcio360') return { label: 'Mis expedientes', path: '/cliente' };
+    return { label: 'Mis expedientes', path: getProductExpedientePath(id) };
+  }
   if (role === 'abogado') return { label: 'Panel de casos', path: '/abogado' };
   if (role === 'notario') return { label: 'Inicio', path: '/' };
   return {
