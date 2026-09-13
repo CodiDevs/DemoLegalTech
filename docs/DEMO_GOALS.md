@@ -37,6 +37,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cuestionario Divorcio360 neo | `/cuestionario` clay teal, Sí/No hundidos, contraste AA | 2026-09-10 |
 | done | Demo cliente máximo movimiento | `/` video → Divorcio360 pin → cuestionario → pago → docs → firma | 2026-09-11 |
 | done | Recorrido cinematográfico Expediente vivo | `/` tráiler → Divorcio360 cámara → `/cuestionario` → `/checkout/:id` → `/upload/:id` → `/firma/:id` | 2026-09-11 |
+| done | Client journey handoff fixes | Guest product Q → auth(`next=checkout`) → expediente; unpaid → checkout; Mis expedientes por producto | 2026-09-13 |
 
 ## Entries
 
@@ -457,4 +458,13 @@ Cliente path como película: home tráiler (video + wordmark + dossier), Divorci
 SVG demo UTF-8. Firma no abre sin minuta. Overlay checkout atrapa Shift+Tab. Cortina siempre montada (abogado→home sí, abogado↔fase2 no). Cuestionario `ob-sheet`. Upload hojas 52vh. Pin usa `ScrollSceneDirective`. Seed copia PDFs o falla.
 
 **Demo:** `bun run reset-db` + `bun run dev`. Login cliente. Caso 04 → `/firma/:id` bloqueado hasta minuta. `/abogado` sin View Transitions.
+
+### 2026-09-13 — Client journey handoff fixes
+Cierre del flujo cliente multi-producto: guest cuestionario de producto siembra `d360_q_result`, auth conserva `next=checkout`, unpaid no dead-end en `/caso`, login CTA en review, error visible si `createCase` falla post-auth, Mis expedientes scoped por producto, booleanos del product Q sin default Sí.
+
+**Demo:**
+1. Invitado → `/productos/traslado360/cuestionario` → Sí/No sin preselección → review → Crear cuenta / Ya tengo cuenta.
+2. Login `cliente@demo.ec` / `demo1234` → debe ir a `/checkout/:id` (no a home vacío).
+3. `/productos/traslado360/expediente` — solo Traslado; fila unpaid → Pagar → checkout.
+4. Divorcio360: `/cuestionario` → login handoff con `next=checkout` intacto.
 
