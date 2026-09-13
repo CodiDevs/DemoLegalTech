@@ -59,7 +59,7 @@ import {
         </div>
       </app-cinematic-scene>
 
-      <app-cinematic-scene [act]="1" theme="ink">
+      <app-cinematic-scene [act]="1" theme="cream">
         <p class="cine-kicker">También en vivo</p>
         <h2 class="cine-title">Otras ventanas del mismo sistema</h2>
         <div class="ls-side-windows ls-choreo lp-reveal">

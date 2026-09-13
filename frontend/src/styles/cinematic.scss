@@ -44,9 +44,9 @@
 
 .cine-scene .cine-title {
   margin: 0 0 1rem;
-  max-width: 16ch;
+  max-width: 22ch;
   font-family: var(--font-sans);
-  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  font-size: clamp(2.1rem, 5vw, 3.4rem);
   font-weight: 650;
   letter-spacing: -0.04em;
   line-height: 1.05;
@@ -624,14 +624,15 @@
   padding: clamp(2rem, 5vw, 3.5rem);
   background: var(--surface-inverse);
   color: var(--text-inverse);
-  min-height: 52vh;
+  min-height: 0;
   display: grid;
   align-content: center;
 }
 
 .ls-license-plate .price {
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 10vw, 7rem);
+  font-family: var(--font-sans);
+  font-size: clamp(3.2rem, 8vw, 5.5rem);
+  font-weight: 650;
   line-height: 0.9;
   letter-spacing: -0.05em;
 }
@@ -682,8 +683,12 @@
   gap: 1rem;
 }
 
+.ls-plan-type .lp-plan {
+  height: 100%;
+}
+
 .ls-plan-type .lp-plan-price {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 2.4rem;
   line-height: 1;
 }
