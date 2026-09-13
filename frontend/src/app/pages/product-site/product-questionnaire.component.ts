@@ -352,7 +352,7 @@ export class ProductQuestionnaireComponent implements OnInit {
   private initAnswers(): void {
     if (!this.site) return;
     for (const f of this.site.questionnaire) {
-      if (f.type === 'boolean') this.answers[f.id] = true;
+      if (f.type === 'boolean') this.answers[f.id] = undefined;
       else if (f.type === 'select' && f.options?.length) this.answers[f.id] = f.options[0].value;
       else this.answers[f.id] = '';
     }
