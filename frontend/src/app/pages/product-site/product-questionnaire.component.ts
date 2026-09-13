@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { IconComponent } from '../../shared/icon.component';
+import { IconComponent, IconName } from '../../shared/icon.component';
 import {
   getProductSite,
   ProductSiteConfig,
@@ -21,15 +21,11 @@ type Stage = 'questions' | 'review' | 'done';
   template: `
     @if (site) {
       <div class="landing-page product-flow" [class]="'theme-' + site.theme">
-        <div class="ob">
-          <header class="pq-top">
-            <a [routerLink]="['/productos', site.slug]" class="btn btn-ghost btn-sm">
-              <app-icon name="arrow-left" [size]="16" />
-              {{ site.name }}
-            </a>
-          </header>
-
+        <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction">
           @if (stage === 'questions' && currentField) {
+            <p class="ob-counter" aria-hidden="true">
+              {{ pad(stepLabel) }} / {{ pad(fields.length) }}
+            </p>
             <div class="ob-questions">
               <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length">
                 <div class="ob-segments">
@@ -49,65 +45,66 @@ type Stage = 'questions' | 'review' | 'done';
                     </button>
                   }
                 </div>
-                @if (fieldIndex > 0) {
-                  <div class="ob-progress-meta">
+                <div class="ob-progress-meta">
+                  <p class="ob-step-label">Paso {{ stepLabel }} de {{ fields.length }}</p>
+                  @if (fieldIndex > 0) {
                     <p class="ob-step-hint">Toca un paso anterior para volver</p>
-                  </div>
-                }
+                  }
+                </div>
               </div>
 
               <div class="ob-stage">
-                <div class="ob-card-slot">
+                <div class="ob-sheet-slot">
                   @for (f of [currentField]; track f.id) {
-                    <section class="ob-card" [class.ob-card--back]="direction === -1">
-                <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
-                <h1>{{ f.label }}</h1>
+                    <section class="ob-sheet" [class.ob-sheet--back]="direction === -1">
+                      <span class="ob-icon"><app-icon [name]="fieldIcon(f)" [size]="22" /></span>
+                      <h1>{{ f.label }}</h1>
 
-                @if (f.type === 'text') {
-                  <div class="ob-field">
-                    <input
-                      [id]="f.id"
-                      type="text"
-                      [(ngModel)]="answers[f.id]"
-                      [placeholder]="f.placeholder || ''"
-                      (keyup.enter)="canContinue && next()"
-                    />
-                  </div>
-                } @else if (f.type === 'boolean') {
-                  <div class="ob-choices">
-                    <button type="button" class="ob-choice" (click)="setBoolean(f.id, true)">
-                      <span>Sí</span><app-icon name="chevron-right" [size]="17" />
-                    </button>
-                    <button type="button" class="ob-choice" (click)="setBoolean(f.id, false)">
-                      <span>No</span><app-icon name="chevron-right" [size]="17" />
-                    </button>
-                  </div>
-                } @else if (f.type === 'select') {
-                  <div class="ob-field">
-                    <select [(ngModel)]="answers[f.id]">
-                      @for (opt of f.options; track opt.value) {
-                        <option [value]="opt.value">{{ opt.label }}</option>
+                      @if (f.type === 'text') {
+                        <div class="ob-field">
+                          <input
+                            [id]="f.id"
+                            type="text"
+                            [(ngModel)]="answers[f.id]"
+                            [placeholder]="f.placeholder || ''"
+                            (keyup.enter)="canContinue && next()"
+                          />
+                        </div>
+                      } @else if (f.type === 'boolean') {
+                        <div class="ob-choices">
+                          <button type="button" class="ob-choice" [class.is-selected]="answers[f.id] === true" (click)="setBoolean(f.id, true)">
+                            <span>Sí</span><app-icon name="chevron-right" [size]="17" />
+                          </button>
+                          <button type="button" class="ob-choice" [class.is-selected]="answers[f.id] === false" (click)="setBoolean(f.id, false)">
+                            <span>No</span><app-icon name="chevron-right" [size]="17" />
+                          </button>
+                        </div>
+                      } @else if (f.type === 'select') {
+                        <div class="ob-field">
+                          <select [(ngModel)]="answers[f.id]">
+                            @for (opt of f.options; track opt.value) {
+                              <option [value]="opt.value">{{ opt.label }}</option>
+                            }
+                          </select>
+                        </div>
                       }
-                    </select>
-                  </div>
-                  <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="!canContinue" (click)="next()">
-                    Continuar
-                  </button>
-                }
 
-                @if (f.type !== 'boolean' && f.type !== 'select') {
-                  <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="!canContinue" (click)="next()">
-                    Continuar
-                  </button>
-                }
+                      @if (f.type !== 'boolean') {
+                        <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="!canContinue" (click)="next()">
+                          Continuar
+                        </button>
+                      }
                     </section>
                   }
                 </div>
 
                 <div class="ob-foot">
+                  <a [routerLink]="['/productos', site.slug]" class="btn btn-ghost btn-sm">
+                    <app-icon name="arrow-left" [size]="16" /> {{ site.name }}
+                  </a>
                   @if (fieldIndex > 0) {
                     <button type="button" class="btn btn-ghost btn-sm" (click)="prev()">
-                      <app-icon name="arrow-left" [size]="16" /> Atrás
+                      Atrás
                     </button>
                   }
                 </div>
@@ -116,7 +113,7 @@ type Stage = 'questions' | 'review' | 'done';
           }
 
           @if (stage === 'review') {
-            <section class="ob-card">
+            <section class="ob-sheet">
               <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
               <h1>Revisa tu información</h1>
               <p class="ob-hint">Confirma los datos antes de crear tu expediente de {{ site.name }}.</p>
@@ -134,24 +131,26 @@ type Stage = 'questions' | 'review' | 'done';
 
               <p class="pq-price">Honorario orientativo: <strong>\${{ site.price }}</strong> — pago único.</p>
 
-              @if (auth.isLoggedIn) {
-                <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="busy" (click)="start()">
-                  @if (busy) { <span class="spinner" aria-hidden="true"></span> Creando expediente… }
-                  @else { Crear mi expediente }
-                </button>
-              } @else {
-                <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="prepareGuestCheckout()">
-                  Registrarme para continuar
-                </a>
-                <a [routerLink]="['/auth']" [queryParams]="loginParams" class="btn btn-secondary btn-block" (click)="prepareGuestCheckout()">
-                  Ya tengo cuenta
-                </a>
-              }
+              <div class="ob-actions">
+                @if (auth.isLoggedIn) {
+                  <button type="button" class="btn btn-primary btn-lg btn-block" [disabled]="busy" (click)="start()">
+                    @if (busy) { <span class="spinner" aria-hidden="true"></span> Creando expediente… }
+                    @else { Crear mi expediente }
+                  </button>
+                } @else {
+                  <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="prepareGuestCheckout()">
+                    Registrarme para continuar
+                  </a>
+                  <a [routerLink]="['/auth']" [queryParams]="loginParams" class="btn btn-secondary btn-block" (click)="prepareGuestCheckout()">
+                    Ya tengo cuenta
+                  </a>
+                }
+              </div>
             </section>
           }
 
           @if (stage === 'done') {
-            <section class="ob-card">
+            <section class="ob-sheet">
               <span class="ob-icon"><app-icon name="check-circle" [size]="22" /></span>
               <h1>Expediente creado</h1>
               <p class="ob-hint">Continúa con el pago único para activar tu trámite de {{ site.name }}.</p>
@@ -165,16 +164,6 @@ type Stage = 'questions' | 'review' | 'done';
     }
   `,
   styles: [`
-    .pq-top {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
-      margin-bottom: var(--space-4);
-      width: 100%;
-      max-width: 28rem;
-      margin-inline: auto;
-    }
     .pq-price {
       margin: var(--space-4) 0;
       font-size: var(--text-sm);
@@ -234,6 +223,17 @@ export class ProductQuestionnaireComponent implements OnInit {
 
   get progressPct(): number {
     return Math.round((this.stepLabel / this.totalSteps) * 100);
+  }
+
+  pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  fieldIcon(field: QuestionField): IconName {
+    if (field.type === 'boolean') return 'check-circle';
+    if (field.type === 'select') return 'clipboard';
+    if (field.id === 'city') return 'map-pin';
+    return 'pen';
   }
 
   get canContinue(): boolean {
