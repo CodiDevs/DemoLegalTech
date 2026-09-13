@@ -85,6 +85,24 @@ describe('SaasLandingComponent', () => {
     expect(disconnect).toHaveBeenCalled();
   });
 
+  it('pinta los tres planes de licencia con precio, items y CTA', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    const featured = root.querySelector('.ls-license-plate');
+    expect(featured?.querySelector('.cine-kicker')?.textContent?.trim()).toBe('Más usada');
+    expect(featured?.querySelectorAll('.ls-plan-items li').length).toBe(5);
+
+    const cards = Array.from(root.querySelectorAll('.ls-plan-type .lp-plan'));
+    expect(cards.length).toBe(2);
+    for (const card of cards) {
+      expect((card.querySelector('.lp-plan-tag')?.textContent || '').trim().length).toBeGreaterThan(2);
+      expect(card.querySelector('.lp-plan-price')?.textContent).toContain('$');
+      expect(card.querySelectorAll('li').length).toBe(4);
+      expect(card.querySelector('.lp-btn')?.textContent).toContain('Ver licencia');
+    }
+  });
+
   it('cancela el timer del toast al reemplazarlo y al destruir', fakeAsync(() => {
     fixture.detectChanges();
     const cmp = fixture.componentInstance;

@@ -384,22 +384,70 @@
   letter-spacing: -0.05em;
 }
 
+.ls-license-plate .ls-plan-items {
+  list-style: none;
+  margin: 1.5rem 0 2rem;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+  max-width: 34rem;
+}
+
+.ls-license-plate .ls-plan-items li {
+  position: relative;
+  padding-left: 1.35rem;
+  font-size: 0.95rem;
+  color: color-mix(in srgb, var(--text-inverse) 80%, transparent);
+}
+
+.ls-license-plate .ls-plan-items li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: var(--primary-border);
+  -webkit-mask: var(--icon-check) center / contain no-repeat;
+  mask: var(--icon-check) center / contain no-repeat;
+}
+
+.ls-pricing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: clamp(1rem, 2.4vw, 2rem);
+  align-items: stretch;
+  margin-top: 1.75rem;
+}
+
+.ls-pricing-grid .ls-license-plate {
+  max-width: none;
+}
+
 .ls-plan-type {
   display: grid;
-  gap: 0.75rem;
-  margin-top: 2rem;
-}
-
-.ls-plan-type article {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-auto-rows: 1fr;
   gap: 1rem;
-  padding-block: 0.85rem;
-  border-bottom: 1px solid var(--border);
 }
 
-.ls-close-cta {
-  text-align: center;
+.ls-plan-type .lp-plan-price {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.ls-plan-type .lp-plan ul {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 1023.9px) {
+  .ls-pricing-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ls-plan-type {
+    grid-auto-rows: auto;
+  }
 }
 
 .dv-split {

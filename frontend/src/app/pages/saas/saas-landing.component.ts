@@ -119,30 +119,41 @@ import {
 
       <app-cinematic-scene sceneId="precios" [act]="1" theme="cream">
         <p class="cine-kicker">Licencia</p>
-        <div class="ls-license-plate">
-          <p class="cine-kicker">Más usada</p>
-          <h2>{{ featuredPlan.name }}</h2>
-          <p>{{ featuredPlan.audience }}</p>
-          <div class="price">\${{ featuredPlan.price }}<small>/mes</small></div>
-          <ul>
-            @for (item of featuredPlan.items; track item) { <li>{{ item }}</li> }
-          </ul>
-          <a
-            routerLink="/auth"
-            [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
-            class="lp-btn lp-btn-primary"
-          >Ver licencia</a>
-        </div>
-        <div class="ls-plan-type">
-          @for (plan of sidePlans; track plan.name) {
-            <article>
-              <div>
+        <h2 class="cine-title">Tres planes según tu operación</h2>
+        <p class="cine-lede">Cambian los operadores, los productos activos y la comisión por venta.</p>
+        <div class="ls-pricing-grid">
+          <div class="ls-license-plate">
+            <p class="cine-kicker">{{ featuredPlan.tag }}</p>
+            <h2>{{ featuredPlan.name }}</h2>
+            <p>{{ featuredPlan.audience }}</p>
+            <div class="price">\${{ featuredPlan.price }}<small>/mes</small></div>
+            <ul class="ls-plan-items">
+              @for (item of featuredPlan.items; track item) { <li>{{ item }}</li> }
+            </ul>
+            <a
+              routerLink="/auth"
+              [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
+              class="lp-btn lp-btn-primary"
+            >Ver licencia</a>
+          </div>
+          <div class="ls-plan-type">
+            @for (plan of sidePlans; track plan.name) {
+              <article class="lp-plan lp-lift">
+                <span class="lp-plan-tag">{{ plan.tag }}</span>
                 <h3>{{ plan.name }}</h3>
                 <p class="lp-muted">{{ plan.audience }}</p>
-              </div>
-              <strong>\${{ plan.price }}</strong>
-            </article>
-          }
+                <div class="lp-plan-price">\${{ plan.price }}<small> /mes</small></div>
+                <ul>
+                  @for (item of plan.items; track item) { <li>{{ item }}</li> }
+                </ul>
+                <a
+                  routerLink="/auth"
+                  [queryParams]="{ returnUrl: '/abogado/fase2/billing' }"
+                  class="lp-btn lp-btn-outline"
+                >Ver licencia</a>
+              </article>
+            }
+          </div>
         </div>
       </app-cinematic-scene>
 
@@ -164,17 +175,6 @@ import {
               <p>{{ e.desc }}</p>
             </article>
           }
-        </div>
-      </app-cinematic-scene>
-
-      <app-cinematic-scene [act]="1" theme="cream">
-        <div class="ls-close-cta lp-reveal">
-          <p class="cine-kicker">Cierre</p>
-          <h2 class="cine-title">El expediente vuelve a la portada</h2>
-          <p class="cine-lede">Abre Divorcio360 y recorre el trámite como una sola película.</p>
-          <a routerLink="/productos/divorcio360" class="lp-btn lp-btn-primary ls-hero-cta" (click)="armProduct(featuredProduct)">
-            Abrir Divorcio360
-          </a>
         </div>
       </app-cinematic-scene>
 

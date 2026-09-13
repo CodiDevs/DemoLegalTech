@@ -46,9 +46,9 @@ export const LEGALSTATION_WORKFLOW: {
 ];
 
 export const LEGALSTATION_PLANS = [
-  { name: 'Starter', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión por venta'], featured: false },
-  { name: 'Professional', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['3 productos en vivo', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync'], featured: true },
-  { name: 'Enterprise', audience: 'Multi-sede. Licencia operadores', price: 599, items: ['Productos ilimitados', 'SSO', 'Comisión negociable', 'White-label ready'], featured: false },
+  { name: 'Starter', tag: 'Para empezar', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión por venta'], featured: false },
+  { name: 'Professional', tag: 'Más usada', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['3 productos en vivo', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync'], featured: true },
+  { name: 'Enterprise', tag: 'Multi-sede', audience: 'Multi-sede. Licencia operadores', price: 599, items: ['Productos ilimitados', 'SSO', 'Comisión negociable', 'White-label ready'], featured: false },
 ];
 
 export const LEGALSTATION_ENTERPRISE = [
