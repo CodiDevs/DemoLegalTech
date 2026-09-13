@@ -93,13 +93,17 @@ interface DocRow {
                 (dragleave)="onDragLeave($event, slot.type)"
                 (drop)="onDrop($event, slot.type)">
                 <input type="file" accept=".pdf,image/*" (change)="onFile($event, slot.type)" />
-                <div class="up-drop-icon"><app-icon name="upload" [size]="24" /></div>
+                @if (latestDoc(slot.type) || uploading === slot.type) {
+                  <div class="up-drop-icon"><app-icon name="upload" [size]="24" /></div>
+                }
                 <p class="up-drop-title">
                   {{ latestDoc(slot.type) ? 'Arrastra para reemplazar' : 'Arrastra o haz clic para subir' }}
                 </p>
-                <p class="pf-muted up-drop-hint">
-                  {{ uploading === slot.type ? 'Subiendo…' : 'El archivo anterior queda en historial; el abogado revisa el más reciente.' }}
-                </p>
+                @if (latestDoc(slot.type) || uploading === slot.type) {
+                  <p class="pf-muted up-drop-hint">
+                    {{ uploading === slot.type ? 'Subiendo…' : 'El archivo anterior queda en historial; el abogado revisa el más reciente.' }}
+                  </p>
+                }
               </label>
             </article>
           }

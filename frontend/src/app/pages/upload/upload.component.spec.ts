@@ -96,4 +96,28 @@ describe('UploadComponent', () => {
       .map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/firma/3');
   });
+
+  it('deja el dropzone vacío en una línea hasta que hay archivo', () => {
+    fixture.detectChanges();
+    const pending = (fixture.nativeElement as HTMLElement).querySelector('.is-pending');
+    expect(pending).not.toBeNull();
+    expect(pending?.querySelector('.up-drop-hint')).toBeNull();
+    expect(pending?.querySelector('.up-drop-icon')).toBeNull();
+    expect(pending?.querySelector('.up-drop-title')?.textContent?.trim()).toBe(
+      'Arrastra o haz clic para subir',
+    );
+  });
+
+  it('expande el slot cuando hay archivo', () => {
+    fixture.detectChanges();
+    fixture.componentInstance.docs = [{ id: 1, doc_type: 'cedula', filename: 'c.pdf' }];
+    fixture.detectChanges();
+    const filled = (fixture.nativeElement as HTMLElement).querySelector('#sheet-cedula');
+    expect(filled?.classList.contains('is-pending')).toBeFalse();
+    expect(filled?.querySelector('.up-file-name')?.textContent).toContain('c.pdf');
+    expect(filled?.querySelector('.up-drop-hint')).not.toBeNull();
+    expect(filled?.querySelector('.up-drop-title')?.textContent?.trim()).toBe(
+      'Arrastra para reemplazar',
+    );
+  });
 });

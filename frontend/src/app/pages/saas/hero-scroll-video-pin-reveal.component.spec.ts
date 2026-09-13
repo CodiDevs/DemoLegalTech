@@ -87,6 +87,19 @@ describe('HeroScrollVideoPinRevealComponent', () => {
         expect(Number(getComputedStyle(word).opacity)).toBeGreaterThan(0);
       }
     });
+
+    it('muestra Cómo funciona e Iniciar Formulario para invitado', () => {
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      const labels = Array.from(root.querySelectorAll('.hsvr-cta a')).map((el) =>
+        el.textContent?.trim(),
+      );
+
+      expect(labels).toEqual(['Cómo funciona', 'Iniciar Formulario']);
+      expect(root.querySelector('.hsvr-cta-primary')?.getAttribute('href')).toBe(
+        '/auth?returnUrl=%2Fcuestionario&product=divorcio360',
+      );
+    });
   });
 
   describe('según viewport', () => {
@@ -131,6 +144,43 @@ describe('HeroScrollVideoPinRevealComponent', () => {
       fixture.destroy();
       await new Promise((r) => setTimeout(r, 50));
       expect(ScrollTrigger.getAll().length).toBe(0);
+    });
+  });
+
+  describe('como cliente', () => {
+    beforeEach(async () => {
+      spyOn(window, 'matchMedia').and.returnValue(motionQuery(false));
+      await TestBed.configureTestingModule({
+        imports: [HeroScrollVideoPinRevealComponent],
+        providers: [
+          provideRouter([]),
+          {
+            provide: AuthService,
+            useValue: {
+              isLoggedIn: true,
+              user: signal({
+                id: 1,
+                email: 'cliente@demo.ec',
+                full_name: 'Carlos Demo',
+                phone: '0000000000',
+                role: 'cliente' as const,
+              }),
+            },
+          },
+        ],
+      }).compileComponents();
+      fixture = TestBed.createComponent(HeroScrollVideoPinRevealComponent);
+    });
+
+    it('pone Mis expedientes y Cómo funciona encima de Iniciar Formulario', () => {
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      const labels = Array.from(root.querySelectorAll('.hsvr-cta a')).map((el) =>
+        el.textContent?.trim(),
+      );
+
+      expect(labels).toEqual(['Mis expedientes', 'Cómo funciona', 'Iniciar Formulario']);
+      expect(root.querySelector('.hsvr-cta-primary')?.getAttribute('href')).toBe('/cuestionario');
     });
   });
 });

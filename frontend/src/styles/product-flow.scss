@@ -296,7 +296,6 @@ body.divorcio-flow-mode .landing-page.product-flow {
 
 .up-slot {
   padding: 0;
-  overflow: hidden;
 }
 
 .up-slot-head {
@@ -349,6 +348,10 @@ body.divorcio-flow-mode .landing-page.product-flow {
   background: var(--danger-subtle);
   border-color: var(--danger-border);
   color: var(--danger);
+}
+
+.up-slot.is-pending:not(.is-uploading) .up-dropzone {
+  padding: var(--space-5);
 }
 
 .up-dropzone {

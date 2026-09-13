@@ -4,7 +4,7 @@ import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
-import { getActiveProduct, getProductSite, getProductQuestionnairePath, getMarketingPrimaryAction, setActiveProduct, detectProductFromPath } from '../shared/product-sites.data';
+import { getActiveProduct, getProductSite, getProductQuestionnairePath, getMarketingPrimaryAction, getDivorcioFormAction, setActiveProduct, detectProductFromPath } from '../shared/product-sites.data';
 import { IconComponent, IconName } from '../shared/icon.component';
 import { RouteCurtainComponent } from '../shared/motion/route-curtain.component';
 
@@ -161,6 +161,13 @@ interface ProductSwitcherItem {
               <app-icon name="user" [size]="16" />
               <span>{{ userFirstName }}</span>
             </a>
+            @if (divorcioFormAction) {
+              <a
+                [routerLink]="divorcioFormAction.path"
+                [queryParams]="divorcioFormAction.query"
+                class="btn btn-primary btn-sm"
+              >{{ divorcioFormAction.label }}</a>
+            }
             <button type="button" class="btn btn-ghost btn-sm" (click)="auth.logout()">Salir</button>
           } @else {
             @for (action of guestActions; track action.label) {
@@ -208,6 +215,14 @@ interface ProductSwitcherItem {
               <a [routerLink]="homeForRole" class="btn btn-secondary btn-block" (click)="closeAll()">
                 {{ roleHomeLabel }}
               </a>
+              @if (divorcioFormAction) {
+                <a
+                  [routerLink]="divorcioFormAction.path"
+                  [queryParams]="divorcioFormAction.query"
+                  class="btn btn-primary btn-block"
+                  (click)="closeAll()"
+                >{{ divorcioFormAction.label }}</a>
+              }
               <button type="button" class="btn btn-ghost btn-block" (click)="auth.logout()">Salir</button>
             } @else {
               @for (action of guestActions; track action.label) {
@@ -909,7 +924,10 @@ export class ShellComponent implements OnInit, OnDestroy {
       ? { product: this.activeProduct, returnUrl: getProductQuestionnairePath(this.activeProduct) }
       : { returnUrl: '/' };
 
-    const primary = getMarketingPrimaryAction(null, this.activeProduct);
+    const formAction = this.divorcioFormAction;
+    const primary = formAction
+      ? { ...formAction, variant: 'primary' as const }
+      : { ...getMarketingPrimaryAction(null, this.activeProduct), variant: 'primary' as const };
 
     return [
       { label: 'Ingresar', path: '/auth', query, variant: 'quiet' },
@@ -922,6 +940,14 @@ export class ShellComponent implements OnInit, OnDestroy {
       this.auth.user()?.role ?? null,
       this.activeProduct,
     );
+  }
+
+  get divorcioFormAction() {
+    const role = this.auth.user()?.role ?? null;
+    if (role === 'abogado' || role === 'notario') return null;
+    if (!this.isLegalStationMarketing && this.activeProduct !== 'divorcio360') return null;
+    if (this.isAuthPage) return null;
+    return getDivorcioFormAction(role);
   }
 
   get homeForRole(): string {

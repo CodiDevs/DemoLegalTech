@@ -8,6 +8,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import {
   PRODUCT_SITES,
+  getDivorcioFormAction,
   getMarketingPrimaryAction,
 } from '../../shared/product-sites.data';
 import { DemoDocumentStackComponent } from '../../shared/demo/demo-document-stack.component';
@@ -49,12 +50,20 @@ function syncMockSteps(steps: Element[], progress: number): void {
           <p class="hsvr-sub">{{ subText }}</p>
 
           <div class="hsvr-cta">
-            <a [routerLink]="primaryAction.path" class="hsvr-btn hsvr-btn-primary">
-              {{ primaryAction.label }}
-            </a>
-
-            @if (auth.isLoggedIn && auth.user()?.role === 'cliente') {
+            <div class="hsvr-cta-row">
+              @if (sessionAction) {
+                <a [routerLink]="sessionAction.path" class="hsvr-btn hsvr-btn-outline">
+                  {{ sessionAction.label }}
+                </a>
+              }
               <a href="#flujo" class="hsvr-btn hsvr-btn-outline">Cómo funciona</a>
+            </div>
+            @if (formAction) {
+              <a
+                [routerLink]="formAction.path"
+                [queryParams]="formAction.query"
+                class="hsvr-btn hsvr-btn-primary hsvr-cta-primary"
+              >{{ formAction.label }}</a>
             }
           </div>
         </div>
@@ -202,9 +211,20 @@ function syncMockSteps(steps: Element[], progress: number): void {
 
     .hsvr-cta {
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hsvr-cta-row {
+      display: flex;
       flex-wrap: wrap;
       gap: 0.75rem;
       justify-content: center;
+    }
+
+    .hsvr-cta-primary {
+      align-self: center;
     }
 
     .hsvr-btn {
@@ -447,8 +467,14 @@ export class HeroScrollVideoPinRevealComponent {
 
   constructor(public auth: AuthService) {}
 
-  get primaryAction() {
-    return getMarketingPrimaryAction(this.auth.user()?.role ?? null, 'divorcio360');
+  get sessionAction() {
+    const role = this.auth.user()?.role ?? null;
+    if (role !== 'cliente') return null;
+    return getMarketingPrimaryAction(role, 'divorcio360');
+  }
+
+  get formAction() {
+    return getDivorcioFormAction(this.auth.user()?.role ?? null);
   }
 
   onPinProgress(progress: number): void {

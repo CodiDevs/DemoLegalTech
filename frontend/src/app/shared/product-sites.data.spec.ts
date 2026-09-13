@@ -1,5 +1,6 @@
 import {
   PRODUCT_SITES,
+  getDivorcioFormAction,
   getMarketingPrimaryAction,
   getProductQuestionnairePath,
 } from './product-sites.data';
@@ -30,6 +31,20 @@ describe('product-sites.data', () => {
       label: 'Inicio',
       path: '/',
     });
+  });
+
+  it('lleva Iniciar Formulario al cuestionario, con auth si es invitado', () => {
+    expect(getDivorcioFormAction(null)).toEqual({
+      label: 'Iniciar Formulario',
+      path: '/auth',
+      query: { returnUrl: '/cuestionario', product: 'divorcio360' },
+    });
+    expect(getDivorcioFormAction('cliente')).toEqual({
+      label: 'Iniciar Formulario',
+      path: '/cuestionario',
+    });
+    expect(getDivorcioFormAction('abogado')).toBeNull();
+    expect(getDivorcioFormAction('notario')).toBeNull();
   });
 
   it('conserva la ruta canónica del cuestionario Divorcio360', () => {
