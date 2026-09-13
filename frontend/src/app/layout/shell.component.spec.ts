@@ -64,13 +64,30 @@ describe('ShellComponent marketing navigation', () => {
     ]);
   });
 
-  it('mantiene ingreso y evaluación como únicas acciones guest', () => {
+  it('mantiene ingreso e Iniciar Formulario como acciones guest de Divorcio360', () => {
     const guest = makeShell(null);
 
     expect(guest.guestActions.map(({ label, path }) => ({ label, path }))).toEqual([
       { label: 'Ingresar', path: '/auth' },
-      { label: 'Evaluar mi caso', path: '/cuestionario' },
+      { label: 'Iniciar Formulario', path: '/auth' },
     ]);
+    expect(guest.guestActions[1].query).toEqual({
+      returnUrl: '/cuestionario',
+      product: 'divorcio360',
+    });
+  });
+
+  it('muestra Iniciar Formulario al cliente en el header de Divorcio360', () => {
+    const client = makeShell('cliente');
+    expect(client.divorcioFormAction).toEqual({
+      label: 'Iniciar Formulario',
+      path: '/cuestionario',
+    });
+  });
+
+  it('oculta Iniciar Formulario a abogado y notario', () => {
+    expect(makeShell('abogado').divorcioFormAction).toBeNull();
+    expect(makeShell('notario').divorcioFormAction).toBeNull();
   });
 
   it('no afirma mismo costo en el pie de Divorcio360', () => {

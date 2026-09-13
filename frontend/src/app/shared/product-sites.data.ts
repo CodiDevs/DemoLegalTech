@@ -62,6 +62,7 @@ export type MarketingRole = 'cliente' | 'abogado' | 'notario' | null;
 export interface MarketingPrimaryAction {
   label: string;
   path: string;
+  query?: Record<string, string>;
 }
 
 export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
@@ -529,6 +530,19 @@ export function getMarketingPrimaryAction(
   return {
     label: 'Evaluar mi caso',
     path: getProductQuestionnairePath(product),
+  };
+}
+
+/** CTA “Iniciar Formulario” de Divorcio360. Guest pasa por auth y sigue al cuestionario. */
+export function getDivorcioFormAction(role: MarketingRole): MarketingPrimaryAction | null {
+  if (role === 'abogado' || role === 'notario') return null;
+  if (role === 'cliente') {
+    return { label: 'Iniciar Formulario', path: '/cuestionario' };
+  }
+  return {
+    label: 'Iniciar Formulario',
+    path: '/auth',
+    query: { returnUrl: '/cuestionario', product: 'divorcio360' },
   };
 }
 
