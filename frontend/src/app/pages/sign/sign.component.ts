@@ -18,8 +18,10 @@ type SignMode = 'upload' | 'done';
       [theme]="theme"
       [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Firma virtual' }]"
       eyebrow="Firma electrónica"
-      title="Firma tu minuta"
-      subtitle="Revisa la minuta. Sube tu documento ya firmado, o usa la firma de LegalStation (se cobra aparte)."
+      [title]="mode === 'done' ? 'Firma registrada' : 'Firma tu minuta'"
+      [subtitle]="mode === 'done'
+        ? 'El abogado ya puede revisar el documento en el expediente.'
+        : 'Revisa la minuta. Sube tu documento ya firmado, o usa la firma de LegalStation (se cobra aparte).'"
     >
       @if (signBlocked) {
         <div class="pf-card lp-lift sign-blocked">
@@ -28,14 +30,14 @@ type SignMode = 'upload' | 'done';
           <a class="btn btn-secondary" [routerLink]="['/caso', caseId]">Volver al expediente</a>
         </div>
       } @else {
-        <ol class="sign-steps" [hidden]="mode === 'done'">
-          <li [class.active]="true" [class.done]="mode === 'done'">Revisar minuta</li>
+        <ol class="sign-steps">
+          <li class="done">Revisar minuta</li>
           <li [class.active]="mode === 'upload'" [class.done]="mode === 'done'">Elegir cómo firmar</li>
           <li [class.active]="mode === 'done'" [class.done]="mode === 'done'">Confirmación</li>
         </ol>
 
         <div class="sign-layout sign-stage" [class.is-sending]="busy" [class.is-done]="mode === 'done'">
-          @if (minutaUrl) {
+          @if (minutaUrl && mode !== 'done') {
             <section class="pf-card lp-lift sign-minuta">
               <div class="sign-section-head">
                 <span class="pf-badge">Paso 1</span>
@@ -91,27 +93,38 @@ type SignMode = 'upload' | 'done';
               @if (error) { <p class="pf-err sign-feedback">{{ error }}</p> }
             </section>
           } @else {
-            <section class="sign-finale" aria-live="polite">
-              <img class="seal" src="/demo-scenes/legal-seal-demo.svg" width="220" height="220" alt="" />
-              <h1>{{ signature?.channel === 'platform' ? 'Firma aplicada' : 'Documento enviado' }}</h1>
-              <p>{{ finaleCopy }}</p>
-              @if (signature) {
-                <dl class="sign-meta">
-                  <div><dt>Vía</dt><dd>{{ signatureChannelLabel(signature.channel) }}</dd></div>
-                  <div><dt>Fecha</dt><dd>{{ signature.signed_at }}</dd></div>
-                  <div><dt>IP</dt><dd>{{ signature.ip }}</dd></div>
-                </dl>
-                @if (isPdf(signature.image_url)) {
-                  <a class="btn btn-secondary" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
-                } @else {
-                  <img [src]="signature.image_url" alt="Documento firmado" class="sign-thumb" />
+            <section class="sign-finale pf-card" aria-live="polite">
+              <img class="seal" src="/demo-scenes/legal-seal-demo.svg" width="120" height="120" alt="" />
+              <div class="sign-finale-copy">
+                <h2>{{ signature?.channel === 'platform' ? 'Firma aplicada' : 'Documento enviado' }}</h2>
+                <p class="pf-muted">{{ finaleCopy }}</p>
+                @if (signature) {
+                  <dl class="sign-meta">
+                    <div>
+                      <dt>Vía</dt>
+                      <dd>{{ signatureChannelLabel(signature.channel) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Fecha</dt>
+                      <dd>{{ signedAtLabel(signature.signed_at) }}</dd>
+                    </div>
+                    <div>
+                      <dt>IP</dt>
+                      <dd>{{ signature.ip }}</dd>
+                    </div>
+                  </dl>
+                  @if (isPdf(signature.image_url)) {
+                    <a class="sign-doc-link" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
+                  } @else {
+                    <img [src]="signature.image_url" alt="Documento firmado" class="sign-thumb" />
+                  }
                 }
-              }
-              <div class="sign-actions sign-cta-late">
-                <button class="btn btn-secondary" type="button" (click)="startReupload()">Firmar de nuevo</button>
-                <a class="btn btn-primary pf-cta-unlock" [routerLink]="['/caso', caseId]">Volver al expediente</a>
+                <div class="sign-actions sign-cta-late">
+                  <a class="btn btn-primary pf-cta-unlock" [routerLink]="['/caso', caseId]">Volver al expediente</a>
+                  <button class="btn btn-secondary" type="button" (click)="startReupload()">Firmar de nuevo</button>
+                </div>
+                <p class="sign-note pf-muted">Al firmar de nuevo, el documento anterior se reemplaza.</p>
               </div>
-              <p class="sign-note">Al firmar de nuevo, el documento anterior se reemplaza.</p>
             </section>
           }
         </div>
@@ -162,6 +175,10 @@ type SignMode = 'upload' | 'done';
       grid-template-columns: 1fr 1fr;
       gap: var(--space-4);
       align-items: start;
+    }
+    .sign-layout.is-done {
+      grid-template-columns: 1fr;
+      justify-items: start;
     }
     .sign-layout.is-sending { opacity: 0.92; }
     .sign-success-hero {
@@ -226,9 +243,14 @@ type SignMode = 'upload' | 'done';
       padding: var(--space-2);
     }
     .sign-meta {
-      margin: 0;
+      margin: var(--space-4) 0 0;
       display: grid;
-      gap: var(--space-2);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4);
+      width: 100%;
+      padding: var(--space-4) 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       font-size: var(--text-sm);
     }
     .sign-meta dt {
@@ -236,8 +258,52 @@ type SignMode = 'upload' | 'done';
       color: var(--text-muted);
       margin: 0;
     }
-    .sign-meta dd { margin: var(--space-1) 0 0; }
+    .sign-meta dd {
+      margin: var(--space-1) 0 0;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
     .sign-note { margin-top: var(--space-4); font-size: var(--text-sm); }
+    .sign-finale {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--space-5);
+      align-items: start;
+      width: min(100%, 44rem);
+      padding: var(--space-6);
+      border-left: 4px solid var(--primary);
+      color: var(--text);
+      animation: pf-in 560ms var(--ease-out) both;
+    }
+    .sign-finale-copy {
+      display: grid;
+      justify-items: start;
+      min-width: 0;
+    }
+    .sign-finale h2 {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: clamp(1.5rem, 2.4vw, 1.85rem);
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-wrap: balance;
+    }
+    .sign-finale .pf-muted { margin: var(--space-2) 0 0; max-width: 46ch; }
+    .sign-finale .sign-actions { margin-top: var(--space-5); }
+    .sign-finale .btn { width: auto; }
+    .sign-doc-link {
+      margin-top: var(--space-3);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--primary);
+      text-underline-offset: 0.18em;
+    }
+    @media (max-width: 640px) {
+      .sign-finale { grid-template-columns: 1fr; }
+      .sign-meta { grid-template-columns: 1fr; gap: var(--space-3); }
+    }
     .sign-blocked .btn { margin-top: var(--space-4); display: inline-flex; }
     .sign-path-title {
       margin: var(--space-4) 0 var(--space-2);
@@ -442,6 +508,20 @@ export class SignComponent implements OnInit, OnDestroy {
 
   isPdf(url: string): boolean {
     return /\.pdf(\?|$)/i.test(url || '');
+  }
+
+  signedAtLabel(raw?: string): string {
+    if (!raw) return '';
+    const ms = Date.parse(raw);
+    if (Number.isNaN(ms)) return raw;
+    return new Date(ms).toLocaleString('es-EC', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
   }
 
   startReupload(): void {

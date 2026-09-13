@@ -155,6 +155,8 @@ describe('SignComponent', () => {
     expect(cmp.payingPlatform).toBeFalse();
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Firma aplicada');
+    expect(cmp.signedAtLabel('2026-09-13T21:40:45Z')).toContain('2026');
+    expect(cmp.signedAtLabel('t')).toBe('t');
   });
 
   it('no cobra plataforma si el envío falla', () => {
