@@ -36,6 +36,13 @@ describe('product-sites.data', () => {
     expect(getProductQuestionnairePath('divorcio360')).toBe('/cuestionario');
   });
 
+  it('usa teal LegalStation en los productos live', () => {
+    for (const id of ['divorcio360', 'traslado360', 'bienraiz360'] as const) {
+      expect(PRODUCT_SITES[id].accent).toBe('var(--primary)');
+      expect(PRODUCT_SITES[id].accentDeep).toBe('var(--primary-hover)');
+    }
+  });
+
   it('publica métricas de producto sin copy de demo', () => {
     const site = PRODUCT_SITES['divorcio360'];
     const visibleCopy = JSON.stringify({

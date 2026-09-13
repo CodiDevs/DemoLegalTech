@@ -51,7 +51,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
               </div>
               @if (error) { <p class="pf-err">{{ error }}</p> }
               <button
-                class="lp-btn lp-btn-primary btn-block"
+                class="btn btn-primary btn-lg btn-block"
                 type="button"
                 (click)="pay()"
                 [disabled]="formLocked"
@@ -157,7 +157,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                 />
               </div>
 
-              <a class="lp-btn lp-btn-primary upload-link" [routerLink]="['/upload', caseItem.id]">
+              <a class="btn btn-primary btn-lg upload-link" [routerLink]="['/upload', caseItem.id]">
                 Subir mis documentos
                 <app-icon name="arrow-right" [size]="16" />
               </a>

@@ -24,7 +24,7 @@ type SignMode = 'upload' | 'done';
         <div class="pf-card lp-lift sign-blocked">
           <p class="pf-err">{{ signBlocked }}</p>
           @if (signHint) { <p class="pf-muted">{{ signHint }}</p> }
-          <a class="lp-btn lp-btn-outline" [routerLink]="['/caso', caseId]">Volver al expediente</a>
+          <a class="btn btn-secondary" [routerLink]="['/caso', caseId]">Volver al expediente</a>
         </div>
       } @else {
         <ol class="sign-steps" [hidden]="mode === 'done'">
@@ -70,7 +70,7 @@ type SignMode = 'upload' | 'done';
                 }
               </label>
               <div class="sign-actions">
-                <button class="lp-btn lp-btn-primary" type="button" (click)="submit()" [disabled]="busy || !selectedFile">
+                <button class="btn btn-primary" type="button" (click)="submit()" [disabled]="busy || !selectedFile">
                   {{ busy ? 'Enviando…' : 'Enviar documento firmado' }}
                 </button>
               </div>
@@ -87,14 +87,14 @@ type SignMode = 'upload' | 'done';
                   <div><dt>IP</dt><dd>{{ signature.ip }}</dd></div>
                 </dl>
                 @if (isPdf(signature.image_url)) {
-                  <a class="lp-btn lp-btn-outline" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
+                  <a class="btn btn-secondary" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
                 } @else {
                   <img [src]="signature.image_url" alt="Documento firmado" class="sign-thumb" />
                 }
               }
               <div class="sign-actions sign-cta-late">
-                <button class="lp-btn lp-btn-outline" type="button" (click)="startReupload()">Firmar de nuevo</button>
-                <a class="lp-btn lp-btn-primary pf-cta-unlock" [routerLink]="['/caso', caseId]">Volver al expediente</a>
+                <button class="btn btn-secondary" type="button" (click)="startReupload()">Firmar de nuevo</button>
+                <a class="btn btn-primary pf-cta-unlock" [routerLink]="['/caso', caseId]">Volver al expediente</a>
               </div>
               <p class="sign-note">Al subir de nuevo, el documento anterior se reemplaza.</p>
             </section>
@@ -214,11 +214,11 @@ type SignMode = 'upload' | 'done';
     }
     .sign-meta dd { margin: var(--space-1) 0 0; }
     .sign-note { margin-top: var(--space-4); font-size: var(--text-sm); }
-    .sign-blocked .lp-btn { margin-top: var(--space-4); display: inline-flex; }
+    .sign-blocked .btn { margin-top: var(--space-4); display: inline-flex; }
     @media (max-width: 900px) {
       .sign-layout { grid-template-columns: 1fr; }
-      .sign-actions .lp-btn,
-      .sign-blocked .lp-btn { width: 100%; justify-content: center; }
+      .sign-actions .btn,
+      .sign-blocked .btn { width: 100%; justify-content: center; }
     }
   `],
 })

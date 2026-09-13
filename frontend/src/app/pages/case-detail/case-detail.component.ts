@@ -92,9 +92,9 @@ interface CaseAction {
                 @for (action of availableActions; track action.label) {
                   <a
                     [routerLink]="action.link"
-                    class="lp-btn action-btn"
-                    [class.lp-btn-primary]="action.primary"
-                    [class.lp-btn-outline]="!action.primary"
+                    class="btn action-btn"
+                    [class.btn-primary]="action.primary"
+                    [class.btn-secondary]="!action.primary"
                     [class.action-btn-lg]="availableActions.length === 1"
                   >{{ action.label }}</a>
                 }

@@ -16,16 +16,11 @@
     --lp-accent-soft: var(--primary-subtle);
   }
 
-  &.theme-traslado {
-    --lp-accent: var(--info);
-    --lp-accent-deep: color-mix(in srgb, var(--info) 78%, var(--neutral-900));
-    --lp-accent-soft: var(--info-subtle);
-  }
-
+  &.theme-traslado,
   &.theme-bienraiz {
-    --lp-accent: var(--warning);
-    --lp-accent-deep: color-mix(in srgb, var(--warning) 82%, var(--neutral-900));
-    --lp-accent-soft: var(--warning-subtle);
+    --lp-accent: var(--primary);
+    --lp-accent-deep: var(--primary-hover);
+    --lp-accent-soft: var(--primary-subtle);
   }
 
   /* Los enlaces que hacen de botón usan la escala global de botones:
@@ -63,7 +58,10 @@ body.divorcio-flow-mode .landing-page.product-flow {
 }
 
 .pf-head h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: clamp(var(--text-2xl), 3vw, var(--text-4xl));
+  letter-spacing: -0.03em;
   margin: var(--space-1) 0 var(--space-2);
 }
 
