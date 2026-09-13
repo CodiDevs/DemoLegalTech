@@ -219,7 +219,7 @@
 /* Document stack */
 .demo-stack {
   position: relative;
-  width: min(22rem, 72vw);
+  width: min(22rem, 100%);
   height: min(68vh, 32rem);
   margin-inline: auto;
 }
@@ -400,7 +400,7 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: stretch;
 }
 
