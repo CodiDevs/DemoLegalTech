@@ -38,6 +38,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Demo cliente máximo movimiento | `/` video → Divorcio360 pin → cuestionario → pago → docs → firma | 2026-09-11 |
 | done | Recorrido cinematográfico Expediente vivo | `/` tráiler → Divorcio360 cámara → `/cuestionario` → `/checkout/:id` → `/upload/:id` → `/firma/:id` | 2026-09-11 |
 | done | Client journey handoff fixes | Guest product Q → auth(`next=checkout`) → expediente; unpaid → checkout; Mis expedientes por producto | 2026-09-13 |
+| done | Client journey visual language | Traslado/BienRaiz teal; cuestionario sheet; header Fraunces; botones trámite | 2026-09-13 |
 
 ## Entries
 
@@ -467,4 +468,13 @@ Cierre del flujo cliente multi-producto: guest cuestionario de producto siembra 
 2. Login `cliente@demo.ec` / `demo1234` → debe ir a `/checkout/:id` (no a home vacío).
 3. `/productos/traslado360/expediente` — solo Traslado; fila unpaid → Pagar → checkout.
 4. Divorcio360: `/cuestionario` → login handoff con `next=checkout` intacto.
+
+### 2026-09-13 — Client journey visual language
+Alineación del camino cliente a `docs/design.md`: un idioma teal `#2f6f68`, Fraunces solo en H1/wordmark, cuestionario de producto en la misma hoja cinematográfica que Divorcio360, botones canónicos en pago/docs/firma/consulta/caso.
+
+**Demo:**
+1. Guest `/productos/traslado360` y `/productos/traslado360/cuestionario`: CTA header y barra de progreso teal, no azul. Wordmark Fraunces.
+2. Cuestionario Traslado: folio `01 / 0N`, hoja papel, Sí/No a dos columnas como Divorcio360.
+3. Checkout / upload / firma: mismos `.btn` que el cuestionario. H1 Fraunces.
+4. `/productos/traslado360/expediente`: H1 Fraunces, densidad workspace.
 
