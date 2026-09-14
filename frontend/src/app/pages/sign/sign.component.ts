@@ -8,6 +8,7 @@ import { productThemeFromCase } from '../../shared/product-sites.data';
 import { ESIGN_FEE_CENTS, signatureChannelLabel } from '../../shared/esign';
 
 type SignMode = 'upload' | 'done';
+type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
 
 @Component({
   selector: 'app-sign',
@@ -154,8 +155,15 @@ type SignMode = 'upload' | 'done';
     @if (payingPlatform) {
       <div class="pay-overlay" role="dialog" aria-modal="true" aria-labelledby="esign-pay-title">
         <div class="pay-modal">
-          <h2 id="esign-pay-title">Procesando cobro de firma…</h2>
+          <h2 id="esign-pay-title">{{ payOverlayTitle }}</h2>
           <p class="pf-muted">{{ esignFeeLabel }} USD · Payphone demo</p>
+          <ol class="pay-stages">
+            @for (stage of payStages; track stage.id) {
+              <li [class.done]="payStageRank > stage.rank" [class.active]="payStage === stage.id">
+                {{ stage.label }}
+              </li>
+            }
+          </ol>
         </div>
       </div>
     }
@@ -420,6 +428,29 @@ type SignMode = 'upload' | 'done';
       font-family: var(--font-sans);
       font-size: var(--text-lg);
     }
+    .pay-stages {
+      list-style: none;
+      margin: var(--space-3) 0 0;
+      padding: 0;
+      display: grid;
+      gap: var(--space-2);
+      text-align: left;
+    }
+    .pay-stages li {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--bg-subtle);
+    }
+    .pay-stages li.active {
+      color: var(--primary-hover);
+      background: var(--primary-subtle);
+      font-weight: 650;
+    }
+    .pay-stages li.done {
+      color: var(--primary-hover);
+    }
     @keyframes overlay-in {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -448,16 +479,24 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
   selectedFile: File | null = null;
   dragOver = false;
   payingPlatform = false;
+  payStage: PayStage = '';
   platformSignatureDataUrl = '';
   padDirty = false;
   @ViewChild('signPad') signPad?: ElementRef<HTMLCanvasElement>;
   readonly esignFeeLabel = `$${(ESIGN_FEE_CENTS / 100).toFixed(2)}`;
   readonly signatureChannelLabel = signatureChannelLabel;
+  readonly payStages: { id: Exclude<PayStage, ''>; label: string; rank: number }[] = [
+    { id: 'preparing', label: 'Preparando pago', rank: 0 },
+    { id: 'processing', label: 'Procesando…', rank: 1 },
+    { id: 'approved', label: 'Pago aprobado', rank: 2 },
+    { id: 'signed', label: 'Firma registrada', rank: 3 },
+  ];
   private destroyed = false;
   private subs: { unsubscribe: () => void }[] = [];
   private padCtx: CanvasRenderingContext2D | null = null;
   private padDrawing = false;
   private padPrepared = false;
+  private payTimers: ReturnType<typeof setTimeout>[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -467,6 +506,15 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   get sending(): boolean {
     return this.busy;
+  }
+
+  get payStageRank(): number {
+    const i = this.payStages.findIndex((s) => s.id === this.payStage);
+    return i < 0 ? -1 : i;
+  }
+
+  get payOverlayTitle(): string {
+    return this.payStages.find((s) => s.id === this.payStage)?.label || 'Procesando cobro de firma…';
   }
 
   get finaleCopy(): string {
@@ -531,6 +579,7 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.clearPayTimers();
     this.subs.forEach((s) => s.unsubscribe());
   }
 
@@ -663,6 +712,8 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.selectedFile = null;
     this.error = '';
     this.payingPlatform = false;
+    this.payStage = '';
+    this.clearPayTimers();
     this.clearPlatformPad();
   }
 
@@ -693,20 +744,39 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
     if (this.busy) return;
     this.busy = true;
     this.payingPlatform = true;
+    this.payStage = 'preparing';
     this.error = '';
+    this.clearPayTimers();
+    this.payTimers.push(setTimeout(() => { if (!this.destroyed) this.payStage = 'processing'; }, 500));
+    this.payTimers.push(setTimeout(() => { if (!this.destroyed) this.payStage = 'approved'; }, 1100));
+    this.payTimers.push(setTimeout(() => { if (!this.destroyed) this.payStage = 'signed'; }, 1700));
+    this.payTimers.push(setTimeout(() => this.sendPlatformSign(), 2200));
+  }
+
+  private clearPayTimers(): void {
+    this.payTimers.forEach((t) => clearTimeout(t));
+    this.payTimers = [];
+  }
+
+  private sendPlatformSign(): void {
+    if (this.destroyed) return;
     this.subs.push(this.api.sign(this.caseId, null, 'platform').subscribe({
       next: (res) => {
         if (this.destroyed) return;
+        this.clearPayTimers();
         this.busy = false;
         this.payingPlatform = false;
+        this.payStage = '';
         this.signature = res;
         this.mode = 'done';
         this.selectedFile = null;
       },
       error: (e) => {
         if (this.destroyed) return;
+        this.clearPayTimers();
         this.busy = false;
         this.payingPlatform = false;
+        this.payStage = '';
         this.error = e?.error?.error || 'Error al cobrar la firma de plataforma';
       },
     }));

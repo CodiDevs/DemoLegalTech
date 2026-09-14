@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { ApiService } from '../../core/api.service';
@@ -159,7 +159,7 @@ describe('SignComponent', () => {
     expect(cmp.selectedFile).toBeNull();
   });
 
-  it('muestra firma de plataforma como cobro aparte y llama sign con channel platform', () => {
+  it('muestra firma de plataforma como cobro aparte y llama sign con channel platform', fakeAsync(() => {
     api.sign.and.returnValue(of({
       image_url: '/firma.pdf',
       signed_at: '2026-09-13',
@@ -173,6 +173,15 @@ describe('SignComponent', () => {
     expect(root.textContent).toContain('Firmar con LegalStation');
     const cmp = fixture.componentInstance;
     cmp.submitPlatform();
+    expect(api.sign).not.toHaveBeenCalled();
+    expect(cmp.payStage).toBe('preparing');
+    tick(500);
+    expect(cmp.payStage).toBe('processing');
+    tick(600);
+    expect(cmp.payStage).toBe('approved');
+    tick(600);
+    expect(cmp.payStage).toBe('signed');
+    tick(500);
     expect(api.sign).toHaveBeenCalledWith(4, null, 'platform');
     expect(cmp.mode).toBe('done');
     expect(cmp.payingPlatform).toBeFalse();
@@ -180,15 +189,17 @@ describe('SignComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Firma aplicada');
     expect(cmp.signedAtLabel('2026-09-13T21:40:45Z')).toContain('2026');
     expect(cmp.signedAtLabel('t')).toBe('t');
-  });
+  }));
 
-  it('no cobra plataforma si el envío falla', () => {
+  it('no cobra plataforma si el envío falla', fakeAsync(() => {
     api.sign.and.returnValue(throwError(() => ({ error: { error: 'cobro' } })));
     fixture.detectChanges();
     const cmp = fixture.componentInstance;
     cmp.submitPlatform();
+    expect(cmp.payingPlatform).toBeTrue();
+    tick(2200);
     expect(cmp.mode).toBe('upload');
     expect(cmp.payingPlatform).toBeFalse();
     expect(cmp.error).toBe('cobro');
-  });
+  }));
 });
