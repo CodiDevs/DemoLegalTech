@@ -6,7 +6,7 @@ import { AuthService } from '../../core/auth.service';
 interface WorkspaceNavItem {
   path: string;
   label: string;
-  icon: 'inbox' | 'chart' | 'file-text' | 'sparkle' | 'scale' | 'credit-card';
+  icon: 'inbox' | 'briefcase' | 'chart' | 'file-text' | 'sparkle' | 'scale' | 'credit-card';
   exact?: boolean;
   lawyerOnly?: boolean;
 }
@@ -52,6 +52,7 @@ interface WorkspaceNavItem {
 export class LawyerShellComponent implements OnInit {
   readonly casosNav: WorkspaceNavItem[] = [
     { path: '/abogado', label: 'Bandeja', icon: 'inbox', exact: true },
+    { path: '/abogado/servicios', label: 'Servicios', icon: 'briefcase' },
   ];
 
   private readonly toolsNav: WorkspaceNavItem[] = [

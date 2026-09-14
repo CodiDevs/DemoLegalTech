@@ -55,6 +55,39 @@ export interface CaseItem {
   questionnaire_json?: string;
 }
 
+export interface LawyerServiceDoc {
+  label: string;
+}
+
+export interface LawyerServiceQuestion {
+  prompt: string;
+  kind: 'si_no' | 'texto';
+}
+
+export interface LawyerServiceOffering {
+  id: string;
+  lawyer_id: number;
+  slug: string;
+  name: string;
+  category: string;
+  status: 'borrador' | 'publicado';
+  price_cents: number;
+  price_usd: number;
+  pitch: string;
+  description: string;
+  duration_hint: string;
+  docs: LawyerServiceDoc[];
+  questions: LawyerServiceQuestion[];
+  created_at: string;
+  updated_at: string;
+  seeded?: boolean;
+}
+
+export type LawyerServiceDraft = Omit<
+  LawyerServiceOffering,
+  'id' | 'lawyer_id' | 'price_cents' | 'created_at' | 'updated_at' | 'seeded'
+>;
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   constructor(private http: HttpClient) {}
@@ -184,6 +217,30 @@ export class ApiService {
 
   deleteTemplate(id: string): Observable<any> {
     return this.http.delete(`/api/v1/mock/templates/${id}`);
+  }
+
+  listLawyerServices(): Observable<{ services: LawyerServiceOffering[] }> {
+    return this.http.get<{ services: LawyerServiceOffering[] }>('/api/v1/lawyer/services');
+  }
+
+  getLawyerService(id: string): Observable<LawyerServiceOffering> {
+    return this.http.get<LawyerServiceOffering>(`/api/v1/lawyer/services/${id}`);
+  }
+
+  createLawyerService(body: LawyerServiceDraft): Observable<LawyerServiceOffering> {
+    return this.http.post<LawyerServiceOffering>('/api/v1/lawyer/services', body);
+  }
+
+  patchLawyerService(id: string, body: LawyerServiceDraft): Observable<LawyerServiceOffering> {
+    return this.http.patch<LawyerServiceOffering>(`/api/v1/lawyer/services/${id}`, body);
+  }
+
+  duplicateLawyerService(id: string): Observable<LawyerServiceOffering> {
+    return this.http.post<LawyerServiceOffering>(`/api/v1/lawyer/services/${id}/duplicate`, {});
+  }
+
+  deleteLawyerService(id: string): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(`/api/v1/lawyer/services/${id}`);
   }
 
   mockAI(caseId?: number): Observable<any> {

@@ -80,6 +80,27 @@ export const routes: Routes = [
               import('./pages/lawyer-panel/lawyer-panel.component').then((m) => m.LawyerPanelComponent),
           },
           {
+            path: 'servicios',
+            loadComponent: () =>
+              import('./pages/lawyer-services/lawyer-services-list.component').then(
+                (m) => m.LawyerServicesListComponent,
+              ),
+          },
+          {
+            path: 'servicios/nuevo',
+            loadComponent: () =>
+              import('./pages/lawyer-services/lawyer-services-editor.component').then(
+                (m) => m.LawyerServicesEditorComponent,
+              ),
+          },
+          {
+            path: 'servicios/:id',
+            loadComponent: () =>
+              import('./pages/lawyer-services/lawyer-services-editor.component').then(
+                (m) => m.LawyerServicesEditorComponent,
+              ),
+          },
+          {
             path: 'caso/:id',
             loadComponent: () =>
               import('./pages/lawyer-case/lawyer-case.component').then((m) => m.LawyerCaseComponent),
