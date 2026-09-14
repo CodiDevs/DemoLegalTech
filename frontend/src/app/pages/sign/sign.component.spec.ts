@@ -117,6 +117,8 @@ describe('SignComponent', () => {
     expect(root.textContent).toContain('Limpiar');
     expect(root.textContent).toContain('Confirmar');
     expect(root.textContent).not.toContain('Pagar $15.00 y firmar');
+    const steps = root.querySelector('.sign-steps') as HTMLElement;
+    expect(getComputedStyle(steps).pointerEvents).toBe('none');
   });
 
   it('confirma la firma del lienzo y entonces permite pagar', () => {

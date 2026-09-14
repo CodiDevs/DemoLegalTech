@@ -171,32 +171,51 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
   styles: [`
     .sign-steps {
       display: flex;
-      gap: var(--space-2);
+      gap: var(--space-3);
       list-style: none;
       padding: 0;
       margin: 0 0 var(--space-5);
       flex-wrap: wrap;
+      pointer-events: none;
+      user-select: none;
     }
     .sign-steps li {
       flex: 1;
       min-width: 7rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
       text-align: center;
+      font-family: var(--font-sans);
       font-size: var(--text-xs);
       font-weight: 600;
-      padding: var(--space-2) var(--space-3);
-      border-radius: var(--radius-md);
-      background: var(--bg-subtle);
+      padding: var(--space-2) 0;
       color: var(--text-muted);
-      border: 1px solid var(--border);
+      background: transparent;
+      border: none;
+      border-radius: 0;
+    }
+    .sign-steps li::before {
+      content: '○';
+      color: var(--primary);
+      font-size: 0.7rem;
+      line-height: 1;
     }
     .sign-steps li.active {
-      background: var(--lp-accent-soft, var(--primary-subtle));
-      color: var(--lp-accent-deep, var(--primary-hover));
-      border-color: var(--lp-accent, var(--primary));
+      color: var(--primary-hover);
+      background: transparent;
+      border: none;
+    }
+    .sign-steps li.active::before {
+      content: '●';
     }
     .sign-steps li.done {
-      background: var(--surface);
-      color: var(--lp-accent-deep, var(--primary-hover));
+      color: var(--primary-hover);
+      background: transparent;
+    }
+    .sign-steps li.done::before {
+      content: '✓';
     }
     .sign-layout {
       display: grid;
