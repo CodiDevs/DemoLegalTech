@@ -38,8 +38,60 @@ func (s *Service) Metrics(w http.ResponseWriter, r *http.Request) {
 			"casos_activos":           active,
 			"casos_finalizados":       finished,
 			"conversion_cuestionario": 0.61,
-			"ingreso_mes_usd":         18420,
+			"ingreso_mes_usd":         21595,
 			"tiempo_promedio_dias":    18.4,
+			"ticket_promedio_usd":     337,
+			"cobrado_usd":             20315,
+			"pendiente_cobro_usd":     1280,
+			"tasa_cobranza_pct":       94.1,
+		},
+		"top_services": []map[string]any{
+			{"title": "Divorcio mutuo acuerdo", "slug": "divorcio360", "cases": 35, "amount_usd": 12250, "pct_share": 55, "avg_days": 14},
+			{"title": "Traslado de dominio / Inmobiliario", "slug": "traslado360", "cases": 14, "amount_usd": 4886, "pct_share": 22, "avg_days": 19},
+			{"title": "Poder notarial y capitulaciones", "slug": "poderes", "cases": 9, "amount_usd": 1800, "pct_share": 14, "avg_days": 8},
+			{"title": "Disolución conyugal / Liquidación", "slug": "disolucion", "cases": 6, "amount_usd": 2694, "pct_share": 9, "avg_days": 24},
+		},
+		"bottlenecks": []map[string]any{
+			{
+				"stage":        "Firma electrónica de las partes",
+				"stage_code":   "05",
+				"count":        8,
+				"avg_days":     6.4,
+				"impact":       "high",
+				"detail":       "Cónyuges con notificación pendiente de completar firma en notaría",
+				"action":       "Notificar partes",
+				"action_url":   "/abogado",
+			},
+			{
+				"stage":        "Validación y revisión jurídica",
+				"stage_code":   "03",
+				"count":        5,
+				"avg_days":     3.8,
+				"impact":       "medium",
+				"detail":       "Documentos y partidas subidos esperando aprobación interna",
+				"action":       "Revisar documentos",
+				"action_url":   "/abogado",
+			},
+			{
+				"stage":        "Ingreso y despacho notarial",
+				"stage_code":   "06",
+				"count":        3,
+				"avg_days":     4.1,
+				"impact":       "medium",
+				"detail":       "Minutas concluidas en espera de asignación de turno notarial",
+				"action":       "Verificar notaría",
+				"action_url":   "/abogado",
+			},
+			{
+				"stage":        "Inscripción en Registro Civil",
+				"stage_code":   "09",
+				"count":        2,
+				"avg_days":     2.2,
+				"impact":       "low",
+				"detail":       "Actas notariales protocolizadas esperando marginación",
+				"action":       "Verificar registro",
+				"action_url":   "/abogado",
+			},
 		},
 		"funnel": []map[string]any{
 			{"step": "Cuestionario", "count": 820, "pct": 100},
@@ -49,7 +101,9 @@ func (s *Service) Metrics(w http.ResponseWriter, r *http.Request) {
 		},
 		"revenue_breakdown": []map[string]any{
 			{"product": "Divorcio360 ($349)", "amount_usd": 12250, "cases": 35},
-			{"product": "Evaluación ($749+)", "amount_usd": 6170, "cases": 7},
+			{"product": "Traslado360 ($349)", "amount_usd": 4886, "cases": 14},
+			{"product": "Poderes / Capitulaciones ($200)", "amount_usd": 1800, "cases": 9},
+			{"product": "Evaluación compleja ($449)", "amount_usd": 2694, "cases": 6},
 		},
 		"recent_cases": recent,
 		"team": []map[string]any{
@@ -385,7 +439,9 @@ func scanLinks(rows *sql.Rows) ([]map[string]any, error) {
 
 func defaultRecentCases() []map[string]any {
 	return []map[string]any{
-		{"id": 1, "client": "María Demo", "status": "03", "status_label": "Revisión jurídica", "lawyer": "Ana Operador", "days": 2},
+		{"id": 1, "client": "María Demo", "service": "Divorcio mutuo acuerdo", "status": "03", "status_label": "Revisión jurídica", "lawyer": "Ana Operador", "days": 2, "action_required": true},
+		{"id": 2, "client": "Carlos Mendoza", "service": "Traslado de dominio", "status": "05", "status_label": "Firma de partes", "lawyer": "Ana Operador", "days": 6, "action_required": true},
+		{"id": 3, "client": "Elena Zambrano", "service": "Poder especial notarial", "status": "06", "status_label": "En notaría", "lawyer": "Ana Operador", "days": 3, "action_required": false},
 	}
 }
 

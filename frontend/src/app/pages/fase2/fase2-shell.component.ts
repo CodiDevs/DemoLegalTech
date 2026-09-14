@@ -48,7 +48,7 @@ export class Fase2ShellComponent implements OnInit {
   private readonly nav: Fase2NavItem[] = [
     {
       path: '/fase2/admin',
-      label: 'Resumen del bufete',
+      label: 'Resumen',
       icon: 'chart',
       lawyerOnly: true,
     },
@@ -64,12 +64,13 @@ export class Fase2ShellComponent implements OnInit {
       icon: 'sparkle',
       lawyerOnly: true,
     },
-    {
-      path: '/fase2/satje',
-      label: 'Causas judiciales',
-      icon: 'scale',
-      lawyerOnly: true,
-    },
+    // Temporalmente retirado: Causas judiciales (SATJE)
+    // {
+    //   path: '/fase2/satje',
+    //   label: 'Causas judiciales',
+    //   icon: 'scale',
+    //   lawyerOnly: true,
+    // },
     {
       path: '/fase2/billing',
       label: 'Facturación B2B',

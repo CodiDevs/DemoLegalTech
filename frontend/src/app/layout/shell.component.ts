@@ -1,14 +1,14 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
-import { getActiveProduct, getProductSite, getProductQuestionnairePath, getMarketingPrimaryAction, getDivorcioFormAction, setActiveProduct, detectProductFromPath } from '../shared/product-sites.data';
+import { getActiveProduct, getProductSite, getProductQuestionnairePath, getMarketingPrimaryAction, setActiveProduct, detectProductFromPath, watchActiveProduct } from '../shared/product-sites.data';
 import { IconComponent, IconName } from '../shared/icon.component';
-import { RouteCurtainComponent } from '../shared/motion/route-curtain.component';
 
-const DIVORCIO_FLOW = ['/cuestionario', '/cliente', '/checkout', '/upload', '/consulta', '/firma', '/caso', '/intake', '/productos/traslado360/cuestionario', '/productos/bienraiz360/cuestionario'];
+const DIVORCIO_FLOW = ['/cuestionario', '/checkout', '/upload', '/consulta', '/firma', '/caso', '/intake', '/productos/traslado360/cuestionario', '/productos/bienraiz360/cuestionario'];
 
 interface NavLink {
   label: string;
@@ -33,10 +33,9 @@ interface ProductSwitcherItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent, RouteCurtainComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent],
   template: `
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
-    <app-route-curtain />
 
     <header
       class="site-header"
@@ -70,8 +69,11 @@ interface ProductSwitcherItem {
                   aria-haspopup="true"
                   (click)="toggleProducts($event)"
                 >
-                  Productos
-                  <app-icon name="chevron-down" [size]="14" />
+                  <span class="nav-label">Servicios</span>
+                  <span class="nav-hover" aria-hidden="true">
+                    <app-icon name="gavel" [size]="15" />
+                  </span>
+                  <app-icon class="nav-chevron" name="chevron-down" [size]="14" />
                 </button>
                 @if (showProducts) {
                   <div class="dropdown-panel" role="menu">
@@ -92,16 +94,37 @@ interface ProductSwitcherItem {
               @if (link.fragment) {
                 <a
                   class="nav-link"
+                  [class.nav-link-howto]="link.label === 'Cómo funciona'"
                   [href]="link.path + '#' + link.fragment"
                   (click)="goToSection($event, link.path, link.fragment)"
-                >{{ link.label }}</a>
+                >
+                  @if (link.label === 'Cómo funciona') {
+                    <span class="nav-mark nav-mark-open" aria-hidden="true">¿</span>
+                    <span class="nav-label">Cómo funciona</span>
+                    <span class="nav-mark nav-mark-close" aria-hidden="true">?</span>
+                  } @else {
+                    <span class="nav-label">{{ link.label }}</span>
+                    <span class="nav-hover" aria-hidden="true">
+                      @if (link.label === 'Precios') {
+                        <span class="nav-hover-text">$</span>
+                      }
+                    </span>
+                  }
+                </a>
               } @else {
                 <a
                   class="nav-link"
                   [routerLink]="link.path"
                   routerLinkActive="is-active"
                   [routerLinkActiveOptions]="{ exact: !!link.exact }"
-                >{{ link.label }}</a>
+                >
+                  <span class="nav-label">{{ link.label }}</span>
+                  <span class="nav-hover" aria-hidden="true">
+                    @if (link.label === 'Inicio') {
+                      <app-icon name="home" [size]="14" />
+                    }
+                  </span>
+                </a>
               }
             }
           </nav>
@@ -157,18 +180,42 @@ interface ProductSwitcherItem {
               }
             </div>
 
-            <a [routerLink]="homeForRole" class="btn btn-secondary btn-sm account-link">
-              <app-icon name="user" [size]="16" />
-              <span>{{ userFirstName }}</span>
-            </a>
-            @if (divorcioFormAction) {
-              <a
-                [routerLink]="divorcioFormAction.path"
-                [queryParams]="divorcioFormAction.query"
-                class="btn btn-primary btn-sm"
-              >{{ divorcioFormAction.label }}</a>
-            }
-            <button type="button" class="btn btn-ghost btn-sm" (click)="auth.logout()">Salir</button>
+            <div class="account-wrap">
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm account-link"
+                [attr.aria-expanded]="showAccountMenu"
+                [attr.aria-label]="'Cuenta de ' + userFirstName"
+                aria-haspopup="true"
+                (click)="toggleAccountMenu($event)"
+              >
+                <app-icon name="user" [size]="16" />
+                <span>{{ userFirstName }}</span>
+                <app-icon name="chevron-down" [size]="14" />
+              </button>
+              @if (showAccountMenu) {
+                <div class="account-panel dropdown-panel" role="menu" (click)="$event.stopPropagation()">
+                  <a
+                    role="menuitem"
+                    [routerLink]="homeForRole"
+                    class="dropdown-item account-menu-item"
+                    (click)="closeAll()"
+                  >
+                    <app-icon name="user" [size]="16" />
+                    <span>Panel</span>
+                  </a>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    class="dropdown-item account-menu-item account-logout"
+                    (click)="auth.logout(); closeAll()"
+                  >
+                    <app-icon name="log-out" [size]="16" />
+                    <span>Salir</span>
+                  </button>
+                </div>
+              }
+            </div>
           } @else {
             @for (action of guestActions; track action.label) {
               <a
@@ -194,7 +241,7 @@ interface ProductSwitcherItem {
       @if (showMenu) {
         <div class="mobile-menu">
           @if (showProductSwitcher) {
-            <p class="mobile-menu-label">Productos</p>
+            <p class="mobile-menu-label">Servicios</p>
             @for (item of productSwitcherItems; track item.id) {
               <a [routerLink]="item.path" (click)="switchProduct(item.id); closeAll()">{{ item.label }}</a>
             }
@@ -215,15 +262,10 @@ interface ProductSwitcherItem {
               <a [routerLink]="homeForRole" class="btn btn-secondary btn-block" (click)="closeAll()">
                 {{ roleHomeLabel }}
               </a>
-              @if (divorcioFormAction) {
-                <a
-                  [routerLink]="divorcioFormAction.path"
-                  [queryParams]="divorcioFormAction.query"
-                  class="btn btn-primary btn-block"
-                  (click)="closeAll()"
-                >{{ divorcioFormAction.label }}</a>
-              }
-              <button type="button" class="btn btn-ghost btn-block" (click)="auth.logout()">Salir</button>
+              <button type="button" class="btn btn-ghost btn-block" (click)="auth.logout()">
+                <app-icon name="log-out" [size]="16" />
+                Salir
+              </button>
             } @else {
               @for (action of guestActions; track action.label) {
                 <a
@@ -243,7 +285,7 @@ interface ProductSwitcherItem {
       <router-outlet />
     </main>
 
-    @if (!isDivorcioFlow && !isAuthPage) {
+    @if (!isDivorcioFlow && !isAuthPage && !isClientPanel) {
     <footer class="site-footer">
       <div class="shell footer-grid">
         <div class="footer-col footer-brand">
@@ -267,7 +309,7 @@ interface ProductSwitcherItem {
             <a [routerLink]="homeForRole">{{ roleHomeLabel }}</a>
             @if (auth.user()?.role === 'abogado') { <a routerLink="/abogado/fase2/admin">Fase 2</a> }
           } @else {
-            <a [routerLink]="['/auth']" [queryParams]="{ returnUrl: '/' }">Ingresar</a>
+            <a routerLink="/auth">Ingresar</a>
             <a routerLink="/cuestionario">Comprobar si aplico</a>
           }
           <a routerLink="/">Inicio</a>
@@ -451,10 +493,13 @@ interface ProductSwitcherItem {
     .header-nav {
       display: flex;
       align-items: center;
-      gap: var(--space-2);
+      gap: var(--space-5);
     }
 
     .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
       font-size: var(--text-sm);
       font-weight: 500;
       color: var(--text-secondary);
@@ -465,12 +510,88 @@ interface ProductSwitcherItem {
     }
 
     .nav-link:hover,
+    .nav-link:focus-visible,
     .nav-link.is-active { color: var(--text); }
+
+    .nav-label {
+      display: inline-block;
+    }
+
+    .nav-mark {
+      display: inline-block;
+      max-width: 0;
+      overflow: hidden;
+      opacity: 0;
+      color: var(--primary);
+      font-weight: 650;
+      pointer-events: none;
+      transition:
+        max-width 280ms var(--ease-out),
+        opacity 220ms var(--ease-out),
+        transform 280ms var(--ease-out);
+    }
+
+    .nav-mark-open {
+      transform: translateX(4px);
+    }
+
+    .nav-mark-close {
+      transform: translateX(-4px);
+    }
+
+    .nav-link-howto:hover .nav-mark,
+    .nav-link-howto:focus-visible .nav-mark {
+      max-width: 1.1ch;
+      opacity: 1;
+      transform: none;
+    }
+
+    .nav-hover {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 0;
+      margin-left: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateX(-6px);
+      color: var(--primary);
+      pointer-events: none;
+      transition:
+        max-width 280ms var(--ease-out),
+        margin-left 280ms var(--ease-out),
+        opacity 220ms var(--ease-out),
+        transform 280ms var(--ease-out);
+    }
+
+    .nav-hover-text {
+      font-weight: 650;
+      font-size: var(--text-sm);
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+
+    .nav-link:hover .nav-hover,
+    .nav-link:focus-visible .nav-hover {
+      max-width: 1.75rem;
+      margin-left: var(--space-2);
+      opacity: 1;
+      transform: none;
+    }
+
+    .nav-chevron {
+      margin-left: var(--space-1);
+      transition: transform 220ms var(--ease-out);
+    }
+
+    .dropdown-trigger[aria-expanded='true'] .nav-chevron {
+      transform: rotate(180deg);
+    }
 
     .dropdown-trigger {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-1);
+      gap: 0;
       background: none;
       border: 0;
       padding: 0;
@@ -482,7 +603,8 @@ interface ProductSwitcherItem {
       cursor: pointer;
     }
 
-    .dropdown-trigger:hover { color: var(--text); }
+    .dropdown-trigger:hover,
+    .dropdown-trigger:focus-visible { color: var(--text); }
 
     .product-switcher {
       position: relative;
@@ -527,8 +649,52 @@ interface ProductSwitcherItem {
       margin-left: auto;
     }
 
-    .account-link { max-width: 11rem; }
+    .account-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .account-link { max-width: 12rem; }
     .account-link span { overflow: hidden; text-overflow: ellipsis; }
+
+    .account-panel {
+      left: auto;
+      right: 0;
+      min-width: 12rem;
+    }
+
+    .account-menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-2);
+      width: 100%;
+      min-height: 0;
+      padding: var(--space-2) var(--space-3);
+      box-sizing: border-box;
+      background: none;
+      border: 0;
+      font: inherit;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .account-menu-item app-icon {
+      flex: 0 0 1rem;
+      width: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .account-logout { color: var(--text-secondary); }
+    .account-logout:hover {
+      background: var(--bg-subtle);
+      color: var(--text);
+    }
 
     .site-header .btn-primary {
       --btn-bg: var(--header-accent);
@@ -814,8 +980,7 @@ interface ProductSwitcherItem {
     @media (max-width: 820px) {
       .header-nav { display: none; }
       .menu-trigger { display: inline-flex; }
-      .header-actions .account-link span,
-      .header-actions .btn-ghost:not(.notif-trigger):not(.menu-trigger) { display: none; }
+      .header-actions .account-link span { display: none; }
       .header-actions .account-link { max-width: none; }
     }
 
@@ -841,8 +1006,10 @@ export class ShellComponent implements OnInit, OnDestroy {
   showNotifs = false;
   showMenu = false;
   showProducts = false;
+  showAccountMenu = false;
 
   private pollId?: ReturnType<typeof setInterval>;
+  private productSub?: Subscription;
 
   constructor(
     public auth: AuthService,
@@ -859,11 +1026,14 @@ export class ShellComponent implements OnInit, OnDestroy {
   }
 
   get isProductContext(): boolean {
-    const path = this.cleanPath(this.router.url);
-    const inClientWithProduct = path === '/cliente' && !!getActiveProduct();
     return !this.isLegalStationMarketing && (
-      this.isProductLanding || this.isDivorcioFlow || this.isDivorcioAuth || inClientWithProduct
+      this.isProductLanding || this.isDivorcioFlow || this.isDivorcioAuth
     );
+  }
+
+  /** Panel unificado SaaS del cliente — no es un sitio de producto. */
+  get isClientPanel(): boolean {
+    return this.cleanPath(this.router.url) === '/cliente';
   }
 
   get showProductSwitcher(): boolean {
@@ -873,25 +1043,16 @@ export class ShellComponent implements OnInit, OnDestroy {
   get navLinks(): NavLink[] {
     if (this.isAuthPage) return [];
 
-    const links: NavLink[] = [];
+    // Misma estructura en todos los productos: evita que el header “salte”.
+    const home = this.isMarketing && !this.isLegalStationMarketing
+      ? this.productHome
+      : '/';
 
-    if (this.isLegalStationMarketing) {
-      // "Productos" ya está en el switcher — aquí Catálogo evita duplicado
-      links.push(
-        { label: 'Catálogo', path: '/', fragment: 'catalogo' },
-        { label: 'Precios', path: '/', fragment: 'precios' },
-      );
-    } else if (this.isMarketing) {
-      links.push(
-        { label: 'Inicio', path: this.productHome, exact: true },
-        { label: 'Cómo funciona', path: this.productHome, fragment: 'flujo' },
-        { label: 'Precios', path: this.productHome, fragment: 'precios' },
-      );
-    } else if (this.isProductContext || this.isDivorcioFlow) {
-      links.push({ label: 'Inicio', path: this.productHome, exact: true });
-    }
-
-    return links;
+    return [
+      { label: 'Inicio', path: home, exact: true },
+      { label: 'Cómo funciona', path: home, fragment: 'flujo' },
+      { label: 'Precios', path: home, fragment: 'precios' },
+    ];
   }
 
   get productSwitcherItems(): ProductSwitcherItem[] {
@@ -904,15 +1065,11 @@ export class ShellComponent implements OnInit, OnDestroy {
   }
 
   get brand(): { home: string; name: string; sub: string; mark: 'logo' | '360' } {
-    if (this.isProductContext) {
-      return { home: this.productHome, name: this.productDisplayName, sub: 'por LegalStation', mark: '360' };
-    }
     return { home: '/', name: 'LegalStation', sub: '', mark: 'logo' };
   }
 
   get headerAccent(): string {
-    if (!this.isProductContext) return 'var(--primary)';
-    return this.productSite?.accent || 'var(--primary)';
+    return 'var(--primary)';
   }
 
   get guestActions(): ActionLink[] {
@@ -920,18 +1077,12 @@ export class ShellComponent implements OnInit, OnDestroy {
       return [{ label: 'Volver', path: this.isDivorcioAuth ? this.productHome : '/', variant: 'quiet' }];
     }
 
-    const query: Record<string, string> = this.isProductContext
-      ? { product: this.activeProduct, returnUrl: getProductQuestionnairePath(this.activeProduct) }
-      : { returnUrl: '/' };
-
-    const formAction = this.divorcioFormAction;
-    const primary = formAction
-      ? { ...formAction, variant: 'primary' as const }
-      : { ...getMarketingPrimaryAction(null, this.activeProduct), variant: 'primary' as const };
+    const ingresarQuery: Record<string, string> | undefined = this.isProductContext
+      ? { product: this.activeProduct }
+      : undefined;
 
     return [
-      { label: 'Ingresar', path: '/auth', query, variant: 'quiet' },
-      { ...primary, variant: 'primary' },
+      { label: 'Ingresar', path: '/auth', query: ingresarQuery, variant: 'quiet' },
     ];
   }
 
@@ -942,12 +1093,9 @@ export class ShellComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** CTA de formulario: retirado del header; el inicio vive en landings/CTAs de página. */
   get divorcioFormAction() {
-    const role = this.auth.user()?.role ?? null;
-    if (role === 'abogado' || role === 'notario') return null;
-    if (!this.isLegalStationMarketing && this.activeProduct !== 'divorcio360') return null;
-    if (this.isAuthPage) return null;
-    return getDivorcioFormAction(role);
+    return null;
   }
 
   get homeForRole(): string {
@@ -976,7 +1124,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   }
 
   get footerBrandName(): string {
-    return this.isProductContext ? this.productDisplayName : 'LegalStation';
+    return 'LegalStation';
   }
 
   get footerPitch(): string {
@@ -1006,6 +1154,12 @@ export class ShellComponent implements OnInit, OnDestroy {
     this.applyMode(this.router.url);
     if (this.auth.isLoggedIn) this.loadNotifs();
 
+    this.productSub = watchActiveProduct().subscribe((product) => {
+      if (this.activeProduct === product) return;
+      this.activeProduct = product;
+      this.productSite = getProductSite(product);
+    });
+
     this.pollId = setInterval(() => {
       if (this.auth.isLoggedIn) this.loadNotifs();
     }, 20000);
@@ -1027,11 +1181,12 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.pollId) clearInterval(this.pollId);
+    this.productSub?.unsubscribe();
   }
 
   @HostListener('document:click')
   onDocumentClick(): void {
-    if (this.showNotifs || this.showMenu || this.showProducts) this.closeAll();
+    if (this.showNotifs || this.showMenu || this.showProducts || this.showAccountMenu) this.closeAll();
   }
 
   @HostListener('document:keydown.escape')
@@ -1043,6 +1198,14 @@ export class ShellComponent implements OnInit, OnDestroy {
     this.showNotifs = false;
     this.showMenu = false;
     this.showProducts = false;
+    this.showAccountMenu = false;
+  }
+
+  toggleAccountMenu(event: Event): void {
+    event.stopPropagation();
+    const next = !this.showAccountMenu;
+    this.closeAll();
+    this.showAccountMenu = next;
   }
 
   toggleProducts(event: Event): void {

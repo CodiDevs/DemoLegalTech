@@ -10,7 +10,7 @@ import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.compon
 import { ScheduledMeetingCardComponent } from '../../shared/scheduled-meeting-card.component';
 import { CaseProgressComponent } from '../../shared/case-progress.component';
 import { buildCaseProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
-import { getProductSite, productThemeFromCase } from '../../shared/product-sites.data';
+import { buildClientFlowCrumb, productThemeFromCase, setActiveProduct } from '../../shared/product-sites.data';
 import { signatureChannelLabel } from '../../shared/esign';
 
 interface CaseAction {
@@ -254,12 +254,9 @@ export class CaseDetailComponent implements OnInit {
   constructor(private route: ActivatedRoute, private api: ApiService, public auth: AuthService) {}
 
   get crumb(): { label: string; link?: string }[] {
-    const site = getProductSite(this.data?.case?.product || '');
-    const base = [{ label: 'LegalStation', link: '/' }];
-    if (site) {
-      return [...base, { label: site.name, link: '/productos/' + site.slug }, { label: 'Expediente #' + this.data.case.id }];
-    }
-    return [...base, { label: 'Expediente #' + (this.data?.case?.id || '') }];
+    const product = this.data?.case?.product;
+    const id = this.data?.case?.id;
+    return buildClientFlowCrumb(product, id ? `Expediente #${id}` : 'Expediente');
   }
 
   ngOnInit(): void { this.reload(); }
@@ -269,6 +266,7 @@ export class CaseDetailComponent implements OnInit {
     this.consultStorageKey = `ls_meeting_case_${id}`;
     this.api.getCase(id).subscribe((d) => {
       this.data = d;
+      setActiveProduct(d.case?.product || 'divorcio360');
       this.theme = productThemeFromCase(d.case?.product);
       this.clientMessages = d.client_messages || [];
       this.progressStages = buildCaseProgressStages(

@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
-import { getProductDisplayName, productThemeFromCase } from '../../shared/product-sites.data';
+import { getProductDisplayName, productThemeFromCase, setActiveProduct, buildClientFlowCrumb } from '../../shared/product-sites.data';
 import { IconComponent } from '../../shared/icon.component';
 import { AnimatedTicketComponent } from '../../shared/animated-ticket.component';
 import { buildCheckoutCart, CheckoutCart, parseQuestionnaire } from '../../shared/checkout-cart';
@@ -19,7 +19,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
   template: `
     <app-product-flow-shell
       [theme]="theme"
-      [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Pago único' }]"
+      [crumb]="crumb"
       eyebrow="Pago seguro · Payphone"
       title="Pago del trámite"
       subtitle="Un solo cobro — sin suscripción mensual."
@@ -488,6 +488,7 @@ export class CheckoutComponent implements OnInit, OnDestroy, AfterViewChecked {
   error = '';
   theme = productThemeFromCase();
   productName = 'Divorcio360';
+  crumb: { label: string; link?: string }[] = buildClientFlowCrumb('divorcio360', 'Pago');
   paidAt = new Date();
   cardLast4 = '4242';
   cart: CheckoutCart = buildCheckoutCart(34900);
@@ -523,6 +524,8 @@ export class CheckoutComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.caseItem = d.case;
         this.theme = productThemeFromCase(d.case?.product);
         this.productName = getProductDisplayName(d.case?.product || 'divorcio360');
+        setActiveProduct(d.case?.product || 'divorcio360');
+        this.crumb = buildClientFlowCrumb(d.case?.product, 'Pago');
         this.cart = buildCheckoutCart(
           d.case?.amount_cents ?? 34900,
           parseQuestionnaire(d.case?.questionnaire_json),

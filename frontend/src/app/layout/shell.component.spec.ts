@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { EMPTY } from 'rxjs';
 import { ApiService } from '../core/api.service';
 import { AuthService, User } from '../core/auth.service';
+import { getProductSite } from '../shared/product-sites.data';
 import { ShellComponent } from './shell.component';
 
 function makeShell(role: User['role'] | null): ShellComponent {
@@ -64,25 +65,19 @@ describe('ShellComponent marketing navigation', () => {
     ]);
   });
 
-  it('mantiene ingreso e Iniciar Formulario como acciones guest de Divorcio360', () => {
+  it('mantiene solo Ingresar como acción guest en el header', () => {
     const guest = makeShell(null);
 
     expect(guest.guestActions.map(({ label, path }) => ({ label, path }))).toEqual([
       { label: 'Ingresar', path: '/auth' },
-      { label: 'Iniciar Formulario', path: '/auth' },
     ]);
-    expect(guest.guestActions[1].query).toEqual({
-      returnUrl: '/cuestionario',
-      product: 'divorcio360',
-    });
+    expect(guest.guestActions[0].query).toBeUndefined();
+    expect(guest.divorcioFormAction).toBeNull();
   });
 
-  it('muestra Iniciar Formulario al cliente en el header de Divorcio360', () => {
+  it('no muestra Iniciar Formulario en el header al cliente', () => {
     const client = makeShell('cliente');
-    expect(client.divorcioFormAction).toEqual({
-      label: 'Iniciar Formulario',
-      path: '/cuestionario',
-    });
+    expect(client.divorcioFormAction).toBeNull();
   });
 
   it('oculta Iniciar Formulario a abogado y notario', () => {
@@ -90,6 +85,69 @@ describe('ShellComponent marketing navigation', () => {
     expect(makeShell('notario').divorcioFormAction).toBeNull();
   });
 
+  it('en /cliente usa marca LegalStation y sin Iniciar Formulario', () => {
+    const client = makeShell('cliente');
+    (client as unknown as { router: Router }).router = { url: '/cliente', events: EMPTY } as unknown as Router;
+    client.isDivorcioMarketing = false;
+    client.isLegalStationMarketing = false;
+    client.isDivorcioFlow = false;
+
+    expect(client.isClientPanel).toBeTrue();
+    expect(client.brand).toEqual({
+      home: '/',
+      name: 'LegalStation',
+      sub: '',
+      mark: 'logo',
+    });
+    expect(client.divorcioFormAction).toBeNull();
+    expect(client.navLinks.map((l) => l.label)).toEqual([
+      'Inicio',
+      'Cómo funciona',
+      'Precios',
+    ]);
+    expect(client.navLinks[0].path).toBe('/');
+  });
+
+  it('en cualquier producto la marca del header es LegalStation', () => {
+    const client = makeShell('cliente');
+    client.isDivorcioMarketing = false;
+    client.isTrasladoMarketing = true;
+    client.isLegalStationMarketing = false;
+    client.isProductLanding = true;
+    client.isDivorcioFlow = false;
+    client.activeProduct = 'traslado360';
+    client.productSite = getProductSite('traslado360');
+
+    expect(client.brand).toEqual({
+      home: '/',
+      name: 'LegalStation',
+      sub: '',
+      mark: 'logo',
+    });
+    expect(client.navLinks.map((l) => l.label)).toEqual([
+      'Inicio',
+      'Cómo funciona',
+      'Precios',
+    ]);
+    expect(client.divorcioFormAction).toBeNull();
+  });
+  it('en flujo compartido también mantiene LegalStation', () => {
+    const client = makeShell('cliente');
+    client.isDivorcioMarketing = false;
+    client.isLegalStationMarketing = false;
+    client.isProductLanding = false;
+    client.isDivorcioFlow = true;
+    client.activeProduct = 'traslado360';
+    client.productSite = getProductSite('traslado360');
+
+    expect(client.isProductContext).toBeTrue();
+    expect(client.brand).toEqual({
+      home: '/',
+      name: 'LegalStation',
+      sub: '',
+      mark: 'logo',
+    });
+  });
   it('no afirma mismo costo en el pie de Divorcio360', () => {
     const marketing = makeShell(null);
     const productContext = makeShell(null);

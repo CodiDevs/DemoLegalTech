@@ -4,14 +4,14 @@ import { ApiService } from '../../../core/api.service';
 import { DataTableComponent } from '../../../shared/data-table.component';
 import { StatusBadgeComponent } from '../../../shared/status-badge.component';
 import { IconComponent } from '../../../shared/icon.component';
+import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
 
 @Component({
   selector: 'app-fase2-billing',
   standalone: true,
-  imports: [RouterLink, DataTableComponent, StatusBadgeComponent, IconComponent],
+  imports: [RouterLink, DataTableComponent, StatusBadgeComponent, IconComponent, WorkspaceHeadComponent],
   template: `
-    <h1>Licencia LegalStation para bufetes</h1>
-    <p class="muted">{{ data?.note }}</p>
+    <app-workspace-head title="Licencia" [aside]="data?.note || ''" />
 
     @if (data?.current_tenant) {
       <div class="panel fase2-preview-card tenant lp-lift">

@@ -1,3 +1,4 @@
+import { BehaviorSubject, Observable } from 'rxjs';
 import { GalleryItem } from '../pages/saas/elastic-gallery.component';
 import { StatItem } from '../pages/saas/landing-statistics.component';
 import { ProgressStep } from './progress-steps.component';
@@ -520,10 +521,7 @@ export function getMarketingPrimaryAction(
   product = 'divorcio360',
 ): MarketingPrimaryAction {
   if (role === 'cliente') {
-    const id = normalizeProductId(product);
-    // Divorcio keeps the unified inbox; other products stay in-product.
-    if (id === 'divorcio360') return { label: 'Mis expedientes', path: '/cliente' };
-    return { label: 'Mis expedientes', path: getProductExpedientePath(id) };
+    return { label: 'Mis expedientes', path: '/cliente' };
   }
   if (role === 'abogado') return { label: 'Panel de casos', path: '/abogado' };
   if (role === 'notario') return { label: 'Inicio', path: '/' };
@@ -533,16 +531,20 @@ export function getMarketingPrimaryAction(
   };
 }
 
-/** CTA “Iniciar Formulario” de Divorcio360. Guest pasa por auth y sigue al cuestionario. */
-export function getDivorcioFormAction(role: MarketingRole): MarketingPrimaryAction | null {
+/** CTA “Iniciar Formulario” — producto activo. Guest pasa por auth. */
+export function getDivorcioFormAction(
+  role: MarketingRole,
+  product = 'divorcio360',
+): MarketingPrimaryAction | null {
   if (role === 'abogado' || role === 'notario') return null;
+  const path = getProductQuestionnairePath(product);
   if (role === 'cliente') {
-    return { label: 'Iniciar Formulario', path: '/cuestionario' };
+    return { label: 'Iniciar Formulario', path };
   }
   return {
     label: 'Iniciar Formulario',
     path: '/auth',
-    query: { returnUrl: '/cuestionario', product: 'divorcio360' },
+    query: { returnUrl: path, product: normalizeProductId(product) },
   };
 }
 
@@ -639,15 +641,55 @@ export function productThemeFromCase(product?: string): ProductFlowTheme {
   return 'divorcio';
 }
 
+const activeProductSubject = new BehaviorSubject<string>(
+  typeof sessionStorage !== 'undefined'
+    ? sessionStorage.getItem('ls_active_product') || 'divorcio360'
+    : 'divorcio360',
+);
+
+/** Persist + broadcast product context so Shell branding stays in sync with case flows. */
 export function setActiveProduct(product: string): void {
+  const id = normalizeProductId(product);
   if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem('ls_active_product', product);
+    sessionStorage.setItem('ls_active_product', id);
+  }
+  if (activeProductSubject.value !== id) {
+    activeProductSubject.next(id);
   }
 }
 
 export function getActiveProduct(): string {
-  if (typeof sessionStorage === 'undefined') return 'divorcio360';
-  return sessionStorage.getItem('ls_active_product') || 'divorcio360';
+  if (typeof sessionStorage !== 'undefined') {
+    return sessionStorage.getItem('ls_active_product') || 'divorcio360';
+  }
+  return activeProductSubject.value || 'divorcio360';
+}
+
+export function watchActiveProduct(): Observable<string> {
+  return activeProductSubject.asObservable();
+}
+
+/** Breadcrumb for post-auth client steps: Mis trámites → Producto → (opcional expediente) → paso. */
+export function buildClientFlowCrumb(
+  product: string | undefined,
+  step: string,
+  opts?: { caseId?: number; includeExpediente?: boolean },
+): { label: string; link?: string }[] {
+  const meta = getProductFlowMeta(product);
+  const crumbs: { label: string; link?: string }[] = [
+    { label: 'Mis trámites', link: '/cliente' },
+  ];
+  if (meta.productHome) {
+    crumbs.push({ label: meta.name, link: meta.productHome });
+  }
+  if (opts?.includeExpediente && opts.caseId) {
+    crumbs.push({
+      label: `Expediente #${opts.caseId}`,
+      link: `/caso/${opts.caseId}`,
+    });
+  }
+  crumbs.push({ label: step });
+  return crumbs;
 }
 
 const DIVORCIO_DOC_TYPES = [

@@ -39,76 +39,70 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
   imports: [FormsModule, RouterLink, DatePipe, DecimalPipe, StatusBadgeComponent, IconComponent],
   template: `
     @if (loadError) {
-      <div class="wrap panel">
+      <article class="case case-state">
         <p class="err">{{ loadError }}</p>
-        <p><a class="back-link" routerLink="/abogado"><app-icon name="arrow-left" [size]="16" />Volver a bandeja</a></p>
-      </div>
+        <a class="back-link" routerLink="/abogado"><app-icon name="arrow-left" [size]="16" />Volver a bandeja</a>
+      </article>
     } @else if (!ws) {
-      <div class="wrap panel"><p class="muted">Cargando expediente…</p></div>
+      <article class="case case-state"><p class="muted">Cargando expediente…</p></article>
     } @else {
-      <div class="wrap">
-        <p class="muted"><a class="back-link" routerLink="/abogado"><app-icon name="arrow-left" [size]="16" />Bandeja</a></p>
+      <article class="case">
+        <a class="back-link" routerLink="/abogado"><app-icon name="arrow-left" [size]="16" />Bandeja</a>
 
-        <header class="case-header panel">
-          <div class="case-title">
+        <header class="case-head">
+          <div class="case-head-row">
             <h1>Expediente <span class="mono">#{{ ws.case.id }}</span></h1>
-            <p>{{ ws.case.client_name }} · {{ ws.case.city }} · \${{ ws.case.amount_cents / 100 | number:'1.2-2' }}</p>
+            <div class="case-badges">
+              <app-status-badge [label]="ws.case.status_label" [variant]="ws.case.status === '10' ? 'ok' : 'info'" />
+              @if (satjeLinks.length) {
+                <app-status-badge label="SATJE vinculado" variant="ok" />
+              }
+            </div>
           </div>
-          <app-status-badge [label]="ws.case.status_label" [variant]="ws.case.status === '10' ? 'ok' : 'info'" />
-          @if (satjeLinks.length) {
-            <app-status-badge label="SATJE vinculado" variant="ok" />
-          }
-          <div class="state-bar">
+          <p class="meta">{{ ws.case.client_name }} · {{ ws.case.city }} · \${{ ws.case.amount_cents / 100 | number:'1.2-2' }}</p>
+          <ol class="progress" aria-label="Etapa del trámite">
             @for (s of STATE_KEYS; track s) {
-              <span class="st" [class.done]="s <= ws.case.status" [class.cur]="s === ws.case.status" [title]="STATE_LABELS[s]">{{ s }}</span>
+              <li
+                class="st"
+                [class.done]="s <= ws.case.status"
+                [class.cur]="s === ws.case.status"
+                [title]="STATE_LABELS[s]"
+              >{{ s }}</li>
             }
-          </div>
+          </ol>
+          <span class="case-rule" aria-hidden="true"></span>
         </header>
 
-            @if (ws.blockers.length) {
-          <div class="panel blockers">
-            <strong>Pendientes en esta etapa</strong>
-            @if (ws.stage_hint) { <p class="muted flow-hint">{{ ws.stage_hint }}</p> }
-            <ul>@for (b of ws.blockers; track b) { <li>{{ b }}</li> }</ul>
-            @if (ws.case.status === '03') {
-              <p class="muted flow-hint">
-                Orden: 1) Ver y aprobar cada documento <app-icon name="arrow-right" [size]="14" />
-                2) Subir minuta del notario <app-icon name="arrow-right" [size]="14" />
-                3) Cliente sube documento firmado <app-icon name="arrow-right" [size]="14" />
-                4) Confirmar firma.
-              </p>
-            }
-          </div>
-        }
-
-        <div class="tabs">
+        <nav class="tabs" role="tablist" aria-label="Secciones del expediente">
           @for (t of tabDefs; track t.id) {
-            <button type="button" class="btn btn-ghost" [class.on]="tab === t.id" (click)="tab = t.id">{{ t.label }}</button>
+            <button
+              type="button"
+              role="tab"
+              class="tab"
+              [class.on]="tab === t.id"
+              [attr.aria-selected]="tab === t.id"
+              (click)="tab = t.id"
+            >{{ t.label }}</button>
           }
-        </div>
+        </nav>
 
-        <div class="layout">
-          <section class="main stack">
+        <div class="case-body">
+          <section class="case-panel" role="tabpanel">
             @if (tab === 'resumen') {
-              <div class="panel">
-                <button type="button" class="accordion" (click)="qOpen = !qOpen">
-                  Cuestionario del cliente
-                  <app-icon [name]="qOpen ? 'chevron-down' : 'chevron-right'" [size]="16" />
-                </button>
-                @if (qOpen) {
-                  <table class="qtable">
-                    @for (row of qRows; track row.key) {
-                      <tr><td>{{ row.label }}</td><td>{{ row.value }}</td></tr>
-                    }
-                  </table>
-                }
-              </div>
-              <div class="panel">
-                <h2>Resumen rápido</h2>
-                <p class="muted">{{ ws.case.paid ? 'Pagado' : 'Sin pago' }} · {{ ws.documents.length }} documentos · {{ ws.signatures.length }} firmas</p>
-              </div>
+              <button type="button" class="accordion" (click)="qOpen = !qOpen">
+                Cuestionario del cliente
+                <app-icon [name]="qOpen ? 'chevron-down' : 'chevron-right'" [size]="16" />
+              </button>
+              @if (qOpen) {
+                <table class="qtable">
+                  @for (row of qRows; track row.key) {
+                    <tr><td>{{ row.label }}</td><td>{{ row.value }}</td></tr>
+                  }
+                </table>
+              }
+              <p class="meta-line">{{ ws.case.paid ? 'Pagado' : 'Sin pago' }} · {{ ws.documents.length }} documentos · {{ ws.signatures.length }} firmas</p>
               @if (satjeLinks.length) {
-                <div class="panel">
+                <div class="satje-block">
                   <h2>Vínculo SATJE</h2>
                   @for (l of satjeLinks; track l.cause_no) {
                     <p><strong>{{ l.label || l.cause_no }}</strong> · {{ l.court }}</p>
@@ -118,119 +112,124 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
             }
 
             @if (tab === 'docs') {
-              <div class="panel">
-                <h2>Documentos del cliente</h2>
-                @for (d of latestDocuments; track d.id) {
-                  <div class="doc">
-                    <div class="doc-info">
-                      <div class="thumb" [class]="d.doc_type" aria-hidden="true">{{ docThumb(d.doc_type) }}</div>
-                      <div>
-                        <strong>{{ docLabel(d.doc_type) }}</strong> — {{ d.filename }}
-                        <app-status-badge [label]="reviewLabel(d.review_status)" [variant]="reviewVariant(d.review_status)" />
-                        @if (d.review_note) { <p class="muted">{{ d.review_note }}</p> }
-                      </div>
+              <h2>Documentos del cliente</h2>
+              @for (d of latestDocuments; track d.id) {
+                <div class="doc">
+                  <div class="doc-info">
+                    <span class="thumb" [class]="d.doc_type" aria-hidden="true">{{ docThumb(d.doc_type) }}</span>
+                    <div>
+                      <strong>{{ docLabel(d.doc_type) }}</strong> — {{ d.filename }}
+                      <app-status-badge [label]="reviewLabel(d.review_status)" [variant]="reviewVariant(d.review_status)" />
+                      @if (d.review_note) { <p class="muted">{{ d.review_note }}</p> }
                     </div>
-                    <div class="doc-actions">
-                      <a class="btn btn-ghost" [href]="d.url" target="_blank" (click)="markDocViewed(d.id)">Ver</a>
-                      @if (d.review_status === 'pending') {
+                  </div>
+                  <div class="doc-actions">
+                    <a class="btn btn-ghost" [href]="d.url" target="_blank" (click)="markDocViewed(d.id)">Ver</a>
+                    @if (d.review_status === 'pending') {
                       <button type="button" class="btn btn-primary"
                         [disabled]="!isDocViewed(d.id)"
                         [title]="!isDocViewed(d.id) ? 'Debes abrir el documento antes de aprobar' : ''"
                         (click)="confirmReview(d.id, 'approved')">Aprobar</button>
                       <button type="button" class="btn btn-ghost" (click)="rejectDoc(d)">Rechazar</button>
-                      }
-                    </div>
+                    }
                   </div>
-                }
-                @if (!ws.documents.length) { <p class="muted">Sin documentos cargados.</p> }
-              </div>
+                </div>
+              }
+              @if (!ws.documents.length) { <p class="muted">Sin documentos cargados.</p> }
             }
 
             @if (tab === 'minuta') {
-              <div class="panel">
-                <h2>Minuta y acta notarial</h2>
-                <p class="muted flow-note">
-                  La notaría envía la minuta y el acta al abogado por fuera de la plataforma.
-                  <strong>Tú, como abogado, subes aquí el PDF</strong> para que el cliente pueda revisarlo y firmar.
-                </p>
-                @if (ws.case.status === '02') {
-                  <p class="muted">El cliente aún debe cargar documentos. Cuando estén en revisión (estado 03), podrás subir la minuta recibida de la notaría.</p>
-                } @else if (ws.case.status === '03' && hasPendingDocs) {
-                  <p class="muted">Aprueba primero los documentos en la pestaña <strong>Documentos</strong>. Al aprobar el último, el expediente pasará automáticamente a estado 04.</p>
+              <h2>Minuta y acta notarial</h2>
+              <p class="muted flow-note">
+                La notaría envía la minuta y el acta al abogado por fuera de la plataforma.
+                <strong>Tú, como abogado, subes aquí el PDF</strong> para que el cliente pueda revisarlo y firmar.
+              </p>
+              @if (ws.case.status === '02') {
+                <p class="muted">El cliente aún debe cargar documentos. Cuando estén en revisión (estado 03), podrás subir la minuta recibida de la notaría.</p>
+              } @else if (ws.case.status === '03' && hasPendingDocs) {
+                <p class="muted">Aprueba primero los documentos en la pestaña <strong>Documentos</strong>. Al aprobar el último, el expediente pasará automáticamente a estado 04.</p>
+              }
+              @if (ws.outputs.length) {
+                @for (o of ws.outputs; track o.id) {
+                  <p><a [href]="o.url" target="_blank">{{ o.filename }}</a> · {{ o.created_at | date:'short' }}</p>
                 }
-                @if (ws.outputs.length) {
-                  @for (o of ws.outputs; track o.id) {
-                    <p><a [href]="o.url" target="_blank">{{ o.filename }}</a> · {{ o.created_at | date:'short' }}</p>
-                  }
-                } @else {
-                  <p class="muted">Minuta / acta notarial no cargada aún.</p>
-                }
-                @if (minutaOk) { <p class="ok">{{ minutaOk }}</p> }
-                @if (minutaError) { <p class="err">{{ minutaError }}</p> }
-                @if (canUploadMinuta) {
-                  <label class="minuta-drop">
-                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onMinutaFile($event)" [disabled]="minutaBusy" hidden />
-                    <span>{{ minutaBusy ? 'Subiendo…' : 'Subir minuta o acta (PDF)' }}</span>
-                  </label>
-                } @else if (ws.case.status !== '02') {
-                  <p class="muted">Subida disponible en revisión jurídica (03) o documentos preparados (04), con todos los documentos aprobados.</p>
-                }
-              </div>
+              } @else {
+                <p class="muted">Minuta / acta notarial no cargada aún.</p>
+              }
+              @if (minutaOk) { <p class="ok">{{ minutaOk }}</p> }
+              @if (minutaError) { <p class="err">{{ minutaError }}</p> }
+              @if (canUploadMinuta) {
+                <label class="minuta-drop">
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onMinutaFile($event)" [disabled]="minutaBusy" hidden />
+                  <span>{{ minutaBusy ? 'Subiendo…' : 'Subir minuta o acta (PDF)' }}</span>
+                </label>
+              } @else if (ws.case.status !== '02') {
+                <p class="muted">Subida disponible en revisión jurídica (03) o documentos preparados (04), con todos los documentos aprobados.</p>
+              }
             }
 
             @if (tab === 'firmas') {
-              <div class="panel">
-                <h2>Documentos firmados del cliente</h2>
-                @if (ws.signatures.length) {
-                  <p class="muted">Revisa el documento (subido por el cliente o firma LegalStation) antes de confirmar en el panel derecho (estado 05).</p>
-                  @for (s of ws.signatures; track s.id) {
-                    <div class="sig">
-                      @if (isPdfSig(s.image_url)) {
-                        <a class="btn btn-ghost" [href]="s.image_url" target="_blank">Ver documento firmado</a>
-                      } @else {
-                        <img [src]="s.image_url" alt="documento firmado del cliente" />
-                      }
-                      <p class="muted">{{ sigChannel(s) }} · IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
-                    </div>
-                  }
-                } @else if (ws.case.status === '04' || ws.case.status === '05') {
-                  <p class="muted">Sin documento firmado aún. El cliente puede subirlo desde su expediente; opcionalmente usa «Notificar al cliente».</p>
-                } @else {
-                  <p class="muted">Sin documentos firmados aún.</p>
+              <h2>Documentos firmados del cliente</h2>
+              @if (ws.signatures.length) {
+                <p class="muted">Revisa el documento (subido por el cliente o firma LegalStation) antes de confirmar en el panel derecho (estado 05).</p>
+                @for (s of ws.signatures; track s.id) {
+                  <div class="sig">
+                    @if (isPdfSig(s.image_url)) {
+                      <a class="btn btn-ghost" [href]="s.image_url" target="_blank">Ver documento firmado</a>
+                    } @else {
+                      <img [src]="s.image_url" alt="documento firmado del cliente" />
+                    }
+                    <p class="muted">{{ sigChannel(s) }} · IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
+                  </div>
                 }
-              </div>
+              } @else if (ws.case.status === '04' || ws.case.status === '05') {
+                <p class="muted">Sin documento firmado aún. El cliente puede subirlo desde su expediente; opcionalmente usa «Notificar al cliente».</p>
+              } @else {
+                <p class="muted">Sin documentos firmados aún.</p>
+              }
             }
 
             @if (tab === 'historial') {
-              <div class="panel">
-                <h2>Historial del trámite</h2>
-                <ul class="timeline">
-                  @for (e of ws.events; track e.id) {
-                    <li>
-                      <span class="dot"></span>
-                      <div>
-                        <strong>{{ e.status_label || e.status }}</strong>
-                        <span class="muted">{{ e.created_at | date:'short' }}</span>
-                        <p>{{ e.note }}</p>
-                      </div>
-                    </li>
-                  }
-                </ul>
-              </div>
-              <div class="panel">
-                <h2>Notas internas</h2>
-                @for (n of ws.notes; track n.id) {
-                  <div class="note"><strong>{{ n.author_name }}</strong> <span class="muted">{{ n.created_at | date:'short' }}</span><p>{{ n.body }}</p></div>
+              <h2>Historial del trámite</h2>
+              <ul class="timeline">
+                @for (e of ws.events; track e.id) {
+                  <li>
+                    <span class="dot"></span>
+                    <div>
+                      <strong>{{ e.status_label || e.status }}</strong>
+                      <span class="muted">{{ e.created_at | date:'short' }}</span>
+                      <p>{{ e.note }}</p>
+                    </div>
+                  </li>
                 }
-                <div class="field"><label>Nueva nota</label><textarea rows="3" [(ngModel)]="noteBody"></textarea></div>
-                <label class="check"><input type="checkbox" [(ngModel)]="noteVisibleToClient" /> Visible para el cliente</label>
-                <button type="button" class="btn btn-ghost" (click)="addNote()">Guardar nota</button>
-              </div>
+              </ul>
+              <h2 class="notes-h">Notas internas</h2>
+              @for (n of ws.notes; track n.id) {
+                <div class="note"><strong>{{ n.author_name }}</strong> <span class="muted">{{ n.created_at | date:'short' }}</span><p>{{ n.body }}</p></div>
+              }
+              <div class="field"><label>Nueva nota</label><textarea rows="3" [(ngModel)]="noteBody"></textarea></div>
+              <label class="check"><input type="checkbox" [(ngModel)]="noteVisibleToClient" /> Visible para el cliente</label>
+              <button type="button" class="btn btn-ghost" (click)="addNote()">Guardar nota</button>
             }
           </section>
 
-          <aside class="side stack">
-            <div class="panel actions-panel sticky">
+          <aside class="case-rail">
+            @if (ws.blockers.length) {
+              <section class="rail-blockers">
+                <strong>Pendientes</strong>
+                @if (ws.stage_hint) { <p class="muted flow-hint">{{ ws.stage_hint }}</p> }
+                <ul>@for (b of ws.blockers; track b) { <li>{{ b }}</li> }</ul>
+                @if (ws.case.status === '03') {
+                  <p class="muted flow-hint flow-order">
+                    Orden: 1) Aprobar docs <app-icon name="arrow-right" [size]="12" />
+                    2) Minuta <app-icon name="arrow-right" [size]="12" />
+                    3) Firma cliente <app-icon name="arrow-right" [size]="12" />
+                    4) Confirmar.
+                  </p>
+                }
+              </section>
+            }
+            <section class="rail-actions sticky">
               <h2>Próxima acción</h2>
               @for (a of ws.next_actions; track a.id) {
                 <div class="action-block">
@@ -261,70 +260,396 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                 <p class="ok">Trámite finalizado.</p>
               }
               @if (actionError) { <p class="err">{{ actionError }}</p> }
-            </div>
+            </section>
           </aside>
         </div>
-      </div>
+      </article>
     }
   `,
   styles: [`
-    .wrap { padding-block: 0.5rem 2rem; }
-    .case-header { display: grid; gap: 1rem; margin-bottom: 1rem; }
-    .case-title h1 { margin: 0; font-size: 1.6rem; }
-    .case-title p { margin: 0.25rem 0 0; color: var(--ink-soft); }
+    :host { display: block; }
+
+    .case {
+      padding-block: 0 var(--space-6);
+      animation: case-in 360ms var(--ease-out) both;
+    }
+
+    .case-state {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--primary); }
+
+    .case-head {
+      margin-bottom: var(--space-4);
+      animation: case-head-in 480ms var(--ease-out) both;
+    }
+
+    .case-head-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-3) var(--space-4);
+      flex-wrap: wrap;
+    }
+
+    .case-head h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.45rem, 2vw, 1.85rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--text);
+    }
+
     .mono { font-variant-numeric: tabular-nums; }
-    .back-link { display: inline-flex; align-items: center; gap: var(--space-2); }
-    .state-bar { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+
+    .case-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .meta {
+      margin: var(--space-2) 0 0;
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      line-height: 1.45;
+    }
+
+    .progress {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      list-style: none;
+      margin: var(--space-3) 0 0;
+      padding: 0;
+    }
+
     .st {
-      font-variant-numeric: tabular-nums; font-size: 0.68rem; font-weight: 700;
-      width: 1.65rem; height: 1.65rem; display: grid; place-items: center;
-      border-radius: 6px; background: var(--line); color: var(--ink-soft);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.62rem;
+      font-weight: 700;
+      width: 1.4rem;
+      height: 1.4rem;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-sm);
+      background: var(--bg-muted);
+      color: var(--text-muted);
     }
-    .st.done { background: oklch(0.92 0.04 150); color: var(--ok); }
-    .st.cur { background: var(--brand); color: white; }
-    .blockers { background: oklch(0.96 0.03 85); margin-bottom: 1rem; }
-    .blockers ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
-    .flow-hint { margin: 0.75rem 0 0; font-size: 0.88rem; line-height: 1.5; }
-    .flow-hint app-icon { vertical-align: -0.2em; }
-    .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
-    .tabs .on { background: var(--brand); color: white; border-color: var(--brand); }
-    .layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; align-items: start; }
-    .stack { display: grid; gap: 1rem; }
-    .sticky { position: sticky; top: 5.5rem; }
+    .st.done { background: var(--success-subtle); color: var(--success); }
+    .st.cur { background: var(--primary); color: white; }
+
+    .case-rule {
+      display: block;
+      position: relative;
+      height: 1px;
+      margin-top: var(--space-4);
+      background: var(--border);
+      transform-origin: left center;
+      animation: case-rule-in 560ms var(--ease-out) both;
+      animation-delay: 80ms;
+    }
+    .case-rule::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2.5rem;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: var(--space-4);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .tab {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: var(--space-2) var(--space-3);
+      font: inherit;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      margin-bottom: -1px;
+      border-bottom: 2px solid transparent;
+      transition: color 180ms var(--ease-out), border-color 180ms var(--ease-out), background 180ms var(--ease-out);
+    }
+    .tab:hover { color: var(--text); background: var(--bg-muted); }
+    .tab.on {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: transparent;
+    }
+    .tab:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .case-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: var(--space-4);
+      align-items: start;
+    }
+
+    .case-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-5);
+      min-width: 0;
+    }
+
+    .case-panel h2 {
+      margin: 0 0 var(--space-3);
+      font-size: var(--text-base);
+      font-weight: 650;
+    }
+
+    .notes-h { margin-top: var(--space-5); }
+
+    .case-rail {
+      display: grid;
+      gap: var(--space-3);
+      animation: case-rail-in 420ms var(--ease-out) both;
+      animation-delay: 60ms;
+    }
+
+    .rail-blockers,
+    .rail-actions {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+
+    .rail-blockers {
+      background: var(--warning-subtle);
+      border-color: var(--warning-border);
+    }
+
+    .rail-blockers strong {
+      font-size: var(--text-sm);
+      display: block;
+      margin-bottom: var(--space-1);
+    }
+
+    .rail-blockers ul {
+      margin: var(--space-2) 0 0;
+      padding-left: 1.1rem;
+      font-size: var(--text-sm);
+      line-height: 1.4;
+    }
+
+    .rail-actions h2 {
+      margin: 0;
+      font-size: var(--text-sm);
+      font-weight: 650;
+    }
+
+    .sticky {
+      position: sticky;
+      top: calc(var(--header-height) + var(--space-4));
+    }
+
+    .flow-hint {
+      margin: var(--space-2) 0 0;
+      font-size: var(--text-xs);
+      line-height: 1.45;
+    }
+    .flow-hint app-icon { vertical-align: -0.15em; }
+    .flow-order { margin-top: var(--space-3); }
+
     .accordion {
-      width: 100%; text-align: left; background: none; border: 0; font-weight: 600;
-      font-size: 1rem; cursor: pointer; padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: 0;
+      font-weight: 650;
+      font-size: var(--text-base);
+      color: var(--text);
+      cursor: pointer;
+      padding: 0;
     }
-    .qtable { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin-top: 0.75rem; }
-    .qtable td { padding: 0.35rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-    .qtable td:first-child { width: 55%; color: var(--ink-soft); font-weight: 500; }
-    .doc { border-top: 1px solid var(--line); padding: 0.75rem 0; display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
-    .doc-info { display: flex; gap: 0.75rem; align-items: start; }
+
+    .qtable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+      margin-top: var(--space-3);
+    }
+    .qtable td {
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .qtable td:first-child {
+      width: 55%;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .meta-line {
+      margin: var(--space-4) 0 0;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .satje-block {
+      margin-top: var(--space-4);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border);
+    }
+    .satje-block h2 { margin-bottom: var(--space-2); }
+    .satje-block p { margin: 0.25rem 0; font-size: var(--text-sm); }
+
+    .doc {
+      border-top: 1px solid var(--border);
+      padding: var(--space-3) 0;
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .doc:first-of-type { border-top: 0; padding-top: 0; }
+    .doc-info { display: flex; gap: var(--space-3); align-items: start; min-width: 0; }
     .thumb {
-      width: 48px; height: 48px; border-radius: 8px; display: grid; place-items: center;
-      font-size: 0.75rem; font-weight: 700; color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      background: var(--primary);
     }
-    .thumb.cedula { background: var(--brand); }
-    .thumb.partida { background: var(--accent); color: var(--ink); }
-    .doc-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-    .sig img { max-width: 180px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+    .thumb.partida { background: var(--warning-subtle); color: var(--text); border: 1px solid var(--border); }
+    .doc-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+    .sig img {
+      max-width: 180px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+
     .minuta-drop {
-      display: inline-flex; margin-top: 1rem; padding: 1rem 1.25rem;
-      border: 2px dashed var(--line); border-radius: 10px; cursor: pointer;
-      font-weight: 600; color: var(--brand);
+      display: inline-flex;
+      margin-top: var(--space-4);
+      padding: var(--space-4) var(--space-5);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--primary);
+      transition: border-color 180ms var(--ease-out), background 180ms var(--ease-out);
     }
-    .minuta-drop:hover { border-color: var(--brand); background: oklch(0.97 0.02 200); }
-    .action-block { border-top: 1px solid var(--line); padding-top: 0.75rem; margin-top: 0.75rem; }
+    .minuta-drop:hover {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+
+    .action-block {
+      border-top: 1px solid var(--border);
+      padding-top: var(--space-3);
+      margin-top: var(--space-3);
+    }
+    .action-block:first-of-type {
+      border-top: 0;
+      padding-top: var(--space-2);
+      margin-top: var(--space-2);
+    }
+
     .timeline { list-style: none; padding: 0; margin: 0; }
-    .timeline li { display: flex; gap: 0.75rem; padding: 0.65rem 0; border-top: 1px solid var(--line); }
+    .timeline li {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-top: 1px solid var(--border);
+    }
     .timeline li:first-child { border-top: 0; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); margin-top: 0.35rem; flex-shrink: 0; }
-    .timeline p { margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--ink-soft); }
-    .note { border-top: 1px solid var(--line); padding: 0.6rem 0; }
-    .check { display: flex; gap: 0.5rem; align-items: center; font-size: 0.88rem; margin: 0.5rem 0 0.75rem; }
-    .err { color: var(--bad); } .ok { color: var(--ok); font-weight: 600; }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin-top: 0.4rem;
+      flex-shrink: 0;
+    }
+    .timeline p {
+      margin: 0.2rem 0 0;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .note {
+      border-top: 1px solid var(--border);
+      padding: var(--space-3) 0;
+    }
+    .check {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      font-size: var(--text-sm);
+      margin: var(--space-2) 0 var(--space-3);
+    }
+
+    .err { color: var(--danger); }
+    .ok { color: var(--success); font-weight: 600; }
+    .flow-note { margin: 0 0 var(--space-3); font-size: var(--text-sm); }
+
+    @keyframes case-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes case-head-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes case-rule-in {
+      from { opacity: 0; transform: scaleX(0.35); }
+      to { opacity: 1; transform: scaleX(1); }
+    }
+    @keyframes case-rail-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+
     @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
+      .case-body { grid-template-columns: 1fr; }
       .sticky { position: static; }
     }
   `]

@@ -1,0 +1,13 @@
+/* Modernist Reset - less-is-more-ui */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  background-color: #fcfcfc;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin-top: 0; font-weight: 600; line-height: 1.2; }
+img { max-width: 100%; height: auto; display: block; }
+button, input { font: inherit; }

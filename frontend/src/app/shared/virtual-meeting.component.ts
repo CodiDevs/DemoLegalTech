@@ -4,7 +4,7 @@ import { ApiService, CaseItem } from '../core/api.service';
 import { IconComponent } from './icon.component';
 import { ProductFlowShellComponent } from './product-flow-shell.component';
 import { ProgressStep } from './progress-steps.component';
-import { getProductFlowMeta, productThemeFromCase, clientFlowStepIndex } from './product-sites.data';
+import { buildClientFlowCrumb, getProductFlowMeta, productThemeFromCase, clientFlowStepIndex, setActiveProduct } from './product-sites.data';
 import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.component';
 
 @Component({
@@ -156,16 +156,15 @@ export class VirtualMeetingComponent implements OnInit {
   private reload(): void {
     this.api.getCase(this.caseId).subscribe((d) => {
       this.caseItem = d.case;
+      setActiveProduct(this.caseItem?.product || 'divorcio360');
       this.theme = productThemeFromCase(this.caseItem?.product);
       const meta = getProductFlowMeta(this.caseItem?.product);
       this.flowSteps = meta.clientFlowSteps;
       this.consultStepIndex = clientFlowStepIndex(meta.flowSteps, 'call');
-      this.crumb = [
-        { label: 'LegalStation', link: '/' },
-        ...(meta.productHome ? [{ label: meta.name, link: meta.productHome }] : []),
-        { label: 'Expediente #' + this.caseItem!.id, link: '/caso/' + this.caseItem!.id },
-        { label: 'Consulta' },
-      ];
+      this.crumb = buildClientFlowCrumb(this.caseItem?.product, 'Consulta', {
+        caseId: this.caseItem!.id,
+        includeExpediente: true,
+      });
       const required = meta.docTypes.length;
       this.api.listDocs(this.caseId).subscribe((docs) => {
         this.docsComplete = required > 0 && docs.length >= required;

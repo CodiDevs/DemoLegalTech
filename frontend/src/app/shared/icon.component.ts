@@ -19,7 +19,7 @@ export type IconName =
   | 'user' | 'users' | 'baby' | 'id-card'
   // Contexto legal / trámite
   | 'scale' | 'shield' | 'building' | 'home' | 'briefcase'
-  | 'map-pin' | 'flag' | 'plane' | 'chart' | 'calendar'
+  | 'map-pin' | 'flag' | 'plane' | 'chart' | 'calendar' | 'gavel'
   // Sistema
   | 'bell' | 'search' | 'lock' | 'log-out' | 'credit-card'
   | 'video' | 'mail' | 'plus' | 'trash' | 'inbox' | 'sparkle';
@@ -153,6 +153,16 @@ export type IconName =
           <path d="M3.5 10.5 12 3.5l8.5 7" />
           <path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5" />
           <path d="M10 21v-6h4v6" />
+        }
+        @case ('gavel') {
+          <!-- Taco (base + superficie) -->
+          <rect x="2" y="18.8" width="11.5" height="2.4" rx="1.2" fill="currentColor" stroke="none" />
+          <rect x="3.4" y="16.3" width="8.7" height="2.5" rx="1.25" fill="currentColor" stroke="none" />
+          <!-- Mazo: cabeza + mango -->
+          <g transform="rotate(-48 13.5 10.5)" fill="currentColor" stroke="none">
+            <rect x="8.2" y="5.2" width="12.2" height="3.9" rx="1.95" />
+            <rect x="12.2" y="8.9" width="3.6" height="7.8" rx="1.8" />
+          </g>
         }
         @case ('briefcase') {
           <rect x="2.5" y="7.5" width="19" height="12" rx="2" />

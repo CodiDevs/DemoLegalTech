@@ -1,10 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
-import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent, IconName } from '../../shared/icon.component';
-import { CASE_STATUS_ICONS, CASE_STATUS_KEYS } from '../../shared/case-progress.model';
-import { getProductDisplayName, normalizeProductId } from '../../shared/product-sites.data';
+import { CASE_STATUS_ICONS } from '../../shared/case-progress.model';
+import {
+  LEGALSTATION_CATALOG,
+  ProductCatalogEntry,
+  getProductDisplayName,
+  getProductQuestionnairePath,
+  normalizeProductId,
+  setActiveProduct,
+} from '../../shared/product-sites.data';
+import { ClientDivorcioDeskComponent } from './client-divorcio-desk.component';
+import {
+  ProductDeskStepId,
+  buildProductSteps,
+  currentProductStep,
+  isTimelineProduct,
+  pickProductCase,
+  productSideDesc,
+} from './divorcio-steps';
 
 type Filter = 'action' | 'open' | 'done' | 'all';
 
@@ -37,160 +52,490 @@ const STAGE_SHORT: Record<string, string> = {
 @Component({
   selector: 'app-client-panel',
   standalone: true,
-  imports: [RouterLink, StatusBadgeComponent, IconComponent],
+  imports: [RouterLink, IconComponent, ClientDivorcioDeskComponent],
   template: `
-    <div class="shell inbox">
-      <header class="inbox-head">
-        <p class="inbox-kicker">Cuenta</p>
-        <h1>Tus trámites</h1>
-        <p class="inbox-lede">Qué te toca ahora. Un clic continúa.</p>
-      </header>
+    <div class="client-workspace">
+      <aside class="client-sidebar" aria-label="Servicios LegalStation">
+        <nav class="side-nav" aria-label="Vista del panel">
+          <button
+            type="button"
+            class="side-item"
+            [class.on]="product === 'all'"
+            [attr.aria-pressed]="product === 'all'"
+            (click)="setProduct('all')"
+          >
+            <span class="side-item-copy">
+              <span class="side-item-name">Todos</span>
+              <span class="side-item-desc">Expedientes activos y archivo</span>
+            </span>
+            @if (cases.length) {
+              <span class="side-count tabular">{{ cases.length }}</span>
+            }
+          </button>
+        </nav>
 
-      @if (loading) {
-        <div class="panel state-loading" role="status">
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Cargando tus trámites…</span>
+        <div class="side-block">
+          <p class="side-label" id="client-nav-live">Servicios</p>
+          <nav class="side-nav" aria-labelledby="client-nav-live">
+            @for (s of liveServices; track s.id) {
+              <div class="side-service" [class.is-expanded]="product === s.id && isDeskProduct(s.id)">
+                <button
+                  type="button"
+                  class="side-item"
+                  [class.on]="product === s.id"
+                  [attr.aria-pressed]="product === s.id"
+                  [attr.aria-expanded]="isDeskProduct(s.id) ? product === s.id : null"
+                  [attr.title]="s.tagline"
+                  (click)="setProduct(s.id)"
+                >
+                  <span class="side-item-copy">
+                    <span class="side-item-name">{{ s.name }}</span>
+                    <span class="side-item-desc">
+                      {{ isDeskProduct(s.id) ? productSideDesc(s.id) : s.pillDesc }}
+                    </span>
+                  </span>
+                  @if (isDeskProduct(s.id)) {
+                    @if (deskCaseFor(s.id)) {
+                      <span class="side-count tabular">1</span>
+                    }
+                  } @else if (countProductTotal(s.id) > 0) {
+                    <span class="side-count tabular">{{ countProductTotal(s.id) }}</span>
+                  }
+                </button>
+
+                @if (isDeskProduct(s.id) && product === s.id) {
+                  <ol class="side-timeline" [attr.aria-label]="'Pasos ' + s.name">
+                    @for (step of deskTimeline; track step.id) {
+                      <li>
+                        <button
+                          type="button"
+                          class="side-step"
+                          [class.on]="deskStep === step.id"
+                          [class.done]="step.state === 'done'"
+                          [class.current]="step.state === 'current'"
+                          [class.locked]="step.state === 'locked'"
+                          [disabled]="step.state === 'locked' && !deskCase"
+                          (click)="selectDeskStep(step.id)"
+                        >
+                          <span class="side-step-rail" aria-hidden="true">
+                            <span class="side-step-dot">
+                              @if (step.state === 'done') {
+                                <app-icon name="check" [size]="10" [strokeWidth]="2.6" />
+                              }
+                            </span>
+                          </span>
+                          <span class="side-step-label">{{ step.label }}</span>
+                        </button>
+                      </li>
+                    }
+                  </ol>
+                }
+              </div>
+            }
+          </nav>
         </div>
-      } @else if (error) {
-        <div class="panel state-error" role="alert">
-          <span class="state-error-icon"><app-icon name="alert-triangle" [size]="20" /></span>
-          <div class="state-error-body">
-            <strong>No pudimos cargar tu cuenta</strong>
-            <p>Puede ser un problema de conexión. Inténtalo de nuevo en un momento.</p>
+
+        @if (soonServices.length) {
+          <div class="side-block side-block--soon">
+            <p class="side-label" id="client-nav-soon">Próximamente</p>
+            <ul class="side-soon-list" aria-labelledby="client-nav-soon">
+              @for (s of soonServices; track s.id) {
+                <li>{{ s.name }}</li>
+              }
+            </ul>
           </div>
-          <button type="button" class="btn btn-secondary" (click)="load()">Volver a intentar</button>
-        </div>
-      } @else if (!cases.length) {
-        <div class="panel empty-state">
-          <span class="empty-icon"><app-icon name="inbox" [size]="22" /></span>
-          <h2>Todavía no tienes trámites</h2>
-          <p>Explora los productos y crea tu primer expediente cuando estés listo.</p>
-          <a routerLink="/" class="btn btn-primary">Ver productos</a>
-        </div>
-      } @else {
-        <div class="lanes" role="group" aria-label="Filtrar trámites">
-          @for (f of filterDefs; track f.id) {
-            <button
-              type="button"
-              class="lane"
-              [class.on]="filter === f.id"
-              [attr.aria-pressed]="filter === f.id"
-              (click)="setFilter(f.id)"
-            >
-              <span class="lane-n tabular">{{ countFor(f.id) }}</span>
-              <span class="lane-l">{{ f.label }}</span>
-            </button>
-          }
-        </div>
+        }
+      </aside>
 
-        @if (productDefs.length > 1) {
-          <div class="prods" role="group" aria-label="Tipo de trámite">
-            <button
-              type="button"
-              class="prod"
-              [class.on]="product === 'all'"
-              [attr.aria-pressed]="product === 'all'"
-              (click)="setProduct('all')"
-            >
-              Todos
-              <span class="prod-n tabular">{{ countProduct('all') }}</span>
-            </button>
-            @for (p of productDefs; track p.id) {
+      <div class="client-main">
+        <header class="inbox-head">
+          <h1>{{ pageTitle }}</h1>
+          <p class="inbox-lede">{{ pageLede }}</p>
+        </header>
+
+        @if (loading) {
+          <div class="panel state-loading" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Cargando tus trámites…</span>
+          </div>
+        } @else if (error) {
+          <div class="panel state-error" role="alert">
+            <span class="state-error-icon"><app-icon name="alert-triangle" [size]="20" /></span>
+            <div class="state-error-body">
+              <strong>No pudimos cargar tu cuenta</strong>
+              <p>Puede ser un problema de conexión. Inténtalo de nuevo en un momento.</p>
+            </div>
+            <button type="button" class="btn btn-secondary" (click)="load()">Volver a intentar</button>
+          </div>
+        } @else if (isDeskProduct(product)) {
+          <app-client-divorcio-desk
+            [product]="product"
+            [caseItem]="deskCase"
+            [step]="deskStep"
+            (goStep)="selectDeskStep($event)"
+            (caseChanged)="onDeskCaseChanged($event)"
+          />
+        } @else if (!cases.length && product === 'all') {
+          <div class="panel empty-state">
+            <span class="empty-icon"><app-icon name="inbox" [size]="22" /></span>
+            <h2>Todavía no tienes trámites</h2>
+            <p>Elige un servicio en la barra lateral e inicia tu primer expediente.</p>
+            <button type="button" class="btn btn-primary" (click)="setProduct('divorcio360')">Abrir Divorcio360</button>
+          </div>
+        } @else {
+          <div class="seg" role="group" aria-label="Filtrar trámites">
+            @for (f of filterDefs; track f.id) {
               <button
                 type="button"
-                class="prod"
-                [class.on]="product === p.id"
-                [attr.aria-pressed]="product === p.id"
-                (click)="setProduct(p.id)"
+                class="seg-btn"
+                [class.on]="filter === f.id"
+                [attr.aria-pressed]="filter === f.id"
+                (click)="setFilter(f.id)"
               >
-                {{ p.name }}
-                <span class="prod-n tabular">{{ countProduct(p.id) }}</span>
+                {{ f.label }}
+                <span class="seg-n tabular">{{ countFor(f.id) }}</span>
               </button>
             }
           </div>
-        }
 
-        @if (!filtered.length) {
-          <div class="panel empty-state">
-            <span class="empty-icon"><app-icon name="search" [size]="22" /></span>
-            <h2>Nada en «{{ filterLabel }}»</h2>
-            <p>Hay {{ cases.length }} trámites en tu cuenta. Este recorte está vacío.</p>
-            <button type="button" class="btn btn-secondary" (click)="clearFilters()">Ver todos</button>
-          </div>
-        } @else {
-          <ul class="case-list" [attr.aria-label]="'Trámites: ' + filterLabel">
-            @for (c of filtered; track trackKey(c); let i = $index) {
-              <li>
-                <a
-                  class="case-row"
-                  [class.is-pay]="!c.paid"
-                  [class.is-act]="needsYou(c)"
-                  [style.--i]="i"
-                  [routerLink]="rowLink(c)"
-                >
-                  <span class="case-mark" aria-hidden="true">
-                    <app-icon [name]="stageIcon(c)" [size]="18" />
-                  </span>
-
-                  <div class="case-who">
-                    <span class="case-id tabular">#{{ c.id }}</span>
-                    <strong class="case-name">{{ productName(c) }}</strong>
-                    <span class="case-meta">{{ cityLine(c) }}</span>
-                  </div>
-
-                  <div class="case-now">
-                    <span class="now-label">{{ nextHint(c) }}</span>
-                    <app-status-badge [label]="c.status_label" [variant]="statusVariant(c)" />
-                  </div>
-
-                  <div class="case-pay">
-                    <span class="pay-amt tabular">{{ money(c.amount_cents) }}</span>
-                    <app-status-badge
-                      [label]="c.paid ? 'Pagado' : 'Por pagar'"
-                      [variant]="c.paid ? 'ok' : 'warn'"
-                    />
-                  </div>
-
-                  <ol class="rail" aria-hidden="true">
-                    @for (s of stageKeys; track s) {
-                      <li
-                        class="pip"
-                        [class.done]="s <= c.status"
-                        [class.cur]="s === c.status"
-                        [attr.title]="stageShort[s]"
-                      ></li>
-                    }
-                  </ol>
-
-                  <span class="go">
-                    {{ goLabel(c) }}
-                    <app-icon name="arrow-right" [size]="16" />
-                  </span>
-                </a>
-              </li>
+          @if (!filtered.length) {
+            <div class="panel empty-state">
+              <span class="empty-icon"><app-icon name="search" [size]="22" /></span>
+              <h2>Nada en «{{ filterLabel }}»</h2>
+              @if (product !== 'all' && countProductTotal(product) === 0) {
+                <p>Aún no tienes trámites de {{ selectedServiceName }}. Puedes iniciar uno ahora.</p>
+                <a [routerLink]="startPath" class="btn btn-primary">Iniciar {{ selectedServiceName }}</a>
+                <button type="button" class="btn btn-secondary" (click)="setProduct('all')">Ver todos</button>
+              } @else {
+                <p>
+                  @if (cases.length) {
+                    Hay {{ cases.length }} trámites en tu cuenta. Este recorte está vacío.
+                  } @else {
+                    Este recorte está vacío.
+                  }
+                </p>
+                <button type="button" class="btn btn-secondary" (click)="clearFilters()">Ver todos</button>
+              }
+            </div>
+          } @else {
+            @if (actionInView.length) {
+              <section class="dossier-stack" [attr.aria-label]="'Te toca: ' + filterLabel">
+                @for (c of actionInView; track trackKey(c); let i = $index) {
+                  <button
+                    type="button"
+                    class="dossier"
+                    [class.is-hero]="i === 0"
+                    [class.is-pay]="!c.paid"
+                    [style.--i]="i"
+                    (click)="activateCase(c)"
+                  >
+                    <p class="dossier-kicker">Te toca</p>
+                    <h2 class="dossier-title">{{ dossierTitle(c) }}</h2>
+                    <p class="dossier-id">
+                      {{ productName(c) }} · #{{ c.id }} · {{ cityLine(c) }}
+                    </p>
+                    <p class="dossier-hint">{{ nextHint(c) }}</p>
+                    <p class="dossier-meta">{{ metaLine(c) }}</p>
+                    <span class="dossier-cta btn btn-primary">
+                      <app-icon [name]="stageIcon(c)" [size]="16" />
+                      {{ goLabel(c) }}
+                      <app-icon name="arrow-right" [size]="16" />
+                    </span>
+                  </button>
+                }
+              </section>
             }
-          </ul>
+
+            @if (archiveInView.length) {
+              <section class="archive" [attr.aria-label]="archiveHeading">
+                <h2 class="archive-head">{{ archiveHeading }}</h2>
+                <ul class="archive-list">
+                  @for (c of archiveInView; track trackKey(c); let i = $index) {
+                    <li>
+                      <button
+                        type="button"
+                        class="archive-row"
+                        [style.--i]="i"
+                        (click)="activateCase(c)"
+                      >
+                        <span class="archive-mark" aria-hidden="true">
+                          <app-icon [name]="stageIcon(c)" [size]="16" />
+                        </span>
+                        <div class="archive-who">
+                          <strong>{{ productName(c) }} #{{ c.id }}</strong>
+                          <span>{{ cityLine(c) }}</span>
+                        </div>
+                        <div class="archive-stage">
+                          <span>{{ stageProse(c) }}</span>
+                          <span class="archive-pay tabular">
+                            {{ c.paid ? 'Pagado' : 'Por pagar' }} · {{ money(c.amount_cents) }}
+                          </span>
+                        </div>
+                        <span class="archive-go">
+                          {{ goLabel(c) }}
+                          <app-icon name="arrow-right" [size]="14" />
+                        </span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          }
         }
-      }
+      </div>
     </div>
   `,
   styles: [`
-    .inbox {
-      padding-block: var(--space-6) var(--space-8);
+    :host {
+      display: block;
+      min-height: calc(100dvh - var(--header-height));
+    }
+
+    .client-workspace {
+      display: grid;
+      grid-template-columns: 272px minmax(0, 1fr);
+      min-height: calc(100dvh - var(--header-height));
+      background: var(--bg);
+    }
+
+    .client-sidebar {
+      position: sticky;
+      top: var(--header-height);
+      align-self: start;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+      width: 272px;
+      min-height: calc(100dvh - var(--header-height));
+      padding: var(--space-6) var(--space-5) var(--space-7);
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--bg) 88%, var(--primary-subtle)),
+          var(--bg-subtle) 48%
+        );
+      border-right: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
+      animation: side-in 480ms var(--ease-out) both;
+    }
+
+    .side-block {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .side-block--soon {
+      margin-top: auto;
+      padding-top: var(--space-4);
+      border-top: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
+    }
+
+    .side-label {
+      margin: 0;
+      font-size: 0.68rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .side-nav {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .side-service {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .side-timeline {
+      list-style: none;
+      margin: 0.15rem 0 0.35rem;
+      padding: 0 0 0 0.85rem;
+      display: grid;
+      gap: 0;
+      animation: side-in 420ms var(--ease-out) both;
+    }
+
+    .side-step {
+      display: grid;
+      grid-template-columns: 1rem minmax(0, 1fr);
+      align-items: center;
+      gap: 0.55rem;
+      width: 100%;
+      padding: 0.35rem 0.4rem 0.35rem 0;
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+      transition: color 180ms var(--ease-out);
+    }
+
+    .side-step-rail {
+      display: grid;
+      place-items: center;
+      position: relative;
+      height: 100%;
+      min-height: 1.5rem;
+    }
+
+    .side-step-rail::before {
+      content: '';
+      position: absolute;
+      top: -0.35rem;
+      bottom: -0.35rem;
+      left: 50%;
+      width: 1px;
+      transform: translateX(-50%);
+      background: color-mix(in srgb, var(--primary) 22%, var(--border));
+    }
+
+    .side-timeline li:first-child .side-step-rail::before { top: 50%; }
+    .side-timeline li:last-child .side-step-rail::before { bottom: 50%; }
+
+    .side-step-dot {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      border: 1.5px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+      background: var(--bg-subtle);
+      color: var(--primary);
+    }
+
+    .side-step.done .side-step-dot {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .side-step.current .side-step-dot,
+    .side-step.on .side-step-dot {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+    }
+
+    .side-step.on,
+    .side-step.current {
+      color: var(--primary);
+    }
+
+    .side-step.done { color: var(--text-secondary); }
+    .side-step.locked { opacity: 0.45; cursor: default; }
+    .side-step:hover:not(.locked):not(.on) { color: var(--text); }
+    .side-step:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .side-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: var(--space-2);
+      width: 100%;
+      padding: 0.7rem 0.75rem;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      background: transparent;
+      text-align: left;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      transition:
+        background 200ms var(--ease-out),
+        border-color 200ms var(--ease-out),
+        transform 220ms var(--ease-out);
+    }
+
+    .side-item-copy {
+      display: grid;
+      gap: 0.15rem;
+      min-width: 0;
+    }
+
+    .side-item-name {
+      font-size: var(--text-sm);
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--text);
+    }
+
+    .side-item-desc {
+      font-size: 0.72rem;
+      line-height: 1.35;
+      color: var(--text-muted);
+    }
+
+    .side-count {
+      font-size: var(--text-xs);
+      font-weight: 650;
+      color: var(--text-muted);
+      padding-top: 0.15rem;
+    }
+
+    .side-item:hover:not(.on) {
+      background: color-mix(in srgb, var(--surface) 70%, transparent);
+      border-color: color-mix(in srgb, var(--primary) 14%, var(--border));
+    }
+
+    .side-item.on {
+      background: var(--surface);
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+      box-shadow: var(--shadow-sm);
+    }
+
+    .side-item.on .side-item-name {
+      color: var(--primary);
+    }
+
+    .side-item.on .side-count {
+      color: var(--primary);
+    }
+
+    .side-item:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .side-item:active {
+      transform: scale(0.985);
+    }
+
+    .side-soon-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .side-soon-list li {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .client-main {
+      min-width: 0;
+      padding: var(--space-6) var(--container-pad) var(--space-8);
+      animation: main-in 360ms var(--ease-out) both;
     }
 
     .inbox-head {
       margin-bottom: var(--space-5);
-      animation: inbox-in 520ms var(--ease-out) both;
-    }
-
-    .inbox-kicker {
-      margin: 0 0 var(--space-2);
-      font-size: var(--text-xs);
-      font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
     }
 
     .inbox-head h1 {
@@ -209,117 +554,181 @@ const STAGE_SHORT: Record<string, string> = {
       font-size: var(--text-sm);
     }
 
-    .lanes {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--space-2);
-      margin-bottom: var(--space-5);
-    }
-
-    .lane {
-      display: grid;
-      gap: 0.15rem;
-      min-height: 4.25rem;
-      padding: var(--space-3);
-      text-align: left;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
-      color: var(--text-secondary);
-      box-shadow: var(--shadow-sm);
-      animation: inbox-in 480ms var(--ease-out) both;
-      transition:
-        transform 240ms var(--ease-out),
-        border-color 200ms var(--ease),
-        background 200ms var(--ease),
-        box-shadow 240ms var(--ease);
-    }
-
-    .lanes .lane:nth-child(1) { animation-delay: 40ms; }
-    .lanes .lane:nth-child(2) { animation-delay: 80ms; }
-    .lanes .lane:nth-child(3) { animation-delay: 120ms; }
-    .lanes .lane:nth-child(4) { animation-delay: 160ms; }
-
-    .lane:hover:not(.on) {
-      transform: translateY(-3px);
-      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
-      box-shadow: var(--shadow-md);
-      color: var(--text);
-    }
-
-    .lane:active {
-      transform: translateY(-1px) scale(0.98);
-    }
-
-    .lane.on {
-      background: var(--primary-subtle);
-      border-color: var(--primary-border);
-      color: var(--primary);
-      box-shadow: var(--shadow-md);
-    }
-
-    .lane-n {
-      font-size: var(--text-2xl);
-      font-weight: 650;
-      letter-spacing: var(--tracking-tight);
-      line-height: 1;
-      color: var(--text);
-    }
-
-    .lane.on .lane-n { color: var(--primary); }
-
-    .lane-l {
-      font-size: var(--text-xs);
-      font-weight: 650;
-    }
-
-    .prods {
+    .seg {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--space-2);
-      margin: calc(var(--space-4) * -1) 0 var(--space-5);
+      gap: 0.35rem;
+      margin-bottom: var(--space-5);
+      padding: 0.25rem;
+      width: fit-content;
+      max-width: 100%;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
       animation: inbox-in 480ms var(--ease-out) both;
-      animation-delay: 180ms;
+      animation-delay: 60ms;
     }
 
-    .prod {
+    .seg-btn {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-2);
-      min-height: 2.25rem;
-      padding: 0 var(--space-3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
+      gap: 0.4rem;
+      min-height: 2rem;
+      padding: 0 0.75rem;
+      border: 0;
+      border-radius: calc(var(--radius-md) - 2px);
+      background: transparent;
       color: var(--text-secondary);
       font-size: var(--text-sm);
       font-weight: 600;
       transition:
         background 180ms var(--ease-out),
-        border-color 180ms var(--ease-out),
         color 180ms var(--ease-out);
     }
 
-    .prod:hover:not(.on) {
-      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+    .seg-btn:hover:not(.on) {
       color: var(--text);
+      background: color-mix(in srgb, var(--surface) 80%, transparent);
     }
 
-    .prod.on {
-      background: var(--primary-subtle);
-      border-color: var(--primary-border);
+    .seg-btn.on {
+      background: var(--surface);
       color: var(--primary);
+      box-shadow: var(--shadow-sm);
     }
 
-    .prod-n {
+    .seg-n {
       font-size: var(--text-xs);
       font-weight: 650;
       color: var(--text-muted);
     }
 
-    .prod.on .prod-n { color: var(--primary); }
+    .seg-btn.on .seg-n { color: var(--primary); }
 
-    .case-list {
+    .dossier-stack {
+      display: grid;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+
+    .dossier {
+      display: grid;
+      gap: var(--space-2);
+      justify-items: start;
+      width: 100%;
+      padding: clamp(1.25rem, 3vw, 1.75rem);
+      text-decoration: none;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+      color: inherit;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--bg) 70%, var(--surface)),
+          var(--surface) 42%
+        );
+      border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
+      border-radius: var(--radius-lg);
+      box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--bg) 80%, transparent),
+        var(--shadow-md);
+      animation: inbox-row-in 560ms var(--ease-out) both;
+      animation-delay: calc(min(var(--i, 0), 6) * 50ms);
+      transition:
+        transform 280ms var(--ease-out),
+        box-shadow 280ms var(--ease-out),
+        border-color 200ms var(--ease);
+    }
+
+    .dossier.is-hero {
+      padding: clamp(1.5rem, 3.5vw, 2rem);
+    }
+
+    .dossier:not(.is-hero) {
+      padding: clamp(1rem, 2.5vw, 1.35rem);
+      gap: var(--space-1);
+    }
+
+    .dossier:not(.is-hero) .dossier-title {
+      font-size: var(--text-xl);
+    }
+
+    .dossier:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--bg) 80%, transparent),
+        var(--shadow-lg);
+      border-color: color-mix(in srgb, var(--primary) 36%, var(--border));
+    }
+
+    .dossier.is-pay {
+      border-color: color-mix(in srgb, var(--warning) 40%, var(--border));
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--warning-subtle) 70%, transparent), transparent 45%),
+        var(--surface);
+    }
+
+    .dossier-kicker {
+      margin: 0;
+      font-size: var(--text-xs);
+      font-weight: 650;
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    .dossier-title {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--text);
+    }
+
+    .dossier-id {
+      margin: 0;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .dossier-hint {
+      margin: var(--space-1) 0 0;
+      max-width: 52ch;
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+      color: var(--text);
+    }
+
+    .dossier-meta {
+      margin: 0;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .dossier-cta {
+      margin-top: var(--space-3);
+      pointer-events: none;
+    }
+
+    .archive {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .archive-head {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--text-secondary);
+    }
+
+    .archive-list {
       list-style: none;
       margin: 0;
       padding: 0;
@@ -327,77 +736,62 @@ const STAGE_SHORT: Record<string, string> = {
       gap: var(--space-2);
     }
 
-    .case-row {
+    .archive-row {
       display: grid;
-      grid-template-columns: auto minmax(0, 1.1fr) minmax(0, 1.5fr) auto auto auto;
-      gap: var(--space-4);
+      grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1fr) auto;
+      gap: var(--space-3);
       align-items: center;
-      padding: var(--space-4);
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
       text-decoration: none;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
       color: inherit;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
-      animation: inbox-row-in 520ms var(--ease-out) both;
-      animation-delay: calc(min(var(--i, 0), 8) * 45ms);
+      animation: inbox-row-in 480ms var(--ease-out) both;
+      animation-delay: calc(min(var(--i, 0), 8) * 40ms);
       transition:
-        transform 280ms var(--ease-out),
-        box-shadow 280ms var(--ease),
-        border-color 200ms var(--ease);
+        border-color 200ms var(--ease),
+        box-shadow 240ms var(--ease-out),
+        transform 240ms var(--ease-out);
     }
 
-    .case-row:hover {
-      transform: translateX(6px);
-      box-shadow: var(--shadow-lg);
-      border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
+    .archive-row:hover {
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
     }
 
-    .case-row:hover .go { transform: translateX(4px); }
+    .archive-row:hover .archive-go { color: var(--primary); }
 
-    .case-row.is-act {
-      border-left: 3px solid var(--primary);
-    }
-
-    .case-row.is-pay {
-      border-left-color: var(--warning);
-      background: color-mix(in srgb, var(--warning-subtle) 55%, var(--surface));
-    }
-
-    .case-mark {
+    .archive-mark {
       display: grid;
       place-items: center;
-      width: 2.5rem;
-      height: 2.5rem;
-      border-radius: var(--radius-md);
-      background: var(--primary-subtle);
-      color: var(--primary);
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--radius-sm);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
     }
 
-    .case-row.is-pay .case-mark {
-      background: var(--warning-subtle);
-      color: var(--warning);
-    }
-
-    .case-who {
+    .archive-who {
       display: grid;
-      gap: 0.15rem;
+      gap: 0.1rem;
       min-width: 0;
     }
 
-    .case-id {
-      font-size: var(--text-xs);
-      font-weight: 650;
-      color: var(--text-muted);
-    }
-
-    .case-name {
-      font-size: var(--text-base);
+    .archive-who strong {
+      font-size: var(--text-sm);
       font-weight: 650;
       letter-spacing: -0.02em;
     }
 
-    .case-meta {
+    .archive-who span {
       font-size: var(--text-xs);
       color: var(--text-secondary);
       white-space: nowrap;
@@ -405,65 +799,28 @@ const STAGE_SHORT: Record<string, string> = {
       text-overflow: ellipsis;
     }
 
-    .case-now {
+    .archive-stage {
       display: grid;
-      gap: var(--space-2);
-      justify-items: start;
+      gap: 0.1rem;
       min-width: 0;
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
     }
 
-    .now-label {
-      font-size: var(--text-sm);
-      font-weight: 650;
-      line-height: var(--leading-snug);
-      color: var(--text);
+    .archive-pay {
+      font-weight: 600;
+      color: var(--text-muted);
     }
 
-    .case-pay {
-      display: grid;
-      gap: var(--space-1);
-      justify-items: end;
-    }
-
-    .pay-amt {
-      font-size: var(--text-sm);
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
-
-    .rail {
-      display: flex;
-      align-items: center;
-      gap: 0.28rem;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .pip {
-      width: 0.45rem;
-      height: 0.45rem;
-      border-radius: var(--radius-full);
-      background: var(--border-strong);
-    }
-
-    .pip.done { background: var(--success); }
-    .pip.cur {
-      width: 0.7rem;
-      height: 0.7rem;
-      background: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-subtle);
-    }
-
-    .go {
+    .archive-go {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-2);
-      font-weight: 650;
+      gap: var(--space-1);
       font-size: var(--text-sm);
-      color: var(--primary);
+      font-weight: 650;
+      color: var(--text-secondary);
       white-space: nowrap;
-      transition: transform 240ms var(--ease-out);
+      transition: color 200ms var(--ease);
     }
 
     .state-loading {
@@ -520,6 +877,28 @@ const STAGE_SHORT: Record<string, string> = {
       font-size: var(--text-sm);
     }
 
+    @keyframes side-in {
+      from {
+        opacity: 0;
+        transform: translateX(-12px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes main-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
     @keyframes inbox-in {
       from {
         opacity: 0;
@@ -546,24 +925,54 @@ const STAGE_SHORT: Record<string, string> = {
       }
     }
 
-    @media (max-width: 1100px) {
-      .case-row {
+    @media (max-width: 860px) {
+      .client-workspace {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+
+      .client-sidebar {
+        position: static;
+        width: auto;
+        min-height: 0;
+        gap: var(--space-4);
+        border-right: 0;
+        border-bottom: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
+        padding: var(--space-5) var(--container-pad);
+        animation: main-in 360ms var(--ease-out) both;
+      }
+
+      .side-block--soon {
+        margin-top: 0;
+      }
+
+      .side-soon-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.85rem;
+      }
+
+      .client-main {
+        padding-inline: var(--container-pad);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .archive-row {
         grid-template-columns: auto minmax(0, 1fr) auto;
         grid-template-areas:
           "mark who go"
-          "now now now"
-          "pay pay rail";
+          "stage stage stage";
       }
-      .case-mark { grid-area: mark; }
-      .case-who { grid-area: who; }
-      .case-now { grid-area: now; }
-      .case-pay { grid-area: pay; justify-items: start; }
-      .rail { grid-area: rail; justify-self: end; }
-      .go { grid-area: go; }
-    }
+      .archive-mark { grid-area: mark; }
+      .archive-who { grid-area: who; }
+      .archive-stage { grid-area: stage; }
+      .archive-go { grid-area: go; }
 
-    @media (max-width: 640px) {
-      .lanes { grid-template-columns: 1fr 1fr; }
+      .dossier-cta {
+        width: 100%;
+        justify-content: center;
+      }
     }
   `],
 })
@@ -571,10 +980,12 @@ export class ClientPanelComponent implements OnInit {
   cases: CaseItem[] = [];
   filter: Filter = 'action';
   product = 'all';
+  deskStep: ProductDeskStepId = 'pay';
+  deskCaseId: number | null = null;
   loading = false;
   error = false;
-  readonly stageKeys = CASE_STATUS_KEYS;
-  readonly stageShort = STAGE_SHORT;
+  readonly catalogServices = LEGALSTATION_CATALOG;
+  readonly productSideDesc = productSideDesc;
   filterDefs: { id: Filter; label: string }[] = [
     { id: 'action', label: 'Te toca' },
     { id: 'open', label: 'En curso' },
@@ -582,10 +993,54 @@ export class ClientPanelComponent implements OnInit {
     { id: 'all', label: 'Todos' },
   ];
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private router: Router) {}
 
   ngOnInit(): void {
     this.load();
+  }
+
+  get liveServices(): ProductCatalogEntry[] {
+    return this.catalogServices.filter((s) => s.live);
+  }
+
+  get soonServices(): ProductCatalogEntry[] {
+    return this.catalogServices.filter((s) => !s.live);
+  }
+
+  isDeskProduct(id: string): boolean {
+    return isTimelineProduct(id);
+  }
+
+  deskCaseFor(productId: string): CaseItem | null {
+    if (this.product === productId && this.deskCaseId != null) {
+      const pinned = this.cases.find(
+        (c) => c.id === this.deskCaseId && normalizeProductId(c.product) === productId,
+      );
+      if (pinned) return pinned;
+    }
+    return pickProductCase(this.cases, productId);
+  }
+
+  get deskCase(): CaseItem | null {
+    if (!this.isDeskProduct(this.product)) return null;
+    return this.deskCaseFor(this.product);
+  }
+
+  get deskTimeline() {
+    return buildProductSteps(this.deskCase, this.product);
+  }
+
+  /** @deprecated alias for specs */
+  get divorcioCase(): CaseItem | null {
+    return this.deskCaseFor('divorcio360');
+  }
+
+  get divorcioTimeline() {
+    return buildProductSteps(this.divorcioCase, 'divorcio360');
+  }
+
+  get divorcioStep(): ProductDeskStepId {
+    return this.product === 'divorcio360' ? this.deskStep : currentProductStep(this.divorcioCase, 'divorcio360');
   }
 
   setFilter(id: Filter): void {
@@ -593,7 +1048,74 @@ export class ClientPanelComponent implements OnInit {
   }
 
   setProduct(id: string): void {
+    if (id !== 'all') {
+      const entry = this.catalogServices.find((s) => s.id === id);
+      if (entry && !entry.live) return;
+      setActiveProduct(id);
+    }
     this.product = id;
+    if (this.isDeskProduct(id)) {
+      const c = this.deskCaseFor(id);
+      this.deskCaseId = c?.id ?? null;
+      this.deskStep = currentProductStep(c, id);
+    }
+  }
+
+  selectDeskStep(id: ProductDeskStepId): void {
+    const step = this.deskTimeline.find((s) => s.id === id);
+    if (step?.state === 'locked' && this.deskCase) return;
+    this.deskStep = id;
+  }
+
+  /** @deprecated */
+  selectDivorcioStep(id: ProductDeskStepId): void {
+    this.selectDeskStep(id);
+  }
+
+  openDesk(c: CaseItem): void {
+    const product = normalizeProductId(c.product);
+    if (!this.isDeskProduct(product)) return;
+    setActiveProduct(product);
+    this.product = product;
+    this.deskCaseId = c.id;
+    this.deskStep = currentProductStep(c, product);
+  }
+
+  openDivorcio(c: CaseItem): void {
+    this.openDesk(c);
+  }
+
+  onDeskCaseChanged(c: CaseItem): void {
+    const idx = this.cases.findIndex((x) => x.id === c.id);
+    if (idx >= 0) this.cases[idx] = { ...this.cases[idx], ...c };
+    else this.cases = [c, ...this.cases];
+    this.deskCaseId = c.id;
+    const product = normalizeProductId(c.product || this.product);
+    const next = currentProductStep(c, product);
+    if (this.deskTimeline.find((s) => s.id === this.deskStep)?.state === 'done') {
+      this.deskStep = next;
+    }
+  }
+
+  onDivorcioCaseChanged(c: CaseItem): void {
+    this.onDeskCaseChanged(c);
+  }
+
+  isDivorcio(c: CaseItem): boolean {
+    return normalizeProductId(c.product) === 'divorcio360';
+  }
+
+  isDeskCase(c: CaseItem): boolean {
+    return this.isDeskProduct(normalizeProductId(c.product));
+  }
+
+  activateCase(c: CaseItem): void {
+    if (this.isDeskCase(c)) {
+      this.openDesk(c);
+      return;
+    }
+    this.openCase(c);
+    void this.router.navigate(this.rowLink(c));
   }
 
   clearFilters(): void {
@@ -601,15 +1123,18 @@ export class ClientPanelComponent implements OnInit {
     this.product = 'all';
   }
 
-  get productDefs(): { id: string; name: string }[] {
-    const map = new Map<string, string>();
-    for (const c of this.cases) {
-      const id = normalizeProductId(c.product);
-      if (!map.has(id)) map.set(id, getProductDisplayName(id));
-    }
-    return [...map.entries()]
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  get selectedServiceName(): string {
+    if (this.product === 'all') return 'tu cuenta';
+    return getProductDisplayName(this.product);
+  }
+
+  get startPath(): string {
+    return getProductQuestionnairePath(this.product === 'all' ? 'divorcio360' : this.product);
+  }
+
+  get pageTitle(): string {
+    if (this.product === 'all') return 'Tus trámites';
+    return this.selectedServiceName;
   }
 
   load(): void {
@@ -621,6 +1146,13 @@ export class ClientPanelComponent implements OnInit {
         this.loading = false;
         if (this.filter === 'action' && this.countFor('action') === 0) {
           this.filter = 'all';
+        }
+        if (this.isDeskProduct(this.product)) {
+          const active = this.deskCase;
+          this.deskCaseId = active?.id ?? null;
+          if (!this.deskTimeline.some((s) => s.id === this.deskStep)) {
+            this.deskStep = currentProductStep(active, this.product);
+          }
         }
       },
       error: () => {
@@ -641,6 +1173,47 @@ export class ClientPanelComponent implements OnInit {
     });
   }
 
+  get actionInView(): CaseItem[] {
+    return this.filtered.filter((c) => this.needsYou(c));
+  }
+
+  get archiveInView(): CaseItem[] {
+    return this.filtered.filter((c) => !this.needsYou(c));
+  }
+
+  get pageLede(): string {
+    if (this.loading || this.error) {
+      return 'Qué te toca ahora. Un clic continúa.';
+    }
+    if (this.isDeskProduct(this.product)) {
+      if (!this.deskCase) {
+        return this.product === 'traslado360'
+          ? 'Un expediente de traslado. Elige un paso en la barra o inicia el trámite.'
+          : 'Un solo expediente de mutuo acuerdo. Elige un paso en la barra o inicia la evaluación.';
+      }
+      return 'Mismo panel, un paso a la vez. El timeline de la izquierda marca dónde vas.';
+    }
+    if (this.product !== 'all' && this.countProductTotal(this.product) === 0) {
+      return `Aún no tienes trámites de ${this.selectedServiceName}. Puedes iniciar uno cuando quieras.`;
+    }
+    if (!this.cases.length) {
+      return 'Elige un servicio e inicia tu primer expediente.';
+    }
+    if (this.cases.some((c) => this.needsYou(c) && this.matchesProduct(c, this.product))) {
+      return 'Qué te toca ahora. Un clic continúa.';
+    }
+    return 'Nada pendiente. El resto está en archivo.';
+  }
+
+  get archiveHeading(): string {
+    switch (this.filter) {
+      case 'open': return 'En curso';
+      case 'done': return 'Cerrados';
+      case 'action': return 'Archivo';
+      default: return this.actionInView.length ? 'Archivo' : 'Todos';
+    }
+  }
+
   get filterLabel(): string {
     const lane = this.filterDefs.find((f) => f.id === this.filter)?.label ?? 'Todos';
     if (this.product === 'all') return lane;
@@ -655,10 +1228,29 @@ export class ClientPanelComponent implements OnInit {
     return !c.paid || c.status === '02' || !!c.can_sign || c.status === '05';
   }
 
+  dossierTitle(c: CaseItem): string {
+    if (!c.paid) return 'Completa el pago';
+    if (c.can_sign) return 'Firma tu minuta';
+    if (c.status === '02') return 'Sube tus documentos';
+    return STAGE_SHORT[c.status] || 'Abre el expediente';
+  }
+
   nextHint(c: CaseItem): string {
     if (!c.paid) return 'Completa el pago para continuar.';
     if (c.can_sign) return c.sign_hint || 'Firma la minuta.';
     return STAGE_HINT[c.status] || 'Abre el expediente.';
+  }
+
+  stageProse(c: CaseItem): string {
+    const n = parseInt(c.status, 10);
+    const label = STAGE_SHORT[c.status] || c.status_label;
+    if (!Number.isFinite(n)) return label;
+    return `Etapa ${n} — ${label}`;
+  }
+
+  metaLine(c: CaseItem): string {
+    const pay = c.paid ? 'Pagado' : 'Por pagar';
+    return `${pay} · ${this.money(c.amount_cents)} · ${this.stageProse(c)}`;
   }
 
   stageIcon(c: CaseItem): IconName {
@@ -688,6 +1280,11 @@ export class ClientPanelComponent implements OnInit {
     return 'Abrir';
   }
 
+  /** Sync shell branding before shared /upload|/firma|/checkout routes (no product slug in URL). */
+  openCase(c: CaseItem): void {
+    setActiveProduct(normalizeProductId(c.product));
+  }
+
   rowLink(c: CaseItem): (string | number)[] {
     if (!c.paid) return ['/checkout', c.id];
     if (c.can_sign) return ['/firma', c.id];
@@ -699,14 +1296,9 @@ export class ClientPanelComponent implements OnInit {
     return this.cases.filter((c) => this.matches(c, id) && this.matchesProduct(c, this.product)).length;
   }
 
-  countProduct(id: string): number {
-    return this.cases.filter((c) => this.matches(c, this.filter) && this.matchesProduct(c, id)).length;
-  }
-
-  statusVariant(c: CaseItem): 'warn' | 'ok' | 'info' | 'default' {
-    if (!c.paid || c.status === '02' || c.status === '05') return 'warn';
-    if (c.status === '10') return 'ok';
-    return 'default';
+  /** Conteos del sidebar: estables al cambiar Te toca / En curso. */
+  countProductTotal(id: string): number {
+    return this.cases.filter((c) => this.matchesProduct(c, id)).length;
   }
 
   private matches(c: CaseItem, id: Filter): boolean {

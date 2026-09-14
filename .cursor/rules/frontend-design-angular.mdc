@@ -16,5 +16,6 @@ Al recibir referencia visual (ej. talkingtree.app) y datos de API:
 4. **Marcas:** LegalStation = teal `#2f6f68` + cream tokens. Un solo idioma en el camino cliente. No clay neo. No indigo `#4455c4`.
 5. **Hero:** `MarketingHeroComponent` (home video) y GSAP pin en `/productos/divorcio360`. Motion always-on — ver `demo-motion.mdc`.
 6. **Referencias React (21st.dev, Skiper):** Portar comportamiento a Angular; documentar en HANDOFF si no hay paridad 1:1.
+7. **Anti-AI-slop & minimalismo:** Titulares H1 ultra-cortos (3-5 palabras, ej. "Expedientes civiles, resueltos"). Prohibido clichés de IA: pills con punto parpadeante, tiras de 3 métricas sintéticas (-80%, 100%, 0hs), listas de checkmarks, barras de telemetría falsas o fondos sci-fi con retícula láser. Fondos: superficie mate sobria (pizarra/cream) con iluminación natural.
 
 Plugins Cursor (`component-curator`, `21st-dev-bridge`): instalar desde Marketplace del IDE; no son dependencias npm.

@@ -22,7 +22,7 @@ const (
 	maxPitch    = 280
 	maxName     = 120
 	maxDuration = 80
-	maxItems    = 12
+	maxItems    = 24
 )
 
 var slugClean = regexp.MustCompile(`[^a-z0-9]+`)
@@ -36,8 +36,17 @@ type DocItem struct {
 }
 
 type QuestionItem struct {
-	Prompt string `json:"prompt"`
-	Kind   string `json:"kind"`
+	ID               string `json:"id,omitempty"`
+	Prompt           string `json:"prompt"`
+	Kind             string `json:"kind,omitempty"`
+	AnswerType       string `json:"answer_type,omitempty"`
+	Required         bool   `json:"required,omitempty"`
+	PriceDeltaCents  int    `json:"price_delta_cents,omitempty"`
+	PriceOnYesCents  int    `json:"price_on_yes_cents,omitempty"`
+	PriceOnNoCents   int    `json:"price_on_no_cents,omitempty"`
+	Next             string `json:"next,omitempty"`
+	BranchYes        string `json:"branch_yes,omitempty"`
+	BranchNo         string `json:"branch_no,omitempty"`
 }
 
 type Offering struct {
@@ -391,25 +400,105 @@ func normalizeQuestions(in []QuestionItem) ([]QuestionItem, string) {
 	if len(in) > maxItems {
 		return nil, "demasiadas preguntas"
 	}
+	validTypes := map[string]bool{
+		"boolean": true, "text": true, "cedula_ec": true,
+		"passport": true, "number": true, "date": true,
+		"no_aplica": true,
+		"si_no": true, "texto": true, // legacy
+	}
+	ids := map[string]bool{}
 	out := make([]QuestionItem, 0, len(in))
-	for _, q := range in {
+	for i, q := range in {
 		prompt := strings.TrimSpace(q.Prompt)
 		if prompt == "" {
 			continue
 		}
-		if utf8.RuneCountInString(prompt) > 200 {
+		if utf8.RuneCountInString(prompt) > 280 {
 			return nil, "pregunta inválida"
 		}
+		id := strings.TrimSpace(q.ID)
+		if id == "" {
+			id = fmt.Sprintf("q%d", i+1)
+		}
+		if ids[id] {
+			return nil, "id de pregunta duplicado"
+		}
+		ids[id] = true
+
+		answerType := strings.TrimSpace(q.AnswerType)
 		kind := strings.TrimSpace(q.Kind)
-		if kind == "" {
+		if answerType == "" {
+			if kind == "texto" {
+				answerType = "text"
+			} else if kind == "si_no" || kind == "" {
+				answerType = "boolean"
+			} else {
+				answerType = kind
+			}
+		}
+		if !validTypes[answerType] {
+			return nil, "tipo de dato inválido"
+		}
+		// Canonicalize kind for older clients
+		if answerType == "boolean" || answerType == "si_no" {
+			answerType = "boolean"
 			kind = "si_no"
+		} else if answerType == "text" || answerType == "texto" {
+			answerType = "text"
+			kind = "texto"
+		} else if answerType == "no_aplica" {
+			answerType = "no_aplica"
+			kind = "no_aplica"
+		} else {
+			kind = answerType
 		}
-		if kind != "si_no" && kind != "texto" {
-			return nil, "tipo de pregunta inválido"
+
+		item := QuestionItem{
+			ID:              id,
+			Prompt:          prompt,
+			Kind:            kind,
+			AnswerType:      answerType,
+			Required:        q.Required,
+			PriceDeltaCents: clampNonNeg(q.PriceDeltaCents),
+			PriceOnYesCents: clampNonNeg(q.PriceOnYesCents),
+			PriceOnNoCents:  clampNonNeg(q.PriceOnNoCents),
+			Next:            strings.TrimSpace(q.Next),
+			BranchYes:       strings.TrimSpace(q.BranchYes),
+			BranchNo:        strings.TrimSpace(q.BranchNo),
 		}
-		out = append(out, QuestionItem{Prompt: prompt, Kind: kind})
+		if answerType == "no_aplica" {
+			item.Required = false
+			item.Next = ""
+			item.BranchYes = ""
+			item.BranchNo = ""
+			item.PriceOnYesCents = 0
+			item.PriceOnNoCents = 0
+		}
+		out = append(out, item)
+	}
+	// Drop dangling branch refs
+	for i := range out {
+		if out[i].Next != "" && !ids[out[i].Next] {
+			out[i].Next = ""
+		}
+		if out[i].BranchYes != "" && !ids[out[i].BranchYes] {
+			out[i].BranchYes = ""
+		}
+		if out[i].BranchNo != "" && !ids[out[i].BranchNo] {
+			out[i].BranchNo = ""
+		}
 	}
 	return out, ""
+}
+
+func clampNonNeg(n int) int {
+	if n < 0 {
+		return 0
+	}
+	if n > 50000000 {
+		return 50000000
+	}
+	return n
 }
 
 func slugify(s string) string {
@@ -477,44 +566,200 @@ func (s *Service) uniqueSlug(lawyerID int64, base, exceptID string) (string, err
 }
 
 func (s *Service) ensureSeed(lawyerID int64) error {
+	if err := s.upsertCanonicalSeed(lawyerID, seedDivorcio360(lawyerID)); err != nil {
+		return err
+	}
+	return s.ensureOfferingIfMissing(lawyerID, seedDenunciaElectronica(lawyerID))
+}
+
+func (s *Service) ensureOfferingIfMissing(lawyerID int64, row Offering) error {
 	var n int
-	if err := s.DB.QueryRow(`SELECT COUNT(*) FROM lawyer_services WHERE lawyer_id=?`, lawyerID).Scan(&n); err != nil {
+	if err := s.DB.QueryRow(
+		`SELECT COUNT(*) FROM lawyer_services WHERE lawyer_id=? AND slug=?`,
+		lawyerID, row.Slug,
+	).Scan(&n); err != nil {
 		return err
 	}
 	if n > 0 {
 		return nil
 	}
+	return s.insert(row)
+}
+
+// upsertCanonicalSeed inserts or refreshes a known demo offering (keeps lawyer_id/slug).
+func (s *Service) upsertCanonicalSeed(lawyerID int64, row Offering) error {
+	var existingID string
+	err := s.DB.QueryRow(
+		`SELECT id FROM lawyer_services WHERE lawyer_id=? AND slug=?`,
+		lawyerID, row.Slug,
+	).Scan(&existingID)
+	if err == sql.ErrNoRows {
+		return s.insert(row)
+	}
+	if err != nil {
+		return err
+	}
+	row.ID = existingID
+	row.LawyerID = lawyerID
+	row.UpdatedAt = store.Now()
+	return s.update(row)
+}
+
+// seedDivorcio360 mirrors /cuestionario branches + checkout extras (demo config).
+func seedDivorcio360(lawyerID int64) Offering {
 	now := store.Now()
-	docs, _ := json.Marshal([]DocItem{
+	docs := []DocItem{
+		{Label: "Cédula o pasaporte (ambos cónyuges)"},
+		{Label: "Partida de matrimonio"},
+		{Label: "Acta de mediación (si aplica)"},
+	}
+	qs := []QuestionItem{
+		{
+			ID: "both_want", Prompt: "¿Los dos quieren divorciarse?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "marriage_ec", BranchNo: "outcome_no_aplica",
+		},
+		{
+			ID: "marriage_ec", Prompt: "¿Se casaron en Ecuador?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "someone_abroad", BranchNo: "outcome_no_aplica",
+		},
+		{
+			ID: "outcome_no_aplica", Prompt: "Este trámite no aplica a tu caso. Agenda una asesoría para revisar opciones.",
+			Kind: "no_aplica", AnswerType: "no_aplica", Required: false,
+			PriceDeltaCents: 4900,
+		},
+		{
+			ID: "someone_abroad", Prompt: "¿Alguno de los dos vive fuera del país?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "have_children", BranchNo: "have_children",
+			PriceOnYesCents: 4500, // Persona en el exterior
+		},
+		{
+			ID: "have_children", Prompt: "¿Tienen hijos en común?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "minor_dependents", BranchNo: "have_assets",
+			PriceOnYesCents: 7500, // Hijos en común
+		},
+		{
+			ID: "minor_dependents", Prompt: "¿Alguno es menor de edad o depende de ustedes?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "custody_regulated", BranchNo: "have_assets",
+		},
+		{
+			ID: "custody_regulated", Prompt: "¿Ya acordaron manutención, con quién viven y las visitas?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "has_mediation_acta", BranchNo: "has_mediation_acta",
+		},
+		{
+			ID: "has_mediation_acta", Prompt: "¿Tienen ese acuerdo por escrito y firmado?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "have_assets", BranchNo: "have_assets",
+			PriceOnNoCents: 5000, // Sin acta de mediación
+		},
+		{
+			ID: "have_assets", Prompt: "¿Compraron bienes mientras estuvieron casados?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "conjugal_society", BranchNo: "ids_valid",
+		},
+		{
+			ID: "conjugal_society", Prompt: "¿Sus bienes están en sociedad conyugal?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "want_liquidate", BranchNo: "want_liquidate",
+			PriceOnYesCents: 6000, // Sociedad conyugal
+		},
+		{
+			ID: "want_liquidate", Prompt: "¿Quieren repartir los bienes ahora?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "ids_valid", BranchNo: "ids_valid",
+			PriceOnYesCents: 12000, // Liquidación de bienes
+			PriceOnNoCents:  3500,  // Bienes sin liquidar ahora
+		},
+		{
+			ID: "ids_valid", Prompt: "¿Los dos tienen la cédula o el pasaporte vigente?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "city", BranchNo: "outcome_evaluacion",
+		},
+		{
+			ID: "outcome_evaluacion", Prompt: "Necesitas una evaluación previa. Agenda asesoría para continuar con el caso.",
+			Kind: "no_aplica", AnswerType: "no_aplica", Required: false,
+			PriceDeltaCents: 74900,
+		},
+		{
+			ID: "city", Prompt: "¿En qué ciudad o cantón realizarán el trámite?",
+			Kind: "texto", AnswerType: "text", Required: true,
+			Next: "",
+		},
+	}
+	return Offering{
+		ID:           "svc-divorcio360-mutuo",
+		LawyerID:     lawyerID,
+		Slug:         "divorcio360-mutuo",
+		Name:         "Divorcio360 mutuo acuerdo",
+		Category:     "familia",
+		Status:       "publicado",
+		PriceCents:   34900,
+		Pitch:        "Divorcio notarial de mutuo acuerdo en Ecuador, con flujo de elegibilidad y extras según respuestas.",
+		Description:  "Misma lógica que el cuestionario vivo: No en mutuo acuerdo o matrimonio en Ecuador → nodo «no aplica» ($0). Documentos no vigentes → evaluación ($749). Con hijos menores sin acuerdo escrito, el producto en vivo también puede derivar a evaluación. Honorario base apto $349. Extras: exterior $45, hijos $75, sin acta $50, sociedad conyugal $60, liquidar $120, diferir bienes $35.",
+		DurationHint: "7 a 15 días hábiles",
+		Docs:         docs,
+		Questions:    qs,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+}
+
+func seedDenunciaElectronica(lawyerID int64) Offering {
+	now := store.Now()
+	docs := []DocItem{
 		{Label: "Cédula del denunciante"},
 		{Label: "Relato de los hechos"},
 		{Label: "Evidencia (capturas o documentos)"},
-	})
-	qs, _ := json.Marshal([]QuestionItem{
-		{Prompt: "¿Ya presentó una denuncia previa por este hecho?", Kind: "si_no"},
-		{Prompt: "¿Hay una persona identificada como responsable?", Kind: "si_no"},
-		{Prompt: "¿Es un hecho urgente o hay riesgo actual?", Kind: "si_no"},
-	})
-	_, err := s.DB.Exec(
-		`INSERT INTO lawyer_services
-		 (id, lawyer_id, slug, name, category, status, price_cents, pitch, description, duration_hint, docs_json, questions_json, created_at, updated_at)
-		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-		"svc-denuncia-electronica",
-		lawyerID,
-		"denuncia-electronica",
-		"Denuncia electrónica",
-		"penal",
-		"publicado",
-		18900,
-		"Presentación de denuncia ante Fiscalía u otras entidades, sin filas ni ventanilla.",
-		"El cliente relata los hechos, adjunta cédula y evidencia, y el bufete arma el escrito para presentación electrónica. El honorario cubre revisión, redacción y carga en el canal competente. No incluye patrocinio en juicio.",
-		"3 a 7 días hábiles",
-		string(docs),
-		string(qs),
-		now,
-		now,
-	)
-	return err
+	}
+	qs := []QuestionItem{
+		{
+			ID: "q1", Prompt: "¿Ya presentó una denuncia previa por este hecho?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "q2", BranchNo: "q2",
+		},
+		{
+			ID: "q2", Prompt: "¿Hay una persona identificada como responsable?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			BranchYes: "q3", BranchNo: "q4",
+			PriceOnYesCents: 2500,
+		},
+		{
+			ID: "q3", Prompt: "Número de cédula del denunciante",
+			Kind: "cedula_ec", AnswerType: "cedula_ec", Required: true,
+			Next: "q5",
+		},
+		{
+			ID: "q4", Prompt: "Describe cómo identificarías al responsable",
+			Kind: "texto", AnswerType: "text", Required: true,
+			Next: "q5", PriceDeltaCents: 1500,
+		},
+		{
+			ID: "q5", Prompt: "¿Es un hecho urgente o hay riesgo actual?",
+			Kind: "si_no", AnswerType: "boolean", Required: true,
+			PriceOnYesCents: 4000,
+		},
+	}
+	return Offering{
+		ID:           "svc-denuncia-electronica",
+		LawyerID:     lawyerID,
+		Slug:         "denuncia-electronica",
+		Name:         "Denuncia electrónica",
+		Category:     "penal",
+		Status:       "publicado",
+		PriceCents:   18900,
+		Pitch:        "Presentación de denuncia ante Fiscalía u otras entidades, sin filas ni ventanilla.",
+		Description:  "El cliente relata los hechos, adjunta cédula y evidencia, y el bufete arma el escrito para presentación electrónica. El honorario cubre revisión, redacción y carga en el canal competente. No incluye patrocinio en juicio.",
+		DurationHint: "3 a 7 días hábiles",
+		Docs:         docs,
+		Questions:    qs,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
 }
 
 func (s *Service) insert(row Offering) error {

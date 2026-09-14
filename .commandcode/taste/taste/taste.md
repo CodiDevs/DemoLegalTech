@@ -10,3 +10,6 @@
 - Handles git commits on their own and expects the agent to leave changes uncommitted; asks the agent to diagnose merge/push blockers (behind/ahead counts, dry-run conflict checks) rather than to commit or push for them. Confidence: 0.6
 - When asking for a redesign, wants the section to be given a purpose-built background/atmosphere (brand-consistent texture, light, depth layers) instead of the current flat surface — "un fondo que sea adecuado" is part of the ask, not optional. Confidence: 0.6
 - Wants demos to run motion always-on ("activa full motion"): no `prefers-reduced-motion` downgrade of the animation, only avoid layout-triggering properties. Confidence: 0.55
+- In hero and landing sections, headlines (H1) must be ultra-short (3-5 words, e.g., "Expedientes civiles, resueltos"), punchy and confident; strictly avoid long, wordy LLM-style explanatory sentences. Confidence: 1.0
+- Strongly dislikes generic AI-slop visual artifacts: no pulsing green dots on pills, no synthetic 3-stat metric strips (-80%, 100%, 0hs), no checkmark guarantee lists, no fake cyber telemetry bars, and no sci-fi/laser grid backgrounds. Confidence: 1.0
+- Rejects inappropriate library/wood stock imagery for backgrounds; expects modern, quiet, slate/matte surfaces with subtle natural light where the product itself (case window, documents) is the visual proof. Confidence: 1.0

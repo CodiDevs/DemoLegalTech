@@ -121,11 +121,8 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./pages/fase2/ai-agent/ai-agent.component').then((m) => m.Fase2AiComponent),
           },
-          {
-            path: 'fase2/satje',
-            loadComponent: () =>
-              import('./pages/fase2/satje/satje.component').then((m) => m.Fase2SatjeComponent),
-          },
+          // Causas judiciales (SATJE) temporalmente retirado
+          { path: 'fase2/satje', redirectTo: 'fase2/admin', pathMatch: 'full' },
           {
             path: 'fase2/billing',
             loadComponent: () =>
@@ -170,7 +167,7 @@ export const routes: Routes = [
       { path: 'fase2/admin', redirectTo: 'abogado/fase2/admin', pathMatch: 'full' },
       { path: 'fase2/templates', redirectTo: 'abogado/fase2/templates', pathMatch: 'full' },
       { path: 'fase2/ai', redirectTo: 'abogado/fase2/ai', pathMatch: 'full' },
-      { path: 'fase2/satje', redirectTo: 'abogado/fase2/satje', pathMatch: 'full' },
+      { path: 'fase2/satje', redirectTo: 'abogado/fase2/admin', pathMatch: 'full' },
       { path: 'fase2/billing', redirectTo: 'abogado/fase2/billing', pathMatch: 'full' },
     ],
   },

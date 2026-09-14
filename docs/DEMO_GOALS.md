@@ -43,8 +43,49 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Firma plataforma vs documento propio | `/firma/:id` — subir PDF propio ($0) o firma LegalStation $15 aparte (Payphone mock) | 2026-09-13 |
 | done | Flujo cliente Iniciar Formulario + firma canvas | Header/hero CTA con login; upload compacto; lienzo LegalStation → $15; recibo de la sesión | 2026-09-13 |
 | done | Módulo de servicios del abogado | `abogado@demo.ec` → Servicios → editar Denuncia electrónica o crear una oferta nueva | 2026-09-13 |
+| done | Login → panel por rol | `/auth` login cliente → `/cliente`; abogado → `/abogado`; deep links (cuestionario/checkout) intactos | 2026-09-13 |
+| done | Header menú cuenta + Salir | Login → clic en nombre (Carlos) → menú con panel + Salir (icono); sin Salir suelto en la barra | 2026-09-13 |
+| done | Portal /cliente expediente | `/cliente` — hoja Te toca + CTA Firmar; filtros densos; archivo compacto (sin KPI cards) | 2026-09-13 |
+| done | Sidebar servicios unificado | `/cliente` — rail de servicios; un solo panel; filtrar Divorcio/Traslado/BienRaíz | 2026-09-13 |
+| done | Header SaaS en /cliente | Marca LegalStation (no Divorcio360); sin Iniciar Formulario en el panel unificado | 2026-09-13 |
+| done | Branding flujo multi-producto | `/cliente` Traslado #6 → Subir: cabecera Traslado360 + crumb Mis trámites | 2026-09-13 |
+| done | Divorcio360 timeline in-panel | `/cliente` → Divorcio360: sidebar con pasos; content dossier sin salir del panel | 2026-09-13 |
+| done | Traslado360 timeline in-panel | `/cliente` → Traslado360: mismo timeline + desk (matrícula/acuerdo) | 2026-09-13 |
+| done | Header LegalStation estable | Marca siempre LegalStation; nav Inicio/Cómo funciona/Precios fijo entre productos | 2026-09-13 |
+| done | Editor servicios grafo | `/abogado/servicios` → lienzo n8n + seed Divorcio360 mutuo con flujo completo | 2026-09-14 |
+| done | Masthead folio /abogado | `abogado@demo.ec` → Bandeja/Servicios/Resumen: título Fraunces + aside operativo + regla teal | 2026-09-14 |
+| done | Bandeja búsqueda + filtros | `/abogado` — busca por nombre/#; Servicio + Estado (Revisión preseleccionado); 10/página | 2026-09-14 |
+| done | Precios toggle Servicios/Licencia | `/#precios` — toggle; Servicios = honorarios $349/$199/$299; Licenciamiento = planes mes | 2026-09-14 |
+| done | Expediente abogado dossier denso | `abogado@demo.ec` → `/abogado/caso/4` — cabecera tipográfica + tabs; pendientes en rail derecho | 2026-09-14 |
 
 ## Entries
+
+### 2026-09-14 — Expediente abogado dossier denso
+`abogado@demo.ec` → Bandeja → expediente en revisión (ej. `#4`). Cabecera sin caja (H1 Fraunces + badge + progreso compacto + regla teal). Pendientes y «Próxima acción» en el rail derecho. Un solo panel por tab (Resumen/Documentos/Minuta/Firmas/Historial).
+
+### 2026-09-14 — Precios toggle Servicios/Licencia
+`/` → `#precios`. Toggle **Servicios** / **Licenciamiento**. Servicios muestra honorarios únicos (Divorcio360 $349, Traslado360 $199, BienRaiz360 $299). Licenciamiento mantiene Starter/Professional/Enterprise.
+
+### 2026-09-14 — Bandeja búsqueda + filtros
+`abogado@demo.ec` → `/abogado`. Sin lanes: listado completo con búsqueda (nombre o #), filtros Servicio y Estado (Revisión por defecto). Más de 10 resultados → paginación.
+
+### 2026-09-14 — Masthead folio /abogado
+Login `abogado@demo.ec` → `/abogado`. Cada módulo (Bandeja, Servicios, Resumen, Modelos, Revisión, Licencia) comparte el mismo masthead: H1 Fraunces denso, aside operativo (no eslogan) y regla con tick teal. Cambiar de módulo y ver que el aside y las acciones cambian; el tick teal se mantiene.
+
+### 2026-09-13 — Branding flujo multi-producto
+Desde `/cliente` (Todos), abrir un expediente Traslado360 en Documentos: la cabecera muestra **Traslado360 por LegalStation** (no Divorcio360). Migas: Mis trámites → Traslado360 → Documentos. Mismo sync en checkout, firma, consulta y expediente.
+
+### 2026-09-13 — Divorcio360 timeline in-panel
+`/cliente` → servicio Divorcio360: el sidebar desglosa Pago → Documentos → Consulta → Firma → Notaría. Cada paso cambia solo el content (mismo layout dossier). Un expediente activo (mutuo acuerdo).
+
+### 2026-09-13 — Traslado360 timeline in-panel
+Mismo patrón que Divorcio360: sidebar con pasos; documentos de matrícula + acuerdo; sin salir de `/cliente`.
+
+### 2026-09-13 — Header LegalStation estable
+Cabecera siempre **LegalStation** (logo), misma tira de nav en todos los productos. Ya no salta a “Traslado360 por LegalStation”.
+
+### 2026-09-14 — Editor servicios grafo
+`abogado@demo.ec` → Servicios: lienzo n8n. El **+** expande a «Nueva pregunta» y **No aplica** (mensaje + costo de asesoría configurable). Seed Divorcio360 con salidas No aplica / evaluación. Recarga Servicios para refrescar el seed.
 
 ### 2026-08-29 — Bootstrap
 Repo en `chamba/divorcio360`, reglas Cursor, docs de alcance, Go API + Angular scaffold.
@@ -524,4 +565,27 @@ El bufete arma ofertas propias (nombre, slug, área, honorario, plazo, documento
 2. Sidebar **Servicios** → card Denuncia electrónica → Editar (folio + vista previa).
 3. **Nuevo servicio** → p. ej. Amparo constitucional $420 → Publicar → F5 conserva.
 4. Duplicar / borrar. Filtros Todos / Publicados / Borradores.
+
+### 2026-09-13 — Login → panel por rol
+Tras login (o visita a `/auth` ya autenticado), destino por defecto: cliente → `/cliente`, abogado → `/abogado`. `returnUrl=/` y landings marketing ya no pisan el panel. Deep links (`returnUrl=/cuestionario`, `next=checkout`, guards) siguen intactos. CTA **Ingresar** del header/footer ya no manda `returnUrl=/`.
+
+**Demo:** logout → `/` → Ingresar → `cliente@demo.ec` / `demo1234` → `/cliente`. Abogado → `/abogado`. Iniciar Formulario (guest) → login → `/cuestionario`.
+
+### 2026-09-13 — Header menú cuenta + Salir
+**Salir** ya no es un enlace siempre visible en `header-actions`. El chip del perfil (p. ej. Carlos) abre un menú con el acceso al panel del rol y **Salir** con icono `log-out`. Campana e Iniciar Formulario siguen en la barra.
+
+**Demo:** login `cliente@demo.ec` → clic en Carlos → Salir en el menú.
+
+### 2026-09-13 — Portal /cliente expediente (no inbox)
+`/cliente` deja el wall de KPI-cards y la fila horizontal. Filtros densos (Te toca n · En curso n…). Casos `needsYou` como hoja-expediente: verbo humano, identidad, meta en prosa, CTA primario. El resto en archivo compacto sin 10 pips.
+
+**Demo (30s):** login `cliente@demo.ec` / `demo1234` → `/cliente`. Con caso firmable, el primer viewport es «Firma tu minuta» + Firmar. Cambiar a En curso / Todos: dossiers arriba, archivo abajo.
+
+### 2026-09-13 — Sidebar servicios unificado
+Un solo panel SaaS: sidebar con **Todos** + **Servicios** (nombre + descripción corta, conteo solo si > 0) y lista quieta de **Próximamente**. Sin wordmark duplicado (la marca vive en el header). Clic filtra el mismo `/cliente`. Filtros de estado como segmented denso.
+
+**Demo:** `/cliente` → rail LegalStation → Divorcio360 / Traslado360 → Todos.
+
+### 2026-09-13 — Header SaaS en /cliente
+`/cliente` ya no es “flujo Divorcio360”: el wordmark es **LegalStation** (logo), sin sub “por LegalStation” de producto. **Iniciar Formulario** se oculta en este panel (el sidebar cubre los servicios). Inicio del nav apunta a `/`.
 

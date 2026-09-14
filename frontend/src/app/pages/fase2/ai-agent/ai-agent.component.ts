@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../../core/api.service';
 import { IconComponent } from '../../../shared/icon.component';
 import { getProductDisplayName } from '../../../shared/product-sites.data';
+import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
 
 interface AIResult {
   summary: string;
@@ -19,27 +20,24 @@ interface ChatMsg {
 @Component({
   selector: 'app-fase2-ai',
   standalone: true,
-  imports: [FormsModule, RouterLink, IconComponent],
+  imports: [FormsModule, RouterLink, IconComponent, WorkspaceHeadComponent],
   template: `
     <div class="desk">
-      <header class="desk-head">
-        <h1>Asistente de revisión</h1>
-        <div class="tools">
-          <label class="sr-only" for="caseId">Expediente</label>
-          <select id="caseId" [(ngModel)]="selectedCaseId" (ngModelChange)="onCaseChange($event)">
-            <option [ngValue]="0">Sin expediente</option>
-            @for (c of cases; track c.id) {
-              <option [ngValue]="c.id">#{{ c.id }} — {{ c.client_name || 'Cliente' }}</option>
-            }
-          </select>
-          @if (selectedCaseId > 0) {
-            <a class="btn btn-ghost" [routerLink]="['/abogado/caso', selectedCaseId]">
-              Abrir
-              <app-icon name="arrow-right" [size]="16" />
-            </a>
+      <app-workspace-head title="Revisión" [aside]="headAside">
+        <label class="sr-only" for="caseId">Expediente</label>
+        <select id="caseId" [(ngModel)]="selectedCaseId" (ngModelChange)="onCaseChange($event)">
+          <option [ngValue]="0">Sin expediente</option>
+          @for (c of cases; track c.id) {
+            <option [ngValue]="c.id">#{{ c.id }} — {{ c.client_name || 'Cliente' }}</option>
           }
-        </div>
-      </header>
+        </select>
+        @if (selectedCaseId > 0) {
+          <a class="btn btn-ghost" [routerLink]="['/abogado/caso', selectedCaseId]">
+            Abrir
+            <app-icon name="arrow-right" [size]="16" />
+          </a>
+        }
+      </app-workspace-head>
 
       @if (casesError) {
         <div class="panel state" role="alert">
@@ -113,37 +111,12 @@ interface ChatMsg {
       padding-block: var(--space-1) var(--space-6);
     }
 
-    .desk-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: var(--space-3);
-      animation: desk-in 480ms var(--ease-out) both;
-    }
-
-    .desk-head h1 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: clamp(1.6rem, 2.6vw, 2.1rem);
-      font-weight: 600;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-    }
-
-    .tools {
-      display: flex;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: var(--space-2);
-    }
-
-    .tools select {
+    .desk select {
       min-width: 16rem;
       max-width: 28rem;
     }
 
-    .tools .btn {
+    .desk .btn-ghost {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2);
@@ -336,6 +309,11 @@ export class Fase2AiComponent implements OnInit {
     const c = this.selectedCase;
     if (!c) return 'Sin expediente';
     return `#${c.id} — ${c.client_name || 'Cliente'}`;
+  }
+
+  get headAside(): string {
+    if (this.selectedCaseId <= 0) return '';
+    return this.selectedLabel;
   }
 
   productName(c: CaseItem): string {

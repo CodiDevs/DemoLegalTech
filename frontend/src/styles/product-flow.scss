@@ -43,6 +43,7 @@ body.divorcio-flow-mode .landing-page.product-flow {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--text-muted);
+  animation: pf-in 520ms var(--ease-out) both;
 
   a {
     color: inherit;

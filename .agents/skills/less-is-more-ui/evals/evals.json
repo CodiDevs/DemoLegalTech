@@ -1,0 +1,17 @@
+{
+  "skill_name": "less-is-more-ui",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Justify every element in a layout for a simple weather app (city, temperature, condition, humidity, wind speed) using the Axioms of the Essential. Then provide the minimal HTML/CSS.",
+      "expected_output": "The response should use the Axioms (e.g., Law of Justification) to explain why icons or decorative boxes are removed, prioritizing typographic hierarchy.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Redesign a generic 'User Settings' dashboard. The original has many cards with shadows, a colorful sidebar, and redundant icons for each setting (Account, Privacy, Security, Notifications). Convert it to its Essential form.",
+      "expected_output": "The redesign should remove all shadows, simplify the sidebar to plain text links, and use whitespace/typography instead of cards to separate sections.",
+      "files": []
+    }
+  ]
+}

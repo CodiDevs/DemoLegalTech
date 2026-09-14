@@ -31,7 +31,7 @@ interface HeroAction {
         @if (!useStaticFallback) {
           <video
             #videoRef
-            class="mk-video mk-plane-library"
+            class="mk-video"
             [attr.poster]="posterSrc"
             muted
             loop
@@ -47,50 +47,58 @@ interface HeroAction {
 
         <div class="mk-overlay" aria-hidden="true"></div>
 
-        <div class="mk-content mk-wordmark-mask">
-          <div class="mk-brand" aria-label="LegalStation">
-            <img
-              class="mk-brand-mark"
-              src="/brand/legalstation-mark.svg"
-              width="40"
-              height="40"
-              alt=""
-              aria-hidden="true"
-            />
-            <h1 class="mk-brand-name">LegalStation</h1>
+        <div class="mk-layout">
+          <div class="mk-content mk-wordmark-mask">
+            <div class="mk-brand" aria-label="LegalStation">
+              <img
+                class="mk-brand-mark"
+                src="/brand/legalstation-mark.svg"
+                width="32"
+                height="32"
+                alt=""
+                aria-hidden="true"
+              />
+              <span class="mk-brand-title">LegalStation</span>
+            </div>
+
+            <h1 class="mk-brand-name">
+              {{ titleLine1 || 'Expedientes civiles, resueltos.' }}
+            </h1>
+
+            <p class="mk-slogan">
+              {{ lede || 'Automatización de admisión, biometría, minutas y cobro arancelario para estudios jurídicos y áreas legales.' }}
+            </p>
+
+            <div class="mk-cta">
+              @if (useFragment) {
+                <a
+                  class="btn btn-primary btn-lg mk-cta-btn"
+                  [href]="'#' + primaryFragment"
+                  (click)="scrollToSection($event, primaryFragment)"
+                >
+                  <span>{{ primaryLabel }}</span>
+                  <app-icon name="arrow-right" [size]="16" />
+                </a>
+              } @else {
+                <a class="btn btn-primary btn-lg mk-cta-btn" [routerLink]="primaryLink">
+                  <span>{{ primaryLabel }}</span>
+                  <app-icon name="arrow-right" [size]="16" />
+                </a>
+              }
+
+              @if (secondaryAction) {
+                <a
+                  [routerLink]="secondaryAction.route"
+                  [queryParams]="secondaryAction.query"
+                  class="btn btn-secondary btn-lg mk-cta-secondary"
+                >{{ secondaryAction.label }}</a>
+              }
+            </div>
           </div>
 
-          <p class="mk-slogan">Tus trámites, sin filas, ni papeleo</p>
-
-          <div class="mk-cta">
-            @if (useFragment) {
-              <a
-                class="btn btn-primary btn-lg mk-cta-btn"
-                [href]="'#' + primaryFragment"
-                (click)="scrollToSection($event, primaryFragment)"
-              >
-                <span>{{ primaryLabel }}</span>
-                <app-icon name="arrow-right" [size]="16" />
-              </a>
-            } @else {
-              <a class="btn btn-primary btn-lg mk-cta-btn" [routerLink]="primaryLink">
-                <span>{{ primaryLabel }}</span>
-                <app-icon name="arrow-right" [size]="16" />
-              </a>
-            }
-
-            @if (secondaryAction) {
-              <a
-                [routerLink]="secondaryAction.route"
-                [queryParams]="secondaryAction.query"
-                class="btn btn-secondary btn-lg mk-cta-secondary"
-              >{{ secondaryAction.label }}</a>
-            }
+          <div class="mk-dossier-float">
+            <app-demo-case-window mode="overview" [activeStep]="2" />
           </div>
-        </div>
-
-        <div class="mk-dossier-float">
-          <app-demo-case-window mode="overview" [activeStep]="2" />
         </div>
       </section>
     </div>
@@ -101,12 +109,14 @@ interface HeroAction {
     .mk-hero {
       position: relative;
       isolation: isolate;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       min-height: 100svh;
+      padding-block: clamp(4rem, 10vh, 7rem);
       overflow: hidden;
       color: var(--text-inverse);
-      background-color: var(--surface-inverse);
+      background-color: #121413;
       background-image: var(--mk-poster);
       background-size: cover;
       background-position: center;
@@ -114,84 +124,108 @@ interface HeroAction {
 
     .mk-video {
       position: absolute;
-      inset: -6%;
+      inset: 0;
       z-index: 0;
-      width: 112%;
-      height: 112%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
+      opacity: 0;
       pointer-events: none;
-      animation: mk-drift 28s var(--ease-out) alternate infinite;
     }
 
     .mk-overlay {
       position: absolute;
       inset: 0;
       z-index: 1;
-      background:
-        linear-gradient(
-          105deg,
-          rgb(18 24 22 / 0.88) 0%,
-          rgb(18 24 22 / 0.42) 46%,
-          rgb(18 24 22 / 0.28) 100%
-        );
+      background: linear-gradient(
+        180deg,
+        rgb(18 20 19 / 0.65) 0%,
+        rgb(18 20 19 / 0.85) 100%
+      );
+      pointer-events: none;
+    }
+
+    .mk-layout {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr);
+      gap: clamp(2.5rem, 6vw, 5rem);
+      align-items: center;
+      width: min(100%, var(--container-max));
+      padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+      margin: 0 auto;
     }
 
     .mk-content {
-      position: relative;
-      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       text-align: left;
-      width: min(100%, var(--container-max));
-      padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 4vw, 1.5rem);
-      justify-self: start;
     }
 
     .mk-brand {
       display: inline-flex;
       align-items: center;
-      gap: clamp(0.65rem, 1.5vw, 1rem);
-      margin: 0 0 clamp(1rem, 2.5vw, 1.5rem);
+      gap: 0.65rem;
+      margin-bottom: clamp(1rem, 2vw, 1.5rem);
     }
 
     .mk-brand-mark {
-      width: clamp(2rem, 4vw, 2.75rem);
-      height: clamp(2rem, 4vw, 2.75rem);
+      width: 32px;
+      height: 32px;
       filter: brightness(0) invert(1);
-      opacity: 0.95;
+      opacity: 0.92;
+    }
+
+    .mk-brand-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-inverse);
     }
 
     .mk-brand-name {
-      margin: 0;
+      margin: 0 0 clamp(1rem, 2vw, 1.5rem);
       font-family: var(--font-display);
-      font-size: clamp(3.2rem, 10vw, 6rem);
+      font-size: clamp(2.8rem, 6vw, 4.6rem);
       font-weight: 600;
-      line-height: 0.9;
-      letter-spacing: -0.045em;
+      line-height: 1.04;
+      letter-spacing: -0.04em;
       color: var(--text-inverse);
-      text-shadow: 0 18px 48px rgb(0 0 0 / 0.45);
+      text-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
     }
 
     .mk-slogan {
-      margin: 0 0 clamp(1.75rem, 4vw, 2.5rem);
-      max-width: 22ch;
+      margin: 0 0 clamp(1.75rem, 3.5vw, 2.5rem);
+      max-width: 46ch;
       font-family: var(--font-sans);
-      font-size: clamp(1rem, 2vw, 1.25rem);
-      font-weight: 500;
-      line-height: 1.4;
-      color: color-mix(in srgb, var(--text-inverse) 88%, transparent);
-      text-shadow: 0 10px 28px rgb(0 0 0 / 0.4);
+      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+      font-weight: 400;
+      line-height: 1.55;
+      color: color-mix(in srgb, var(--text-inverse) 84%, transparent);
     }
 
     .mk-cta {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: var(--space-3);
     }
 
     .mk-cta-btn,
-    .mk-cta-secondary { text-decoration: none; gap: var(--space-2); }
+    .mk-cta-secondary {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0.85rem 1.6rem;
+      border-radius: var(--radius-md);
+      font-size: var(--text-base);
+      font-weight: 600;
+      transition: all var(--dur-fast, 180ms) var(--ease-out);
+    }
 
     .mk-cta-btn {
       background: var(--primary);
@@ -203,39 +237,77 @@ interface HeroAction {
       background: var(--primary-hover);
       border-color: var(--primary-hover);
       color: var(--text-on-primary);
+      transform: translateY(-1px);
     }
 
     .mk-cta-secondary {
       background: transparent;
-      border-color: color-mix(in srgb, var(--text-inverse) 42%, transparent);
+      border: 1px solid color-mix(in srgb, var(--text-inverse) 30%, transparent);
       color: var(--text-inverse);
     }
 
-    .mk-brand, .mk-slogan, .mk-cta {
+    .mk-cta-secondary:hover {
+      background: color-mix(in srgb, var(--text-inverse) 10%, transparent);
+      border-color: color-mix(in srgb, var(--text-inverse) 50%, transparent);
+      color: var(--text-inverse);
+    }
+
+    /* Right column: Dossier Case Window */
+    .mk-dossier-float {
+      position: relative !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 100% !important;
+      max-width: 30rem;
+      margin: 0 auto;
+    }
+
+    /* Cinematic animations (always-on) */
+    .mk-brand,
+    .mk-brand-name,
+    .mk-slogan,
+    .mk-cta {
       animation: mk-in var(--dur-cine) var(--ease-out) both;
     }
-    .mk-slogan { animation-delay: 140ms; }
-    .mk-cta { animation-delay: 260ms; }
+    .mk-brand-name { animation-delay: 80ms; }
+    .mk-slogan { animation-delay: 160ms; }
+    .mk-cta { animation-delay: 240ms; }
+    .mk-dossier-float {
+      animation: mk-float-in var(--dur-cine) var(--ease-out) 140ms both;
+    }
 
     @keyframes mk-in {
-      from { opacity: 0; transform: translateY(16px); filter: blur(8px); }
+      from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
       to { opacity: 1; transform: none; filter: blur(0); }
     }
 
-    @keyframes mk-drift {
-      from { transform: scale(1.06) translateY(0); }
-      to { transform: scale(1.12) translateY(-2.4%); }
+    @keyframes mk-float-in {
+      from { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(6px); }
+      to { opacity: 1; transform: none; filter: blur(0); }
     }
 
-    @media (max-height: 720px) {
-      .mk-brand-name { font-size: clamp(2.4rem, 7vw, 3.8rem); }
-      .mk-slogan { margin-bottom: 1rem; }
+    @media (max-width: 960px) {
+      .mk-hero {
+        padding-block: clamp(3rem, 6vh, 4.5rem);
+      }
+      .mk-layout {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+      .mk-dossier-float {
+        max-width: 26rem;
+      }
     }
 
     @media (max-width: 560px) {
-      .mk-cta { width: 100%; flex-direction: column; align-items: stretch; }
-      .mk-cta .btn { justify-content: center; width: 100%; }
-      .mk-content { align-items: center; text-align: center; justify-self: center; }
+      .mk-cta {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .mk-cta .btn {
+        justify-content: center;
+        width: 100%;
+      }
     }
   `],
 })
@@ -245,7 +317,7 @@ export class MarketingHeroComponent implements AfterViewInit {
   @Input() primaryRoute = '/productos/divorcio360';
   @Input() primaryFragment = '';
   @Input() showSecondary = false;
-  @Input() secondaryAuthQuery: Record<string, string> = { returnUrl: '/' };
+  @Input() secondaryAuthQuery: Record<string, string> = {};
 
   @Input() theme: 'legalstation' | 'divorcio' = 'legalstation';
   @Input() titleLine1 = '';

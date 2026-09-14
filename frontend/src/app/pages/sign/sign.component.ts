@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
-import { productThemeFromCase } from '../../shared/product-sites.data';
+import { buildClientFlowCrumb, productThemeFromCase, setActiveProduct } from '../../shared/product-sites.data';
 import { ESIGN_FEE_CENTS, signatureChannelLabel } from '../../shared/esign';
 
 type SignMode = 'upload' | 'done';
@@ -17,7 +17,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
   template: `
     <app-product-flow-shell
       [theme]="theme"
-      [crumb]="[{ label: 'LegalStation', link: '/' }, { label: 'Firma virtual' }]"
+      [crumb]="crumb"
       eyebrow="Firma electrónica"
       [title]="mode === 'done' ? 'Firma registrada' : 'Firma tu minuta'"
       [subtitle]="mode === 'done'
@@ -492,6 +492,7 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
   error = '';
   signature: any = null;
   theme = productThemeFromCase();
+  crumb: { label: string; link?: string }[] = buildClientFlowCrumb('divorcio360', 'Firma');
   signBlocked = 'Cargando el expediente…';
   signHint = '';
   mode: SignMode = 'upload';
@@ -549,7 +550,12 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.api.getCase(this.caseId).pipe(
         switchMap((d) => {
           if (this.destroyed) return of(null);
+          setActiveProduct(d.case?.product || 'divorcio360');
           this.theme = productThemeFromCase(d.case?.product);
+          this.crumb = buildClientFlowCrumb(d.case?.product, 'Firma', {
+            caseId: this.caseId,
+            includeExpediente: true,
+          });
           this.signHint = d.case?.sign_hint || '';
           if (!d.case?.can_sign) {
             this.signBlocked = d.case?.has_minuta

@@ -1,8 +1,11 @@
 import {
   PRODUCT_SITES,
+  buildClientFlowCrumb,
   getDivorcioFormAction,
   getMarketingPrimaryAction,
   getProductQuestionnairePath,
+  setActiveProduct,
+  getActiveProduct,
 } from './product-sites.data';
 
 describe('product-sites.data', () => {
@@ -17,11 +20,11 @@ describe('product-sites.data', () => {
     });
     expect(getMarketingPrimaryAction('cliente', 'traslado360')).toEqual({
       label: 'Mis expedientes',
-      path: '/productos/traslado360/expediente',
+      path: '/cliente',
     });
     expect(getMarketingPrimaryAction('cliente', 'bienraiz360')).toEqual({
       label: 'Mis expedientes',
-      path: '/productos/bienraiz360/expediente',
+      path: '/cliente',
     });
     expect(getMarketingPrimaryAction('abogado', 'divorcio360')).toEqual({
       label: 'Panel de casos',
@@ -42,6 +45,10 @@ describe('product-sites.data', () => {
     expect(getDivorcioFormAction('cliente')).toEqual({
       label: 'Iniciar Formulario',
       path: '/cuestionario',
+    });
+    expect(getDivorcioFormAction('cliente', 'traslado360')).toEqual({
+      label: 'Iniciar Formulario',
+      path: '/productos/traslado360/cuestionario',
     });
     expect(getDivorcioFormAction('abogado')).toBeNull();
     expect(getDivorcioFormAction('notario')).toBeNull();
@@ -72,5 +79,20 @@ describe('product-sites.data', () => {
     expect(site.plans.length).toBe(1);
     expect(visibleCopy).not.toMatch(/24\/7|1 click|SLA|timeline|intake|mismo costo/i);
     expect(visibleCopy).not.toMatch(/demo|demostración/i);
+  });
+
+  it('arma migas del flujo cliente ancladas en Mis trámites', () => {
+    expect(buildClientFlowCrumb('traslado360', 'Documentos')).toEqual([
+      { label: 'Mis trámites', link: '/cliente' },
+      { label: 'Traslado360', link: '/productos/traslado360' },
+      { label: 'Documentos' },
+    ]);
+  });
+
+  it('persiste el producto activo al sincronizar desde un caso', () => {
+    setActiveProduct('traslado360');
+    expect(getActiveProduct()).toBe('traslado360');
+    setActiveProduct('divorcio360');
+    expect(getActiveProduct()).toBe('divorcio360');
   });
 });

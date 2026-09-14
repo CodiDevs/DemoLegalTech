@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { CASE_STATUS_ICONS, CASE_STATUS_KEYS } from '../../shared/case-progress.model';
-import { getProductDisplayName } from '../../shared/product-sites.data';
+import { getProductDisplayName, LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
+import { WorkspaceHeadComponent } from './workspace-head.component';
 
-type Filter = 'action' | 'sla' | 'review' | 'signature' | 'notary' | 'done' | 'all';
+const PAGE_SIZE = 10;
 
 const STAGE_HINT: Record<string, string> = {
   '01': 'Caso recibido. Espera el pago o la carga inicial.',
@@ -34,32 +36,61 @@ const STAGE_SHORT: Record<string, string> = {
   '10': 'Cierre',
 };
 
+/** Labels de estado del trámite (alineados al backend). */
+const STATUS_OPTIONS: { id: string; label: string }[] = [
+  { id: '', label: 'Todos los estados' },
+  { id: '01', label: 'Información recibida' },
+  { id: '02', label: 'Documentos pendientes' },
+  { id: '03', label: 'Revisión' },
+  { id: '04', label: 'Documentos preparados' },
+  { id: '05', label: 'Firmas' },
+  { id: '06', label: 'Enviado a notaría' },
+  { id: '07', label: 'Comparecencia' },
+  { id: '08', label: 'Acta emitida' },
+  { id: '09', label: 'Registro' },
+  { id: '10', label: 'Finalizado' },
+];
+
 @Component({
   selector: 'app-lawyer-panel',
   standalone: true,
-  imports: [RouterLink, StatusBadgeComponent, IconComponent],
+  imports: [FormsModule, RouterLink, StatusBadgeComponent, IconComponent, WorkspaceHeadComponent],
   template: `
     <div class="inbox">
-      <header class="inbox-head">
-        <p class="inbox-kicker">Casos</p>
-        <h1>Bandeja</h1>
-        <p class="inbox-lede">Qué te toca ahora. Un clic abre el expediente.</p>
-      </header>
+      <app-workspace-head title="Bandeja" [aside]="headAside" />
 
-      <div class="lanes" role="group" aria-label="Filtrar la bandeja">
-        @for (f of filterDefs; track f.id) {
-          <button
-            type="button"
-            class="lane"
-            [class.on]="filter === f.id"
-            [class.lane-warn]="f.id === 'sla'"
-            [attr.aria-pressed]="filter === f.id"
-            (click)="setFilter(f.id)"
-          >
-            <span class="lane-n tabular">{{ countFor(f.id) }}</span>
-            <span class="lane-l">{{ f.label }}</span>
-          </button>
-        }
+      <div class="inbox-toolbar" role="search" aria-label="Buscar y filtrar expedientes">
+        <label class="search-field">
+          <span class="sr-only">Buscar por nombre o número</span>
+          <app-icon name="search" [size]="16" />
+          <input
+            type="search"
+            name="q"
+            [(ngModel)]="query"
+            (ngModelChange)="onFiltersChange()"
+            placeholder="Nombre o #expediente"
+            autocomplete="off"
+          />
+        </label>
+
+        <label class="filter-field">
+          <span class="filter-l">Servicio</span>
+          <select name="service" [(ngModel)]="serviceFilter" (ngModelChange)="onFiltersChange()">
+            <option value="">Todos</option>
+            @for (s of serviceOptions; track s.id) {
+              <option [value]="s.id">{{ s.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="filter-field">
+          <span class="filter-l">Estado</span>
+          <select name="status" [(ngModel)]="statusFilter" (ngModelChange)="onFiltersChange()">
+            @for (s of statusOptions; track s.id) {
+              <option [value]="s.id">{{ s.label }}</option>
+            }
+          </select>
+        </label>
       </div>
 
       @if (loading) {
@@ -85,13 +116,13 @@ const STAGE_SHORT: Record<string, string> = {
       } @else if (!filtered.length) {
         <div class="panel empty-state">
           <span class="empty-icon"><app-icon name="search" [size]="22" /></span>
-          <h2>Nada en «{{ filterLabel }}»</h2>
-          <p>Hay {{ cases.length }} casos en la bandeja. Este recorte está vacío.</p>
-          <button type="button" class="btn btn-secondary" (click)="setFilter('all')">Ver todos</button>
+          <h2>Sin resultados</h2>
+          <p>Ningún expediente coincide con la búsqueda o los filtros.</p>
+          <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar filtros</button>
         </div>
       } @else {
-        <ul class="case-list" [attr.aria-label]="'Casos: ' + filterLabel">
-          @for (c of filtered; track trackKey(c); let i = $index) {
+        <ul class="case-list" [attr.aria-label]="'Expedientes · página ' + page">
+          @for (c of pageItems; track trackKey(c); let i = $index) {
             <li>
               <a
                 class="case-row"
@@ -141,6 +172,30 @@ const STAGE_SHORT: Record<string, string> = {
             </li>
           }
         </ul>
+
+        @if (totalPages > 1) {
+          <nav class="pager" aria-label="Paginación de la bandeja">
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              [disabled]="page <= 1"
+              (click)="goPage(page - 1)"
+            >
+              Anterior
+            </button>
+            <span class="pager-meta tabular">
+              {{ rangeLabel }} · pág. {{ page }} / {{ totalPages }}
+            </span>
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              [disabled]="page >= totalPages"
+              (click)="goPage(page + 1)"
+            >
+              Siguiente
+            </button>
+          </nav>
+        }
       }
     </div>
   `,
@@ -149,108 +204,75 @@ const STAGE_SHORT: Record<string, string> = {
       padding-block: var(--space-1) var(--space-6);
     }
 
-    .inbox-head {
-      margin-bottom: var(--space-5);
-      animation: inbox-in 520ms var(--ease-out) both;
-    }
-
-    .inbox-kicker {
-      margin: 0 0 var(--space-2);
-      font-size: var(--text-xs);
-      font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
-    }
-
-    .inbox-head h1 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: clamp(1.85rem, 3vw, 2.5rem);
-      font-weight: 600;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-    }
-
-    .inbox-lede {
-      margin: var(--space-2) 0 0;
-      max-width: 42ch;
-      color: var(--text-secondary);
-      font-size: var(--text-sm);
-    }
-
-    .lanes {
+    .inbox-toolbar {
       display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: var(--space-2);
+      grid-template-columns: minmax(0, 1.4fr) minmax(10rem, 0.8fr) minmax(12rem, 1fr);
+      gap: var(--space-3);
       margin-bottom: var(--space-5);
-    }
-
-    .lane {
-      display: grid;
-      gap: 0.15rem;
-      min-height: 4.25rem;
-      padding: var(--space-3);
-      text-align: left;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
-      color: var(--text-secondary);
-      box-shadow: var(--shadow-sm);
       animation: inbox-in 480ms var(--ease-out) both;
-      transition:
-        transform 240ms var(--ease-out),
-        border-color 200ms var(--ease),
-        background 200ms var(--ease),
-        box-shadow 240ms var(--ease);
     }
 
-    .lanes .lane:nth-child(1) { animation-delay: 40ms; }
-    .lanes .lane:nth-child(2) { animation-delay: 70ms; }
-    .lanes .lane:nth-child(3) { animation-delay: 100ms; }
-    .lanes .lane:nth-child(4) { animation-delay: 130ms; }
-    .lanes .lane:nth-child(5) { animation-delay: 160ms; }
-    .lanes .lane:nth-child(6) { animation-delay: 190ms; }
-    .lanes .lane:nth-child(7) { animation-delay: 220ms; }
-
-    .lane:hover:not(.on) {
-      transform: translateY(-3px);
-      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
-      box-shadow: var(--shadow-md);
-      color: var(--text);
+    .search-field,
+    .filter-field {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: var(--control-height);
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      transition: border-color 200ms var(--ease), box-shadow 200ms var(--ease);
     }
 
-    .lane:active {
-      transform: translateY(-1px) scale(0.98);
-    }
-
-    .lane.on {
-      background: var(--primary-subtle);
+    .search-field:focus-within,
+    .filter-field:focus-within {
       border-color: var(--primary-border);
-      color: var(--primary);
-      box-shadow: var(--shadow-md);
+      box-shadow: 0 0 0 3px var(--primary-subtle);
     }
 
-    .lane-warn.on {
-      background: var(--warning-subtle);
-      border-color: var(--warning-border);
-      color: var(--warning);
+    .search-field {
+      color: var(--text-muted);
     }
 
-    .lane-n {
-      font-size: var(--text-2xl);
-      font-weight: 650;
-      letter-spacing: var(--tracking-tight);
-      line-height: 1;
+    .search-field input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
       color: var(--text);
+      font: inherit;
+      font-size: var(--text-sm);
+      outline: none;
     }
 
-    .lane.on .lane-n { color: var(--primary); }
-    .lane-warn.on .lane-n { color: var(--warning); }
+    .filter-field {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: var(--space-2);
+      padding-inline: var(--space-3);
+    }
 
-    .lane-l {
+    .filter-l {
       font-size: var(--text-xs);
       font-weight: 650;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .filter-field select {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: var(--text-sm);
+      font-weight: 550;
+      outline: none;
+      cursor: pointer;
     }
 
     .case-list {
@@ -401,6 +423,27 @@ const STAGE_SHORT: Record<string, string> = {
       transition: transform 240ms var(--ease-out);
     }
 
+    .pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-4);
+      margin-top: var(--space-5);
+      flex-wrap: wrap;
+    }
+
+    .pager-meta {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      font-weight: 550;
+    }
+
+    .btn-sm {
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-xs);
+      min-height: 2rem;
+    }
+
     .state-loading {
       display: flex;
       align-items: center;
@@ -455,6 +498,8 @@ const STAGE_SHORT: Record<string, string> = {
       font-size: var(--text-sm);
     }
 
+    .tabular { font-variant-numeric: tabular-nums; }
+
     @keyframes inbox-in {
       from {
         opacity: 0;
@@ -482,7 +527,12 @@ const STAGE_SHORT: Record<string, string> = {
     }
 
     @media (max-width: 1100px) {
-      .lanes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .inbox-toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+      .search-field {
+        grid-column: 1 / -1;
+      }
       .case-row {
         grid-template-columns: auto minmax(0, 1fr) auto;
         grid-template-areas:
@@ -499,36 +549,35 @@ const STAGE_SHORT: Record<string, string> = {
     }
 
     @media (max-width: 640px) {
-      .lanes { grid-template-columns: 1fr 1fr; }
-      .lane:last-child { grid-column: 1 / -1; }
+      .inbox-toolbar {
+        grid-template-columns: 1fr;
+      }
     }
   `]
 })
 export class LawyerPanelComponent implements OnInit {
   cases: CaseItem[] = [];
-  filter: Filter = 'action';
   loading = false;
   error = false;
+
+  query = '';
+  /** Vacío = todos. Por defecto Revisión (03). */
+  statusFilter = '03';
+  serviceFilter = '';
+  page = 1;
+
+  readonly pageSize = PAGE_SIZE;
   readonly stageKeys = CASE_STATUS_KEYS;
   readonly stageShort = STAGE_SHORT;
-  filterDefs: { id: Filter; label: string }[] = [
-    { id: 'action', label: 'Te toca' },
-    { id: 'sla', label: 'SLA' },
-    { id: 'review', label: 'Revisión' },
-    { id: 'signature', label: 'Firma' },
-    { id: 'notary', label: 'Notaría' },
-    { id: 'done', label: 'Cerrados' },
-    { id: 'all', label: 'Todos' },
-  ];
+  readonly statusOptions = STATUS_OPTIONS;
+  readonly serviceOptions = LEGALSTATION_CATALOG
+    .filter((p) => p.live)
+    .map((p) => ({ id: p.id, label: p.name }));
 
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
     this.load();
-  }
-
-  setFilter(id: Filter): void {
-    this.filter = id;
   }
 
   load(): void {
@@ -538,9 +587,7 @@ export class LawyerPanelComponent implements OnInit {
       next: (c) => {
         this.cases = c;
         this.loading = false;
-        if (this.filter === 'action' && this.countFor('action') === 0) {
-          this.filter = 'all';
-        }
+        this.clampPage();
       },
       error: () => {
         this.error = true;
@@ -549,8 +596,38 @@ export class LawyerPanelComponent implements OnInit {
     });
   }
 
+  onFiltersChange(): void {
+    this.page = 1;
+  }
+
+  clearFilters(): void {
+    this.query = '';
+    this.serviceFilter = '';
+    this.statusFilter = '';
+    this.page = 1;
+  }
+
+  goPage(n: number): void {
+    this.page = Math.min(Math.max(1, n), this.totalPages);
+  }
+
   get filtered(): CaseItem[] {
-    const list = this.cases.filter((c) => this.matches(c, this.filter));
+    const q = this.query.trim().toLowerCase();
+    const list = this.cases.filter((c) => {
+      if (this.statusFilter && c.status !== this.statusFilter) return false;
+      if (this.serviceFilter) {
+        const product = (c.product || 'divorcio360').toLowerCase();
+        if (product !== this.serviceFilter) return false;
+      }
+      if (q) {
+        const name = (c.client_name || '').toLowerCase();
+        const id = String(c.id);
+        const idMatch = id.includes(q.replace(/^#/, ''));
+        if (!name.includes(q) && !idMatch) return false;
+      }
+      return true;
+    });
+
     return [...list].sort((a, b) => {
       const sla = Number(!!b.sla_warning) - Number(!!a.sla_warning);
       if (sla) return sla;
@@ -560,12 +637,32 @@ export class LawyerPanelComponent implements OnInit {
     });
   }
 
-  get filterLabel(): string {
-    return this.filterDefs.find((f) => f.id === this.filter)?.label ?? 'Todos';
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filtered.length / this.pageSize));
+  }
+
+  get pageItems(): CaseItem[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filtered.slice(start, start + this.pageSize);
+  }
+
+  get rangeLabel(): string {
+    if (!this.filtered.length) return '0 expedientes';
+    const start = (this.page - 1) * this.pageSize + 1;
+    const end = Math.min(this.page * this.pageSize, this.filtered.length);
+    return `${start}–${end} de ${this.filtered.length}`;
+  }
+
+  get headAside(): string {
+    if (this.loading || this.error) return '';
+    const n = this.cases.length;
+    if (n === 0) return 'Sin expedientes';
+    if (n === 1) return '1 expediente';
+    return `${n} expedientes`;
   }
 
   trackKey(c: CaseItem): string {
-    return `${this.filter}-${c.id}`;
+    return `${this.statusFilter}-${this.serviceFilter}-${this.query}-${this.page}-${c.id}`;
   }
 
   needsYou(c: CaseItem): boolean {
@@ -598,10 +695,6 @@ export class LawyerPanelComponent implements OnInit {
     return `${days} días aquí`;
   }
 
-  countFor(id: Filter): number {
-    return this.cases.filter((c) => this.matches(c, id)).length;
-  }
-
   statusVariant(status: string): 'warn' | 'ok' | 'info' | 'default' {
     if (status === '03') return 'warn';
     if (status === '10') return 'ok';
@@ -609,15 +702,9 @@ export class LawyerPanelComponent implements OnInit {
     return 'default';
   }
 
-  private matches(c: CaseItem, id: Filter): boolean {
-    switch (id) {
-      case 'action': return this.needsYou(c);
-      case 'sla': return !!c.sla_warning;
-      case 'review': return c.status === '03';
-      case 'signature': return c.status === '04' || c.status === '05';
-      case 'notary': return c.status === '06' || c.status === '07';
-      case 'done': return c.status === '10';
-      default: return true;
+  private clampPage(): void {
+    if (this.page > this.totalPages) {
+      this.page = this.totalPages;
     }
   }
 

@@ -1,55 +1,99 @@
 import { LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
 import { IconName } from '../../shared/icon.component';
 
-export const LEGALSTATION_WORKFLOW: {
+export interface StationStep {
   id: string;
   n: number;
   title: string;
+  badge: string;
   desc: string;
   icon: IconName;
-}[] = [
+}
+
+export const LEGALSTATION_WORKFLOW: StationStep[] = [
   {
-    id: 'recepcion',
+    id: 'admision',
     n: 1,
-    title: 'Recepción del caso',
-    desc: 'Cuestionario y clasificación automática del caso.',
+    title: 'Admisión y calificación',
+    badge: '24h',
+    desc: 'Califica admisibilidad notarial y mutuo consentimiento.',
     icon: 'clipboard',
   },
   {
     id: 'expediente',
     n: 2,
     title: 'Expediente digital',
-    desc: 'Documentos, pago y mensajes en un solo lugar.',
+    badge: 'Cotejo',
+    desc: 'Consolida recaudos y asigna abogado del Foro.',
     icon: 'folder',
   },
   {
-    id: 'revision',
+    id: 'minuta',
     n: 3,
-    title: 'Revisión',
-    desc: 'Operador aprueba, genera minuta y comunica al cliente.',
-    icon: 'eye',
+    title: 'Minuta solemne',
+    badge: 'Visado',
+    desc: 'Redacta la petición formal al notario.',
+    icon: 'file-text',
   },
   {
     id: 'firma',
     n: 4,
-    title: 'Firma',
-    desc: 'Firma electrónica con evidencia y notificaciones.',
+    title: 'Firma electrónica',
+    badge: 'PKI',
+    desc: 'Suscripción con certificado acreditado.',
     icon: 'signature',
   },
   {
-    id: 'finalizacion',
+    id: 'notaria',
     n: 5,
-    title: 'Finalización',
-    desc: 'Notaría, registro y archivo con auditoría completa.',
-    icon: 'flag',
+    title: 'Notaría y Registro',
+    badge: 'Acta',
+    desc: 'Protocoliza la escritura y marginación.',
+    icon: 'building',
   },
 ];
 
 export const LEGALSTATION_PLANS = [
-  { name: 'Starter', tag: 'Para empezar', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto activo', '3 usuarios operador', 'Link a clientes incluido', '15% comisión por venta'], featured: false },
-  { name: 'Professional', tag: 'Más usada', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['3 productos en vivo', '10 usuarios', 'SLA y notificaciones', 'Link personalizado + comisión', 'SATJE sync'], featured: true },
-  { name: 'Enterprise', tag: 'Multi-sede', audience: 'Multi-sede. Licencia operadores', price: 599, items: ['Productos ilimitados', 'SSO', 'Comisión negociable', 'White-label ready'], featured: false },
+  { name: 'Starter', tag: 'Despachos independientes', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto civil activo', '3 usuarios operadores', 'Enlace de admisión para clientes', 'Soporte estándar'], featured: false },
+  { name: 'Professional', tag: 'Recomendado', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['Catálogo civil completo', '10 usuarios operadores', 'SLA y notificaciones cliente', 'Asistente de minutas', 'Plantillas notariales maestras'], featured: true },
+  { name: 'Enterprise', tag: 'Multi-sede', audience: 'Grandes firmas y notarías', price: 599, items: ['Operadores ilimitados', 'Instancia dedicada con SSO', 'Marca blanca y flujos a medida', 'SLA 99.9% y soporte 24/7'], featured: false },
 ];
+
+/** Honorarios de trámites live — pago único del cliente (no licencia B2B). */
+export const LEGALSTATION_SERVICE_PLANS = [
+  {
+    id: 'divorcio360',
+    name: 'Divorcio360',
+    tag: 'Civil & Familia',
+    audience: 'Mutuo acuerdo · honorario de referencia',
+    price: 349,
+    items: ['Evaluación inicial', 'Expediente digital', 'Revisión documental', 'Carga de firma'],
+    featured: true,
+    route: '/productos/divorcio360',
+  },
+  {
+    id: 'traslado360',
+    name: 'Traslado360',
+    tag: 'Vehicular & Civil',
+    audience: 'Mutuo acuerdo · vehículo al día',
+    price: 199,
+    items: ['Cuestionario de elegibilidad', 'Pago único sin suscripción', 'Consulta + notaría virtual', 'Expediente trazable'],
+    featured: false,
+    route: '/productos/traslado360',
+  },
+  {
+    id: 'bienraiz360',
+    name: 'BienRaiz360',
+    tag: 'Inmobiliario & Notarial',
+    audience: 'Mutuo acuerdo · sin gravámenes',
+    price: 299,
+    items: ['Flujo completo', 'Pago único sin suscripción', 'Consulta + notaría virtual', 'Expediente 10 estados'],
+    featured: false,
+    route: '/productos/bienraiz360',
+  },
+];
+
+export type PricingMode = 'servicios' | 'licenciamiento';
 
 export const LEGALSTATION_ENTERPRISE = [
   { title: 'Aislamiento completo', desc: 'Infraestructura dedicada: tus datos separados del resto de tenants.' },

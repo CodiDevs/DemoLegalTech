@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/api.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { StatusBadgeComponent } from '../../../shared/status-badge.component';
+import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
 import { friendlyFieldLabel, toFieldToken } from '../../../shared/template-field-labels';
 
 type ModalMode = 'preview' | 'edit';
@@ -19,17 +20,13 @@ interface TemplateDraft {
 @Component({
   selector: 'app-fase2-templates',
   standalone: true,
-  imports: [FormsModule, StatusBadgeComponent],
+  imports: [FormsModule, StatusBadgeComponent, WorkspaceHeadComponent],
   template: `
-    <header class="tpl-head">
-      <div>
-        <h1>Modelos de documentos</h1>
-        <p class="lede">Crea, duplica y edita. Los originales del sistema no se borran.</p>
-      </div>
+    <app-workspace-head title="Modelos" aside="Los originales del sistema no se borran">
       <button type="button" class="btn btn-primary" (click)="openCreate()" [disabled]="busy">
         Nueva plantilla
       </button>
-    </header>
+    </app-workspace-head>
 
     @if (loadError) {
       <div class="panel fase2-state-error" role="alert">
@@ -177,19 +174,6 @@ interface TemplateDraft {
   `,
   styleUrls: ['../fase2-shared.scss'],
   styles: [`
-    .tpl-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--space-4);
-      flex-wrap: wrap;
-    }
-    .lede {
-      margin: var(--space-2) 0 0;
-      max-width: 48ch;
-      color: var(--text-secondary);
-      font-size: var(--text-sm);
-    }
     .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.25rem; }
     .card { cursor: pointer; display: grid; gap: 0.5rem; }
     .card-head { display: flex; justify-content: space-between; align-items: center; }

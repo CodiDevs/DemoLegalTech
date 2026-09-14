@@ -4,6 +4,7 @@ import { ApiService, LawyerServiceOffering } from '../../core/api.service';
 import { ConfirmService } from '../../core/confirm.service';
 import { IconComponent } from '../../shared/icon.component';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
+import { WorkspaceHeadComponent } from '../lawyer-panel/workspace-head.component';
 import { apiErrorMessage, categoryLabel, moneyUSD } from './lawyer-services.model';
 
 type Lane = 'all' | 'publicado' | 'borrador';
@@ -11,17 +12,12 @@ type Lane = 'all' | 'publicado' | 'borrador';
 @Component({
   selector: 'app-lawyer-services-list',
   standalone: true,
-  imports: [RouterLink, IconComponent, StatusBadgeComponent],
+  imports: [RouterLink, IconComponent, StatusBadgeComponent, WorkspaceHeadComponent],
   template: `
     <div class="svc">
-      <header class="svc-head">
-        <div>
-          <p class="kicker">Bufete</p>
-          <h1>Servicios</h1>
-          <p class="lede">Arma ofertas nuevas con nombre, precio y documentos. El cliente las verá cuando las publiques.</p>
-        </div>
+      <app-workspace-head title="Servicios" [aside]="headAside">
         <a routerLink="/abogado/servicios/nuevo" class="btn btn-primary">Nuevo servicio</a>
-      </header>
+      </app-workspace-head>
 
       <div class="lanes" role="group" aria-label="Filtrar servicios">
         @for (lane of lanes; track lane.id) {
@@ -91,42 +87,6 @@ type Lane = 'all' | 'publicado' | 'borrador';
   `,
   styles: [`
     .svc { max-width: 980px; }
-
-    .svc-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--space-4);
-      flex-wrap: wrap;
-      margin-bottom: var(--space-5);
-      animation: svc-in 520ms var(--ease-out) both;
-    }
-
-    .kicker {
-      margin: 0 0 var(--space-2);
-      font-size: var(--text-xs);
-      font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
-    }
-
-    h1 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: clamp(1.85rem, 3vw, 2.5rem);
-      font-weight: 600;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      text-wrap: balance;
-    }
-
-    .lede {
-      margin: var(--space-2) 0 0;
-      max-width: 48ch;
-      color: var(--text-secondary);
-      font-size: var(--text-sm);
-    }
 
     .lanes {
       display: grid;
@@ -341,6 +301,13 @@ export class LawyerServicesListComponent implements OnInit {
       return this.services.length;
     }
     return this.services.filter((s) => s.status === id).length;
+  }
+
+  get headAside(): string {
+    if (this.loading || this.error) return '';
+    const pub = this.count('publicado');
+    const draft = this.count('borrador');
+    return `${pub} publicados · ${draft} borrador`;
   }
 
   load(): void {

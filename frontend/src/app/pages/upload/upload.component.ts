@@ -5,7 +5,13 @@ import { ConfirmService } from '../../core/confirm.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { ProgressStep } from '../../shared/progress-steps.component';
 import { IconComponent } from '../../shared/icon.component';
-import { getProductFlowMeta, productThemeFromCase, clientFlowStepIndex } from '../../shared/product-sites.data';
+import {
+  buildClientFlowCrumb,
+  getProductFlowMeta,
+  productThemeFromCase,
+  clientFlowStepIndex,
+  setActiveProduct,
+} from '../../shared/product-sites.data';
 
 interface DocRow {
   id: number;
@@ -24,7 +30,7 @@ interface DocRow {
     <app-product-flow-shell
       [theme]="theme"
       [crumb]="crumb"
-      eyebrow="Carga documental"
+      [eyebrow]="productName + ' · Carga documental'"
       title="Documentos del trámite"
       subtitle="Sube los archivos requeridos. Puedes reemplazar cualquier documento cuando quieras — no necesitas borrar el anterior."
       [steps]="flowSteps"
@@ -156,19 +162,17 @@ export class UploadComponent implements OnInit {
     this.caseId = Number(this.route.snapshot.paramMap.get('id'));
     this.api.getCase(this.caseId).subscribe((d) => {
       this.product = d.case?.product || 'divorcio360';
+      setActiveProduct(this.product);
       this.theme = productThemeFromCase(this.product);
       this.canSign = !!d.case?.can_sign;
       this.hasSignature = !!d.case?.has_signature;
       this.signHint = d.case?.sign_hint || '';
       const meta = getProductFlowMeta(this.product);
+      this.productName = meta.name;
       this.slots = meta.docTypes.map((dt) => ({ type: dt.type, label: dt.label }));
       this.flowSteps = meta.clientFlowSteps;
       this.docsStepIndex = clientFlowStepIndex(meta.flowSteps, 'docs');
-      this.crumb = [
-        { label: 'LegalStation', link: '/' },
-        ...(meta.productHome ? [{ label: meta.name, link: meta.productHome }] : []),
-        { label: 'Documentos' },
-      ];
+      this.crumb = buildClientFlowCrumb(this.product, 'Documentos');
     });
     this.reload();
   }

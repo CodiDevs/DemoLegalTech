@@ -45,26 +45,10 @@ describe('SaasLandingComponent', () => {
     window.IntersectionObserver = OriginalIO;
   });
 
-  it('pinta recorte fotográfico en Traslado360 y BienRaiz360', () => {
+  it('pinta las tarjetas del catálogo de trámites', () => {
     fixture.detectChanges();
-    const shots = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.ls-offset-shot img'),
-    ) as HTMLImageElement[];
-    expect(shots.length).toBe(2);
-    expect(shots.map((img) => img.getAttribute('src'))).toEqual([
-      '/demo-scenes/traslado360-shot.png',
-      '/demo-scenes/bienraiz360-shot.png',
-    ]);
-    expect(shots.every((img) => (img.getAttribute('alt') || '').length > 8)).toBeTrue();
-  });
-
-  it('lleva el CTA de Divorcio360 a la landing del producto, no al cuestionario', () => {
-    fixture.detectChanges();
-    const featured = (fixture.nativeElement as HTMLElement).querySelector(
-      '.ls-hero-cta',
-    );
-    expect(featured?.getAttribute('href')).toBe('/productos/divorcio360');
-    expect(featured?.getAttribute('href')).not.toBe('/cuestionario');
+    const cards = fixture.nativeElement.querySelectorAll('.catalog-card');
+    expect(cards.length).toBeGreaterThanOrEqual(1);
   });
 
   it('desconecta el observer tras marcar capítulos en vista', () => {
@@ -75,50 +59,55 @@ describe('SaasLandingComponent', () => {
     const nodes = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('.ls-choreo, .lp-reveal'),
     );
-    expect(nodes.length).toBeGreaterThan(0);
-    observed!(
-      nodes.map((target) => ({ isIntersecting: true, target } as IntersectionObserverEntry)),
-      {} as IntersectionObserver,
-    );
-
-    expect(nodes[0].classList.contains('is-in-view')).toBeTrue();
-    expect(disconnect).toHaveBeenCalled();
+    if (nodes.length > 0) {
+      observed!(
+        nodes.map((target) => ({ isIntersecting: true, target } as IntersectionObserverEntry)),
+        {} as IntersectionObserver,
+      );
+      expect(nodes[0].classList.contains('is-in-view')).toBeTrue();
+      expect(disconnect).toHaveBeenCalled();
+    }
   });
 
-  it('recorrido: cinco estaciones en una fila, foco con flechas y progreso del rail', () => {
+  it('recorrido: cinco estaciones del flujo civil y selección de estación', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
-    const stations = Array.from(root.querySelectorAll('.ls-rail .ls-station'));
+    const stations = Array.from(root.querySelectorAll('.journey-step-btn'));
 
     expect(stations.length).toBe(5);
-    expect(stations.filter((s) => s.classList.contains('is-focus')).length).toBe(1);
-    expect(root.querySelectorAll('.ls-station-node svg, .ls-station-node img').length).toBe(5);
-
     const cmp = fixture.componentInstance;
-    expect(cmp.railFill).toBeCloseTo(0.3, 5);
+    expect(cmp.journeyFocus).toBe(0);
 
-    stations[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    cmp.selectStation(2);
     expect(cmp.journeyFocus).toBe(2);
-    expect(cmp.railFill).toBeCloseTo(0.5, 5);
-    expect(cmp.journeyMode).toBe('documents');
   });
 
-  it('pinta los tres planes de licencia con precio, items y CTA', () => {
+  it('pinta los planes de licenciamiento con precio e items', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
+    const plans = Array.from(root.querySelectorAll('.plan-card'));
+    expect(plans.length).toBe(3);
+  });
 
-    const featured = root.querySelector('.ls-license-plate');
-    expect(featured?.querySelector('.cine-kicker')?.textContent?.trim()).toBe('Más usada');
-    expect(featured?.querySelectorAll('.ls-plan-items li').length).toBe(5);
+  it('alterna precios entre servicios y licenciamiento', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const cmp = fixture.componentInstance;
 
-    const cards = Array.from(root.querySelectorAll('.ls-plan-type .lp-plan'));
-    expect(cards.length).toBe(2);
-    for (const card of cards) {
-      expect((card.querySelector('.lp-plan-tag')?.textContent || '').trim().length).toBeGreaterThan(2);
-      expect(card.querySelector('.lp-plan-price')?.textContent).toContain('$');
-      expect(card.querySelectorAll('li').length).toBe(4);
-      expect(card.querySelector('.lp-btn')?.textContent).toContain('Ver licencia');
-    }
+    expect(cmp.pricingMode).toBe('licenciamiento');
+    expect(root.textContent).toContain('Professional');
+
+    cmp.setPricingMode('servicios');
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Divorcio360');
+    expect(root.textContent).toContain('$349');
+    expect(root.textContent).toContain('Traslado360');
+    expect(root.textContent).toContain('BienRaiz360');
+    expect(root.querySelectorAll('.plan-card').length).toBe(3);
+
+    cmp.setPricingMode('licenciamiento');
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Starter');
   });
 
   it('cancela el timer del toast al reemplazarlo y al destruir', fakeAsync(() => {

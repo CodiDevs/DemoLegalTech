@@ -75,34 +75,6 @@
   color: color-mix(in srgb, #fff 78%, transparent);
 }
 
-/* Route curtain — visual only, never intercepts pointer/focus */
-.route-curtain {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(120% 80% at 50% 120%, #2f6f68 0%, #1b1917 58%, #f4efe6 100%);
-  clip-path: inset(100% 0 0 0);
-  opacity: 0;
-  transform: translateY(8%);
-  transition:
-    clip-path 520ms var(--ease-out),
-    opacity 420ms var(--ease-out),
-    transform 520ms var(--ease-out);
-}
-
-.route-curtain.is-on {
-  clip-path: inset(0 0 0 0);
-  opacity: 1;
-  transform: none;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 480ms;
-  animation-timing-function: var(--ease-out);
-}
-
 /* Demo expediente window */
 .demo-case {
   width: min(36rem, 100%);

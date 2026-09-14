@@ -565,12 +565,6 @@ export class AuthComponent implements OnInit {
     return raw || 'No pudimos completar la operación. Inténtalo de nuevo en unos segundos.';
   }
 
-  private get onboardingPath(): string {
-    return this.product === 'divorcio360'
-      ? '/cuestionario'
-      : `/productos/${this.product}/cuestionario`;
-  }
-
   private resolveReturnUrl(url: string): string {
     const raw = (url || '').trim();
     if (!raw || raw === '/auth') return '';
@@ -583,8 +577,9 @@ export class AuthComponent implements OnInit {
     const pathOnly = qIdx >= 0 ? beforeHash.slice(0, qIdx) : beforeHash;
     const query = qIdx >= 0 ? beforeHash.slice(qIdx) : '';
 
+    // Landing / marketing home → panel (no devolver a `/`)
     if (!pathOnly || pathOnly === '/') {
-      return '/' + query + (fragment ? `#${fragment}` : '');
+      return '';
     }
 
     const productLanding = pathOnly.match(/^\/productos\/([^/]+)\/?$/);
@@ -593,6 +588,12 @@ export class AuthComponent implements OnInit {
       : pathOnly;
 
     return destination + query + (fragment ? `#${fragment}` : '');
+  }
+
+  private panelForRole(role: string): string {
+    if (role === 'abogado') return '/abogado';
+    if (role === 'notario') return '/';
+    return '/cliente';
   }
 
   private go(url: string, fragment?: string): void {
@@ -626,9 +627,6 @@ export class AuthComponent implements OnInit {
       return;
     }
 
-    if (role === 'abogado') { this.go('/abogado'); return; }
-    if (role === 'notario') { this.go('/'); return; }
-
     if (this.returnUrl && this.returnUrl !== '/auth') {
       const destination = this.resolveReturnUrl(this.returnUrl);
       if (destination) {
@@ -637,11 +635,6 @@ export class AuthComponent implements OnInit {
       }
     }
 
-    if (this.product) {
-      this.go(this.onboardingPath);
-      return;
-    }
-
-    this.go('/');
+    this.go(this.panelForRole(role));
   }
 }

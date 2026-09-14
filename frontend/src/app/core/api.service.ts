@@ -55,13 +55,38 @@ export interface CaseItem {
   questionnaire_json?: string;
 }
 
+export type LawyerAnswerType =
+  | 'boolean'
+  | 'text'
+  | 'cedula_ec'
+  | 'passport'
+  | 'number'
+  | 'date'
+  | 'no_aplica';
+
 export interface LawyerServiceDoc {
   label: string;
 }
 
 export interface LawyerServiceQuestion {
+  id?: string;
   prompt: string;
-  kind: 'si_no' | 'texto';
+  /** Legacy: si_no | texto — prefer answer_type. */
+  kind?: 'si_no' | 'texto' | string;
+  answer_type?: LawyerAnswerType | string;
+  required?: boolean;
+  /** Extra (centavos) al responder esta pregunta (tipos no boolean). */
+  price_delta_cents?: number;
+  /** Extra si responde Sí (boolean). */
+  price_on_yes_cents?: number;
+  /** Extra si responde No (boolean). */
+  price_on_no_cents?: number;
+  /** Siguiente pregunta (flujo lineal). */
+  next?: string;
+  /** Rama Sí (boolean). */
+  branch_yes?: string;
+  /** Rama No (boolean). */
+  branch_no?: string;
 }
 
 export interface LawyerServiceOffering {
