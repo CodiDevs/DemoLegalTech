@@ -42,6 +42,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Home y product homes design.md | `/` + Divorcio/Traslado/BienRaiz: cream cards, grid de estaciones, mock plano | 2026-09-13 |
 | done | Firma plataforma vs documento propio | `/firma/:id` — subir PDF propio ($0) o firma LegalStation $15 aparte (Payphone mock) | 2026-09-13 |
 | done | Flujo cliente Iniciar Formulario + firma canvas | Header/hero CTA con login; upload compacto; lienzo LegalStation → $15; recibo de la sesión | 2026-09-13 |
+| done | Módulo de servicios del abogado | `abogado@demo.ec` → Servicios → editar Denuncia electrónica o crear una oferta nueva | 2026-09-13 |
 
 ## Entries
 
@@ -514,4 +515,13 @@ CTA **Iniciar Formulario** (guest → `/auth?returnUrl=/cuestionario`; cliente �
 2. `/upload/11` vacío compacto; `/upload/10` expandido con archivo.
 3. `/firma/10`: dibujar, Confirmar, Pagar $15.00 y firmar. Folio cream de confirmación.
 4. `/checkout/4` (u otro unpaid): titular Carlos Mendoza y correo `cliente@demo.ec` en formulario y ticket.
+
+### 2026-09-13 — Módulo de servicios del abogado
+El bufete arma ofertas propias (nombre, slug, área, honorario, plazo, documentos, preguntas). Persiste en SQLite. Seed: **Denuncia electrónica** $189.
+
+**Demo:**
+1. Reiniciar API si el proceso es anterior a este slice. Login `abogado@demo.ec` / `demo1234`.
+2. Sidebar **Servicios** → card Denuncia electrónica → Editar (folio + vista previa).
+3. **Nuevo servicio** → p. ej. Amparo constitucional $420 → Publicar → F5 conserva.
+4. Duplicar / borrar. Filtros Todos / Publicados / Borradores.
 
