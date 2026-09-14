@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
+import { AuthService } from '../../core/auth.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { getProductDisplayName, productThemeFromCase } from '../../shared/product-sites.data';
 import { IconComponent } from '../../shared/icon.component';
@@ -34,6 +35,10 @@ type PaymentStep = 'idle' | 'processing' | 'success';
               <div class="pf-field">
                 <label>Titular</label>
                 <input [(ngModel)]="holder" [disabled]="formLocked" />
+              </div>
+              <div class="pf-field">
+                <label>Correo</label>
+                <input [value]="email" disabled />
               </div>
               <div class="pf-field">
                 <label>Tarjeta</label>
@@ -152,6 +157,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                   [amount]="caseItem.amount_cents / 100"
                   [date]="paidAt"
                   [cardHolder]="holder"
+                  [email]="email"
                   [last4Digits]="cardLast4"
                   [barcodeValue]="ref"
                 />
@@ -472,7 +478,8 @@ type PaymentStep = 'idle' | 'processing' | 'success';
 export class CheckoutComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('payOverlay') payOverlay?: ElementRef<HTMLElement>;
   caseItem: CaseItem | null = null;
-  holder = 'Carlos Mendoza';
+  holder = '';
+  email = '';
   card = '4242 4242 4242 4242';
   exp = '12/28';
   cvv = '123';
@@ -490,7 +497,12 @@ export class CheckoutComponent implements OnInit, OnDestroy, AfterViewChecked {
   private lastFocus: HTMLElement | null = null;
   private modalFocused = false;
 
-  constructor(private route: ActivatedRoute, private api: ApiService, private router: Router) {}
+  constructor(
+    private route: ActivatedRoute,
+    private api: ApiService,
+    private router: Router,
+    private auth: AuthService,
+  ) {}
 
   get isModalOpen(): boolean {
     return this.paymentStep === 'processing' || this.paymentStep === 'success';
@@ -501,6 +513,9 @@ export class CheckoutComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngOnInit(): void {
+    const user = this.auth.user();
+    this.holder = user?.full_name || '';
+    this.email = user?.email || '';
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.api.getCase(id).subscribe({
       next: (d) => {

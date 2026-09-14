@@ -1,7 +1,9 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ApiService } from '../../core/api.service';
+import { AuthService } from '../../core/auth.service';
 import { CheckoutComponent } from './checkout.component';
 import { chargedLineCents } from '../../shared/checkout-cart';
 
@@ -29,6 +31,18 @@ describe('CheckoutComponent', () => {
       providers: [
         provideRouter([{ path: 'upload/:id', component: CheckoutComponent }]),
         { provide: ApiService, useValue: api },
+        {
+          provide: AuthService,
+          useValue: {
+            user: signal({
+              id: 1,
+              email: 'ana@demo.ec',
+              full_name: 'Ana Pérez',
+              phone: '0',
+              role: 'cliente' as const,
+            }),
+          },
+        },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '7' } } } },
       ],
     }).compileComponents();
@@ -93,6 +107,12 @@ describe('CheckoutComponent', () => {
     api.getCase.and.returnValue(of({ case: { ...CASE, paid: true } }));
     fixture.detectChanges();
     expect(fixture.componentInstance.paymentStep).toBe('success');
+  });
+
+  it('rellena titular y correo desde la sesión, no un literal', () => {
+    fixture.detectChanges();
+    expect(fixture.componentInstance.holder).toBe('Ana Pérez');
+    expect(fixture.componentInstance.email).toBe('ana@demo.ec');
   });
 
   it('Shift+Tab desde el overlay no escapa el diálogo', fakeAsync(() => {

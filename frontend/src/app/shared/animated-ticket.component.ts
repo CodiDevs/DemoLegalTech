@@ -57,6 +57,9 @@ import { DecimalPipe } from '@angular/common';
           </svg>
           <div>
             <p class="value">{{ cardHolder }}</p>
+            @if (email) {
+              <p class="muted">{{ email }}</p>
+            }
             <p class="muted mono">•••• {{ last4Digits }}</p>
           </div>
         </div>
@@ -231,6 +234,7 @@ export class AnimatedTicketComponent implements OnInit {
   @Input({ required: true }) cardHolder!: string;
   @Input({ required: true }) last4Digits!: string;
   @Input({ required: true }) barcodeValue!: string;
+  @Input() email = '';
   /** Oculta el encabezado de celebración (para modal de checkout). */
   @Input() receiptOnly = false;
 
