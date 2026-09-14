@@ -41,6 +41,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Client journey visual language | Traslado/BienRaiz teal; cuestionario sheet; header Fraunces; botones trámite | 2026-09-13 |
 | done | Home y product homes design.md | `/` + Divorcio/Traslado/BienRaiz: cream cards, grid de estaciones, mock plano | 2026-09-13 |
 | done | Firma plataforma vs documento propio | `/firma/:id` — subir PDF propio ($0) o firma LegalStation $15 aparte (Payphone mock) | 2026-09-13 |
+| done | Flujo cliente Iniciar Formulario + firma canvas | Header/hero CTA con login; upload compacto; lienzo LegalStation → $15; recibo de la sesión | 2026-09-13 |
 
 ## Entries
 
@@ -504,4 +505,13 @@ Home `/` y landings de producto usan el mismo papel cream, cards `--radius-lg` /
 - Motion siempre activo. Solo `transform/opacity/filter`: cero propiedades de layout.
 
 **Demo:** `/cuestionario` (elegir con sello → resultado `$349`) y `/productos/traslado360/cuestionario` (mismo stage).
+
+### 2026-09-13 — Flujo cliente Iniciar Formulario + firma canvas
+CTA **Iniciar Formulario** (guest → `/auth?returnUrl=/cuestionario`; cliente → `/cuestionario`). Hero: Mis expedientes + Cómo funciona, CTA principal centrado debajo. Upload vacío en una línea. LegalStation: lienzo Limpiar/Confirmar → overlay Preparando/Procesando/Pago aprobado/Firma registrada → Payphone $15 existente. Recibo con `full_name`/`email` de la sesión.
+
+**Demo:**
+1. Guest `/` o `/productos/divorcio360` → Iniciar Formulario → login `cliente@demo.ec` / `demo1234` → `/cuestionario`. Header cliente: chip + Iniciar Formulario.
+2. `/upload/11` vacío compacto; `/upload/10` expandido con archivo.
+3. `/firma/10`: dibujar, Confirmar, Pagar $15.00 y firmar. Folio cream de confirmación.
+4. `/checkout/4` (u otro unpaid): titular Carlos Mendoza y correo `cliente@demo.ec` en formulario y ticket.
 
