@@ -11,6 +11,7 @@ import (
 	"github.com/codidevs/divorcio360/internal/cases"
 	"github.com/codidevs/divorcio360/internal/docs"
 	"github.com/codidevs/divorcio360/internal/lawyer"
+	"github.com/codidevs/divorcio360/internal/lawyerservices"
 	"github.com/codidevs/divorcio360/internal/notary"
 	"github.com/codidevs/divorcio360/internal/notifications"
 	"github.com/codidevs/divorcio360/internal/payments"
@@ -48,6 +49,7 @@ func main() {
 	lawyerSvc := &lawyer.Service{DB: db, Cases: caseSvc, UploadDir: uploadDir}
 	notarySvc := &notary.Service{DB: db, Cases: caseSvc}
 	mockSvc := &adminmock.Service{DB: db}
+	offerSvc := &lawyerservices.Service{DB: db}
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
@@ -68,6 +70,8 @@ func main() {
 	r.Post("/api/v1/questionnaire", questionnaire.Handle)
 	r.Post("/api/v1/auth/register", authSvc.Register)
 	r.Post("/api/v1/auth/login", authSvc.Login)
+	r.Get("/api/v1/catalog/services", offerSvc.ListPublic)
+	r.Get("/api/v1/catalog/services/{slug}", offerSvc.GetPublic)
 
 	r.Route("/api/v1", func(api chi.Router) {
 		api.Group(func(pr chi.Router) {
@@ -99,6 +103,13 @@ func main() {
 
 			pr.With(authSvc.RequireRole("notario")).Get("/notary/queue", notarySvc.ListQueue)
 			pr.With(authSvc.RequireRole("notario")).Post("/notary/cases/{id}/actions", notarySvc.PerformAction)
+
+			pr.With(authSvc.RequireRole("abogado")).Get("/lawyer/services", offerSvc.ListMine)
+			pr.With(authSvc.RequireRole("abogado")).Post("/lawyer/services", offerSvc.Create)
+			pr.With(authSvc.RequireRole("abogado")).Get("/lawyer/services/{id}", offerSvc.GetMine)
+			pr.With(authSvc.RequireRole("abogado")).Patch("/lawyer/services/{id}", offerSvc.Patch)
+			pr.With(authSvc.RequireRole("abogado")).Delete("/lawyer/services/{id}", offerSvc.Delete)
+			pr.With(authSvc.RequireRole("abogado")).Post("/lawyer/services/{id}/duplicate", offerSvc.Duplicate)
 
 			pr.With(authSvc.RequireRole("abogado")).Get("/mock/admin/metrics", mockSvc.Metrics)
 			pr.With(authSvc.RequireRole("abogado")).Patch("/mock/templates/master/{id}", mockSvc.PatchMasterTemplate)

@@ -227,6 +227,26 @@ CREATE TABLE IF NOT EXISTS mock_document_templates (
 	if _, err := db.Exec(mockTables); err != nil {
 		return err
 	}
+	if _, err := db.Exec(`
+CREATE TABLE IF NOT EXISTS lawyer_services (
+  id TEXT PRIMARY KEY,
+  lawyer_id INTEGER NOT NULL REFERENCES users(id),
+  slug TEXT NOT NULL,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'penal',
+  status TEXT NOT NULL DEFAULT 'borrador',
+  price_cents INTEGER NOT NULL DEFAULT 0,
+  pitch TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  duration_hint TEXT NOT NULL DEFAULT '',
+  docs_json TEXT NOT NULL DEFAULT '[]',
+  questions_json TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(lawyer_id, slug)
+)`); err != nil {
+		return err
+	}
 	_, _ = db.Exec(`INSERT OR IGNORE INTO mock_tenant (id, org_name, plan_id, cases_used, cases_limit, updated_at) VALUES (1, 'LegalStation Demo Organization', 'b2b-pro', 18, 50, ?)`, Now())
 	return db.migrateNotarioRole()
 }
