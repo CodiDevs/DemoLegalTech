@@ -37,11 +37,20 @@ bun run dev
 - **Backend API:** http://localhost:8080
 - **Health check:** `GET http://localhost:8080/api/v1/health`
 
+Para apagar todo (incluye Karma si un `ng test` quedó colgado):
+
+```bash
+bun run stop
+```
+
+Eso libera `:8080` (API), `:4200` (Angular) y `:9876` / `:9877` (**Karma v6.4.4**). Desde `bun run dev`, `Ctrl+C` también corta API + frontend.
+
 ### Comandos disponibles en Bun
 
 | Comando | Descripción |
 |---------|-------------|
 | `bun run dev` | Levanta API Go + Angular en paralelo con logs unificados y apagado limpio |
+| `bun run stop` | Mata procesos en `:8080`, `:4200`, `:9876` y `:9877` (API, Angular, Karma) |
 | `bun run dev:clean` | Resetea la base de datos SQLite y levanta todo el entorno |
 | `bun run dev:backend` | Levanta únicamente el backend Go (`:8080`) |
 | `bun run dev:frontend` | Levanta únicamente el frontend Angular (`:4200`) |
@@ -49,7 +58,7 @@ bun run dev
 | `bun run db:reset` | Resetea la base de datos y recrea el seed limpio |
 | `bun run setup` | Instala dependencias de frontend y módulos de Go |
 | `bun run build` | Compila frontend y backend para producción |
-| `bun run test` | Ejecuta suites de prueba de backend y frontend |
+| `bun run test` | Backend `go test` + frontend Karma (`ng test --watch=false`, ChromeHeadless) |
 
 ---
 
@@ -129,11 +138,14 @@ Cuestionario → Registro + LOPDP → Pago mock → Upload docs
 ### Abogado
 
 - Bandeja: `/abogado` (filtros por estado)  
+- **Servicios:** `/abogado/servicios` — el bufete crea y edita ofertas (nombre, honorario, documentos, preguntas). Seed: Denuncia electrónica $189. Editor: `/abogado/servicios/nuevo` y `/abogado/servicios/:id`  
 - Workspace: **`/abogado/caso/:id`** (no usar `/caso/:id` como operador)  
 - Tabs: Resumen · Documentos · Minuta · Firmas · Historial  
 - Orden: ver y aprobar cada doc (auto pasa a 04) → subir minuta del notario (PDF) → (opcional) notificar cliente → cliente sube documento firmado → confirmar en tab Firmas  
 
 **Blockers por etapa:** en 03 solo docs; en 04 solo minuta; en 05 solo firma — no se mezclan pendientes futuros.
+
+Las ofertas custom persisten en SQLite (`lawyer_services`). API: `GET/POST /api/v1/lawyer/services` (abogado) y catálogo público `GET /api/v1/catalog/services` (aún no está en el home).
 
 ---
 
@@ -158,6 +170,12 @@ Rutas abogado: `/fase2/admin`, `/templates`, `/ai`, `/satje`, `/billing`, `/mobi
 
 ---
 
+## Tests y Karma
+
+`bun run test:frontend` usa **Karma v6.4.4** en `http://localhost:9876` (debug también en `.vscode/launch.json`). La suite de raíz pasa `--watch=false` y ChromeHeadless.
+
+Si Karma no se cierra (a veces queda un cliente extra enganchado al socket), no lo dejes abierto: `bun run stop`. No uses `ng test` sin `--watch=false` en este repo salvo que quieras el watcher.
+
 ## Verificación automatizada (opcional)
 
 Con la API en `:8080`:
@@ -177,6 +195,7 @@ backend/
     products/           # Docs requeridos por producto
     cases/              # Motor 10 estados + can_sign
     lawyer/             # Workspace abogado, minuta, gates
+    lawyerservices/     # CRUD de ofertas del bufete
     docs/               # Upload multipart
     signatures/         # Firma canvas mock
     payments/           # Payphone mock
@@ -186,6 +205,7 @@ frontend/src/app/
   pages/upload/         # Carga documental
   pages/sign/           # Firma virtual
   pages/lawyer-case/    # Workspace abogado
+  pages/lawyer-services/ # Catálogo editable de ofertas
 docs/
   HANDOFF.md            # Memoria técnica completa
   DEMO_GOALS.md         # Log de slices demo

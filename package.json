@@ -5,6 +5,7 @@
   "description": "LegalStation - Entorno de desarrollo unificado con Bun",
   "scripts": {
     "dev": "bun run scripts/dev.ts",
+    "stop": "bun run scripts/stop.ts",
     "dev:backend": "bun run scripts/dev.ts --only-backend",
     "dev:frontend": "bun run scripts/dev.ts --only-frontend",
     "dev:clean": "bun run scripts/dev.ts --clean-db",
