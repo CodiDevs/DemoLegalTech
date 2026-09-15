@@ -46,8 +46,17 @@ describe('ClientPanelComponent expediente layout', () => {
     const panel = makePanel([unpaid, upload, waiting, signable, closed]);
     panel.filter = 'all';
 
-    expect(panel.actionInView.map((c) => c.id)).toEqual([signable.id, upload.id, unpaid.id]);
+    expect(panel.actionInView.map((c) => c.id)).toEqual([unpaid.id, signable.id, upload.id]);
     expect(panel.archiveInView.map((c) => c.id)).toEqual([closed.id, waiting.id]);
+  });
+
+  it('lo más urgente encabeza la lista y es el caso abierto del desk', () => {
+    const panel = makePanel([upload, signable, unpaid]);
+    panel.product = 'divorcio360';
+
+    expect(panel.actionInView[0].id).toBe(unpaid.id);
+    expect(panel.openCaseId).toBe(unpaid.id);
+    expect(panel.openCaseInView).toBeTrue();
   });
 
   it('títulos de dossier usan verbo humano', () => {

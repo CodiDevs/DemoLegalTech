@@ -1,11 +1,13 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
+import { caseShort } from '../../shared/case-status.data';
 import { IconComponent } from '../../shared/icon.component';
 import { getProductDisplayName, normalizeProductId } from '../../shared/product-sites.data';
 import {
   ProductDeskStepId,
   buildProductSteps,
+  formatDateShort,
   productDocSlots,
   productEmptyCopy,
   productStepTitle,
@@ -16,13 +18,24 @@ interface DocRow {
   doc_type: string;
   filename: string;
   review_status?: string;
+  review_note?: string;
+  size_bytes?: number;
+  created_at?: string;
   url?: string;
+}
+
+interface CaseEventRow {
+  status?: string;
+  status_label?: string;
+  note?: string;
+  created_at?: string;
 }
 
 @Component({
   selector: 'app-client-divorcio-desk',
   standalone: true,
   imports: [RouterLink, IconComponent],
+  host: { '[class.is-embedded]': 'embedded' },
   template: `
     @if (!caseItem) {
       <div class="dossier desk-empty">
@@ -35,14 +48,16 @@ interface DocRow {
         </a>
       </div>
     } @else {
-      <article class="dossier desk-hero" [class.is-pay]="step === 'pay' && !caseItem.paid">
-        <h2 class="dossier-title">{{ stepTitle }}</h2>
-        <p class="dossier-id">{{ productName }} · #{{ caseItem.id }} · {{ city }}</p>
-        <p class="dossier-hint">{{ stepHint }}</p>
-        <p class="dossier-meta">
-          {{ caseItem.paid ? 'Pagado' : 'Por pagar' }} · {{ money }} · {{ caseItem.status_label }}
-        </p>
-      </article>
+      @if (!embedded) {
+        <article class="dossier desk-hero" [class.is-pay]="step === 'pay' && !caseItem.paid">
+          <h2 class="dossier-title">{{ stepTitle }}</h2>
+          <p class="dossier-id">{{ productName }} · #{{ caseItem.id }} · {{ city }}</p>
+          <p class="dossier-hint">{{ stepHint }}</p>
+          <p class="dossier-meta">
+            {{ caseItem.paid ? 'Pagado' : 'Por pagar' }} · {{ money }} · {{ caseItem.status_label }}
+          </p>
+        </article>
+      }
 
       <section class="desk-body" [attr.aria-label]="stepTitle">
         @switch (step) {
@@ -71,36 +86,50 @@ interface DocRow {
           }
           @case ('docs') {
             <div class="desk-docs">
-              <p class="desk-progress tabular">{{ uploadedCount }}/{{ slots.length }}</p>
-              @for (slot of slots; track slot.type) {
-                <div class="desk-card desk-slot" [class.is-done]="slotUploaded(slot.type)">
-                  <div class="desk-slot-head">
-                    <h3>{{ slot.label }}</h3>
-                    <span class="desk-badge" [class]="slotBadgeClass(slot.type)">{{ slotBadgeLabel(slot.type) }}</span>
+              <div class="desk-uploads">
+                @for (slot of slots; track slot.type) {
+                  <div class="desk-card desk-slot" [class.is-done]="slotUploaded(slot.type)">
+                    <div class="desk-slot-head">
+                      <h3>{{ slot.label }}</h3>
+                    </div>
+                    <label
+                      class="desk-drop"
+                      [class.busy]="uploading === slot.type"
+                      [class.drag]="drag === slot.type"
+                      (dragover)="onDragOver($event, slot.type)"
+                      (dragleave)="onDragLeave($event, slot.type)"
+                      (drop)="onDrop($event, slot.type)"
+                    >
+                      <input type="file" accept=".pdf,image/*" (change)="onFile($event, slot.type)" />
+                      <app-icon name="upload" [size]="20" />
+                      <span>{{ uploading === slot.type ? 'Subiendo…' : (latestDoc(slot.type) ? 'Reemplazar archivo' : 'Arrastra o elige archivo') }}</span>
+                    </label>
                   </div>
-                  @if (latestDoc(slot.type); as doc) {
-                    <p class="desk-file">{{ doc.filename }}</p>
+                }
+              </div>
+
+              <aside class="desk-docstate" aria-label="Estado de documentos">
+                <h3 class="ficha-head">Estado de documentos</h3>
+                <ul class="ficha-list is-docs">
+                  @for (d of docState; track d.label) {
+                    <li class="ficha-row">
+                      <span class="ficha-doc">
+                        <span>{{ d.label }}</span>
+                        <span class="ficha-file">{{ d.meta }}</span>
+                        @if (d.note) { <span class="ficha-note">{{ d.note }}</span> }
+                      </span>
+                      <span class="desk-badge" [class]="d.badgeClass">{{ d.badge }}</span>
+                    </li>
                   }
-                  <label
-                    class="desk-drop"
-                    [class.busy]="uploading === slot.type"
-                    [class.drag]="drag === slot.type"
-                    (dragover)="onDragOver($event, slot.type)"
-                    (dragleave)="onDragLeave($event, slot.type)"
-                    (drop)="onDrop($event, slot.type)"
-                  >
-                    <input type="file" accept=".pdf,image/*" (change)="onFile($event, slot.type)" />
-                    <app-icon name="upload" [size]="20" />
-                    <span>{{ uploading === slot.type ? 'Subiendo…' : (latestDoc(slot.type) ? 'Reemplazar archivo' : 'Arrastra o elige archivo') }}</span>
-                  </label>
-                </div>
-              }
-              @if (error) { <p class="desk-err">{{ error }}</p> }
-              @if (uploadedCount >= slots.length) {
-                <button type="button" class="btn btn-primary" (click)="goStep.emit('call')">
-                  Continuar a consulta
-                </button>
-              }
+                </ul>
+                @if (error) { <p class="desk-err">{{ error }}</p> }
+                <p class="desk-progress tabular">{{ uploadedCount }}/{{ slots.length }}</p>
+                @if (uploadedCount >= slots.length) {
+                  <button type="button" class="btn btn-primary" (click)="goStep.emit('call')">
+                    Continuar a consulta
+                  </button>
+                }
+              </aside>
             </div>
           }
           @case ('call') {
@@ -186,6 +215,42 @@ interface DocRow {
           }
         }
       </section>
+
+      <section class="desk-ficha" aria-label="Ficha del expediente">
+        <div class="ficha-block">
+          <h3 class="ficha-head">Historial</h3>
+          @if (historyRows.length) {
+            <ul class="ficha-list">
+              @for (e of historyRows; track e.date + e.label) {
+                <li class="ficha-row">
+                  <span class="ficha-mark" aria-hidden="true"></span>
+                  <span>{{ e.label }}</span>
+                  <span class="ficha-tail tabular">{{ e.date }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="ficha-empty">Sin movimientos todavía.</p>
+          }
+        </div>
+
+        @if (step !== 'docs') {
+          <div class="ficha-block">
+            <h3 class="ficha-head">Documentos</h3>
+            <ul class="ficha-list is-docs">
+              @for (d of docState; track d.label) {
+                <li class="ficha-row">
+                  <span class="ficha-doc">
+                    <span>{{ d.label }}</span>
+                    <span class="ficha-file">{{ d.meta }}</span>
+                  </span>
+                  <span class="desk-badge" [class]="d.badgeClass">{{ d.badge }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </section>
     }
   `,
   styles: [`
@@ -237,6 +302,23 @@ interface DocRow {
 
     .dossier-hint { max-width: 48ch; }
 
+    /* Cabecera del trámite: el estado (pago, monto, etapa) al extremo derecho de la fila
+       del título, en vez de quedar apilado dejando media tarjeta vacía al lado. Solo
+       cuando el contenedor da para las dos cosas; si no, se apila como antes. */
+    @container (min-width: 34rem) {
+      .desk-hero {
+        grid-template-columns: minmax(0, 1fr) auto;
+        column-gap: var(--space-5);
+        align-items: center;
+      }
+
+      .desk-hero .dossier-title { grid-column: 1; grid-row: 1; }
+      .desk-hero .dossier-meta { grid-column: 2; grid-row: 1; text-align: right; }
+
+      .desk-hero .dossier-id,
+      .desk-hero .dossier-hint { grid-column: 1 / -1; }
+    }
+
     .dossier-cta {
       display: inline-flex;
       align-items: center;
@@ -259,7 +341,7 @@ interface DocRow {
       animation: desk-in 420ms var(--ease-out) both;
     }
 
-    .desk-copy, .desk-ok, .desk-err, .desk-file {
+    .desk-copy, .desk-ok, .desk-err {
       margin: 0;
       font-size: var(--text-sm);
       color: var(--text-secondary);
@@ -268,7 +350,35 @@ interface DocRow {
     .desk-ok { color: var(--primary); font-weight: 600; }
     .desk-err { color: var(--danger); }
 
-    .desk-docs { display: grid; gap: var(--space-3); }
+    /* Subir a la izquierda, estado real de cada casillero a la derecha: el soltar archivos
+       ocupaba los 784px del panel con una caja punteada de 112px y dejaba el medio vacío. */
+    .desk-docs { display: grid; gap: var(--space-5); }
+
+    .desk-uploads {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .desk-docstate {
+      display: grid;
+      gap: var(--space-3);
+      align-content: start;
+    }
+
+    .desk-docstate > .ficha-head { margin-bottom: 0; }
+
+    .desk-docstate .btn {
+      justify-self: end;
+      width: min(100%, 16rem);
+    }
+
+    @container (min-width: 48rem) {
+      .desk-docs {
+        grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+        column-gap: var(--space-6);
+        align-items: start;
+      }
+    }
 
     .desk-progress {
       margin: 0;
@@ -343,6 +453,14 @@ interface DocRow {
       gap: var(--space-2);
     }
 
+    /* Con la ventana ancha la fila quedaba pegada a la izquierda y dejaba ~330px libres
+       al lado. Los dos botones cierran la tarjeta contra su borde derecho. */
+    @container (min-width: 34rem) {
+      .desk-sign-actions {
+        justify-content: flex-end;
+      }
+    }
+
     /* Los dos caminos de firma miden igual de ancho, o el 100% si no caben.
        Con Inter, "Subir documento firmado" mide 170px: a 200px totales quedaban 2px
        de aire por lado contra los bordes, y el otro botón tenía 25px. Se veía apretado. */
@@ -391,16 +509,127 @@ interface DocRow {
 
     .desk-status-list li.done { color: var(--primary); }
     .desk-status-list li.current { color: var(--text); font-weight: 650; }
+
+    /* Ficha del expediente: ocupa el alto que quedaba libre bajo el paso actual con
+       información real que el cliente no veía en ninguna otra parte del panel. */
+    .desk-ficha {
+      display: grid;
+      gap: var(--space-5);
+      padding: var(--space-5);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      animation: desk-in 420ms var(--ease-out) both;
+    }
+
+    @container (min-width: 48rem) {
+      .desk-ficha {
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        column-gap: var(--space-6);
+      }
+
+      .desk-ficha > .ficha-block + .ficha-block {
+        padding-left: var(--space-6);
+        border-left: 1px solid var(--border);
+      }
+    }
+
+    .ficha-block { min-width: 0; }
+
+    .ficha-head {
+      margin: 0 0 var(--space-3);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .ficha-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .ficha-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: baseline;
+      gap: var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .ficha-list.is-docs .ficha-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .ficha-mark {
+      align-self: center;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .ficha-tail {
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+    }
+
+    .ficha-doc { display: grid; gap: 2px; min-width: 0; }
+
+    .ficha-file {
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ficha-note {
+      color: var(--danger);
+      font-size: var(--text-xs);
+    }
+
+    .ficha-empty {
+      margin: 0;
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+
+    /* Embebido en la tarjeta extendida: el trámite suelta sus marcos para leerse como el
+       cuerpo de esa tarjeta y no como tarjetas dentro de una tarjeta. */
+    :host(.is-embedded) .desk-card,
+    :host(.is-embedded) .desk-ficha,
+    :host(.is-embedded) .desk-empty {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+    }
+
+    :host(.is-embedded) .desk-body { gap: var(--space-5); }
   `],
 })
 export class ClientDivorcioDeskComponent implements OnChanges {
   @Input() product = 'divorcio360';
   @Input() caseItem: CaseItem | null = null;
   @Input() step: ProductDeskStepId = 'pay';
+  /* Cuando el desk vive dentro de la tarjeta extendida, la cabecera de la tarjeta ya
+     lleva título, expediente, pista y estado: el hero los repetiría palabra por palabra,
+     y las tarjetas de adentro harían tarjeta dentro de tarjeta. */
+  @Input() embedded = false;
   @Output() goStep = new EventEmitter<ProductDeskStepId>();
   @Output() caseChanged = new EventEmitter<CaseItem>();
 
   docs: DocRow[] = [];
+  events: CaseEventRow[] = [];
   slots = productDocSlots('divorcio360');
   uploading = '';
   drag = '';
@@ -413,7 +642,10 @@ export class ClientDivorcioDeskComponent implements OnChanges {
     if (changes['caseItem'] || changes['product']) {
       const product = normalizeProductId(this.caseItem?.product || this.product);
       this.slots = productDocSlots(product);
-      if (this.caseItem) this.reloadDocs();
+      if (this.caseItem) {
+        this.reloadDocs();
+        this.reloadEvents();
+      }
       this.error = '';
     }
   }
@@ -456,6 +688,39 @@ export class ClientDivorcioDeskComponent implements OnChanges {
     return Number(this.caseItem?.status || '0') >= 6;
   }
 
+  /* Ficha del expediente: lo que el cliente no ve en ninguna otra parte del panel.
+     El historial usa el vocabulario de la app (caseShort) y no el `note` del servidor,
+     que en el demo trae notas internas de fixture. */
+  get historyRows(): { label: string; date: string }[] {
+    return [...this.events]
+      .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+      .slice(0, 5)
+      .map((e) => ({
+        label: caseShort(e.status || '') || e.status_label || '',
+        date: formatDateShort(e.created_at),
+      }))
+      .filter((r) => !!r.label);
+  }
+
+  /* Una fila por casillero del producto, subido o no: es el estado del trámite de
+     documentos, no la lista de los archivos que ya llegaron. */
+  get docState(): { label: string; meta: string; badge: string; badgeClass: string; note: string }[] {
+    return this.slots.map((slot) => {
+      const doc = this.latestDoc(slot.type);
+      if (!doc) {
+        return { label: slot.label, meta: 'Sin archivo', badge: 'Pendiente', badgeClass: '', note: '' };
+      }
+      const parts = [doc.filename, formatDateShort(doc.created_at), this.fileSize(doc.size_bytes)];
+      return {
+        label: slot.label,
+        meta: parts.filter(Boolean).join(' · '),
+        badge: this.docBadgeLabel(doc),
+        badgeClass: this.docBadgeClass(doc),
+        note: doc.review_status === 'rejected' ? doc.review_note || '' : '',
+      };
+    });
+  }
+
   stateLabel(state: string): string {
     switch (state) {
       case 'done': return 'Listo';
@@ -475,17 +740,13 @@ export class ClientDivorcioDeskComponent implements OnChanges {
     return matches.reduce((a, b) => (a.id > b.id ? a : b));
   }
 
-  slotBadgeLabel(type: string): string {
-    const doc = this.latestDoc(type);
-    if (!doc) return 'Pendiente';
+  docBadgeLabel(doc: DocRow): string {
     if (doc.review_status === 'approved') return 'Aprobado';
     if (doc.review_status === 'rejected') return 'Rechazado';
     return 'En revisión';
   }
 
-  slotBadgeClass(type: string): string {
-    const doc = this.latestDoc(type);
-    if (!doc) return '';
+  docBadgeClass(doc: DocRow): string {
     if (doc.review_status === 'approved') return 'ok';
     if (doc.review_status === 'rejected') return 'err';
     return 'warn';
@@ -604,10 +865,24 @@ export class ClientDivorcioDeskComponent implements OnChanges {
     this.api.listDocs(this.caseItem.id).subscribe((d) => (this.docs = d || []));
   }
 
+  private reloadEvents(): void {
+    if (!this.caseItem) return;
+    this.api.getCase(this.caseItem.id).subscribe((d) => (this.events = d?.events || []));
+  }
+
   private refreshCase(): void {
     if (!this.caseItem) return;
     this.api.getCase(this.caseItem.id).subscribe((d) => {
+      if (d?.events) this.events = d.events;
       if (d?.case) this.caseChanged.emit(d.case);
     });
+  }
+
+  private fileSize(bytes?: number): string {
+    if (!bytes || bytes <= 0) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${Math.round(kb)} KB`;
+    return `${(kb / 1024).toFixed(1).replace('.', ',')} MB`;
   }
 }

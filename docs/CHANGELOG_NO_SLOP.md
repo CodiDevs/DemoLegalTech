@@ -139,3 +139,107 @@ Pasada disparada por un reporte de uso real: la tarjeta "Te toca" de `Tus trámi
 | `docs/NO_SLOP.md` | Sección con la causa medida en el DOM real, los arreglos, el método de auditoría y sus resultados |
 
 Verificación: build limpio, 109/109 specs, y auditoría renderizada sobre `/cliente` (escritorio y móvil), `/` y `/productos/divorcio360`.
+
+## Lienzo del workspace cliente
+
+Pasada de estructura: el panel mostraba una sola columna angosta en un lienzo de 1216px, con 528px libres abajo.
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | `.client-main` con lista + caso en paralelo (`.inbox-split` / `.inbox-list` / `.inbox-desk`): la lista a la izquierda en `minmax(18rem, 21rem)` y el desk a la derecha. El desk dejó de sustituir la lista; se reusa `activateCase` / `setProduct`. Abajo de 1100px la lista se oculta y el caso toma la pantalla (el comportamiento de móvil de hoy). Las adaptaciones de tarjeta y fila del archivo pasaron de `@media` de viewport a `@container` del propio contenedor (`.dossier-stack` / `.archive`), con la contención en `.inbox-desk`. |
+| `pages/client-panel/client-divorcio-desk.component.ts` | Cabecera del trámite con el estado al extremo derecho de la fila del título (`@container (min-width: 34rem)`) y la fila de firma cerrando contra el borde derecho. La contención va en `.inbox-desk` (el envoltorio que define la columna), no en `:host`. |
+| `docs/design.md` | Reglas durables: lista + caso en paralelo, componentes que responden a su contenedor, y qué aire es deliberado. |
+| `docs/NO_SLOP.md` | Diagnóstico medido, cambios, la falsa alarma del arnés de captura, la tabla de la auditoría de tinta y lo que se decide no tocar con su razón. |
+
+Verificación: build limpio, 109/109 specs, y auditoría de tinta contra caja con 0 hallazgos en `/cliente`, `/`, `/productos/divorcio360`, `/cuestionario`, `/abogado` y `/abogado/caso/2`.
+
+## Ficha del expediente en el panel del cliente
+
+El ancho ya estaba repartido; faltaba el alto. Se llenó con datos reales que el cliente no veía en ninguna otra parte del panel.
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-divorcio-desk.component.ts` | Ficha del expediente bajo el paso actual: **historial** (últimos 5 eventos con fecha, en el vocabulario de la app vía `caseShort`), **documentos** con estado de revisión y motivo de rechazo, y **expediente** (abierto el, minuta, notaría, comparecencia). Guarda `events` del detalle que ya pedía al refrescar, así que firmar o subir un documento actualiza el historial sin una petición extra. Los badges de documento se comparten entre los casilleros del paso y la ficha. |
+| `pages/client-panel/client-panel.component.ts` | Línea de pasos en cada tarjeta con el estado real de los 5 pasos (`buildProductSteps`), ancho explícito porque el cuerpo de la tarjeta no estira a sus hijos, y etiqueta accesible "Paso N de 5". |
+| `docs/design.md` | Regla durable: la ficha del expediente y su reparto por contenedor (48rem). |
+| `docs/NO_SLOP.md` | Criterio de datos reales, cambios, las dos rondas perdidas y lo que se decide no mostrar con su razón. |
+
+Verificación: build limpio, 109/109 specs, y auditoría de tinta con 0 hallazgos en `/cliente` (con el trámite abierto), `/` y `/abogado`.
+
+## Grilla del panel y paso documentos en dos columnas
+
+El ancho ya estaba repartido; lo que sobraba era la mitad derecha al bajar por varios expedientes, y el medio del paso documentos.
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | `.inbox-split` reemplazado por `.inbox-cases` con `.dossier-grid` (dos columnas desde 1101px): el expediente abierto cruza las dos con el trámite dentro (`.dossier-cell.is-open` + `.desk-shell`). `actionInView` ordena por urgencia. Helpers `openCaseId` y `openCaseInView` (el desk se renderiza suelto si el filtro dejó al caso abierto fuera de las dos listas). Fuera el `@media (max-width: 1100px)` que escondía la lista: en móvil el toque expande donde está el dedo. |
+| `pages/client-panel/client-divorcio-desk.component.ts` | Paso documentos en dos columnas (`.desk-uploads` + `.desk-docstate`), `docState` por casillero con fecha y peso, `fileSize()`, y `embedded` (sin hero, sin marcos internos) para vivir dentro de la tarjeta extendida. Fuera `docRows`, `slotBadgeLabel`/`slotBadgeClass` y el selector `.desk-file`, que quedaron sin uso. |
+| `pages/client-panel/divorcio-steps.ts` | `caseUrgency()` exportada; `pickProductCase` la usa en lugar de su `rank` interno. |
+| `pages/client-panel/client-panel.component.spec.ts` | El orden esperado de `actionInView` pasa a ser por urgencia, y un test nuevo fija que el más urgente encabece la lista y sea el caso abierto. |
+| `docs/design.md` | Reglas durables de la grilla, del cuerpo embebido, del paso documentos y del orden por urgencia. |
+| `docs/NO_SLOP.md` | Diagnóstico, cambios, lo descartado con su razón, y la trampa del arnés. |
+
+Verificación: build limpio, 110/110 specs, capturas de escritorio (abierto y paso documentos) y móvil, y auditoría de tinta con 0 hallazgos en `/cliente` (paso documentos), `/` y `/abogado`.
+
+## Tarjetas parejas y última línea completa
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | Fuera `[class.is-hero]` y las reglas `.dossier.is-hero` / `.dossier:not(.is-hero)` y `.dossier:not(.is-hero) .dossier-body` / `.dossier-title`, que daban más padding a la primera tarjeta y menos a todas las demás. `.dossier-grid` pasa de grid a `flex-wrap` (base `calc(50% - gap/2)`, `flex-basis: 100%` en el abierto): una tarjeta sola llena su línea. La celda abierta pierde la sombra duplicada sobre el borde tintado. |
+| `docs/design.md` | Las tarjetas van de a dos en flex, parejas, y la línea se llena siempre; el énfasis es el expediente abierto. |
+| `docs/NO_SLOP.md` | Causa medida de los dos síntomas, el cambio con las líneas medidas y por qué flex y no grid. |
+
+Verificación: reproducido con 6 expedientes (insertados y borrados como dato), build limpio, 110/110 specs, líneas medidas a 1216px = el lienzo completo, capturas de escritorio y móvil, y la base de vuelta en un solo caso.
+
+## Tarjetas del mismo alto y datos en la cabecera del abierto
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | `min-height: 12.5rem` en las tarjetas de la lista (todas a 200px exactos). Fila de datos en la cabecera del abierto entre la pista y la línea de pasos (`caseFacts`: apertura, minuta, notaría, comparecencia) con `justify-self: stretch` y reparto del ancho. |
+| `pages/client-panel/client-divorcio-desk.component.ts` | Fuera el bloque Expediente de la ficha, sus cuatro getters (`openedLine`, `minutaLine`, `notaryLine`, `appointmentLine`), su `dateLong` privado y las cuatro reglas CSS de `.ficha-rows`, que quedaron sin uso. |
+| `pages/client-panel/divorcio-steps.ts` | `formatDateLong()` compartida, que reemplaza el `dateLong` privado del desk. |
+| `docs/design.md` | Reglas durables: todas las tarjetas del mismo alto, y los datos del expediente en la cabecera del abierto. |
+| `docs/NO_SLOP.md` | Diagnóstico medido (197 vs 165px de alto, ~500px vacíos en la cabecera), cambios y la limpieza que arrastraron. |
+
+Verificación: build limpio, 110/110 specs, tres tarjetas medidas a 200px, la sola ocupando la línea completa (1216px), la fila de datos a 1188px repartida, capturas de escritorio y móvil, y la base de vuelta en un solo caso.
+
+## Línea de pasos y especificaciones en las tarjetas
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | La línea de pasos cruza el ancho del cuerpo en las tarjetas (`max-width: none`). Especificaciones debajo de la barra (`tileSpecs`: documento del paso de documentos y fecha de apertura), solo en las tarjetas. El `space-between` de la fila de datos pasa a arrancar a los 34rem de contenedor. |
+| `pages/client-panel/divorcio-steps.ts` | `formatDateShort()` compartida, que reemplaza la copia privada del desk. |
+| `docs/design.md` | Especificaciones de la tarjeta de la lista: qué son, dónde van y por qué no las lleva el abierto. |
+| `docs/NO_SLOP.md` | Diagnóstico medido (barra de 352px en un cuerpo de 602) y los cambios. |
+
+Verificación: barra medida a 389px en tarjetas de 602 y a 1003 en la que ocupa la línea entera, especificaciones presentes solo en las tarjetas, build limpio y 110/110 specs.
+
+## La tarjeta impar completa la línea
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | `flex: 1 1 calc(50% - gap/2)` en las tarjetas: con dos quedan parejas y la que cae sola en una línea impar se estira hasta completar el ancho que ocuparían las demás. Sin `justify-content: center`, y el `min-height` que iguala las alturas se mantiene. |
+| `docs/design.md` | La regla: dos parejas, impar completa. |
+| `docs/NO_SLOP.md` | La regla final, la vuelta atrás y la diferencia entre el ancho de la impar y la altura de la fila. |
+
+Verificación: `flex-grow=1` y `justify=normal` medidos en el render, líneas que suman 1216px = el ancho del lienzo en la medición del séptimo paso, build limpio y 110/110 specs.
+
+## Todas las tarjetas del mismo alto
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | La pista reserva dos líneas en las tarjetas de la lista (`min-height: 2lh`): el `min-height` de la tarjeta es un piso y no igualaba la pista corta con la larga. |
+| `docs/design.md` | La regla completa: piso de altura más reserva de dos líneas en la pista. |
+| `docs/NO_SLOP.md` | Diagnóstico medido en el filtro "Todos" (pistas mixtas) y la verificación. |
+
+Verificación: `alturas distintas: 1 -> 236px x5` con pistas de una y dos líneas, barrido a 1560px, build limpio, 110/110 specs y la base de vuelta en un solo caso.
+
+## Todas las tarjetas del mismo ancho
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | `flex: 0 1 calc(50% - gap/2)` en las tarjetas: ninguna se estira, tampoco la que cae sola en una línea impar, que queda en su columna alineada con las de arriba. Sin `justify-content`. El `min-height` y la reserva de dos líneas de la pista se mantienen. |
+| `docs/design.md` | La regla final: todas del mismo tamaño, la impar en su columna. |
+| `docs/NO_SLOP.md` | El cierre del ida y vuelta de las pasadas 7, 10 y 11, y la lección. |
+
+Verificación: `grow=0`, `justify=normal` y pista de dos líneas medidos en el render, alturas iguales de 236px con pistas mixtas (medición de la pasada anterior, mismo CSS de alturas), build limpio y 110/110 specs.
