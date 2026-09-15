@@ -32,7 +32,7 @@ async function renderHero(role: User['role'] | null): Promise<ComponentFixture<M
 describe('MarketingHeroComponent CTA', () => {
   afterEach(() => TestBed.resetTestingModule());
 
-  it('enruta el CTA primario según el rol e ignora el fragmento para cliente', async () => {
+  it('deja el CTA primario como la accion de la pagina en todos los roles', async () => {
     const guest = await renderHero(null);
     const guestCta = (guest.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
     expect(guestCta?.getAttribute('href')).toBe('/cuestionario');
@@ -41,13 +41,13 @@ describe('MarketingHeroComponent CTA', () => {
 
     const cliente = await renderHero('cliente');
     const clienteCta = (cliente.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
-    expect(clienteCta?.getAttribute('href')).toBe('/cliente');
-    expect(clienteCta?.textContent).toContain('Mis expedientes');
+    expect(clienteCta?.getAttribute('href')).toBe('/cuestionario');
+    expect(clienteCta?.textContent).toContain('Abrir Divorcio360');
     cliente.destroy();
 
     const abogado = await renderHero('abogado');
     const abogadoCta = (abogado.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
-    expect(abogadoCta?.getAttribute('href')).toBe('/abogado');
+    expect(abogadoCta?.getAttribute('href')).toBe('/cuestionario');
     expect((abogado.nativeElement as HTMLElement).textContent).not.toContain('Ver Fase 2');
     abogado.destroy();
   });

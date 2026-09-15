@@ -76,12 +76,12 @@ interface HeroAction {
                   [href]="'#' + primaryFragment"
                   (click)="scrollToSection($event, primaryFragment)"
                 >
-                  <span>{{ primaryLabel }}</span>
+                  <span>{{ primaryCta }}</span>
                   <app-icon name="arrow-right" [size]="16" />
                 </a>
               } @else {
-                <a class="btn btn-primary btn-lg mk-cta-btn" [routerLink]="primaryLink">
-                  <span>{{ primaryLabel }}</span>
+                <a class="btn btn-primary btn-lg mk-cta-btn" [routerLink]="primaryRoute">
+                  <span>{{ primaryCta }}</span>
                   <app-icon name="arrow-right" [size]="16" />
                 </a>
               }
@@ -370,15 +370,10 @@ export class MarketingHeroComponent implements AfterViewInit {
     return !!this.primaryFragment && this.role !== 'abogado' && this.role !== 'cliente';
   }
 
-  get primaryLink(): string {
-    if (this.role === 'abogado') return '/abogado';
-    if (this.role === 'cliente') return '/cliente';
-    return this.primaryRoute;
-  }
-
-  get primaryLabel(): string {
-    return this.role === 'cliente' ? 'Mis expedientes' : this.primaryCta;
-  }
+  /* El CTA primario del hero es la accion de la pagina en todos los roles. Antes forzaba el
+     atajo del rol, y en el inicio un cliente veia "Mis expedientes" aca y "Mi expediente" en
+     el secundario: dos botones casi iguales, los dos a /cliente y ninguno al formulario. El
+     atajo del rol vive en la barra (shell), que es donde corresponde. */
 
   get secondaryAction(): HeroAction | null {
     if (!this.showSecondary) return null;
@@ -389,7 +384,7 @@ export class MarketingHeroComponent implements AfterViewInit {
       return { label: this.secondaryCta, route: '/productos/divorcio360' };
     }
     if (this.role === 'cliente') {
-      return { label: 'Mi expediente', route: '/cliente' };
+      return { label: 'Mis expedientes', route: '/cliente' };
     }
     if (this.auth.isLoggedIn) return null;
     return { label: this.secondaryCta, route: '/auth', query: this.secondaryAuthQuery };
