@@ -362,6 +362,12 @@ interface DocRow {
       justify-content: center;
     }
 
+    /* La card es --surface, así que un secundario con fondo --surface quedaba blanco
+       sobre blanco: solo lo separaba un borde de 1px y se leía más chico que el relleno. */
+    .desk-sign-actions .btn-secondary {
+      --btn-bg: var(--bg-subtle);
+    }
+
     .desk-file-btn {
       position: relative;
       overflow: hidden;
