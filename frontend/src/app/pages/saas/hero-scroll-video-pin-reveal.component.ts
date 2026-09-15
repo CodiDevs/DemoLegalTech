@@ -91,7 +91,7 @@ function syncMockSteps(steps: Element[], progress: number): void {
               </p>
               <div class="hsvr-mock" #mockRef aria-hidden="true">
                 <div class="hsvr-mock-bar">
-                  <strong>{{ site.name }}, expediente de ejemplo</strong>
+                  <strong>{{ site.name }}</strong>
                 </div>
                 <div class="hsvr-mock-body">
                   @for (s of site.workflow; track s.n) {

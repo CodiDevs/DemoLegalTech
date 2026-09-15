@@ -75,114 +75,6 @@
   color: color-mix(in srgb, #fff 78%, transparent);
 }
 
-/* Demo expediente window */
-.demo-case {
-  width: min(36rem, 100%);
-  border-radius: var(--radius-lg);
-  border: 1px solid color-mix(in srgb, var(--primary) 34%, var(--border));
-  background: color-mix(in srgb, var(--surface) 92%, var(--primary-subtle));
-  color: var(--text);
-  box-shadow: 0 28px 80px rgb(27 25 23 / 0.22);
-  overflow: hidden;
-  transform: perspective(1200px) rotateX(6deg) rotateY(-8deg);
-  transform-origin: 80% 100%;
-  animation: demo-case-lift 900ms var(--ease-out) both;
-}
-
-.demo-case[data-mode='payment'],
-.demo-case[data-mode='signature'] {
-  transform: perspective(1200px) rotateX(2deg);
-}
-
-.demo-case-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.7rem 1rem;
-  background: var(--surface-inverse);
-  color: var(--text-inverse);
-}
-
-.demo-case-bar strong {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  opacity: 0.7;
-}
-
-.demo-case-body {
-  padding: 1.1rem 1.15rem 1.25rem;
-}
-
-.demo-case-kicker {
-  margin: 0 0 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--primary);
-}
-
-.demo-case-body h3 {
-  margin: 0 0 0.85rem;
-  font-family: var(--font-sans);
-  font-size: 1.45rem;
-  letter-spacing: -0.03em;
-}
-
-.demo-case-steps,
-.demo-case-docs {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.demo-case-steps li {
-  display: grid;
-  grid-template-columns: 1.75rem 1fr;
-  gap: 0.7rem;
-  align-items: center;
-  padding: 0.45rem 0.6rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-}
-
-.demo-case-steps li.is-on {
-  border-color: var(--primary);
-  background: var(--primary-subtle);
-}
-
-.demo-case-steps li span {
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  font-size: 0.72rem;
-  font-weight: 700;
-  background: var(--primary-subtle);
-  color: var(--primary);
-}
-
-.demo-case-steps small {
-  display: block;
-  color: var(--text-muted);
-  font-size: 0.72rem;
-}
-
-@keyframes demo-case-lift {
-  from {
-    opacity: 0.35;
-    transform: perspective(1200px) rotateX(14deg) translateY(18%);
-  }
-  to {
-    opacity: 1;
-    transform: perspective(1200px) rotateX(6deg) rotateY(-8deg);
-  }
-}
-
 /* Document stack */
 .demo-stack {
   position: relative;
@@ -339,18 +231,8 @@
 
 .ls-journey-preview {
   display: block;
-  width: 100%;
-}
-
-.ls-journey-preview .demo-case,
-.ls-journey-preview .demo-case[data-mode='payment'],
-.ls-journey-preview .demo-case[data-mode='signature'] {
   width: min(36rem, 100%);
-  max-width: 36rem;
   margin-inline: auto;
-  transform: none;
-  transform-origin: center;
-  animation: none;
 }
 
 .ls-rail-wrap {
@@ -1136,6 +1018,5 @@
 
 @media (max-width: 560px) {
   .cine-scene { padding-block: var(--space-7); }
-  .demo-case { transform: none; }
   .ck-card-face { transform: none; }
 }

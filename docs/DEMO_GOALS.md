@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Hero expediente plano + pasos | `/` — folio derecho recto; clic en 1–6 cambia Estado y titular | 2026-09-15 |
 | done | Bootstrap repo | `README.md` — `go run ./cmd/api` + `npm start` | 2026-08-29 |
 | done | Auth + seed users | Login `cliente@demo.ec` / `abogado@demo.ec` (`demo1234`) | 2026-08-29 |
 | done | Cuestionario inteligente | Landing → Cuestionario → green/yellow/red | 2026-08-29 |
@@ -62,6 +63,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Hero expediente plano + pasos
+El mock de `/` iba torcido (`perspective` + `rotateX/Y`) y el copy decía “expediente de ejemplo”. Ahora es un folio plano. Cada fila es un botón: el titular y el Estado siguen el paso activo, con fade+blur.
+
+**Demo:** `/` → clic Evaluar → Firmar. Misma ventana en `/productos/divorcio360` escena Flujo.
 
 ### 2026-09-15 — Cierre anti-slop: estados, paleta, muertos
 Segunda pasada del cierre. Detalle completo en [`docs/NO_SLOP.md`](NO_SLOP.md).

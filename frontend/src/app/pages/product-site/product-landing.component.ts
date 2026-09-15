@@ -63,7 +63,7 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
             </div>
             <div class="ps-mock-ui">
               <div class="ps-mock-bar">
-                <strong>{{ site.name }}, expediente de ejemplo</strong>
+                <strong>{{ site.name }}</strong>
               </div>
               <div class="ps-mock-body">
                 @for (s of site.workflow.slice(0, 4); track s.n) {

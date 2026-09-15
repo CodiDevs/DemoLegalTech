@@ -97,7 +97,7 @@ interface HeroAction {
           </div>
 
           <div class="mk-dossier-float">
-            <app-demo-case-window mode="overview" [activeStep]="2" />
+            <app-demo-case-window mode="overview" />
           </div>
         </div>
       </section>
