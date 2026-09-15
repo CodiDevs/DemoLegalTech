@@ -161,6 +161,32 @@ describe('ShellComponent marketing navigation', () => {
     expect(productContext.footerPitch.toLowerCase()).toContain('trámite en línea');
   });
 
+  it('en /abogado oculta nav y pie de marketing y la marca vuelve a la bandeja', () => {
+    const lawyer = makeShell('abogado');
+    (lawyer as unknown as { router: Router }).router = {
+      url: '/abogado',
+      events: EMPTY,
+    } as unknown as Router;
+
+    expect(lawyer.isLawyerWorkspace).toBeTrue();
+    expect(lawyer.showProductSwitcher).toBeFalse();
+    expect(lawyer.navLinks).toEqual([]);
+    expect(lawyer.showSiteFooter).toBeFalse();
+    expect(lawyer.brand.home).toBe('/abogado');
+  });
+
+  it('trata /abogado/caso/:id como workspace', () => {
+    const lawyer = makeShell('abogado');
+    (lawyer as unknown as { router: Router }).router = {
+      url: '/abogado/caso/6?tab=docs',
+      events: EMPTY,
+    } as unknown as Router;
+
+    expect(lawyer.isLawyerWorkspace).toBeTrue();
+    expect(lawyer.navLinks).toEqual([]);
+    expect(lawyer.showSiteFooter).toBeFalse();
+  });
+
   it('conserva el slogan de LegalStation fuera de Divorcio360', () => {
     const home = makeShell(null);
     home.isDivorcioMarketing = false;

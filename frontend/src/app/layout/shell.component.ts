@@ -41,6 +41,7 @@ interface ProductSwitcherItem {
       class="site-header"
       [class.on-marketing]="isMarketing"
       [class.on-flow]="isDivorcioFlow"
+      [class.on-workspace]="isLawyerWorkspace"
       [style.--header-accent]="headerAccent"
     >
       <div class="header-bar">
@@ -227,18 +228,20 @@ interface ProductSwitcherItem {
           }
         </div>
 
-        <button
-          type="button"
-          class="btn btn-ghost btn-icon menu-trigger"
-          [attr.aria-label]="showMenu ? 'Cerrar menú' : 'Abrir menú'"
-          [attr.aria-expanded]="showMenu"
-          (click)="toggleMenu($event)"
-        >
-          <app-icon [name]="showMenu ? 'x' : 'menu'" [size]="20" />
-        </button>
+        @if (!isLawyerWorkspace) {
+          <button
+            type="button"
+            class="btn btn-ghost btn-icon menu-trigger"
+            [attr.aria-label]="showMenu ? 'Cerrar menú' : 'Abrir menú'"
+            [attr.aria-expanded]="showMenu"
+            (click)="toggleMenu($event)"
+          >
+            <app-icon [name]="showMenu ? 'x' : 'menu'" [size]="20" />
+          </button>
+        }
       </div>
 
-      @if (showMenu) {
+      @if (showMenu && !isLawyerWorkspace) {
         <div class="mobile-menu">
           @if (showProductSwitcher) {
             <p class="mobile-menu-label">Servicios</p>
@@ -285,7 +288,7 @@ interface ProductSwitcherItem {
       <router-outlet />
     </main>
 
-    @if (!isDivorcioFlow && !isAuthPage && !isClientPanel) {
+    @if (showSiteFooter) {
     <footer class="site-footer">
       <div class="shell footer-grid">
         <div class="footer-col footer-brand">
@@ -423,6 +426,14 @@ interface ProductSwitcherItem {
 
     .site-header.on-flow {
       background: var(--bg);
+    }
+
+    .site-header.on-workspace {
+      background: var(--surface);
+    }
+
+    .site-header.on-workspace .header-bar {
+      max-width: none;
     }
 
     .header-bar {
@@ -1022,12 +1033,21 @@ export class ShellComponent implements OnInit, OnDestroy {
     return this.cleanPath(this.router.url) === '/cliente';
   }
 
+  /** Despacho del abogado: chrome propio, sin nav ni pie de marketing. */
+  get isLawyerWorkspace(): boolean {
+    return this.cleanPath(this.router.url).startsWith('/abogado');
+  }
+
+  get showSiteFooter(): boolean {
+    return !this.isDivorcioFlow && !this.isAuthPage && !this.isClientPanel && !this.isLawyerWorkspace;
+  }
+
   get showProductSwitcher(): boolean {
-    return !this.isAuthPage;
+    return !this.isAuthPage && !this.isLawyerWorkspace;
   }
 
   get navLinks(): NavLink[] {
-    if (this.isAuthPage) return [];
+    if (this.isAuthPage || this.isLawyerWorkspace) return [];
 
     // Misma estructura en todos los productos: evita que el header “salte”.
     const home = this.isMarketing && !this.isLegalStationMarketing
@@ -1051,7 +1071,12 @@ export class ShellComponent implements OnInit, OnDestroy {
   }
 
   get brand(): { home: string; name: string; sub: string; mark: 'logo' | '360' } {
-    return { home: '/', name: 'LegalStation', sub: '', mark: 'logo' };
+    return {
+      home: this.isLawyerWorkspace ? '/abogado' : '/',
+      name: 'LegalStation',
+      sub: '',
+      mark: 'logo',
+    };
   }
 
   get headerAccent(): string {

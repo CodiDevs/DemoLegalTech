@@ -3,11 +3,10 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
-import { IconComponent, IconName } from '../../shared/icon.component';
-import { CASE_STATUS_ICONS, CASE_STATUS_KEYS } from '../../shared/case-progress.model';
+import { IconComponent } from '../../shared/icon.component';
 import {
   CASE_STATUS_FILTER_OPTIONS,
-  CASE_STATUS_SHORT,
+  caseFilterLabel,
   caseLawyerHint,
 } from '../../shared/case-status.data';
 import { getProductDisplayName, LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
@@ -73,16 +72,14 @@ const PAGE_SIZE = 10;
         </div>
       } @else if (!cases.length) {
         <div class="panel empty-state">
-          <span class="empty-icon"><app-icon name="inbox" [size]="22" /></span>
           <h2>No hay casos asignados</h2>
           <p>Cuando entre un caso nuevo aparecerá aquí.</p>
         </div>
       } @else if (!filtered.length) {
         <div class="panel empty-state">
-          <span class="empty-icon"><app-icon name="search" [size]="22" /></span>
-          <h2>Sin resultados</h2>
-          <p>Ningún expediente coincide con la búsqueda o los filtros.</p>
-          <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar filtros</button>
+          <h2>{{ emptyFilterTitle }}</h2>
+          <p>{{ emptyFilterBody }}</p>
+          <button type="button" class="btn btn-secondary" (click)="clearFilters()">Ver todos</button>
         </div>
       } @else {
         <ul class="case-list" [attr.aria-label]="'Expedientes · página ' + page">
@@ -95,43 +92,24 @@ const PAGE_SIZE = 10;
                 [style.--i]="i"
                 [routerLink]="['/abogado/caso', c.id]"
               >
-                <span class="case-mark" aria-hidden="true">
-                  <app-icon [name]="stageIcon(c.status)" [size]="18" />
-                </span>
+                <span class="case-id tabular">#{{ c.id }}</span>
 
                 <div class="case-who">
-                  <span class="case-id tabular">#{{ c.id }}</span>
                   <strong class="case-name">{{ c.client_name || 'Cliente' }}</strong>
                   <span class="case-meta">{{ productName(c) }} · {{ cityLine(c) }}</span>
                 </div>
 
                 <div class="case-now">
                   <span class="now-label">{{ nextHint(c.status) }}</span>
-                  <app-status-badge [label]="c.status_label" [variant]="statusVariant(c.status)" />
+                  <span class="now-stage">{{ c.status_label }}</span>
                 </div>
 
                 <div class="case-wait">
-                  <span class="wait-l">{{ waitLabel(c) }}</span>
+                  <span class="wait-l tabular">{{ waitLabel(c) }}</span>
                   @if (c.sla_warning) {
                     <app-status-badge label="Fuera de plazo" variant="warn" />
                   }
                 </div>
-
-                <ol class="rail" aria-hidden="true">
-                  @for (s of stageKeys; track s) {
-                    <li
-                      class="pip"
-                      [class.done]="s <= c.status"
-                      [class.cur]="s === c.status"
-                      [attr.title]="stageShort[s]"
-                    ></li>
-                  }
-                </ol>
-
-                <span class="go">
-                  Abrir
-                  <app-icon name="arrow-right" [size]="16" />
-                </span>
               </a>
             </li>
           }
@@ -173,7 +151,7 @@ const PAGE_SIZE = 10;
       grid-template-columns: minmax(0, 1.4fr) minmax(10rem, 0.8fr) minmax(12rem, 1fr);
       gap: var(--space-3);
       margin-bottom: var(--space-5);
-      animation: inbox-in 480ms var(--ease-out) both;
+      animation: inbox-in 480ms var(--ease-out);
     }
 
     .search-field,
@@ -249,31 +227,35 @@ const PAGE_SIZE = 10;
 
     .case-row {
       display: grid;
-      grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.4fr) auto auto auto;
-      gap: var(--space-4);
+      grid-template-columns: 4.25rem minmax(0, 1.15fr) minmax(0, 1.55fr) auto;
+      gap: var(--space-5);
       align-items: center;
-      padding: var(--space-4);
+      padding: var(--space-4) var(--space-5);
       text-decoration: none;
       color: inherit;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
-      animation: inbox-row-in 520ms var(--ease-out) both;
-      animation-delay: calc(min(var(--i, 0), 8) * 45ms);
+      animation: inbox-row-in 480ms var(--ease-out);
+      animation-delay: calc(min(var(--i, 0), 8) * 40ms);
       transition:
-        transform 280ms var(--ease-out),
-        box-shadow 280ms var(--ease),
-        border-color 200ms var(--ease);
+        background 220ms var(--ease-out),
+        border-color 220ms var(--ease-out),
+        box-shadow 220ms var(--ease-out);
     }
 
-    .case-row:hover {
-      transform: translateX(6px);
-      box-shadow: var(--shadow-lg);
-      border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
+    .case-row:hover,
+    .case-row:focus-visible {
+      background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+      box-shadow: var(--shadow-sm);
     }
 
-    .case-row:hover .go { transform: translateX(4px); }
+    .case-row:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
 
     .case-row.is-act {
       background: var(--primary-subtle);
@@ -283,31 +265,17 @@ const PAGE_SIZE = 10;
       background: var(--warning-subtle);
     }
 
-    .case-mark {
-      display: grid;
-      place-items: center;
-      width: 2.5rem;
-      height: 2.5rem;
-      border-radius: var(--radius-md);
-      background: var(--primary-subtle);
-      color: var(--primary);
-    }
-
-    .case-row.is-sla .case-mark {
-      background: var(--warning-subtle);
-      color: var(--warning);
+    .case-id {
+      font-size: var(--text-sm);
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--text-muted);
     }
 
     .case-who {
       display: grid;
       gap: 0.15rem;
       min-width: 0;
-    }
-
-    .case-id {
-      font-size: var(--text-xs);
-      font-weight: 650;
-      color: var(--text-muted);
     }
 
     .case-name {
@@ -326,8 +294,7 @@ const PAGE_SIZE = 10;
 
     .case-now {
       display: grid;
-      gap: var(--space-2);
-      justify-items: start;
+      gap: 0.2rem;
       min-width: 0;
     }
 
@@ -338,10 +305,16 @@ const PAGE_SIZE = 10;
       color: var(--text);
     }
 
+    .now-stage {
+      font-size: var(--text-xs);
+      font-weight: 550;
+      color: var(--text-secondary);
+    }
+
     .case-wait {
       display: grid;
       gap: var(--space-1);
-      justify-items: start;
+      justify-items: end;
     }
 
     .wait-l {
@@ -349,41 +322,6 @@ const PAGE_SIZE = 10;
       font-weight: 600;
       color: var(--text-muted);
       white-space: nowrap;
-    }
-
-    .rail {
-      display: flex;
-      align-items: center;
-      gap: 0.28rem;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .pip {
-      width: 0.45rem;
-      height: 0.45rem;
-      border-radius: var(--radius-full);
-      background: var(--border-strong);
-    }
-
-    .pip.done { background: var(--success); }
-    .pip.cur {
-      width: 0.7rem;
-      height: 0.7rem;
-      background: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-subtle);
-    }
-
-    .go {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-2);
-      font-weight: 650;
-      font-size: var(--text-sm);
-      color: var(--primary);
-      white-space: nowrap;
-      transition: transform 240ms var(--ease-out);
     }
 
     .pager {
@@ -435,28 +373,17 @@ const PAGE_SIZE = 10;
 
     .empty-state {
       display: grid;
-      justify-items: center;
+      justify-items: start;
       gap: var(--space-3);
-      text-align: center;
-      padding: var(--space-7) var(--space-5);
-      animation: inbox-in 480ms var(--ease-out) both;
-    }
-
-    .empty-icon {
-      display: grid;
-      place-items: center;
-      width: 48px;
-      height: 48px;
-      border-radius: var(--radius-md);
-      background: var(--bg-subtle);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
+      text-align: left;
+      padding: var(--space-6) var(--space-5);
+      animation: inbox-in 480ms var(--ease-out);
     }
 
     .empty-state h2 { font-size: var(--text-lg); margin: 0; }
     .empty-state p {
       margin: 0;
-      max-width: 48ch;
+      max-width: 52ch;
       color: var(--text-secondary);
       font-size: var(--text-sm);
     }
@@ -466,26 +393,22 @@ const PAGE_SIZE = 10;
     @keyframes inbox-in {
       from {
         opacity: 0;
-        transform: translateY(14px);
-        filter: blur(6px);
+        transform: translateY(10px);
       }
       to {
         opacity: 1;
         transform: none;
-        filter: blur(0);
       }
     }
 
     @keyframes inbox-row-in {
       from {
         opacity: 0;
-        transform: translateY(18px);
-        filter: blur(8px);
+        transform: translateY(12px);
       }
       to {
         opacity: 1;
         transform: none;
-        filter: blur(0);
       }
     }
 
@@ -497,18 +420,17 @@ const PAGE_SIZE = 10;
         grid-column: 1 / -1;
       }
       .case-row {
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: 3.5rem minmax(0, 1fr);
         grid-template-areas:
-          "mark who go"
-          "now now now"
-          "wait wait rail";
+          "id who"
+          "id now"
+          "id wait";
+        gap: var(--space-2) var(--space-4);
       }
-      .case-mark { grid-area: mark; }
+      .case-id { grid-area: id; align-self: start; padding-top: 0.15rem; }
       .case-who { grid-area: who; }
       .case-now { grid-area: now; }
-      .case-wait { grid-area: wait; }
-      .rail { grid-area: rail; justify-self: end; }
-      .go { grid-area: go; }
+      .case-wait { grid-area: wait; justify-items: start; }
     }
 
     @media (max-width: 640px) {
@@ -524,14 +446,12 @@ export class LawyerPanelComponent implements OnInit {
   error = false;
 
   query = '';
-  /** Vacío = todos. Por defecto Revisión (03). */
-  statusFilter = '03';
+  /** Vacío = todos los estados. */
+  statusFilter = '';
   serviceFilter = '';
   page = 1;
 
   readonly pageSize = PAGE_SIZE;
-  readonly stageKeys = CASE_STATUS_KEYS;
-  readonly stageShort = CASE_STATUS_SHORT;
   readonly statusOptions = CASE_STATUS_FILTER_OPTIONS;
   readonly serviceOptions = LEGALSTATION_CATALOG
     .filter((p) => p.live)
@@ -620,8 +540,39 @@ export class LawyerPanelComponent implements OnInit {
     if (this.loading || this.error) return '';
     const n = this.cases.length;
     if (n === 0) return 'Sin expedientes';
-    if (n === 1) return '1 expediente';
-    return `${n} expedientes`;
+    const shown = this.filtered.length;
+    if (this.filtersActive && shown !== n) {
+      return shown === 1 ? `1 de ${n}` : `${shown} de ${n}`;
+    }
+    return n === 1 ? '1 expediente' : `${n} expedientes`;
+  }
+
+  get filtersActive(): boolean {
+    return !!(this.statusFilter || this.serviceFilter || this.query.trim());
+  }
+
+  get statusFilterLabel(): string {
+    return caseFilterLabel(this.statusFilter, 'este estado');
+  }
+
+  get emptyFilterTitle(): string {
+    if (this.statusFilter && !this.query.trim() && !this.serviceFilter) {
+      return `Ninguno en ${this.statusFilterLabel}`;
+    }
+    return 'Ningún expediente coincide';
+  }
+
+  get emptyFilterBody(): string {
+    const n = this.cases.length;
+    const pile = n === 1 ? 'Hay 1 en la bandeja.' : `Hay ${n} en la bandeja.`;
+    if (this.query.trim()) {
+      return `La búsqueda no encontró nada. ${pile}`;
+    }
+    if (this.serviceFilter) {
+      const svc = this.serviceOptions.find((s) => s.id === this.serviceFilter)?.label ?? 'ese servicio';
+      return `Ninguno de ${svc}. ${pile}`;
+    }
+    return pile;
   }
 
   trackKey(c: CaseItem): string {
@@ -634,10 +585,6 @@ export class LawyerPanelComponent implements OnInit {
 
   nextHint(status: string): string {
     return caseLawyerHint(status);
-  }
-
-  stageIcon(status: string): IconName {
-    return CASE_STATUS_ICONS[status] || 'inbox';
   }
 
   productName(c: CaseItem): string {
@@ -656,13 +603,6 @@ export class LawyerPanelComponent implements OnInit {
     if (days <= 0) return 'Hoy';
     if (days === 1) return '1 día aquí';
     return `${days} días aquí`;
-  }
-
-  statusVariant(status: string): 'warn' | 'ok' | 'info' | 'default' {
-    if (status === '03') return 'warn';
-    if (status === '10') return 'ok';
-    if (status === '04' || status === '05') return 'info';
-    return 'default';
   }
 
   private clampPage(): void {

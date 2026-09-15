@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IconComponent } from '../../shared/icon.component';
 import { AuthService } from '../../core/auth.service';
 
@@ -25,6 +25,7 @@ interface WorkspaceNavItem {
               [routerLink]="item.path"
               routerLinkActive="on"
               [routerLinkActiveOptions]="{ exact: !!item.exact }"
+              [class.on]="item.path === '/abogado' && bandejaOn"
             >
               <app-icon [name]="item.icon" [size]="16" />
               <span>{{ item.label }}</span>
@@ -66,7 +67,15 @@ export class LawyerShellComponent implements OnInit {
 
   visibleTools: WorkspaceNavItem[] = [];
 
-  constructor(private auth: AuthService) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+  ) {}
+
+  get bandejaOn(): boolean {
+    const url = this.router.url.split('?')[0].split('#')[0];
+    return url === '/abogado' || url.startsWith('/abogado/caso');
+  }
 
   ngOnInit(): void {
     const isLawyer = this.auth.user()?.role === 'abogado';

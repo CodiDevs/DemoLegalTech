@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Despacho /abogado (chrome + bandeja folio) | `abogado@demo.ec` → `/abogado`: sin Cómo funciona/Precios ni footer; filas con verbo; filtro Revisión dice “Hay N en la bandeja” | 2026-09-15 |
 | done | Guest cuestionario, auth al cobrar | Logout → `/productos/divorcio360` → Iniciar Formulario → `/cuestionario`; resultado → cuenta para pagar | 2026-09-15 |
 | done | Anti-slop F2+F3 | `/` — sin 24h ni “expediente real”; pilares 2+1; checkout plano | 2026-09-15 |
 | done | Hero expediente plano + pasos | `/` — folio derecho recto; clic en 1–6 cambia Estado y titular | 2026-09-15 |
@@ -65,6 +66,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Despacho /abogado (chrome + bandeja folio)
+`/abogado/**` deja de ser landing con sidebar. Header: marca → bandeja, campana, Dra. Sin Servicios/Inicio/Cómo funciona/Precios ni pie de productos. Bandeja sigue marcada en `/abogado/caso/:id`. Inbox abre en todos los estados; filtro vacío dice “Ninguno en Revisión. Hay N en la bandeja.” Filas folio: número, nombre, ciudad, verbo, días. Sin cajita de icono, sin 10 pips, sin “Abrir”, sin hover que empuja.
+
+**Demo:** login `abogado@demo.ec` → `/abogado` (lista con trabajo) → un expediente (Bandeja sigue on) → filtro Estado Revisión (empty honesto → Ver todos). Home `/` sigue con nav de marketing.
 
 ### 2026-09-15 — Guest cuestionario, auth al cobrar
 **Iniciar Formulario** (invitado) va a `/cuestionario`, no a `/auth`. El resultado apto pide cuenta para pagar (`next=checkout`); checkout sigue con `authGuard`.

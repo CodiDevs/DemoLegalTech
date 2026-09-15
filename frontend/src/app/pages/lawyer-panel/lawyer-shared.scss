@@ -22,7 +22,7 @@
   padding: var(--space-5) var(--space-4) var(--space-6);
   background: var(--surface);
   border-right: 1px solid var(--border);
-  animation: lawyer-side-in 480ms var(--ease-out) both;
+  animation: lawyer-side-in 480ms var(--ease-out);
 }
 
 .lawyer-sidebar h2 {
@@ -86,7 +86,7 @@
 }
 
 .lawyer-main > *:not(router-outlet) {
-  animation: lawyer-main-in 360ms var(--ease-out) both;
+  animation: lawyer-main-in 360ms var(--ease-out);
 }
 
 @keyframes lawyer-side-in {
@@ -124,7 +124,7 @@
     border-right: 0;
     border-bottom: 1px solid var(--border);
     padding: var(--space-4) var(--container-pad);
-    animation: lawyer-main-in 360ms var(--ease-out) both;
+    animation: lawyer-main-in 360ms var(--ease-out);
   }
 
   .lawyer-sidebar nav {
