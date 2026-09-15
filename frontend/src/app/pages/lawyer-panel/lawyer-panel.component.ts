@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent } from '../../shared/icon.component';
 import {
+  CASE_STATUS,
   CASE_STATUS_FILTER_OPTIONS,
   caseFilterLabel,
   caseLawyerHint,
@@ -457,10 +458,20 @@ export class LawyerPanelComponent implements OnInit {
     .filter((p) => p.live)
     .map((p) => ({ id: p.id, label: p.name }));
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
+    this.applyEstadoQuery(this.route.snapshot.queryParamMap.get('estado'));
     this.load();
+  }
+
+  applyEstadoQuery(raw: string | null | undefined): void {
+    const code = (raw || '').trim();
+    this.statusFilter = CASE_STATUS[code] ? code : '';
+    this.page = 1;
   }
 
   load(): void {

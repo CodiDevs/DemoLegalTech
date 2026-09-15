@@ -7,7 +7,7 @@ import { ConfirmService } from '../../core/confirm.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent } from '../../shared/icon.component';
 import { signatureChannelLabel } from '../../shared/esign';
-import { CASE_STATUS_CODES, caseFilterLabel } from '../../shared/case-status.data';
+import { CASE_STATUS_CODES, caseFilterLabel, caseShort } from '../../shared/case-status.data';
 
 const Q_LABELS: Record<string, string> = {
   both_want_divorce: 'Ambos desean divorciarse',
@@ -62,7 +62,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                 [class.done]="s <= ws.case.status"
                 [class.cur]="s === ws.case.status"
                 [title]="caseStatusLabel(s)"
-              >{{ s }}</li>
+              >{{ stageName(s) }}</li>
             }
           </ol>
           <span class="case-rule" aria-hidden="true"></span>
@@ -229,18 +229,25 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
               @for (a of ws.next_actions; track a.id) {
                 <div class="action-block">
                   <p><strong>{{ a.label }}</strong></p>
-                  @if (a.description) { <p class="muted">{{ a.description }}</p> }
+                  @if (a.description) { <p class="muted">{{ plainCopy(a.description) }}</p> }
                   @if (a.id === 'register_notary_send') {
                     <div class="field"><label>Notaría</label><input [(ngModel)]="notaryName" placeholder="Ej. Notaría 12 Quito" /></div>
                   }
                   @if (a.id === 'register_appointment') {
                     <div class="field"><label>Fecha comparecencia</label><input type="datetime-local" [(ngModel)]="appointmentAt" /></div>
                   }
-                  <button type="button" class="btn btn-primary" (click)="confirmRunAction(a)" [disabled]="actionBusy">{{ a.label }}</button>
+                  <button
+                    type="button"
+                    class="btn"
+                    [class.btn-primary]="isPrimaryAction(a)"
+                    [class.btn-ghost]="!isPrimaryAction(a)"
+                    (click)="confirmRunAction(a)"
+                    [disabled]="actionBusy"
+                  >{{ a.label }}</button>
                 </div>
               }
               @if (ws.case.status === '04' && !ws.signatures.length) {
-                <p class="muted flow-hint">Estado 04: «Notificar al cliente» solo envía aviso. No cambia el estado. Confirma solo cuando veas la firma en la pestaña Firmas (estado 05).</p>
+                <p class="muted flow-hint">«Notificar al cliente» solo envía aviso. No cambia el estado. Confirma cuando veas la firma en Firmas.</p>
               }
               @if (ws.case.status === '05' && !ws.signatures.length) {
                 <p class="muted flow-hint">Esperando firma virtual del cliente. Puede firmar solo desde su expediente.</p>
@@ -266,7 +273,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
 
     .case {
       padding-block: 0 var(--space-6);
-      animation: case-in 360ms var(--ease-out) both;
+      animation: case-in 360ms var(--ease-out);
     }
 
     .case-state {
@@ -289,7 +296,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
 
     .case-head {
       margin-bottom: var(--space-4);
-      animation: case-head-in 480ms var(--ease-out) both;
+      animation: case-head-in 480ms var(--ease-out);
     }
 
     .case-head-row {
@@ -336,16 +343,16 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     }
 
     .st {
-      font-variant-numeric: tabular-nums;
-      font-size: 0.62rem;
-      font-weight: 700;
-      width: 1.4rem;
-      height: 1.4rem;
-      display: grid;
-      place-items: center;
+      font-size: 0.68rem;
+      font-weight: 650;
+      width: auto;
+      padding: 0.22rem 0.5rem;
+      display: inline-flex;
+      align-items: center;
       border-radius: var(--radius-sm);
       background: var(--bg-muted);
       color: var(--text-muted);
+      white-space: nowrap;
     }
     .st.done { background: var(--success-subtle); color: var(--success); }
     .st.cur { background: var(--primary); color: var(--text-on-primary); }
@@ -357,7 +364,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
       margin-top: var(--space-4);
       background: var(--border);
       transform-origin: left center;
-      animation: case-rule-in 560ms var(--ease-out) both;
+      animation: case-rule-in 560ms var(--ease-out);
       animation-delay: 80ms;
     }
     .case-rule::before {
@@ -431,7 +438,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .case-rail {
       display: grid;
       gap: var(--space-3);
-      animation: case-rail-in 420ms var(--ease-out) both;
+      animation: case-rail-in 420ms var(--ease-out);
       animation-delay: 60ms;
     }
 
@@ -662,7 +669,7 @@ export class LawyerCaseComponent implements OnInit {
   minutaBusy = false;
   minutaError = '';
   minutaOk = '';
-  qOpen = true;
+  qOpen = false;
   tab: Tab = 'resumen';
   viewedDocIds = new Set<number>();
   qRows: { key: string; label: string; value: string }[] = [];
@@ -677,6 +684,48 @@ export class LawyerCaseComponent implements OnInit {
   ];
 
   constructor(private route: ActivatedRoute, private api: ApiService, private confirm: ConfirmService) {}
+
+  stageName(code: string): string {
+    return caseShort(code, code);
+  }
+
+  isPrimaryAction(a: { id: string }): boolean {
+    if (!this.ws?.next_actions || a.id === 'revert_step') return false;
+    const first = this.ws.next_actions.find((x: { id: string }) => x.id !== 'revert_step');
+    return first?.id === a.id;
+  }
+
+  buildQRows(q: Record<string, unknown>): { key: string; label: string; value: string }[] {
+    const noKids = q['have_children'] === false;
+    const noAssets = q['have_assets'] === false;
+    const hideNoKids = new Set(['custody_regulated', 'has_mediation_acta', 'minor_dependents']);
+    const hideNoAssets = new Set(['want_liquidate_assets']);
+    return Object.entries(q)
+      .filter(([key]) => {
+        if (noKids && hideNoKids.has(key)) return false;
+        if (noAssets && hideNoAssets.has(key)) return false;
+        return true;
+      })
+      .map(([key, val]) => ({
+        key,
+        label: Q_LABELS[key] || key,
+        value: this.formatQValue(key, val),
+      }));
+  }
+
+  formatQValue(key: string, val: unknown): string {
+    if (key === 'country') {
+      const raw = String(val ?? '').trim().toLowerCase();
+      if (raw === 'ec' || raw === 'ecu') return 'Ecuador';
+    }
+    if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+    if (val == null || val === '') return 'Sin indicar';
+    return String(val);
+  }
+
+  plainCopy(s: string): string {
+    return (s || '').replace(/\s+[—–]\s+(\S)/g, (_m, c: string) => `. ${c.toUpperCase()}`);
+  }
 
   get canUploadMinuta(): boolean {
     if (!this.ws) return false;
@@ -729,11 +778,7 @@ export class LawyerCaseComponent implements OnInit {
     this.api.getLawyerWorkspace(id).subscribe({
       next: (w) => {
         this.ws = this.normalizeWorkspace(w);
-        this.qRows = Object.entries(this.ws.questionnaire || {}).map(([key, val]) => ({
-          key,
-          label: Q_LABELS[key] || key,
-          value: typeof val === 'boolean' ? (val ? 'Sí' : 'No') : String(val ?? 'Sin indicar'),
-        }));
+        this.qRows = this.buildQRows(this.ws.questionnaire || {});
       },
       error: (e) => {
         this.loadError = e?.error?.error || 'No se pudo cargar el expediente';

@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Despacho Resumen + expediente destilado | `abogado@demo.ec` → `/abogado/fase2/admin`: Te toca, no 4 KPIs; Detenidos → bandeja con filtro de etapa; `/abogado/caso/6` etapas con nombre, Q cerrado, un primary; Asistente H1 + icono search | 2026-09-15 |
 | done | Despacho /abogado (chrome + bandeja folio) | `abogado@demo.ec` → `/abogado`: sin Cómo funciona/Precios ni footer; filas con verbo; filtro Revisión dice “Hay N en la bandeja” | 2026-09-15 |
 | done | Guest cuestionario, auth al cobrar | Logout → `/productos/divorcio360` → Iniciar Formulario → `/cuestionario`; resultado → cuenta para pagar | 2026-09-15 |
 | done | Anti-slop F2+F3 | `/` — sin 24h ni “expediente real”; pilares 2+1; checkout plano | 2026-09-15 |
@@ -66,6 +67,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Despacho Resumen + expediente destilado
+Resumen deja el teatro de 4 KPIs: una línea en el masthead y la lista **Te toca**. Detenidos es una lista quieta: clic abre la bandeja con `?estado=` de esa etapa. Expediente muestra etapas con nombre (Recepción, Revisión, Minuta…), cuestionario cerrado y filtrado (sin tenencia si no hay hijos), y un solo `btn-primary`. Asistente: H1 «Asistente», icono search en el rail.
+
+**Demo:** `abogado@demo.ec` → Resumen → un folio de Te toca → expediente #6 (chips con nombre, abrir Cuestionario) → Asistente de revisión.
 
 ### 2026-09-15 — Despacho /abogado (chrome + bandeja folio)
 `/abogado/**` deja de ser landing con sidebar. Header: marca → bandeja, campana, Dra. Sin Servicios/Inicio/Cómo funciona/Precios ni pie de productos. Bandeja sigue marcada en `/abogado/caso/:id`. Inbox abre en todos los estados; filtro vacío dice “Ninguno en Revisión. Hay N en la bandeja.” Filas folio: número, nombre, ciudad, verbo, días. Sin cajita de icono, sin 10 pips, sin “Abrir”, sin hover que empuja.

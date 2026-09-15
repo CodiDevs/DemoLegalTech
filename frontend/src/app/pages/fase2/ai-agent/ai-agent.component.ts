@@ -23,7 +23,7 @@ interface ChatMsg {
   imports: [FormsModule, RouterLink, IconComponent, WorkspaceHeadComponent],
   template: `
     <div class="desk">
-      <app-workspace-head title="Revisión" [aside]="headAside">
+      <app-workspace-head title="Asistente" [aside]="headAside">
         <label class="sr-only" for="caseId">Expediente</label>
         <select id="caseId" [(ngModel)]="selectedCaseId" (ngModelChange)="onCaseChange($event)">
           <option [ngValue]="0">Sin expediente</option>

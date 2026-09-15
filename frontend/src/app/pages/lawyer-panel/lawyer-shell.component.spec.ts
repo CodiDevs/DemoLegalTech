@@ -26,4 +26,12 @@ describe('LawyerShellComponent nav', () => {
     expect(makeShell('/abogado/servicios').bandejaOn).toBeFalse();
     expect(makeShell('/abogado/fase2/admin').bandejaOn).toBeFalse();
   });
+
+  it('Asistente usa search, no sparkle', () => {
+    const shell = makeShell('/abogado');
+    shell.ngOnInit();
+    const ai = shell.visibleTools.find((t) => t.path === '/abogado/fase2/ai');
+    expect(ai?.icon).toBe('search');
+    expect(ai?.label).toContain('Asistente');
+  });
 });

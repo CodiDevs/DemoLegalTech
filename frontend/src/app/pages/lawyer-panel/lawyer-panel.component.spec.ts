@@ -1,3 +1,4 @@
+import { ActivatedRoute } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { LawyerPanelComponent } from './lawyer-panel.component';
 
@@ -17,9 +18,15 @@ function caseItem(partial: Partial<CaseItem> & Pick<CaseItem, 'id' | 'status'>):
   };
 }
 
-function makePanel(cases: CaseItem[]): LawyerPanelComponent {
+function makeRoute(estado: string | null = null): ActivatedRoute {
+  return {
+    snapshot: { queryParamMap: { get: (key: string) => (key === 'estado' ? estado : null) } },
+  } as unknown as ActivatedRoute;
+}
+
+function makePanel(cases: CaseItem[], estado: string | null = null): LawyerPanelComponent {
   const api = { listCases: () => ({ subscribe: () => undefined }) } as unknown as ApiService;
-  const panel = new LawyerPanelComponent(api);
+  const panel = new LawyerPanelComponent(api, makeRoute(estado));
   panel.cases = cases;
   panel.loading = false;
   panel.error = false;
@@ -44,5 +51,15 @@ describe('LawyerPanelComponent bandeja', () => {
     expect(panel.emptyFilterTitle).toBe('Ninguno en Revisión');
     expect(panel.emptyFilterBody).toBe('Hay 2 en la bandeja.');
     expect(panel.headAside).toBe('0 de 2');
+  });
+
+  it('Detenidos abre la bandeja con el estado de esa etapa', () => {
+    const panel = makePanel([docs, minuta], '04');
+    panel.applyEstadoQuery('04');
+    expect(panel.statusFilter).toBe('04');
+    expect(panel.filtered.map((c) => c.id)).toEqual([minuta.id]);
+
+    panel.applyEstadoQuery('99');
+    expect(panel.statusFilter).toBe('');
   });
 });
