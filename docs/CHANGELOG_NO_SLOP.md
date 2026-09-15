@@ -243,3 +243,15 @@ Verificación: `alturas distintas: 1 -> 236px x5` con pistas de una y dos línea
 | `docs/NO_SLOP.md` | El cierre del ida y vuelta de las pasadas 7, 10 y 11, y la lección. |
 
 Verificación: `grow=0`, `justify=normal` y pista de dos líneas medidos en el render, alturas iguales de 236px con pistas mixtas (medición de la pasada anterior, mismo CSS de alturas), build limpio y 110/110 specs.
+
+## El cuestionario como folio (Divorcio360)
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/questionnaire/questionnaire.component.ts` | La marca del folio en el template (`ob-folio`: número tabular, sección y el icono mudado a esa línea), el sello (`ob-stamp`) en la opción elegida, y los getters `folioMark` y `categoryLabel`. Salen la etiqueta "Paso N de M" y el chevron de las opciones. |
+| `styles/onboarding.scss` | Bloque `.landing-page.product-flow.theme-divorcio`: escala de pregunta, pista en voz baja, marca del folio y sello. El sistema `.ob-*` compartido no se toca. |
+| `styles/form-stage.scss` | El renglón y las fibras con más presencia, solo bajo `body.divorcio-flow-mode`. |
+| `docs/design.md` | Sección nueva: la estructura del cuestionario como folio, con su alcance. |
+| `docs/NO_SLOP.md` | Diagnóstico, cambios, alcance y verificación de la pasada. |
+
+Verificación: 123/123 specs, capturas de escritorio y móvil de las tres pantallas del formulario, y el cuestionario de Traslado360 sin cambios como control del alcance.

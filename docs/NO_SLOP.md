@@ -363,6 +363,35 @@ Verificado en el render: `grow=0`, `justify=normal` y la pista reservando dos l�
 
 La lección, para el registro: el mismo elemento pasó por tres reglas distintas en cuatro pasadas porque cada pedido miraba una dimensión diferente (la altura de la fila, el ancho de la impar, el tamaño de todas). Fijar la regla completa antes de tocar el CSS habría ahorrado el recorrido.
 
+## Decimotercera pasada — el cuestionario como folio (Divorcio360)
+
+Pedido: *"cambiemos el formulario de divorcio 360: no me refiero al orden de las preguntas ni si pongo que sí me da más, eso no; solo quiero que cambies la forma en que se hace porque se ve demasiado básica"*, con libertad para buscar referencias.
+
+### Diagnóstico
+
+El sistema ya habla de un expediente sobre papel: detrás del panel corren las fibras de papel (`paper-fibers.svg`), un glow de acento y los **renglones de folio** (`folio-ruling.svg`, ritmo de 3rem) animados, y el veredicto tiene un sello (`.ob-verdict-stamp`). La pantalla de la pregunta se salía de ese mundo: un cuadro de 3rem con el icono, el `h1`, la pista y dos filas blancas con un chevron. Es el patrón por defecto de la categoría, y es exactamente lo que el playbook diagnostica: una sección que se autoexcluye de los movimientos más fuertes del sistema.
+
+Las referencias no aportaron nada: los resultados son "formularios conversacionales" y "una pregunta por paso", los defaults que el piso de craft manda rechazar. La dirección salió del propio sistema.
+
+### Cambios
+
+- **La pregunta manda**: el `h1` pasa a `clamp(1.7rem, 4.4vw, 3.2rem)` con `text-wrap: balance` (antes 1.6–2.3rem). La display del sistema (Fraunces) a tamaño pleno.
+- **La pista baja la voz**: `--text-muted` y `--text-xs`. El salto de tamaño es lo que hace titular a la pregunta.
+- **El icono se muda**: deja de ser un cuadro de 3rem dentro del panel y pasa a la línea del folio, chico y en la tinta del acento. Conserva la señal y desaparece el badge.
+- **La marca del folio**: la línea de progreso se conserva y debajo aparece `01 / 07 · PACTO` — número tabular, sección y el icono. La categoría ya existía en el componente (`currentCategory`) y no se mostraba en ninguna parte. Es el "skeleton test": sin leer una palabra, la página dice "expediente con secciones".
+- **La respuesta se sella**: el elegido muestra el check dibujado (no Unicode), girado -8°, en el acento. El chevron de las opciones se retira porque era decoración. El comportamiento no cambia: hover con el borde acento, `scale(0.985)` al presionar, avance inmediato.
+- **Un solo momento de movimiento**: la entrada de la pregunta (`ob-sheet-in`, ya documentada en `design.md`) se conserva y se le suma **uno**: el sello al elegir. Nada más se mueve.
+- **El folio respira**: bajo el flujo de divorcio el renglón sube de 0.75 a 0.95 de opacidad y las fibras de 0.6 a 0.72 — mismo asset, misma animación, solo presencia.
+- **Coherencia en las tres pantallas**: la escala de pregunta y la pista en voz baja valen también para la revisión y el veredicto, que ya tenían su línea que corre al pasar y su sello.
+
+### Alcance
+
+Todo anclado a `.landing-page.product-flow.theme-divorcio` y `body.divorcio-flow-mode`, los dos ganchos que solo pone este flujo. **Traslado360 y BienRaiz360 quedan intactos**, porque comparten las clases `.ob-*`: verificado por captura, el cuestionario de Traslado360 sigue con "Paso 1 de 6", su badge de 3rem y su h1 chico.
+
+### Verificación
+
+123/123 specs, capturas de escritorio y móvil de las tres pantallas del formulario, y el cuestionario de Traslado360 como control del alcance. Sin cambios de comportamiento: el orden, la ramificación, las claves de respuestas y la API quedan igual.
+
 ## Pendiente
 
 - **Overflow horizontal real por debajo de ~400px**: el corte de las capturas headless es un artefacto de Edge en Windows (impone un ancho de layout mínimo cercano a 500px y recorta el PNG). Falta medirlo en un dispositivo o DevTools reales para descartarlo del todo.

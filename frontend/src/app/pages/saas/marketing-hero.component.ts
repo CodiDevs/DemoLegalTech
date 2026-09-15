@@ -318,7 +318,7 @@ interface HeroAction {
 export class MarketingHeroComponent implements AfterViewInit {
   @Input() primaryCta = 'Abrir Divorcio360';
   @Input() secondaryCta = 'Cómo funciona';
-  @Input() primaryRoute = '/productos/divorcio360';
+  @Input() primaryRoute = '/cuestionario';
   @Input() primaryFragment = '';
   @Input() showSecondary = false;
   @Input() secondaryAuthQuery: Record<string, string> = {};

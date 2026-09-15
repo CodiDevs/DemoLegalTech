@@ -35,7 +35,7 @@ describe('MarketingHeroComponent CTA', () => {
   it('enruta el CTA primario según el rol e ignora el fragmento para cliente', async () => {
     const guest = await renderHero(null);
     const guestCta = (guest.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
-    expect(guestCta?.getAttribute('href')).toBe('/productos/divorcio360');
+    expect(guestCta?.getAttribute('href')).toBe('/cuestionario');
     expect((guest.nativeElement as HTMLElement).querySelector('a[href="#"]')).toBeNull();
     guest.destroy();
 

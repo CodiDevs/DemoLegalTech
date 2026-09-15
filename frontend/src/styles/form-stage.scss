@@ -50,6 +50,11 @@
   animation: fs-ruling 160s linear infinite;
 }
 
+/* El cuestionario de Divorcio360 se apoya en el papel en vez de flotar sobre él: el renglón
+   y las fibras se dejan ver un poco más. Mismo asset y misma animación, solo presencia. */
+body.divorcio-flow-mode .form-stage-ruling { opacity: 0.95; }
+body.divorcio-flow-mode .form-stage-texture { opacity: 0.72; }
+
 /* ---------- Motion ---------- */
 
 @keyframes fs-drift {

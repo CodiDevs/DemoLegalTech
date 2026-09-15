@@ -58,6 +58,15 @@ Siempre on. Ver `.cursor/rules/demo-motion.mdc`.
 - **Ficha del expediente**: bajo el paso actual del desk, tres bloques con datos reales (historial, documentos, expediente). En fila cuando el contenedor llega a 48rem, apilada si no. La tarjeta de la lista lleva la línea de 5 pasos, con el estado que ya calcula `buildProductSteps`.
 - **Aire deliberado, no hueco**: el escenario cinematográfico del flujo cliente (columna centrada de 44rem) y los anchos de marketing (1120/1280) se conservan.
 
+## Estructura del cuestionario (Divorcio360)
+
+- **El folio es la espina del formulario**: detrás del panel corren las fibras de papel, el glow y los renglones (`form-stage.scss`). El formulario se apoya en ese papel, no flota sobre él.
+- **La marca del folio**: arriba de la pregunta va `01 / 07 · PACTO` — número del paso en tabular, sección del expediente (`currentCategory`) y el icono de la pregunta. La sección agrupa por identidad, familia, patrimonio, exterior y pacto.
+- **La pregunta manda y la pista baja la voz**: el `h1` en Fraunces a tamaño pleno (`clamp(1.7rem, 4.4vw, 3.2rem)`), la pista en `--text-muted` y `--text-xs`. El salto de tamaño es lo que la hace titular.
+- **La respuesta se sella**: el elegido muestra el check dibujado, girado, en el acento. Nada de chevrons decorativos: la fila ya se defiende con hover y presión.
+- **Un solo momento de movimiento**: la entrada de la pregunta (`ob-sheet-in`) y el sello al elegir. Nada más se mueve.
+- **Alcance**: todo esto vive bajo `.landing-page.product-flow.theme-divorcio` y `body.divorcio-flow-mode`. Los cuestionarios de Traslado360 y BienRaiz360 comparten `.ob-*` y no cambian.
+
 ## Checklist antes de UI nueva
 
 - [ ] ¿Los colores salen de `tokens.scss`?

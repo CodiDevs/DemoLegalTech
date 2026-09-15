@@ -68,7 +68,11 @@ interface Question {
                 }
               </div>
               <div class="ob-progress-meta">
-                <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
+                <p class="ob-folio">
+                  <span class="ob-folio-icon"><app-icon [name]="current.icon" [size]="14" /></span>
+                  <span class="ob-folio-n tabular">{{ folioMark }}</span>
+                  <span class="ob-folio-cat">{{ categoryLabel }}</span>
+                </p>
               </div>
             </div>
 
@@ -77,8 +81,6 @@ interface Question {
                 <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
                 @for (q of [current]; track q.key) {
                   <section class="ob-sheet" [class.ob-sheet--back]="direction === -1">
-                <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
-
                 <h1>{{ q.text }}</h1>
                 <p class="ob-hint">{{ q.hint }}</p>
 
@@ -134,11 +136,11 @@ interface Question {
                   <div class="ob-choices">
                     <button #firstChoice type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, true)" (click)="answer(true)">
                       <span>Sí</span>
-                      <app-icon name="chevron-right" [size]="17" />
+                      <span class="ob-stamp" aria-hidden="true"><app-icon name="check" [size]="16" /></span>
                     </button>
                     <button type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, false)" (click)="answer(false)">
                       <span>No</span>
-                      <app-icon name="chevron-right" [size]="17" />
+                      <span class="ob-stamp" aria-hidden="true"><app-icon name="check" [size]="16" /></span>
                     </button>
                   </div>
                 }
@@ -545,6 +547,23 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     if (k === 'have_assets' || k === 'conjugal_society' || k === 'want_liquidate_assets') return 'assets';
     if (k === 'someone_abroad') return 'abroad';
     return 'pact';
+  }
+
+  /* La marca del folio: número del paso sobre el total, en tabular, más la sección del
+     expediente. El componente ya agrupa las preguntas por categoría, pero nunca la mostraba. */
+  get folioMark(): string {
+    return `${String(this.position).padStart(2, '0')} / ${this.visibleQuestions.length}`;
+  }
+
+  get categoryLabel(): string {
+    const labels: Record<string, string> = {
+      identity: 'Identidad',
+      family: 'Familia',
+      assets: 'Patrimonio',
+      abroad: 'Exterior',
+      pact: 'Pacto',
+    };
+    return labels[this.currentCategory] || '';
   }
 
   get progressPercent(): number {

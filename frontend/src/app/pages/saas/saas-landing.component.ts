@@ -28,7 +28,7 @@ import {
       <!-- 1. Hero Minimalista -->
       <app-marketing-hero
         primaryCta="Iniciar Divorcio360"
-        primaryRoute="/productos/divorcio360"
+        primaryRoute="/cuestionario"
         secondaryCta="Acceso profesional"
         [showSecondary]="true"
       />
