@@ -474,20 +474,15 @@ export function getMarketingPrimaryAction(
   };
 }
 
-/** CTA “Iniciar Formulario” — producto activo. Guest pasa por auth. */
+/** CTA “Iniciar Formulario” — guest y cliente van al cuestionario; auth al cobrar. */
 export function getDivorcioFormAction(
   role: MarketingRole,
   product = 'divorcio360',
 ): MarketingPrimaryAction | null {
   if (role === 'abogado' || role === 'notario') return null;
-  const path = getProductQuestionnairePath(product);
-  if (role === 'cliente') {
-    return { label: 'Iniciar Formulario', path };
-  }
   return {
     label: 'Iniciar Formulario',
-    path: '/auth',
-    query: { returnUrl: path, product: normalizeProductId(product) },
+    path: getProductQuestionnairePath(product),
   };
 }
 

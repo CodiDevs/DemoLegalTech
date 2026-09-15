@@ -37,11 +37,14 @@ describe('product-sites.data', () => {
     });
   });
 
-  it('lleva Iniciar Formulario al cuestionario, con auth si es invitado', () => {
+  it('lleva Iniciar Formulario al cuestionario, también si es invitado', () => {
     expect(getDivorcioFormAction(null)).toEqual({
       label: 'Iniciar Formulario',
-      path: '/auth',
-      query: { returnUrl: '/cuestionario', product: 'divorcio360' },
+      path: '/cuestionario',
+    });
+    expect(getDivorcioFormAction(null, 'traslado360')).toEqual({
+      label: 'Iniciar Formulario',
+      path: '/productos/traslado360/cuestionario',
     });
     expect(getDivorcioFormAction('cliente')).toEqual({
       label: 'Iniciar Formulario',

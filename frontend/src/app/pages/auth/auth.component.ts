@@ -411,10 +411,12 @@ export class AuthComponent implements OnInit {
   }
 
   get lead(): string {
-    if (this.mode === 'register') return this.copy.registerLead;
+    if (this.mode === 'register') {
+      return this.next === 'checkout' ? this.copy.checkoutRegisterLead : this.copy.registerLead;
+    }
     if (this.mode === 'forgot') return this.copy.forgotLead;
     if (this.mode === 'forgot-sent') return '';
-    return this.copy.loginLead;
+    return this.next === 'checkout' ? this.copy.checkoutLoginLead : this.copy.loginLead;
   }
 
   get submitLabel(): string {

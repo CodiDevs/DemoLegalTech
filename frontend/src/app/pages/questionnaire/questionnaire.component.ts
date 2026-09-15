@@ -246,11 +246,12 @@ interface Question {
                     }
                   </button>
                 } @else if (!auth.isLoggedIn) {
+                  <p class="ob-hint">Para pagar el trámite, entra o crea tu cuenta.</p>
                   <a
                     class="btn btn-primary btn-lg btn-block"
                     routerLink="/auth"
                     [queryParams]="{ next: 'checkout', result: result.code, city: locationLabel, product: 'divorcio360' }"
-                  >Continuar y crear mi cuenta</a>
+                  >Crear cuenta para pagar</a>
                   <a
                     class="btn btn-secondary btn-block"
                     routerLink="/auth"

@@ -149,3 +149,47 @@ describe('QuestionnaireComponent', () => {
     expect(active?.classList.contains('ob-choice')).toBeTrue();
   });
 });
+
+describe('QuestionnaireComponent guest result', () => {
+  let fixture: ComponentFixture<QuestionnaireComponent>;
+  let api: { evaluate: jasmine.Spy; createCase: jasmine.Spy; requestMeeting: jasmine.Spy };
+
+  beforeEach(async () => {
+    api = {
+      evaluate: jasmine.createSpy('evaluate').and.returnValue(of(APTO)),
+      createCase: jasmine.createSpy('createCase').and.returnValue(of({ id: 42 })),
+      requestMeeting: jasmine.createSpy('requestMeeting').and.returnValue(of({})),
+    };
+    await TestBed.configureTestingModule({
+      imports: [QuestionnaireComponent],
+      providers: [
+        provideRouter([{ path: 'auth', component: QuestionnaireComponent }]),
+        { provide: ApiService, useValue: api },
+        { provide: AuthService, useValue: { isLoggedIn: false, user: signal(null) } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: { get: () => null } } },
+        },
+      ],
+    }).compileComponents();
+    fixture = TestBed.createComponent(QuestionnaireComponent);
+  });
+
+  afterEach(() => {
+    if (fixture && !fixture.componentRef.hostView.destroyed) fixture.destroy();
+  });
+
+  it('pide cuenta para pagar y no crea expediente', () => {
+    const cmp = fixture.componentInstance;
+    cmp.result = APTO;
+    cmp.stage = 'result';
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Crear cuenta para pagar');
+    expect(root.textContent).toContain('Ya tengo cuenta');
+    const href = root.querySelector('a.btn-primary')?.getAttribute('href') || '';
+    expect(href).toContain('/auth');
+    expect(href).toContain('next=checkout');
+    expect(api.createCase).not.toHaveBeenCalled();
+  });
+});

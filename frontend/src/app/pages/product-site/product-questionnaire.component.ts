@@ -138,8 +138,9 @@ type Stage = 'questions' | 'review' | 'done';
                     @else { Crear mi expediente }
                   </button>
                 } @else {
+                  <p class="ob-hint">Para pagar el trámite, entra o crea tu cuenta.</p>
                   <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="prepareGuestCheckout()">
-                    Registrarme para continuar
+                    Crear cuenta para pagar
                   </a>
                   <a [routerLink]="['/auth']" [queryParams]="loginParams" class="btn btn-secondary btn-block" (click)="prepareGuestCheckout()">
                     Ya tengo cuenta
