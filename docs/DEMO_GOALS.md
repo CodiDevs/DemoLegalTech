@@ -57,8 +57,32 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Bandeja búsqueda + filtros | `/abogado` — busca por nombre/#; Servicio + Estado (Revisión preseleccionado); 10/página | 2026-09-14 |
 | done | Precios toggle Servicios/Licencia | `/#precios` — toggle; Servicios = honorarios $349/$199/$299; Licenciamiento = planes mes | 2026-09-14 |
 | done | Expediente abogado dossier denso | `abogado@demo.ec` → `/abogado/caso/4` — cabecera tipográfica + tabs; pendientes en rail derecho | 2026-09-14 |
+| done | Footer CodiDevs en todas las superficies | `/`, `/cuestionario`, `/cliente`, `/auth` — pie completo o compacto con «Hecho por CodiDevs» | 2026-09-15 |
+| done | Demo cliente walkthrough verificado | `bun run dev` → home → Divorcio360 → cuestionario → login → `/cliente` → checkout | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Footer CodiDevs en todas las superficies
+Victor confirmó proyecto CodiDevs. El shell muestra el pie completo en marketing y paneles abogado; en flujo cliente (`/cuestionario`, checkout, upload, firma), `/auth` y `/cliente` aparece un pie compacto con «© 2026 LegalStation» y **Hecho por CodiDevs**.
+
+**Demo:** `bun run dev` → `/` scroll al pie → `/cuestionario` → `/cliente` (login `cliente@demo.ec` / `demo1234`) — verificar crédito en los tres.
+
+### 2026-09-15 — Demo cliente walkthrough verificado
+Entorno levantado con `bun run setup` + `bun run dev --clean-db`. Recorrido cliente de punta a punta: home LegalStation → landing Divorcio360 → cuestionario → login → panel `/cliente` → checkout mock.
+
+**Credenciales:** `cliente@demo.ec` / `demo1234` · **Abogado:** `abogado@demo.ec` / `demo1234`
+
+**Walkthrough 8 min**
+1. `bun run dev` (o `bun run dev --clean-db` para seed limpio).
+2. http://localhost:4200/ — hero video, catálogo 3 productos live, `#precios` toggle Servicios/Licencia.
+3. `/productos/divorcio360` → **Evaluar mi caso** o **Iniciar Formulario** → `/cuestionario`.
+4. Responder Sí/No (path verde) → login si pide cuenta → checkout Payphone mock **$349**.
+5. `/cliente` — rail servicios, expedientes por producto, CTA según etapa (Pagar / Subir / Firmar).
+6. (Opcional abogado) `abogado@demo.ec` → `/abogado` bandeja → `/abogado/caso/1` revisar docs.
+
+**URLs:** Frontend http://localhost:4200 · API http://localhost:8080/api/v1/health
+
+**Capturas:** Project store `media/01-home-legalstation.png` … `07-footer-flow-compact-cuestionario.png`
 
 ### 2026-09-14 — Expediente abogado dossier denso
 `abogado@demo.ec` → Bandeja → expediente en revisión (ej. `#4`). Cabecera sin caja (H1 Fraunces + badge + progreso compacto + regla teal). Pendientes y «Próxima acción» en el rail derecho. Un solo panel por tab (Resumen/Documentos/Minuta/Firmas/Historial).

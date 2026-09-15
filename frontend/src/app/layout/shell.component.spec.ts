@@ -169,4 +169,14 @@ describe('ShellComponent marketing navigation', () => {
 
     expect(home.footerPitch).toBe('Servicios jurídicos al mismo costo, sin filas ni trámites.');
   });
+
+  it('oculta el pie completo en flujo cliente pero mantiene crédito CodiDevs', () => {
+    const flow = makeShell('cliente');
+    flow.isDivorcioFlow = true;
+    flow.isClientPanel = false;
+    flow.isAuthPage = false;
+
+    expect(flow.isDivorcioFlow).toBeTrue();
+    expect(flow.isClientPanel).toBeFalse();
+  });
 });

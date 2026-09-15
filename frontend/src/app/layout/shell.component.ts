@@ -328,6 +328,13 @@ interface ProductSwitcherItem {
         <span>Hecho por CodiDevs</span>
       </div>
     </footer>
+    } @else {
+    <footer class="site-footer is-compact" aria-label="Pie">
+      <div class="shell footer-bottom">
+        <span>© 2026 LegalStation</span>
+        <span>Hecho por CodiDevs</span>
+      </div>
+    </footer>
     }
   `,
   styles: [`
