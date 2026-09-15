@@ -299,8 +299,6 @@ interface ProductSwitcherItem {
           <a routerLink="/productos/divorcio360">Divorcio360</a>
           <a routerLink="/productos/traslado360">Traslado360</a>
           <a routerLink="/productos/bienraiz360">BienRaiz360</a>
-          <span class="footer-soon">Estate360 · próximamente</span>
-          <span class="footer-soon">SignDesk · próximamente</span>
         </div>
 
         <div class="footer-col">
@@ -948,11 +946,6 @@ interface ProductSwitcherItem {
     }
 
     .footer-col a:hover { color: var(--primary); text-decoration: underline; }
-
-    .footer-soon {
-      font-size: var(--text-sm);
-      color: var(--text-muted);
-    }
 
     .footer-bottom {
       display: flex;
