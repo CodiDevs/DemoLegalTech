@@ -1,10 +1,9 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { GalleryItem } from '../pages/saas/elastic-gallery.component';
-import { StatItem } from '../pages/saas/landing-statistics.component';
 import { ProgressStep } from './progress-steps.component';
 import { ProductFlowTheme } from './product-flow-shell.component';
 
-export const CANONICAL_SLOGAN = 'Servicios jurídicos al mismo costo, sin filas ni trámites.';
+export const CANONICAL_SLOGAN = 'Trámites civiles con expediente digital y honorario de referencia.';
 
 export interface QuestionField {
   id: string;
@@ -49,9 +48,7 @@ export interface ProductSiteConfig {
   ctaTitle: string;
   workflow: { n: number; title: string; desc: string; screen: string }[];
   values?: { title: string; desc: string }[];
-  stats: StatItem[];
   gallery: GalleryItem[];
-  testimonials: { quote: string; author: string; role: string }[];
   docTypes: { type: string; label: string }[];
   flowSteps: ProgressStep[];
   questionnaire: QuestionField[];
@@ -79,8 +76,8 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     bg: 'var(--bg)',
     bgSoft: 'var(--bg-subtle)',
     price: 349,
-    heroTitle: 'Divorcio por mutuo acuerdo',
-    heroHighlight: 'con seguimiento claro.',
+    heroTitle: 'Divorcio por',
+    heroHighlight: 'mutuo acuerdo.',
     heroLede: 'Evalúa si tu caso encaja. Luego documentos, consulta, firma y cierre en un solo expediente.',
     heroImage: '/demo-scenes/legal-draft-demo.svg',
     ctaTitle: 'Evalúa si tu caso encaja',
@@ -136,32 +133,9 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
         desc: 'Cada etapa muestra qué falta y quién debe realizar la siguiente acción.',
       },
     ],
-    stats: [
-      {
-        label: 'Recorrido visible',
-        value: '6 etapas',
-        detail: 'De la evaluación al cierre con trazabilidad completa.',
-        icon: 'file',
-      },
-      {
-        label: 'Seguimiento centralizado',
-        value: '1 expediente',
-        detail: 'Documentos, mensajes y estado reunidos en una sola vista.',
-        icon: 'users',
-      },
-      {
-        label: 'Valor orientativo',
-        value: '$349',
-        detail: 'Honorario de referencia para el recorrido completo.',
-        icon: 'scale',
-      },
-    ],
     gallery: [
-      { id: '01', title: 'Cuestionario Divorcio360', category: 'Cuestionario', src: '/demo-scenes/legal-draft-demo.svg', alt: 'Minuta ficticia DEMO' },
-      { id: '02', title: 'Expediente', category: 'Línea de estados', src: '/demo-scenes/identity-demo.svg', alt: 'Identidad ficticia DEMO' },
-    ],
-    testimonials: [
-      { quote: 'Resolvimos el divorcio sin ir dos veces a la notaría.', author: 'Ana R.', role: 'Cliente · Quito' },
+      { id: '01', title: 'Cuestionario Divorcio360', category: 'Cuestionario', src: '/demo-scenes/legal-draft-demo.svg', alt: 'Minuta de ejemplo' },
+      { id: '02', title: 'Expediente', category: 'Línea de estados', src: '/demo-scenes/identity-demo.svg', alt: 'Identidad de ejemplo' },
     ],
     docTypes: [
       { type: 'cedula', label: 'Cédula de identidad' },
@@ -204,10 +178,10 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     bgSoft: 'var(--bg-subtle)',
     price: 199,
     heroTitle: 'Traslado vehicular',
-    heroHighlight: 'sin filas ni trámites.',
-    heroLede: 'Mutuo acuerdo, pago único y reunión notarial virtual — al mismo costo que presencial, desde tu pantalla.',
+    heroHighlight: 'sin filas.',
+    heroLede: 'Mutuo acuerdo, pago único y reunión notarial virtual. El mismo recorrido que en presencial, desde tu pantalla.',
     heroImage: '/demo-scenes/identity-demo.svg',
-    ctaTitle: '¿Listo para tu traslado?',
+    ctaTitle: 'Traslado y notaría en un solo recorrido',
     workflow: [
       { n: 1, title: 'Cuestionario', desc: 'Datos del vehículo y acuerdo entre partes.', screen: 'Registro' },
       { n: 2, title: 'Pago único', desc: 'Honorario único sin suscripción mensual.', screen: 'Pago' },
@@ -216,21 +190,11 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 5, title: 'Firma', desc: 'Minuta y firma electrónica con evidencia.', screen: 'Firma' },
       { n: 6, title: 'Notaría', desc: 'Reunión virtual con notario y cierre.', screen: 'Notaría' },
     ],
-    stats: [
-      { label: 'Tiempo cuestionario', value: '4 min', detail: 'Formulario corto de elegibilidad.', icon: 'check' },
-      { label: 'Honorario desde', value: '$199', detail: 'Pago único — sin membresía.', icon: 'scale' },
-      { label: 'Documentos', value: '2', detail: 'Matrícula + acuerdo mutuo.', icon: 'file' },
-      { label: 'Reuniones', value: '2', detail: 'Consulta abogado + notaría virtual.', icon: 'users' },
-    ],
     gallery: [
       { id: '01', title: 'Cuestionario Traslado360', category: 'Cuestionario', src: '/demo-scenes/legal-draft-demo.svg', alt: 'Formulario traslado' },
       { id: '02', title: 'Pago único', category: 'Pago', src: '/demo-scenes/signature-demo.svg', alt: 'Pago trámite' },
       { id: '03', title: 'Expediente trazable', category: 'Línea de estados', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Expediente' },
       { id: '04', title: 'Reunión notarial', category: 'Notaría', src: '/demo-scenes/legal-seal-demo.svg', alt: 'Videollamada notario' },
-    ],
-    testimonials: [
-      { quote: 'Vendimos el auto en un día — sin ir a la notaría dos veces.', author: 'María V.', role: 'Cliente · Quito' },
-      { quote: 'El link Traslado360 nos da comisión por cada trámite cerrado.', author: 'Bufete Ruiz', role: 'Licencia LegalStation' },
     ],
     docTypes: [
       { type: 'matricula', label: 'Matrícula vehicular' },
@@ -250,8 +214,8 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { id: 'brand', label: 'Marca y modelo', type: 'text', placeholder: 'Toyota Corolla 2020', required: true },
       { id: 'mutual', label: '¿Ambas partes están de acuerdo?', type: 'boolean', required: true },
       { id: 'debts', label: '¿Multas o gravámenes pendientes?', type: 'select', options: [
-        { value: 'no', label: 'No — vehículo al día' },
-        { value: 'si', label: 'Sí — requiere revisión' },
+        { value: 'no', label: 'No, vehículo al día' },
+        { value: 'si', label: 'Sí, requiere revisión' },
       ], required: true },
       { id: 'notary_pref', label: 'Preferencia de notaría', type: 'select', options: [
         { value: 'virtual', label: 'Reunión virtual (recomendado)' },
@@ -276,10 +240,10 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     bgSoft: 'var(--bg-subtle)',
     price: 299,
     heroTitle: 'Traslado de inmueble',
-    heroHighlight: 'al mismo costo, sin filas.',
-    heroLede: 'Dominio de terreno o propiedad con comparecencia digital — pago único por trámite, sin membresía.',
+    heroHighlight: 'sin gravámenes.',
+    heroLede: 'Dominio de terreno o propiedad con comparecencia digital y pago único por trámite, sin membresía.',
     heroImage: '/demo-scenes/marriage-record-demo.svg',
-    ctaTitle: '¿Listo para tu traslado de inmueble?',
+    ctaTitle: 'Inmueble y notaría en un solo recorrido',
     workflow: [
       { n: 1, title: 'Cuestionario', desc: 'Datos del inmueble y partes de acuerdo.', screen: 'Registro' },
       { n: 2, title: 'Pago único', desc: 'Honorario único sin plan mensual.', screen: 'Pago' },
@@ -288,21 +252,11 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 5, title: 'Firma', desc: 'Escritura y firma electrónica documental.', screen: 'Firma' },
       { n: 6, title: 'Notaría', desc: 'Reunión virtual y registro.', screen: 'Notaría' },
     ],
-    stats: [
-      { label: 'Tiempo cuestionario', value: '5 min', detail: 'Cuestionario con review lateral.', icon: 'check' },
-      { label: 'Honorario desde', value: '$299', detail: 'Un solo pago al cliente.', icon: 'scale' },
-      { label: 'Documentos', value: '2', detail: 'Título + acuerdo mutuo.', icon: 'file' },
-      { label: 'Comparecencia', value: 'Virtual', detail: 'Notario en videollamada guiada.', icon: 'building' },
-    ],
     gallery: [
       { id: '01', title: 'Cuestionario BienRaiz360', category: 'Cuestionario', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Formulario inmueble' },
       { id: '02', title: 'Honorario único', category: 'Precios', src: '/demo-scenes/signature-demo.svg', alt: 'Pago único' },
       { id: '03', title: 'Línea de estados del expediente', category: 'Expediente', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Estados trámite' },
       { id: '04', title: 'Consulta abogado', category: 'Consulta', src: '/demo-scenes/legal-seal-demo.svg', alt: 'Videollamada' },
-    ],
-    testimonials: [
-      { quote: 'Trasladamos el terreno familiar sin perder un día en filas.', author: 'Carlos M.', role: 'Cliente · Guayaquil' },
-      { quote: 'BienRaiz360 cierra ventas inmobiliarias con trazabilidad.', author: 'Vega & Asociados', role: 'Bufete partner' },
     ],
     docTypes: [
       { type: 'titulo', label: 'Escritura o título del inmueble' },
@@ -327,7 +281,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { id: 'mutual', label: '¿Vendedor y comprador de acuerdo?', type: 'boolean', required: true },
       { id: 'liens', label: '¿Gravámenes o hipotecas?', type: 'select', options: [
         { value: 'no', label: 'Libre de gravámenes' },
-        { value: 'si', label: 'Con gravamen — evaluación' },
+        { value: 'si', label: 'Con gravamen, sujeto a evaluación' },
       ], required: true },
       { id: 'meeting', label: 'Modalidad notarial', type: 'select', options: [
         { value: 'virtual', label: 'Reunión virtual' },
@@ -355,19 +309,14 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'para documentos legales.',
     heroLede: 'Sobres de firma, auditoría y plantillas reutilizables en un hub de firma acreditada.',
     heroImage: '/demo-scenes/signature-demo.svg',
-    ctaTitle: '¿Listo para firmar?',
+    ctaTitle: 'Firma documentos legales con trazabilidad',
     workflow: [
       { n: 1, title: 'Evaluar caso', desc: 'Define el tipo de documento y firmantes.', screen: 'Registro' },
       { n: 2, title: 'Configurar', desc: 'Plantilla y orden de firma.', screen: 'Configuración' },
       { n: 3, title: 'Enviar', desc: 'Sobre de firma a las partes.', screen: 'Envío' },
       { n: 4, title: 'Auditoría', desc: 'Evidencia y trazabilidad.', screen: 'Auditoría' },
     ],
-    stats: [
-      { label: 'Firmantes', value: 'Ilimitado', detail: 'Firma multi-parte.', icon: 'users' },
-      { label: 'Plantillas', value: '12+', detail: 'Reutilizables por bufete.', icon: 'file' },
-    ],
     gallery: [],
-    testimonials: [],
     docTypes: [{ type: 'documento', label: 'Documento a firmar' }],
     flowSteps: [
       { id: 'q', label: 'Evaluación' },
@@ -404,17 +353,15 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     bgSoft: '#e7f1f0',
     price: 0,
     heroTitle: 'CRM de expedientes',
-    heroHighlight: 'para operadores legales.',
-    heroLede: 'Bandeja, alertas SLA, pipeline kanban y notas visibles al cliente.',
+    heroHighlight: 'para bufetes.',
+    heroLede: 'Bandeja, alertas de plazos y notas visibles al cliente.',
     heroImage: '/demo-scenes/legal-seal-demo.svg',
-    ctaTitle: '¿Listo para operar expedientes?',
+    ctaTitle: 'Ordena la operación del bufete',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Tipo de operación y volumen.', screen: 'Registro' },
-      { n: 2, title: 'Configurar', desc: 'Pipeline y SLA.', screen: 'Configuración' },
+      { n: 2, title: 'Configurar', desc: 'Bandeja y plazos.', screen: 'Configuración' },
     ],
-    stats: [{ label: 'Casos activos', value: '50+', detail: 'Bandeja unificada.', icon: 'folder' }],
     gallery: [],
-    testimonials: [],
     docTypes: [],
     flowSteps: [{ id: 'q', label: 'Evaluación' }, { id: 'setup', label: 'Configuración' }],
     questionnaire: [
@@ -429,7 +376,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
         { value: 'alto', label: 'Más de 100' },
       ], required: true },
     ],
-    plans: [{ name: 'Licencia operadores', audience: 'Operadores', price: 249, items: ['Kanban', 'SLA', 'Notas al cliente'], featured: true }],
+    plans: [{ name: 'Licencia operadores', audience: 'Operadores', price: 249, items: ['Bandeja unificada', 'Plazos y alertas', 'Notas al cliente'], featured: true }],
   },
   compliancehub: {
     slug: 'compliancehub',
@@ -444,17 +391,15 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     bgSoft: '#e7f1f0',
     price: 0,
     heroTitle: 'Cumplimiento LOPDP',
-    heroHighlight: 'y auditoría de datos.',
+    heroHighlight: 'con auditoría.',
     heroLede: 'Consentimiento, trazas de acceso y exportes para cumplimiento normativo.',
     heroImage: '/demo-scenes/paper-fibers.svg',
-    ctaTitle: '¿Listo para cumplir LOPDP?',
+    ctaTitle: 'Cumple la LOPDP con evidencia',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Alcance de datos personales.', screen: 'Registro' },
       { n: 2, title: 'Implementar', desc: 'Políticas y consentimiento.', screen: 'Configuración' },
     ],
-    stats: [{ label: 'Trazas', value: '100%', detail: 'Acceso auditado.', icon: 'shield' }],
     gallery: [],
-    testimonials: [],
     docTypes: [],
     flowSteps: [{ id: 'q', label: 'Evaluación' }],
     questionnaire: [
@@ -483,14 +428,12 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
     heroHighlight: 'y comparecencia digital.',
     heroLede: 'Directorio de notarías, comparecencia y seguimiento hasta acta emitida.',
     heroImage: '/demo-scenes/legal-seal-demo.svg',
-    ctaTitle: '¿Listo para agendar notaría?',
+    ctaTitle: 'Agenda notaría y comparecencia',
     workflow: [
       { n: 1, title: 'Evaluar', desc: 'Tipo de acto notarial.', screen: 'Registro' },
       { n: 2, title: 'Agendar', desc: 'Notaría y fecha.', screen: 'Agenda' },
     ],
-    stats: [{ label: 'Notarías', value: '24', detail: 'Directorio EC.', icon: 'building' }],
     gallery: [],
-    testimonials: [],
     docTypes: [],
     flowSteps: [{ id: 'q', label: 'Evaluación' }],
     questionnaire: [
@@ -501,7 +444,7 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       ], required: true },
       { id: 'city', label: 'Ciudad', type: 'text', placeholder: 'Quito', required: true },
     ],
-    plans: [{ name: 'Agenda', audience: 'Comparecencias', price: 99, items: ['Directorio', 'SATJE sync'], featured: true }],
+    plans: [{ name: 'Agenda', audience: 'Comparecencias', price: 99, items: ['Directorio de notarías', 'Seguimiento de actas'], featured: true }],
   },
 };
 
@@ -575,8 +518,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
     pillDesc: 'Contratos de divorcio notarial', icon: 'scale', iconBg: '#e8efe6',
     image: '/demo-scenes/legal-draft-demo.svg',
     showcaseImage: '/demo-scenes/legal-draft-demo.svg',
-    showcaseDesc: 'Cuestionario inteligente, pago, expediente de 10 estados y firma — el flujo completo en vivo.',
-    features: ['Cuestionario inteligente', '10 estados de trámite', 'Firma y minuta'],
+    showcaseDesc: 'Cuestionario de elegibilidad, pago, expediente de 10 estados y firma.',
+    features: ['Cuestionario de elegibilidad', '10 estados de trámite', 'Firma y minuta'],
     live: true, route: '/productos/divorcio360',
   },
   {
@@ -607,12 +550,12 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
     live: false, route: '/productos/signdesk',
   },
   {
-    id: 'matterflow', name: 'MatterFlow', tagline: 'Bandeja, SLA y pipeline para operadores jurídicos.',
+    id: 'matterflow', name: 'MatterFlow', tagline: 'Bandeja, plazos y notas para operadores jurídicos.',
     pillDesc: 'CRM de expedientes', icon: 'folder', iconBg: '#e3eef5',
     image: '/demo-scenes/legal-seal-demo.svg',
     showcaseImage: '/demo-scenes/legal-seal-demo.svg',
-    showcaseDesc: 'Bandeja operador, alertas SLA, pipeline kanban y notas al cliente.',
-    features: ['Vista kanban', 'Alertas SLA', 'Notas al cliente'],
+    showcaseDesc: 'Bandeja del operador, alertas de plazos y notas al cliente.',
+    features: ['Bandeja unificada', 'Alertas de plazos', 'Notas al cliente'],
     live: false, route: '/productos/matterflow',
   },
   {
@@ -629,8 +572,8 @@ export const LEGALSTATION_CATALOG: ProductCatalogEntry[] = [
     pillDesc: 'Agenda notarial EC', icon: 'building', iconBg: '#f0ebe3',
     image: '/demo-scenes/legal-seal-demo.svg',
     showcaseImage: '/demo-scenes/legal-seal-demo.svg',
-    showcaseDesc: 'Directorio de notarías, comparecencia y sync SATJE.',
-    features: ['Directorio notarías', 'Estado comparecencia', 'Sync SATJE'],
+    showcaseDesc: 'Directorio de notarías, comparecencia y seguimiento de actas.',
+    features: ['Directorio de notarías', 'Estado de comparecencia', 'Seguimiento de actas'],
     live: false, route: '/productos/notarylink',
   },
 ];

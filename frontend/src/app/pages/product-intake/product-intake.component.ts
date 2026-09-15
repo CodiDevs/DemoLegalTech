@@ -33,7 +33,6 @@ const PRODUCTS: Record<string, ProductMeta> = {
     <app-product-flow-shell
       [theme]="meta.theme"
       [crumb]="[{ label: 'LegalStation', link: '/' }, { label: meta.name }]"
-      eyebrow="Inicio de trámite"
       [title]="'Formulario ' + meta.name"
       subtitle="Mutuo acuerdo — pago único, sin suscripción."
     >

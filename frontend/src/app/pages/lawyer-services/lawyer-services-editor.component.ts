@@ -117,7 +117,7 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
                 <div>
                   <label>Flujo de ingreso</label>
                   <p class="field-hint">
-                    Lienzo tipo workflow: rueda para zoom, clic en un nodo para editarlo, + para crear pregunta.
+                    Lienzo tipo flujo: rueda para acercar, clic en un nodo para editarlo, + para crear pregunta.
                   </p>
                 </div>
               </div>
@@ -140,7 +140,7 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
             <div class="form-actions">
               <a routerLink="/abogado/servicios" class="btn btn-ghost">Cancelar</a>
               <button type="button" class="btn btn-secondary" (click)="showPreview = !showPreview" [disabled]="busy">
-                {{ showPreview ? 'Ocultar preview' : 'Ver Preview' }}
+                {{ showPreview ? 'Ocultar vista previa' : 'Ver vista previa' }}
               </button>
               <button type="submit" class="btn btn-primary" [disabled]="busy">
                 {{ busy ? 'Guardando…' : creating ? 'Crear servicio' : 'Guardar cambios' }}

@@ -1191,7 +1191,7 @@ export class ClientPanelComponent implements OnInit {
           ? 'Un expediente de traslado. Elige un paso en la barra o inicia el trámite.'
           : 'Un solo expediente de mutuo acuerdo. Elige un paso en la barra o inicia la evaluación.';
       }
-      return 'Mismo panel, un paso a la vez. El timeline de la izquierda marca dónde vas.';
+      return 'Mismo panel, un paso a la vez. La línea de pasos de la izquierda marca dónde vas.';
     }
     if (this.product !== 'all' && this.countProductTotal(this.product) === 0) {
       return `Aún no tienes trámites de ${this.selectedServiceName}. Puedes iniciar uno cuando quieras.`;

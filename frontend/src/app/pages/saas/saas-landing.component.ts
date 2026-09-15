@@ -6,13 +6,11 @@ import { LandingFaqComponent } from '../../shared/ui/landing-faq.component';
 import { MarketingHeroComponent } from './marketing-hero.component';
 import { StationPreviewComponent } from './station-preview.component';
 import {
-  LEGALSTATION_ENTERPRISE,
   LEGALSTATION_FAQ,
   LEGALSTATION_PLANS,
   LEGALSTATION_SERVICE_PLANS,
   LEGALSTATION_WORKFLOW,
   PricingMode,
-  StationStep,
 } from './saas-landing.data';
 
 @Component({
@@ -29,7 +27,7 @@ import {
     <div class="landing-page legalstation-landing">
       <!-- 1. Hero Minimalista -->
       <app-marketing-hero
-        primaryCta="Iniciar trámite · Divorcio360"
+        primaryCta="Iniciar Divorcio360"
         primaryRoute="/productos/divorcio360"
         secondaryCta="Acceso profesional"
         [showSecondary]="true"
@@ -39,7 +37,6 @@ import {
       <section class="landing-section" id="catalogo" aria-labelledby="cat-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">Catálogo operativo</span>
             <h2 id="cat-heading" class="section-title">Trámites estandarizados. Listos para despacho.</h2>
             <p class="section-lede">
               Cada módulo procesa la admisión remota del cliente, valida la documentación y confecciona la minuta civil para firma notarial.
@@ -56,18 +53,13 @@ import {
 
                   <ul class="card-features">
                     @for (f of p.features; track f) {
-                      <li>
-                        <app-icon name="check" [size]="14" class="card-check" />
-                        <span>{{ f }}</span>
-                      </li>
+                      <li>{{ f }}</li>
                     }
                   </ul>
                 </div>
 
                 <div class="card-bottom">
                   <div class="card-meta tabular">
-                    <span class="meta-item">{{ productEstimate(p.id) }}</span>
-                    <span class="meta-sep">·</span>
                     <span class="meta-item">{{ productPrice(p.id) }}</span>
                   </div>
                   <a
@@ -90,7 +82,6 @@ import {
         <div class="stations-sticky-scene">
           <div class="landing-shell w-full">
             <header class="section-head section-head--compact">
-              <span class="section-kicker">Ciclo de tramitación</span>
               <h2 id="flujo-heading" class="section-title">Cinco estaciones. Despacho continuo.</h2>
               <p class="section-lede">Validación notarial en cada hito del expediente.</p>
             </header>
@@ -146,7 +137,6 @@ import {
       <section class="landing-section" id="seguridad" aria-labelledby="seguridad-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">Marco legal y técnico</span>
             <h2 id="seguridad-heading" class="section-title">Validez plena en sede notarial y judicial.</h2>
             <p class="section-lede">
               Cada etapa cumple estrictamente con el Código Orgánico de la Función Judicial y la Ley de Comercio Electrónico.
@@ -191,7 +181,6 @@ import {
       <section class="landing-section subtle" id="precios" aria-labelledby="precios-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">{{ pricingMode === 'servicios' ? 'Honorarios por trámite' : 'Licenciamiento B2B' }}</span>
             <h2 id="precios-heading" class="section-title">
               {{ pricingMode === 'servicios' ? 'Honorarios claros por cada trámite.' : 'Precios claros según la escala de tu bufete.' }}
             </h2>
@@ -247,10 +236,7 @@ import {
 
                   <ul class="plan-items">
                     @for (item of svc.items; track item) {
-                      <li>
-                        <app-icon name="check" [size]="14" class="plan-check" />
-                        <span>{{ item }}</span>
-                      </li>
+                      <li>{{ item }}</li>
                     }
                   </ul>
 
@@ -286,10 +272,7 @@ import {
 
                   <ul class="plan-items">
                     @for (item of plan.items; track item) {
-                      <li>
-                        <app-icon name="check" [size]="14" class="plan-check" />
-                        <span>{{ item }}</span>
-                      </li>
+                      <li>{{ item }}</li>
                     }
                   </ul>
 
@@ -321,7 +304,6 @@ import {
       <section class="landing-section" id="faq" aria-labelledby="faq-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">Dudas resueltas</span>
             <h2 id="faq-heading" class="section-title">Preguntas frecuentes.</h2>
             <p class="section-lede">
               Detalles sobre la plataforma, el modelo operativo y la tramitación de expedientes.
@@ -337,7 +319,6 @@ import {
         <div class="landing-shell">
           <div class="cta-banner">
             <div class="cta-text">
-              <span class="section-kicker">Despliegue inmediato</span>
               <h2 class="cta-title">Moderniza la práctica civil de tu firma.</h2>
               <p class="cta-lede">
                 Prueba un expediente real en minutos o solicita acceso para los abogados de tu equipo.
@@ -387,16 +368,6 @@ import {
     .section-head {
       margin-bottom: var(--space-6);
       max-width: 46rem;
-    }
-
-    .section-kicker {
-      display: block;
-      font-size: var(--text-xs);
-      font-weight: 650;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--primary);
-      margin-bottom: var(--space-2);
     }
 
     .section-title {
@@ -475,17 +446,9 @@ import {
     }
 
     .card-features li {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-2);
       font-size: var(--text-xs);
       color: var(--text-secondary);
       line-height: 1.4;
-    }
-
-    .card-check {
-      color: var(--primary);
-      flex-shrink: 0;
     }
 
     .card-bottom {
@@ -503,10 +466,6 @@ import {
       font-size: var(--text-xs);
       color: var(--text-muted);
       font-weight: 500;
-    }
-
-    .meta-sep {
-      color: var(--border-strong);
     }
 
     .product-btn {
@@ -938,16 +897,8 @@ import {
     }
 
     .plan-items li {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-2);
       font-size: var(--text-sm);
       color: var(--text-secondary);
-    }
-
-    .plan-check {
-      color: var(--primary);
-      flex-shrink: 0;
     }
 
     /* Banner CTA Final */
@@ -1006,16 +957,11 @@ import {
 export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   toast = '';
   liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
-  featuredProduct = this.liveProducts.find((p) => p.id === 'divorcio360') ?? null;
-  supportingProducts = this.liveProducts.filter((p) => p.id !== 'divorcio360');
   workflow = LEGALSTATION_WORKFLOW;
   journeyFocus = 0;
   pricingMode: PricingMode = 'licenciamiento';
   plans = LEGALSTATION_PLANS;
   servicePlans = LEGALSTATION_SERVICE_PLANS;
-  featuredPlan = LEGALSTATION_PLANS.find((p) => p.featured) ?? LEGALSTATION_PLANS[1];
-  sidePlans = LEGALSTATION_PLANS.filter((p) => !p.featured);
-  enterprise = LEGALSTATION_ENTERPRISE;
   faq = LEGALSTATION_FAQ;
   trackProgress = 0;
   @ViewChild('stationsTrack') stationsTrack?: ElementRef<HTMLElement>;
@@ -1133,15 +1079,6 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
       case 'traslado360': return 'Vehicular & Civil';
       case 'bienraiz360': return 'Inmobiliario & Notarial';
       default: return 'Trámite civil';
-    }
-  }
-
-  productEstimate(id: string): string {
-    switch (id) {
-      case 'divorcio360': return '~14 días resolución';
-      case 'traslado360': return '~19 días resolución';
-      case 'bienraiz360': return '~8 días resolución';
-      default: return 'Despacho ágil';
     }
   }
 

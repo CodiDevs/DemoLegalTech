@@ -16,7 +16,6 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
       <app-product-flow-shell
         [theme]="theme"
         [crumb]="crumb"
-        eyebrow="Consulta virtual"
         title="Consulta con abogado"
         subtitle="Solicita tu consulta virtual. Tu abogado revisará tu expediente y te contactará para coordinar."
         [steps]="flowSteps"
@@ -47,7 +46,7 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
               </li>
             </ul>
             <p class="pf-muted" style="margin-top:1rem;font-size:0.82rem">
-              Duración orientativa: 30 minutos
+              Duración a coordinar con tu abogado
             </p>
           </aside>
 
@@ -69,7 +68,7 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
               } @else {
                 <div class="consult-request-zone">
                   <div class="up-drop-icon"><app-icon name="video" [size]="24" /></div>
-                  <p class="consult-request-title">¿Listo para hablar con tu abogado?</p>
+                  <p class="consult-request-title">Habla con tu abogado por videollamada</p>
                   <p class="pf-muted consult-request-hint">
                     Envía la solicitud y te contactaremos por correo para confirmar la videollamada.
                   </p>

@@ -91,8 +91,7 @@ function syncMockSteps(steps: Element[], progress: number): void {
               </p>
               <div class="hsvr-mock" #mockRef aria-hidden="true">
                 <div class="hsvr-mock-bar">
-                  <span></span><span></span><span></span>
-                  <strong>{{ site.name }} · expediente</strong>
+                  <strong>{{ site.name }}, expediente de ejemplo</strong>
                 </div>
                 <div class="hsvr-mock-body">
                   @for (s of site.workflow; track s.n) {
@@ -348,16 +347,7 @@ function syncMockSteps(steps: Element[], progress: number): void {
       border-bottom: 1px solid color-mix(in srgb, var(--text-inverse) 8%, transparent);
     }
 
-    .hsvr-mock-bar span {
-      width: 0.55rem;
-      height: 0.55rem;
-      border-radius: var(--radius-full);
-      background: var(--primary);
-      opacity: 0.55;
-    }
-
     .hsvr-mock-bar strong {
-      margin-left: auto;
       font-size: 0.72rem;
       font-weight: 600;
       color: color-mix(in srgb, var(--text-inverse) 55%, transparent);
@@ -436,7 +426,6 @@ function syncMockSteps(steps: Element[], progress: number): void {
     @media (max-width: 639.9px) {
       .hsvr-video-box { clip-path: circle(22% at 50% 50%); }
       .hsvr-mock { width: min(100% - 1.5rem, 28rem); }
-      .hsvr-mock-bar strong { margin-left: 0.5rem; }
     }
   `],
 })

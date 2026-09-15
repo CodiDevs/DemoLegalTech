@@ -353,7 +353,7 @@ export class Fase2TemplatesComponent implements OnInit {
     this.api.duplicateTemplate(t.id).subscribe({
       next: (created) => {
         this.busy = false;
-        this.showToast('Plantilla duplicada — lista para personalizar');
+        this.showToast('Plantilla duplicada, lista para personalizar');
         this.api.mockTemplates().subscribe((d) => {
           this.templates = d.templates || [];
           this.versions = d.versions || [];

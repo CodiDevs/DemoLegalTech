@@ -36,7 +36,6 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
       <app-hero-scroll-video-pin-reveal />
 
       <app-cinematic-scene sceneId="sistema" [act]="2" theme="cream">
-        <p class="cine-kicker">Un expediente</p>
         <h2 class="cine-title">Cliente y abogado, misma cámara</h2>
         <div class="dv-split">
           <article>
@@ -55,15 +54,13 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
       </app-cinematic-scene>
 
       <app-cinematic-scene sceneId="evidencia" [act]="2" theme="cream">
-        <p class="cine-kicker">Cada etapa deja evidencia</p>
-        <h2 class="cine-title">{{ site.stats[0].value }} · {{ site.stats[2].value }}</h2>
-        <p class="cine-lede">{{ site.stats[0].detail }} Honorario de referencia {{ site.stats[2].value }}.</p>
+        <h2 class="cine-title">{{ site.workflow.length }} etapas, un solo expediente</h2>
+        <p class="cine-lede">Cada etapa deja evidencia: documentos, mensajes y estado en el mismo folio. Honorario de referencia \${{ site.price }}.</p>
         <app-demo-document-stack variant="archive" />
       </app-cinematic-scene>
 
       <app-cinematic-scene sceneId="flujo" [act]="2" theme="cream">
-        <p class="cine-kicker">Todo el recorrido</p>
-        <h2 class="cine-title">Cuestionario, pago, docs y firma. Un marco.</h2>
+        <h2 class="cine-title">Cuestionario, pago, documentos y firma.</h2>
         <div class="ls-journey">
           <div class="dv-flow-switch">
             @for (step of site.workflow; track step.n; let i = $index) {
@@ -82,8 +79,7 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
 
       <app-cinematic-scene sceneId="precios" [act]="2" theme="cream">
         <div class="dv-price-stage">
-          <p class="cine-kicker">Empieza aquí</p>
-          <p class="amount">$349</p>
+          <p class="amount">\${{ site.price }}</p>
           <h2 class="cine-title">{{ ctaTitle }}</h2>
           <p class="cine-lede">{{ ctaBody }} No incluye gastos notariales.</p>
           <a [routerLink]="primaryAction.path" class="lp-btn lp-btn-primary lp-cta-primary">

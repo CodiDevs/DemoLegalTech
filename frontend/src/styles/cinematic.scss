@@ -103,20 +103,10 @@
   color: var(--text-inverse);
 }
 
-.demo-case-bar span {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--primary);
-  opacity: 0.6;
-}
-
 .demo-case-bar strong {
-  margin-left: auto;
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
   opacity: 0.7;
 }
 
@@ -757,48 +747,8 @@
   color: var(--primary);
 }
 
-/* Questionnaire monument */
-.theme-divorcio .ob {
-  max-width: 72rem;
-}
-
-.ob[data-stage='questions'] {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: clamp(1rem, 4vw, 3rem);
-  align-items: stretch;
-}
-
-.ob-counter {
-  position: sticky;
-  top: calc(var(--header-height) + 1.5rem);
-  margin: 0;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-family: var(--font-display);
-  font-size: clamp(1.7rem, 4vw, 3rem);
-  line-height: 0.95;
-  letter-spacing: -0.04em;
-  color: color-mix(in srgb, var(--primary) 70%, var(--text));
-  height: fit-content;
-  animation: ob-counter-roll 640ms var(--ease-out) both;
-}
-
-@keyframes ob-counter-roll {
-  from {
-    opacity: 0;
-    transform: rotate(180deg) translateY(-0.6em);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: rotate(180deg);
-    filter: blur(0);
-  }
-}
-
 .ob-questions .ob-sheet {
-  min-height: min(70vh, 38rem);
+  min-height: min(46vh, 24rem);
   display: grid;
   align-content: center;
 }
@@ -807,15 +757,10 @@
 .landing-page.product-flow .ob-sheet {
   position: relative;
   padding: clamp(1.5rem, 4vw, 3.25rem) clamp(1.25rem, 4vw, 2.75rem);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #fff 62%, transparent), transparent 38%),
-    var(--bg);
-  border: 1px solid color-mix(in srgb, var(--neutral-800) 12%, var(--border));
-  border-radius: 3px;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent),
-    0 18px 0 color-mix(in srgb, var(--neutral-800) 8%, transparent),
-    0 36px 64px color-mix(in srgb, var(--neutral-800) 16%, transparent);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   animation: ob-sheet-in 560ms var(--ease-out) both;
 }
 
@@ -851,9 +796,9 @@
 
 .theme-divorcio .ob-sheet h1,
 .landing-page.product-flow .ob-sheet h1 {
-  font-size: clamp(2.1rem, 5.2vw, 3.6rem);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
 }
 
 .ob-folios .ob-review {
@@ -873,10 +818,10 @@
 }
 
 .ob-choice {
-  min-height: 7.5rem;
-  padding: 1.4rem 1.5rem;
-  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
-  border-width: 2px;
+  min-height: 4.5rem;
+  padding: 1rem 1.25rem;
+  font-size: var(--text-lg);
+  border-width: 1px;
 }
 
 .ob-questions {
@@ -891,8 +836,7 @@
 .ob-review li {
   background: var(--bg);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 0 color-mix(in srgb, var(--neutral-800) 8%, transparent);
-  transform: rotate(-0.4deg);
+  box-shadow: var(--shadow-sm);
 }
 
 .ob-sheet.is-apto,
@@ -1174,16 +1118,8 @@
   .dv-split,
   .ck-vault,
   .up-desk,
-  .sign-stage,
-  .ob[data-stage='questions'] {
+  .sign-stage {
     grid-template-columns: 1fr;
-  }
-
-  .ob-counter {
-    writing-mode: horizontal-tb;
-    transform: none;
-    position: static;
-    font-size: 1.6rem;
   }
 
   .ls-offset-window:nth-child(2) { margin-top: 0; }

@@ -66,7 +66,7 @@ interface HeroAction {
             </h1>
 
             <p class="mk-slogan">
-              {{ lede || 'Automatización de admisión, biometría, minutas y cobro arancelario para estudios jurídicos y áreas legales.' }}
+              {{ lede || 'Cuestionario, documentos, firma y notaría en un solo expediente.' }}
             </p>
 
             <div class="mk-cta">
@@ -319,13 +319,8 @@ export class MarketingHeroComponent implements AfterViewInit {
   @Input() showSecondary = false;
   @Input() secondaryAuthQuery: Record<string, string> = {};
 
-  @Input() theme: 'legalstation' | 'divorcio' = 'legalstation';
   @Input() titleLine1 = '';
-  @Input() titleHighlight = '';
-  @Input() subtitle = '';
   @Input() lede = '';
-  @Input() stats: unknown[] = [];
-  @Input() images: [string, string, string] = ['', '', ''];
 
   readonly videoSrc = '/videos/legalstation-hero.mp4';
   readonly posterSrc = '/videos/legalstation-hero-poster.jpg';

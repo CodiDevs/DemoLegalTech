@@ -67,10 +67,10 @@ export class Fase2MobileComponent {
   screens = [
     { title: 'Mi expediente', lines: ['Caso #1', 'Revisión jurídica', 'Documentos aprobados', 'Línea de 10 estados'] },
     { title: 'Línea de estados', lines: ['01 Información recibida', '02 Documentos pendientes', '03 Revisión jurídica (actual)'] },
-    { title: 'Firma', lines: ['Minuta lista', 'Canvas firma', 'Evidencia IP/fecha'] },
+    { title: 'Firma', lines: ['Minuta lista', 'Firma en pantalla', 'Evidencia IP/fecha'] },
   ];
   roadmap = [
-    'Push notifications de cambio de estado',
+    'Notificaciones push de cambio de estado',
     'Biometría para acceso rápido',
     'Firma nativa con ECI acreditada',
     'Carga de docs desde cámara',
@@ -82,8 +82,8 @@ export class Fase2MobileComponent {
   ];
   compareRows = [
     { feature: 'Línea de estados del expediente', pwa: 'Sí', native: 'Sí' },
-    { feature: 'Push notifications', pwa: 'Limitado', native: 'Sí' },
-    { feature: 'Firma ECI', pwa: 'Canvas mock', native: 'SDK nativo' },
-    { feature: 'Offline', pwa: 'Parcial', native: 'Sí' },
+    { feature: 'Notificaciones push', pwa: 'Limitado', native: 'Sí' },
+    { feature: 'Firma ECI', pwa: 'Lienzo en pantalla', native: 'SDK nativo' },
+    { feature: 'Sin conexión', pwa: 'Parcial', native: 'Sí' },
   ];
 }

@@ -26,7 +26,7 @@ export const AUTH_NEXT_STEPS: AuthAsideStep[] = [
 
 export const AUTH_COPY = {
   brand: 'LegalStation',
-  loginTitle: 'Bienvenido de nuevo',
+  loginTitle: 'Inicia sesión',
   loginLead: 'Accede a tu cuenta para continuar tu trámite.',
   registerTitle: 'Crea tu cuenta',
   registerLead: 'Con una sola cuenta gestionas cualquier trámite de LegalStation.',
@@ -47,8 +47,8 @@ export const AUTH_COPY = {
   switchToRegisterCta: 'Crear una cuenta',
   switchToLogin: '¿Ya tienes cuenta?',
   switchToLoginCta: 'Ingresar',
-  demoTitle: 'Acceso rápido (demo)',
-  demoHint: 'Rellenan el formulario para que solo pulses Ingresar.',
+  demoTitle: 'Cuentas de ejemplo',
+  demoHint: 'Elige una cuenta y el formulario se completa solo.',
   asideEyebrow: 'Qué sigue después',
   asideFoot: 'Tus documentos solo los ve el abogado asignado a tu caso.',
   lockNote: 'Conexión segura · LegalStation',

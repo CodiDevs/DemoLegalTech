@@ -37,7 +37,6 @@ interface CaseAction {
       <app-product-flow-shell
         [theme]="theme"
         [crumb]="crumb"
-        eyebrow="Expediente digital"
         [title]="'Caso #' + data.case.id"
         [subtitle]="data.case.client_name + ' · ' + data.case.status_label"
       >
@@ -110,7 +109,7 @@ interface CaseAction {
               @if (!docs.length) { <p class="muted">Sin documentos cargados.</p> }
               @for (d of docs; track d.id) {
                 <div class="doc-row">
-                  <span>{{ docLabel(d.doc_type) }} — {{ d.filename }}</span>
+                  <span>{{ docLabel(d.doc_type) }} · {{ d.filename }}</span>
                   <span class="pill" [class]="d.review_status">{{ reviewLabel(d.review_status) }}</span>
                   @if (d.review_note && d.review_status === 'rejected') {
                     <p class="muted">{{ d.review_note }}</p>

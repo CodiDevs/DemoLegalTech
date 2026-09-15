@@ -149,7 +149,7 @@ const STATUS_OPTIONS: { id: string; label: string }[] = [
                 <div class="case-wait">
                   <span class="wait-l">{{ waitLabel(c) }}</span>
                   @if (c.sla_warning) {
-                    <app-status-badge label="SLA en riesgo" variant="warn" />
+                    <app-status-badge label="Fuera de plazo" variant="warn" />
                   }
                 </div>
 

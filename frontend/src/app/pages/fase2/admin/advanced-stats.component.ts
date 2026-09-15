@@ -90,10 +90,14 @@ interface PriorityCase {
                 <app-icon name="credit-card" [size]="16" />
               </span>
             </div>
-            <div class="kpi-value tabular">{{ formatUsd(metrics?.ingreso_mes_usd || 21595) }}</div>
+            <div class="kpi-value tabular">{{ metrics ? formatUsd(metrics.ingreso_mes_usd) : 'Sin datos' }}</div>
             <div class="kpi-meta">
-              <span class="kpi-highlight">{{ metrics?.tasa_cobranza_pct || 94 }}% cobrado</span>
-              <span class="kpi-sub">· {{ formatUsd(metrics?.pendiente_cobro_usd || 1280) }} en trámite</span>
+              @if (metrics) {
+                <span class="kpi-highlight">{{ metrics.tasa_cobranza_pct }}% cobrado</span>
+                <span class="kpi-sub">· {{ formatUsd(metrics.pendiente_cobro_usd) }} en trámite</span>
+              } @else {
+                <span class="kpi-sub">Sin respuesta de la API de métricas</span>
+              }
             </div>
           </article>
 
@@ -117,7 +121,7 @@ interface PriorityCase {
                 <app-icon name="folder" [size]="16" />
               </span>
             </div>
-            <div class="kpi-value tabular">{{ formatCount(metrics?.casos_activos || cases.length || 14) }}</div>
+            <div class="kpi-value tabular">{{ formatCount(metrics?.casos_activos ?? cases.length) }}</div>
             <div class="kpi-meta">
               <span class="kpi-badge-hint">{{ pendingActionCount }} con gestión pendiente</span>
             </div>
@@ -130,9 +134,9 @@ interface PriorityCase {
                 <app-icon name="clock" [size]="16" />
               </span>
             </div>
-            <div class="kpi-value tabular">{{ formatDays(metrics?.tiempo_promedio_dias || 18.4) }}</div>
+            <div class="kpi-value tabular">{{ metrics ? formatDays(metrics.tiempo_promedio_dias) : 'Sin datos' }}</div>
             <div class="kpi-meta">
-              <span>SLA objetivo: ≤ 21 días</span>
+              <span>Promedio de los casos cerrados</span>
             </div>
           </article>
         </section>
@@ -759,7 +763,7 @@ export class AdvancedStatsComponent implements OnInit {
         this.cases = Array.isArray(data?.recent_cases)
           ? data.recent_cases.map((c: any) => ({
               id: c.id,
-              client: c.client || 'Cliente demo',
+              client: c.client || 'Sin nombre',
               service: c.service || this.defaultServiceFor(c.id),
               status: c.status || '03',
               status_label: c.status_label || 'Revisión jurídica',
@@ -809,9 +813,9 @@ export class AdvancedStatsComponent implements OnInit {
     if (this.metrics?.ticket_promedio_usd) {
       return this.metrics.ticket_promedio_usd;
     }
-    const totalRev = this.metrics?.ingreso_mes_usd || 21595;
-    const totalCases = this.services.reduce((acc, s) => acc + s.cases, 0) || 64;
-    return Math.round(totalRev / totalCases);
+    const totalRev = this.metrics?.ingreso_mes_usd ?? 0;
+    const totalCases = this.services.reduce((acc, s) => acc + s.cases, 0);
+    return totalCases ? Math.round(totalRev / totalCases) : 0;
   }
 
   get totalBottleneckCount(): number {
@@ -819,11 +823,11 @@ export class AdvancedStatsComponent implements OnInit {
   }
 
   get pendingActionCount(): number {
-    return this.cases.filter((c) => c.action_required || c.days >= 4).length || 8;
+    return this.cases.filter((c) => c.action_required || c.days >= 4).length;
   }
 
   get headAside(): string {
-    return 'Mes en curso · Septiembre 2026';
+    return 'Mes en curso';
   }
 
   defaultServiceFor(id: number): string {
@@ -947,7 +951,7 @@ export class AdvancedStatsComponent implements OnInit {
 
   private fallbackCases(): PriorityCase[] {
     return [
-      { id: 1, client: 'María Demo', service: 'Divorcio mutuo acuerdo', status: '03', status_label: 'Revisión jurídica', days: 2, action_required: true },
+      { id: 1, client: 'María Salazar', service: 'Divorcio mutuo acuerdo', status: '03', status_label: 'Revisión jurídica', days: 2, action_required: true },
       { id: 2, client: 'Carlos Mendoza', service: 'Traslado de dominio', status: '05', status_label: 'Firma de partes', days: 6, action_required: true },
       { id: 3, client: 'Elena Zambrano', service: 'Poder notarial', status: '06', status_label: 'En notaría', days: 3, action_required: false },
     ];

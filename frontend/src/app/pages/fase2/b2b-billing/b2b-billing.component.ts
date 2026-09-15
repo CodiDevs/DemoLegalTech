@@ -78,7 +78,7 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
       <div class="modal-backdrop" (click)="modal = ''">
         <div class="modal panel" (click)="$event.stopPropagation()">
           <h2>Actualizar a {{ modal }}</h2>
-          <p class="muted">Pasarela B2B mock — en producción se integraría Payphone recurrente.</p>
+          <p class="muted">Pasarela de prueba. En producción se integraría Payphone recurrente.</p>
           <button type="button" class="btn btn-primary" (click)="confirmUpgrade()">Confirmar cambio</button>
           <button type="button" class="btn btn-ghost" (click)="modal = ''">Cancelar</button>
         </div>

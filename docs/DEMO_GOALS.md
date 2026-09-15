@@ -57,8 +57,61 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Bandeja búsqueda + filtros | `/abogado` — busca por nombre/#; Servicio + Estado (Revisión preseleccionado); 10/página | 2026-09-14 |
 | done | Precios toggle Servicios/Licencia | `/#precios` — toggle; Servicios = honorarios $349/$199/$299; Licenciamiento = planes mes | 2026-09-14 |
 | done | Expediente abogado dossier denso | `abogado@demo.ec` → `/abogado/caso/4` — cabecera tipográfica + tabs; pendientes en rail derecho | 2026-09-14 |
+| done | Marketing sin AI slop | `/` + Divorcio/Traslado/BienRaiz sin tiras de métricas, checkmarks, testimonios, kickers ni códigos falsos | 2026-09-15 |
+| done | Cuestionario rearmado + resto sin slop | `/cuestionario` con hoja y progreso únicos; KPIs de Fase 2 honestos; inglés y em-dash fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Cuestionario rearmado + resto del frontend sin slop
+El cuestionario no estaba solo feo: estaba roto. Un folio vertical "01 / 09", una hoja de 608px con ~300px de vacío, y un documento SVG con sello de agua desbordándose por detrás. Detalle completo en [`docs/NO_SLOP.md`](NO_SLOP.md).
+
+**Causas**
+- `onboarding.scss` estilizaba `.ob-card` (21 reglas), un componente que ningún template usa: los cuestionarios usan `.ob-sheet` (estilado en `cinematic.scss`). Las reglas de veredicto `is-apto/is-evaluacion/is-no_aplica` apuntaban al fantasma, así que el borde de color del resultado nunca se aplicaba. Se portaron a `.ob-sheet`.
+- `/* Questionnaire monument */ .theme-divorcio .ob { max-width: 72rem }`: un formulario de una pregunta a 1152px de ancho.
+- Diez capas decorativas detrás de una pregunta.
+
+**Cambios**
+- Stage de 10 capas a 3 (papel, una luz, renglones). Fuera barrido, sello, viñeta y las 5 "washes" por categoría.
+- Una sola lectura de progreso: se elimina el folio vertical y el hint redundante.
+- Hoja con `--radius-lg` y `--shadow-md` de una capa; `min-height` de `min(70vh, 38rem)` a `min(46vh, 24rem)`; bloque centrado.
+- `--max-width` del formulario a 40rem (44rem en pantallas grandes).
+- Botones Sí/No sobrios (4.5rem, un estado) sin barrido, `translateX` ni anillo-sello.
+- Igual en `product-questionnaire`.
+- KPIs de Fase 2 sin defaults inventados (`|| 21595`, `|| 94`, `|| 18.4`, `|| 14`, `|| 8`, `|| 64`) ni `SLA objetivo: ≤ 21 días`; sin API, la tarjeta dice "Sin datos".
+- Fuera el eyebrow del flujo (`product-flow-shell` + 5 llamadas): dos eran el pill con `·` prohibido.
+- Auth: "Inicia sesión", "Cuentas de ejemplo", sin eyebrow, copy corregido.
+- Inglés fuera del copy español (`timeline`, `SLA`, `workflow`, `zoom`, `preview`, `Push notifications`, `Offline`, `Canvas`).
+- `index.html` sin em-dash ni "100% virtuales".
+
+**Demo:** `/cuestionario` (paso 1, revisión y resultado) y `/productos/traslado360/cuestionario`. Verificación: `bun run build:frontend` y `bun run test:frontend` (111 specs).
+
+**Pendiente:** unificar los 4 mapas de estado, borrar los 9 componentes muertos y su CSS, y los tells de CSS restantes (header con blur, confeti violeta, `border-left` de acento). Ver `docs/NO_SLOP.md`.
+
+### 2026-09-15 — Marketing sin AI slop (landings + cuestionario)
+Erradicación de los patrones que `AGENTS.md` §2 prohíbe en la superficie de marketing, más el copy inflado.
+
+**Fuera del producto**
+- `LandingStatisticsComponent` eliminado (tira de 3 métricas sintéticas) y el campo `stats` del modelo de producto. La escena `#evidencia` de Divorcio360 ahora deriva del `workflow` y del `price` reales.
+- Checkmarks de garantías fuera del catálogo y de los planes de licencia; `.lp-plan li::before` y `.lp-list-check` borrados.
+- Testimonios fabricados ('Ana R.', 'María V.', 'Bufete Ruiz', 'Vega & Asociados') eliminados junto con el campo `testimonials`.
+- Headers con código falso: `#LS-2026-0842` y `ACT-2026-170130-00412` (station preview), `Expediente LS-014` y `Estado 04 · minuta lista` (demo case window).
+- Eyebrows y kickers fuera (`.section-kicker`, `.lp-eyebrow`, `.lp-cta-eyebrow`, `.cine-kicker` de escena). El pill `Un solo pago · sin cuotas mensuales` eliminado.
+- Los 5 SVG de `demo-scenes` ya no rotulan "DEMO" (cierra el intento del 2026-09-13, que solo cubrió el mock del home): `DOCUMENTO FICTICIO`, `DE EJEMPLO`, `Firmante A/B`, `Expediente de ejemplo`.
+- Métrica inventada `~14 días resolución` y `Plazo estimado · 14 días` eliminadas. Campos muertos de la landing borrados (`featuredProduct`, `sidePlans`, `enterprise`, `LEGALSTATION_ENTERPRISE`, inputs sin uso del hero).
+
+**Copy**
+- H1 a 3–5 palabras: `Divorcio por mutuo acuerdo.`, `Traslado vehicular sin filas.`, `Traslado de inmueble sin gravámenes.`
+- Em-dash retórico fuera del copy corto (ledes, `pq-price`, barras de mock, opciones de cuestionario, placeholders de revisión).
+- Slogan canónico sin la tautología "sin filas ni trámites" ni "al mismo costo", que el propio test veta.
+- "inteligente" y "en vivo" fuera del catálogo; `alt` de galería sin "DEMO"; garantías genéricas reescritas (`SLA 99.9% y soporte 24/7` → acompañamiento en la puesta en marcha).
+
+**Guards**
+- `product-sites.data.spec.ts`: el guard de copy ahora recorre los 7 productos y el catálogo, y suma `—`, `inteligente`, `en vivo`, `\bSLA\b`, `kanban`, `\bsync\b`.
+- Nuevo `slop-guard.spec.ts`: renderiza las 4 landings y asserta ausencia de kickers, checks de garantía, códigos de expediente y em-dash.
+
+**Demo:** guest en `/`, `/productos/divorcio360`, `/productos/traslado360` y `/productos/bienraiz360`. Verificación: `bun run test:frontend` (111 specs) y `bun run build:frontend`.
+
+**Pendiente (fuera de este slice):** overflow horizontal por debajo de ~400px, preexistente y visible también en `/auth`. Restan en auth (`ACCESO RÁPIDO (DEMO)`, `Bienvenido de nuevo`), checkout/upload (em-dash), `client-panel` ("timeline"), `STAGE_HINT`/`STAGE_SHORT` duplicados, header con blur y 5 componentes muertos.
 
 ### 2026-09-14 — Expediente abogado dossier denso
 `abogado@demo.ec` → Bandeja → expediente en revisión (ej. `#4`). Cabecera sin caja (H1 Fraunces + badge + progreso compacto + regla teal). Pendientes y «Próxima acción» en el rail derecho. Un solo panel por tab (Resumen/Documentos/Minuta/Firmas/Historial).

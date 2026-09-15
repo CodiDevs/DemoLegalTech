@@ -162,7 +162,7 @@ export class MeetingSchedulerComponent implements OnInit, OnDestroy {
     backdrop.innerHTML = `
       <div class="meet-modal pf-card" role="dialog" aria-modal="true" aria-labelledby="${titleId}">
         <h3 id="${titleId}">Cita registrada</h3>
-        <p>Su fecha se registró, espere el link de la reunión en su correo.</p>
+        <p>Recibirás el enlace de la reunión por correo.</p>
         <button type="button" class="lp-btn lp-btn-primary meet-modal-ok">Entendido</button>
       </div>
     `;

@@ -18,7 +18,6 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
     <app-product-flow-shell
       [theme]="theme"
       [crumb]="crumb"
-      eyebrow="Firma electrónica"
       [title]="mode === 'done' ? 'Firma registrada' : 'Firma tu minuta'"
       [subtitle]="mode === 'done'
         ? 'El abogado ya puede revisar el documento en el expediente.'

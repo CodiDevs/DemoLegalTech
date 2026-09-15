@@ -9,13 +9,12 @@ export type DemoCaseMode = 'overview' | 'documents' | 'payment' | 'signature';
   template: `
     <div class="demo-case" [attr.data-mode]="mode" role="img" [attr.aria-label]="label">
       <header class="demo-case-bar">
-        <span></span><span></span><span></span>
-        <strong>{{ site.name }} · expediente de ejemplo</strong>
+        <strong>{{ site.name }}, expediente de ejemplo</strong>
       </header>
       <div class="demo-case-body">
         @if (mode === 'overview') {
-          <p class="demo-case-kicker">Estado 04 · minuta lista</p>
-          <h3>Expediente LS-014</h3>
+          <p class="demo-case-kicker">Estado 04</p>
+          <h3>Minuta lista para firma</h3>
           <ul class="demo-case-steps">
             @for (step of site.workflow; track step.n) {
               <li [class.is-on]="step.n === activeStep">

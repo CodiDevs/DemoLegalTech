@@ -38,30 +38,16 @@ interface Question {
   imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
-      <div class="form-stage" aria-hidden="true" [attr.data-cat]="currentCategory">
+      <div class="form-stage" aria-hidden="true">
         <span class="form-stage-texture"></span>
         <span class="form-stage-glow form-stage-glow--a"></span>
-        <span class="form-stage-glow form-stage-glow--b"></span>
-        <span class="form-stage-sweep"></span>
         <span class="form-stage-ruling"></span>
-        <span class="form-stage-seal"></span>
-        <span class="form-stage-wash" data-wash="identity"></span>
-        <span class="form-stage-wash" data-wash="family"></span>
-        <span class="form-stage-wash" data-wash="assets"></span>
-        <span class="form-stage-wash" data-wash="abroad"></span>
-        <span class="form-stage-wash" data-wash="pact"></span>
-        <span class="form-stage-vignette"></span>
       </div>
 
       <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [attr.data-cat]="currentCategory" [class.is-loading]="submitting">
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
-          @for (p of [position]; track p) {
-            <p class="ob-counter" aria-hidden="true">
-              {{ pad(p) }} / {{ pad(visibleQuestions.length) }}
-            </p>
-          }
           <div class="ob-questions">
             <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + position + ' de ' + visibleQuestions.length">
               <div class="ob-segments">
@@ -83,9 +69,6 @@ interface Question {
               </div>
               <div class="ob-progress-meta">
                 <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
-                @if (canGoBack) {
-                  <p class="ob-step-hint">Toca un paso anterior para volver</p>
-                }
               </div>
             </div>
 
@@ -550,10 +533,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
 
   get position(): number {
     return this.visibleQuestions.findIndex((q) => q.key === this.current.key) + 1;
-  }
-
-  pad(n: number): string {
-    return String(n).padStart(2, '0');
   }
 
   get currentCategory(): string {

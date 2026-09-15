@@ -24,20 +24,11 @@ type Stage = 'questions' | 'review' | 'done';
         <div class="form-stage" aria-hidden="true">
           <span class="form-stage-texture"></span>
           <span class="form-stage-glow form-stage-glow--a"></span>
-          <span class="form-stage-glow form-stage-glow--b"></span>
-          <span class="form-stage-sweep"></span>
           <span class="form-stage-ruling"></span>
-          <span class="form-stage-seal"></span>
-          <span class="form-stage-vignette"></span>
         </div>
 
         <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction">
           @if (stage === 'questions' && currentField) {
-            @for (p of [stepLabel]; track p) {
-              <p class="ob-counter" aria-hidden="true">
-                {{ pad(p) }} / {{ pad(fields.length) }}
-              </p>
-            }
             <div class="ob-questions">
               <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length">
                 <div class="ob-segments">
@@ -59,9 +50,6 @@ type Stage = 'questions' | 'review' | 'done';
                 </div>
                 <div class="ob-progress-meta">
                   <p class="ob-step-label">Paso {{ stepLabel }} de {{ fields.length }}</p>
-                  @if (fieldIndex > 0) {
-                    <p class="ob-step-hint">Toca un paso anterior para volver</p>
-                  }
                 </div>
               </div>
 
@@ -141,7 +129,7 @@ type Stage = 'questions' | 'review' | 'done';
                 }
               </ul>
 
-              <p class="pq-price">Honorario orientativo: <strong>\${{ site.price }}</strong> — pago único.</p>
+              <p class="pq-price">Honorario orientativo: <strong>\${{ site.price }}</strong>. Pago único.</p>
 
               <div class="ob-actions">
                 @if (auth.isLoggedIn) {
@@ -238,10 +226,6 @@ export class ProductQuestionnaireComponent implements OnInit {
     return Math.round((this.stepLabel / this.totalSteps) * 100);
   }
 
-  pad(n: number): string {
-    return String(n).padStart(2, '0');
-  }
-
   fieldIcon(field: QuestionField): IconName {
     if (field.type === 'boolean') return 'check-circle';
     if (field.type === 'select') return 'clipboard';
@@ -324,9 +308,9 @@ export class ProductQuestionnaireComponent implements OnInit {
     const v = this.answers[field.id];
     if (field.type === 'boolean') return v ? 'Sí' : 'No';
     if (field.type === 'select') {
-      return field.options?.find((o) => o.value === v)?.label || String(v ?? '—');
+      return field.options?.find((o) => o.value === v)?.label || String(v ?? 'Sin indicar');
     }
-    return String(v ?? '—');
+    return String(v ?? 'Sin indicar');
   }
 
   /** Guest → auth → createCase: seed the same cache Divorcio uses. */

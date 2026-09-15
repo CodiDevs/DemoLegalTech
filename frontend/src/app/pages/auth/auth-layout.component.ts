@@ -45,8 +45,7 @@ import { AUTH_COPY } from './auth-copy.data';
             />
             <div class="al-visual-scrim"></div>
             <div class="al-visual-copy">
-              <p class="al-visual-eye">LegalStation</p>
-              <p class="al-visual-line">Tus trámites, sin filas, ni papeleo</p>
+              <p class="al-visual-line">Tus trámites, sin salir de casa</p>
             </div>
           </aside>
         }
@@ -196,15 +195,6 @@ import { AUTH_COPY } from './auth-copy.data';
       bottom: clamp(1.75rem, 5vw, 3rem);
       color: #fff;
       z-index: 1;
-    }
-
-    .al-visual-eye {
-      margin: 0 0 0.45rem;
-      font-size: 0.75rem;
-      font-weight: 650;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 0.85;
     }
 
     .al-visual-line {

@@ -54,9 +54,9 @@ export const LEGALSTATION_WORKFLOW: StationStep[] = [
 ];
 
 export const LEGALSTATION_PLANS = [
-  { name: 'Starter', tag: 'Despachos independientes', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto civil activo', '3 usuarios operadores', 'Enlace de admisión para clientes', 'Soporte estándar'], featured: false },
-  { name: 'Professional', tag: 'Recomendado', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['Catálogo civil completo', '10 usuarios operadores', 'SLA y notificaciones cliente', 'Asistente de minutas', 'Plantillas notariales maestras'], featured: true },
-  { name: 'Enterprise', tag: 'Multi-sede', audience: 'Grandes firmas y notarías', price: 599, items: ['Operadores ilimitados', 'Instancia dedicada con SSO', 'Marca blanca y flujos a medida', 'SLA 99.9% y soporte 24/7'], featured: false },
+  { name: 'Starter', tag: 'Despachos independientes', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto civil activo', '3 usuarios operadores', 'Enlace de admisión para clientes', 'Soporte por correo'], featured: false },
+  { name: 'Professional', tag: 'Recomendado', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['Catálogo civil completo', '10 usuarios operadores', 'Notificaciones automáticas al cliente', 'Asistente de minutas', 'Plantillas notariales maestras'], featured: true },
+  { name: 'Enterprise', tag: 'Multi-sede', audience: 'Grandes firmas y notarías', price: 599, items: ['Operadores ilimitados', 'Instancia dedicada con SSO', 'Marca blanca y flujos a medida', 'Acompañamiento en la puesta en marcha'], featured: false },
 ];
 
 /** Honorarios de trámites live — pago único del cliente (no licencia B2B). */
@@ -94,13 +94,6 @@ export const LEGALSTATION_SERVICE_PLANS = [
 ];
 
 export type PricingMode = 'servicios' | 'licenciamiento';
-
-export const LEGALSTATION_ENTERPRISE = [
-  { title: 'Aislamiento completo', desc: 'Infraestructura dedicada: tus datos separados del resto de tenants.' },
-  { title: 'En tus términos', desc: 'On-prem o nube privada con SSO, logs y control administrativo.' },
-  { title: 'White-label', desc: 'Marca y flujos adaptados a tu firma o grupo legal.' },
-  { title: 'SLA y partnership', desc: 'Colaboración con tu equipo de TI y soporte prioritario.' },
-];
 
 /** Live catalog entries used by the home product grid. */
 export const LEGALSTATION_LIVE = LEGALSTATION_CATALOG.filter((p) => p.live);
