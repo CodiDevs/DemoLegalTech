@@ -361,8 +361,7 @@ interface ProductSwitcherItem {
       position: sticky;
       top: 0;
       z-index: var(--z-header);
-      background: color-mix(in srgb, var(--bg) 88%, transparent);
-      backdrop-filter: blur(12px);
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
       transition:
         background 280ms cubic-bezier(0.32, 0.72, 0, 1),
@@ -373,10 +372,8 @@ interface ProductSwitcherItem {
     .site-header.on-marketing {
       padding: 0;
       pointer-events: auto;
-      background: color-mix(in srgb, var(--bg) 62%, transparent);
-      border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
     }
 
     .site-header.on-marketing .header-bar {
@@ -423,15 +420,11 @@ interface ProductSwitcherItem {
       margin: 0;
       border-radius: 0 0 var(--radius-lg) var(--radius-lg);
       background: var(--bg);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
       box-shadow: none;
     }
 
     .site-header.on-flow {
       background: var(--bg);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
     }
 
     .header-bar {

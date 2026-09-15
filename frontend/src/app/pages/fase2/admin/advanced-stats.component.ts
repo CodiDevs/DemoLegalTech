@@ -561,15 +561,15 @@ interface PriorityCase {
     }
 
     .bottleneck-item.impact-high {
-      border-left: 3px solid var(--danger);
+      background: var(--danger-subtle);
     }
 
     .bottleneck-item.impact-medium {
-      border-left: 3px solid var(--warning);
+      background: var(--warning-subtle);
     }
 
     .bottleneck-item.impact-low {
-      border-left: 3px solid var(--info);
+      background: var(--info-subtle);
     }
 
     .bn-main {

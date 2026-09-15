@@ -59,8 +59,20 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Expediente abogado dossier denso | `abogado@demo.ec` → `/abogado/caso/4` — cabecera tipográfica + tabs; pendientes en rail derecho | 2026-09-14 |
 | done | Marketing sin AI slop | `/` + Divorcio/Traslado/BienRaiz sin tiras de métricas, checkmarks, testimonios, kickers ni códigos falsos | 2026-09-15 |
 | done | Cuestionario rearmado + resto sin slop | `/cuestionario` con hoja y progreso únicos; KPIs de Fase 2 honestos; inglés y em-dash fuera | 2026-09-15 |
+| done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Cierre anti-slop: estados, paleta, muertos
+Segunda pasada del cierre. Detalle completo en [`docs/NO_SLOP.md`](NO_SLOP.md).
+
+- **Estados**: 6 definiciones y 4 vocabularios para los mismos 10 estados → `shared/case-status.data.ts` (`short`, `clientHint`, `lawyerHint`, `filterLabel`) consumido por `client-panel`, `lawyer-panel` y `lawyer-case`. Se unificó también la lista de códigos (`STATE_KEYS` era un tercer origen). Guard nuevo: `case-status.data.spec.ts`.
+- **Paleta**: tokens `--overlay`/`--overlay-strong`; `--shadow-md`/`--shadow-lg` a una capa; `case-detail` migrado de 5 `oklch()` + `white` + tokens viejos a los de estado; `#2f7d51` → `#2b7749` (eran dos verdes); `#faf7f0` → `--bg-subtle`; confeti del recibo a paleta de marca.
+- **Tells**: `backdrop-filter` fuera del header y de los 3 overlays; los 6 `border-left` de acento de 3-4px pasaron a tinte de fondo o badge; sheen infinito del segmento activo borrado.
+- **Muertos**: 11 componentes y sus carpetas (incluido `fase2-shell` + `mock-badge` y `route-curtain` + `cinematic-path` con sus specs) más el CSS huérfano (`.lp-values`, `.lp-list-tt`, `.container-narrow`, `.btn-accent`, `.badge-demo`).
+- **Copy**: em-dash fuera en expediente, pasos del cliente y grafo de servicios; placeholders `'—'` → `'Sin indicar'`.
+
+**Demo:** `abogado@demo.ec` → `/abogado` y `/abogado/caso/1` (estados y acentos), `cliente@demo.ec` → `/cliente`. Verificación: `bun run build:frontend` y `bun run test:frontend` (109 specs).
 
 ### 2026-09-15 — Cuestionario rearmado + resto del frontend sin slop
 El cuestionario no estaba solo feo: estaba roto. Un folio vertical "01 / 09", una hoja de 608px con ~300px de vacío, y un documento SVG con sello de agua desbordándose por detrás. Detalle completo en [`docs/NO_SLOP.md`](NO_SLOP.md).

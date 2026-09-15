@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { CASE_STATUS_ICONS } from '../../shared/case-progress.model';
+import { caseClientHint, caseShort } from '../../shared/case-status.data';
 import {
   LEGALSTATION_CATALOG,
   ProductCatalogEntry,
@@ -22,32 +23,6 @@ import {
 } from './divorcio-steps';
 
 type Filter = 'action' | 'open' | 'done' | 'all';
-
-const STAGE_HINT: Record<string, string> = {
-  '01': 'Completa el pago para abrir el expediente.',
-  '02': 'Sube los documentos que faltan.',
-  '03': 'El abogado está revisando tus documentos.',
-  '04': 'Espera la minuta del abogado.',
-  '05': 'Firma la minuta.',
-  '06': 'El trámite va a notaría.',
-  '07': 'Pendiente la comparecencia.',
-  '08': 'Pendiente el acta.',
-  '09': 'Inscripción en Registro Civil.',
-  '10': 'Trámite cerrado.',
-};
-
-const STAGE_SHORT: Record<string, string> = {
-  '01': 'Recepción',
-  '02': 'Documentos',
-  '03': 'Revisión',
-  '04': 'Minuta',
-  '05': 'Firma',
-  '06': 'Notaría',
-  '07': 'Cita',
-  '08': 'Acta',
-  '09': 'Registro',
-  '10': 'Cierre',
-};
 
 @Component({
   selector: 'app-client-panel',
@@ -1232,20 +1207,20 @@ export class ClientPanelComponent implements OnInit {
     if (!c.paid) return 'Completa el pago';
     if (c.can_sign) return 'Firma tu minuta';
     if (c.status === '02') return 'Sube tus documentos';
-    return STAGE_SHORT[c.status] || 'Abre el expediente';
+    return caseShort(c.status, 'Abre el expediente');
   }
 
   nextHint(c: CaseItem): string {
     if (!c.paid) return 'Completa el pago para continuar.';
     if (c.can_sign) return c.sign_hint || 'Firma la minuta.';
-    return STAGE_HINT[c.status] || 'Abre el expediente.';
+    return caseClientHint(c.status);
   }
 
   stageProse(c: CaseItem): string {
     const n = parseInt(c.status, 10);
-    const label = STAGE_SHORT[c.status] || c.status_label;
+    const label = caseShort(c.status, c.status_label);
     if (!Number.isFinite(n)) return label;
-    return `Etapa ${n} — ${label}`;
+    return `Etapa ${n}: ${label}`;
   }
 
   metaLine(c: CaseItem): string {

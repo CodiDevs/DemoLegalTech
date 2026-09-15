@@ -283,7 +283,7 @@ import {
     }
 
     .is-done .cp-node {
-      background: var(--success, #2f7d51);
+      background: var(--success, #2b7749);
       border-color: transparent;
       color: #fff;
     }
@@ -383,7 +383,7 @@ import {
       color: var(--cp-soft);
     }
 
-    .cp-detail-status[data-status='done'] { color: var(--success, #2f7d51); }
+    .cp-detail-status[data-status='done'] { color: var(--success, #2b7749); }
     .cp-detail-status[data-status='current'] { color: var(--cp-accent); }
 
     .cp-detail-title {

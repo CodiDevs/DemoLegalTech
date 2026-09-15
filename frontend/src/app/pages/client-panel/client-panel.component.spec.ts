@@ -68,8 +68,8 @@ describe('ClientPanelComponent expediente layout', () => {
 
   it('metaLine describe pago y etapa en prosa sin pips', () => {
     const panel = makePanel([]);
-    expect(panel.metaLine(signable)).toBe('Pagado · $349 · Etapa 5 — Firma');
-    expect(panel.metaLine(unpaid)).toBe('Por pagar · $349 · Etapa 1 — Recepción');
+    expect(panel.metaLine(signable)).toBe('Pagado · $349 · Etapa 5: Firma');
+    expect(panel.metaLine(unpaid)).toBe('Por pagar · $349 · Etapa 1: Recepción');
   });
 
   it('lede cambia cuando no hay nada pendiente', () => {

@@ -98,11 +98,34 @@ Inspección visual: `bun run dev:frontend` y capturas de `/`, `/productos/divorc
 
 **Ojo con las capturas headless:** en Windows, Edge impone un ancho de layout mínimo (~500px) aunque el PNG salga del tamaño pedido. A 390px la imagen aparece recortada a la derecha; no es un bug de CSS. La prueba: a 430px el botón "Ingresar" (alineado a la derecha) se ve completo sin que el layout se reacomode.
 
+## Cierre (segunda pasada)
+
+Build y tests en verde después de cada paso.
+
+**Estados unificados.** Seis definiciones y cuatro vocabularios para los mismos 10 estados pasaron a `shared/case-status.data.ts`: una entrada por estado con cuatro vistas (`short`, `clientHint`, `lawyerHint`, `filterLabel`) y helpers con fallback. `client-panel`, `lawyer-panel` y `lawyer-case` la consumen y se borraron sus consts locales. El estado 04 ya no se llama `Minuta` / `Docs preparados` / `Documentos preparados` según la pantalla. También se unificó la lista de códigos: `lawyer-case` tenía su propio `STATE_KEYS` además del `CASE_STATUS_KEYS` del modelo. Guard nuevo: `case-status.data.spec.ts` (10 claves sin huecos, cuatro vistas no vacías, sin jerga ni em-dash).
+
+**Paleta a tokens.**
+- `tokens.scss` sumó `--overlay` y `--overlay-strong` (tinta neutra `27 25 23`) y colapsó `--shadow-md`/`--shadow-lg` a una capa.
+- Fuera los scrims azulados `oklch(... 230)` de `styles.scss`, `confirm-dialog`, `b2b-billing`, `templates`, `checkout` y `sign`.
+- `case-detail` (el peor: 5 `oklch` a mano, `background: white` y los tokens viejos `--line`/`--ink-soft`/`--ok`/`--bad`) migrado a `--info-subtle`, `--warning-subtle`, `--success-subtle`, `--danger-subtle` y sus pares.
+- Los dos verdes conviviendo: `#2f7d51` → `#2b7749` en `case-progress` y `auth-alert` (el token es `#2b7749`).
+- `#faf7f0` ×6 → `var(--bg-subtle)` en `sign` y `cinematic.scss`.
+- Confeti del recibo: violeta `#8b5cf6` y rainbow → paleta de marca.
+- Bezel del mock de móvil, outline verde de B2B y fallbacks de `scheduled-meeting-card` a tokens.
+
+**Tells de UI.**
+- `backdrop-filter` fuera en los cuatro lugares: header del shell, overlays de checkout y firma, editor de servicios.
+- Los seis `border-left`/`inset` de 3-4px como acento pasaron a tinte de fondo o badge (`advanced-stats` por severidad, `lawyer-panel`, `lawyer-shared`, `sign`, `landing-faq`).
+- Borrado el sheen infinito del segmento activo (`ob-seg-sheen`), que había sobrevivido a la limpieza del cuestionario.
+
+**Código muerto.** Borrados 11 componentes sin consumidor y sus carpetas: `product-site-shell`, `ui/shine-border`, `ui/tilt-card`, `metric-card`, `mock-badge`, `fase2-shell`, `pages/landing`, `pages/product-lite`, `pages/product-intake`, `pages/notary-panel`, `motion/route-curtain` y `motion/cinematic-path` (con sus dos specs). Más el CSS huérfano: `.lp-values`/`.lp-value`, `.lp-list-tt`, `.container-narrow`, `.btn-accent`, `.badge-demo`. Con las páginas muertas se fue su copy residual ("Filtro inteligente", "Pagas una sola vez", los em-dash de intake y notaría).
+
+**Copy.** Em-dash fuera de `lawyer-case` (nota de firma), `divorcio-steps` y `question-flow-graph`; `Etapa 5 — Firma` → `Etapa 5: Firma` (con el spec actualizado); placeholders `'—'` → `'Sin indicar'`; separadores estructurales a `·`; `Rueda = zoom` → `Rueda = acercar`.
+
+**Verificación:** `bun run build:frontend` limpio y `bun run test:frontend` 109/109 (baja de 116 porque se fueron los 7 specs de los componentes muertos).
+
 ## Pendiente
 
-- **Unificar los mapas de estado.** Hoy el mismo trámite se llama distinto en cuatro lugares: `STAGE_HINT` y `STAGE_SHORT` duplicados en `client-panel` y `lawyer-panel`, más `STATUS_OPTIONS` y `STATE_LABELS` (este último derivó: `04 Minuta` vs `Documentos preparados`, `07 Cita` vs `Comparecencia`, `10 Cierre` vs `Finalizado`). Propuesta: `shared/case-status.data.ts` como fuente única con vistas por audiencia.
-- **Borrar el código muerto**: 9 componentes sin consumidor (`product-site-shell`, `ui/shine-border`, `ui/tilt-card`, `metric-card`, `pages/landing`, `product-lite`, `product-intake`, `notary-panel`) y el par transitivo `fase2-shell` + `mock-badge`. Ojo: `route-curtain` solo lo sostiene su propio spec. Y el CSS huérfano asociado (`.lp-values`, `.lp-list-tt`, `.container-narrow`, `.btn-accent`, `.badge-demo`).
-- **Tells de CSS restantes**: header con `backdrop-filter`, confeti con violeta `#8b5cf6` en `animated-ticket`, scrims `oklch(... 230)`, `border-left` de 3-4px como acento en `advanced-stats`/`lawyer-panel`/`question-flow-graph`, brillo y sello del nodo en `case-progress`, sombras de doble capa en `tokens.scss`.
-- **Copy residual en páginas muertas**: `pages/landing` ("Filtro inteligente"), `product-lite`, `product-intake` y `notary-panel` conservan em-dash y "Pagas una sola vez". Se resuelve al borrarlas.
-- **Overflow horizontal real por debajo de ~400px**: no se pudo confirmar ni descartar con capturas headless (ver nota arriba). Requiere una medición en un dispositivo o DevTools reales.
+- **Overflow horizontal real por debajo de ~400px**: el corte de las capturas headless es un artefacto de Edge en Windows (impone un ancho de layout mínimo cercano a 500px y recorta el PNG). Falta medirlo en un dispositivo o DevTools reales para descartarlo del todo.
+- **`Fase 2 · Vista previa`**: el badge vivía en `fase2-shell`, que era inalcanzable, así que las pantallas mock de Fase 2 no muestran hoy ninguna etiqueta de vista previa. Es decisión de producto, no de slop: si se quiere el rótulo, hay que montarlo en el shell que sí se usa.
 - **No se tocó el backend**, por pedido explícito.

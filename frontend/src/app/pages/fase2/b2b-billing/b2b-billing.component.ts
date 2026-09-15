@@ -96,10 +96,10 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
     .toggle .on { background: var(--brand); color: white; border-color: var(--brand); }
     .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .plan ul { padding-left: 1.1rem; color: var(--text-secondary); font-size: 0.9rem; }
-    .plan.current { outline: 2px solid oklch(0.55 0.12 150 / 0.35); }
+    .plan.current { outline: 2px solid color-mix(in srgb, var(--success) 35%, transparent); }
     .price { font-weight: 650; font-size: 1.6rem; }
     .modal-backdrop {
-      position: fixed; inset: 0; background: oklch(0.15 0.02 230 / 0.45);
+      position: fixed; inset: 0; background: var(--overlay);
       display: grid; place-items: center; z-index: 50; padding: 1rem;
     }
     .modal { max-width: 420px; width: 100%; }

@@ -5,51 +5,15 @@ import { ApiService, CaseItem } from '../../core/api.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { CASE_STATUS_ICONS, CASE_STATUS_KEYS } from '../../shared/case-progress.model';
+import {
+  CASE_STATUS_FILTER_OPTIONS,
+  CASE_STATUS_SHORT,
+  caseLawyerHint,
+} from '../../shared/case-status.data';
 import { getProductDisplayName, LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
 import { WorkspaceHeadComponent } from './workspace-head.component';
 
 const PAGE_SIZE = 10;
-
-const STAGE_HINT: Record<string, string> = {
-  '01': 'Caso recibido. Espera el pago o la carga inicial.',
-  '02': 'El cliente debe subir los documentos.',
-  '03': 'Revisa y aprueba cada documento.',
-  '04': 'Carga la minuta del notario.',
-  '05': 'El cliente firma. Puedes reenviar el aviso.',
-  '06': 'Registra el envío a notaría.',
-  '07': 'Registra la comparecencia.',
-  '08': 'Registra el acta emitida.',
-  '09': 'Inscribe en Registro Civil y cierra.',
-  '10': 'Trámite cerrado.',
-};
-
-const STAGE_SHORT: Record<string, string> = {
-  '01': 'Recepción',
-  '02': 'Documentos',
-  '03': 'Revisión',
-  '04': 'Minuta',
-  '05': 'Firma',
-  '06': 'Notaría',
-  '07': 'Cita',
-  '08': 'Acta',
-  '09': 'Registro',
-  '10': 'Cierre',
-};
-
-/** Labels de estado del trámite (alineados al backend). */
-const STATUS_OPTIONS: { id: string; label: string }[] = [
-  { id: '', label: 'Todos los estados' },
-  { id: '01', label: 'Información recibida' },
-  { id: '02', label: 'Documentos pendientes' },
-  { id: '03', label: 'Revisión' },
-  { id: '04', label: 'Documentos preparados' },
-  { id: '05', label: 'Firmas' },
-  { id: '06', label: 'Enviado a notaría' },
-  { id: '07', label: 'Comparecencia' },
-  { id: '08', label: 'Acta emitida' },
-  { id: '09', label: 'Registro' },
-  { id: '10', label: 'Finalizado' },
-];
 
 @Component({
   selector: 'app-lawyer-panel',
@@ -312,12 +276,11 @@ const STATUS_OPTIONS: { id: string; label: string }[] = [
     .case-row:hover .go { transform: translateX(4px); }
 
     .case-row.is-act {
-      border-left: 3px solid var(--primary);
+      background: var(--primary-subtle);
     }
 
     .case-row.is-sla {
-      border-left-color: var(--warning);
-      background: color-mix(in srgb, var(--warning-subtle) 55%, var(--surface));
+      background: var(--warning-subtle);
     }
 
     .case-mark {
@@ -568,8 +531,8 @@ export class LawyerPanelComponent implements OnInit {
 
   readonly pageSize = PAGE_SIZE;
   readonly stageKeys = CASE_STATUS_KEYS;
-  readonly stageShort = STAGE_SHORT;
-  readonly statusOptions = STATUS_OPTIONS;
+  readonly stageShort = CASE_STATUS_SHORT;
+  readonly statusOptions = CASE_STATUS_FILTER_OPTIONS;
   readonly serviceOptions = LEGALSTATION_CATALOG
     .filter((p) => p.live)
     .map((p) => ({ id: p.id, label: p.name }));
@@ -670,7 +633,7 @@ export class LawyerPanelComponent implements OnInit {
   }
 
   nextHint(status: string): string {
-    return STAGE_HINT[status] || 'Abrir el expediente.';
+    return caseLawyerHint(status);
   }
 
   stageIcon(status: string): IconName {

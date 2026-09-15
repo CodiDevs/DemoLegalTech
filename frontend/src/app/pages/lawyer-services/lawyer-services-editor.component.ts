@@ -450,8 +450,7 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
       justify-content: center;
       padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
       margin: 0;
-      background: color-mix(in srgb, var(--text) 45%, transparent);
-      backdrop-filter: blur(5px);
+      background: var(--overlay);
     }
 
     .q-modal {

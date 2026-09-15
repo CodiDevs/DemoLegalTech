@@ -244,7 +244,7 @@ export class AnimatedTicketComponent implements OnInit {
   svgHeight = 70;
   bars: { x: number; width: number }[] = [];
 
-  private colors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#8b5cf6', '#f97316'];
+  private colors = ['#2f6f68', '#1f4a45', '#bedcd8', '#2b7749', '#96601a', '#a8a49b'];
 
   ngOnInit(): void {
     this.bars = this.buildBars(this.barcodeValue);

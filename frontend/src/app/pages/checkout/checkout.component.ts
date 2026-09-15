@@ -323,8 +323,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       align-items: center;
       justify-content: center;
       padding: var(--space-4);
-      background: oklch(0.12 0.02 230 / 0.62);
-      backdrop-filter: blur(4px);
+      background: var(--overlay-strong);
       animation: overlay-in var(--dur-base) var(--ease);
     }
 

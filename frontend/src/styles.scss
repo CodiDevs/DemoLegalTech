@@ -17,7 +17,7 @@
   display: grid;
   place-items: center;
   padding: var(--space-4);
-  background: oklch(0.15 0.02 230 / 0.45);
+  background: var(--overlay);
   animation: meet-fade-in 0.2s ease;
 }
 

@@ -318,7 +318,6 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       align-items: start;
       width: min(100%, 44rem);
       padding: var(--space-6);
-      border-left: 4px solid var(--primary);
       color: var(--text);
       animation: pf-in 560ms var(--ease-out) both;
     }
@@ -396,7 +395,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       width: 100%;
       height: 11rem;
       margin-top: var(--space-4);
-      background: #faf7f0;
+      background: var(--bg-subtle);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       touch-action: none;
@@ -413,7 +412,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       width: 100%;
       max-height: 8rem;
       object-fit: contain;
-      background: #faf7f0;
+      background: var(--bg-subtle);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
     }
@@ -425,8 +424,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       align-items: center;
       justify-content: center;
       padding: var(--space-4);
-      background: oklch(0.12 0.02 230 / 0.62);
-      backdrop-filter: blur(4px);
+      background: var(--overlay-strong);
       animation: overlay-in var(--dur-base) var(--ease);
     }
     .pay-modal {
@@ -623,7 +621,7 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
     canvas.width = Math.round(cssW * ratio);
     canvas.height = Math.round(cssH * ratio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.fillStyle = '#faf7f0';
+    ctx.fillStyle = '#f7f7f5';
     ctx.fillRect(0, 0, cssW, cssH);
     ctx.strokeStyle = '#2f6f68';
     ctx.lineWidth = 2.4;

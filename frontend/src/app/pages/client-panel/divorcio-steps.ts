@@ -48,7 +48,7 @@ export function productEmptyCopy(product: string): {
   return {
     kicker: 'Divorcio360',
     title: 'Un solo expediente',
-    hint: 'El divorcio es un trámite único. Evalúa tu caso y ábrelo aquí — sin salir del panel.',
+    hint: 'El divorcio es un trámite único. Evalúa tu caso y ábrelo aquí, sin salir del panel.',
     cta: 'Evaluar mi caso',
     path: getProductQuestionnairePath('divorcio360'),
     icon: 'scale',

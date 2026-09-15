@@ -7,6 +7,7 @@ import { ConfirmService } from '../../core/confirm.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent } from '../../shared/icon.component';
 import { signatureChannelLabel } from '../../shared/esign';
+import { CASE_STATUS_CODES, caseFilterLabel } from '../../shared/case-status.data';
 
 const Q_LABELS: Record<string, string> = {
   both_want_divorce: 'Ambos desean divorciarse',
@@ -23,12 +24,6 @@ const Q_LABELS: Record<string, string> = {
   city: 'Ubicación',
   country: 'País',
   province: 'Provincia',
-};
-
-const STATE_KEYS = ['01','02','03','04','05','06','07','08','09','10'];
-const STATE_LABELS: Record<string, string> = {
-  '01': 'Info recibida', '02': 'Docs pendientes', '03': 'Revisión', '04': 'Docs preparados',
-  '05': 'Firmas', '06': 'Notaría', '07': 'Comparecencia', '08': 'Acta', '09': 'Registro', '10': 'Finalizado',
 };
 
 type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
@@ -61,12 +56,12 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
           </div>
           <p class="meta">{{ ws.case.client_name }} · {{ ws.case.city }} · \${{ ws.case.amount_cents / 100 | number:'1.2-2' }}</p>
           <ol class="progress" aria-label="Etapa del trámite">
-            @for (s of STATE_KEYS; track s) {
+            @for (s of stateKeys; track s) {
               <li
                 class="st"
                 [class.done]="s <= ws.case.status"
                 [class.cur]="s === ws.case.status"
-                [title]="STATE_LABELS[s]"
+                [title]="caseStatusLabel(s)"
               >{{ s }}</li>
             }
           </ol>
@@ -118,7 +113,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                   <div class="doc-info">
                     <span class="thumb" [class]="d.doc_type" aria-hidden="true">{{ docThumb(d.doc_type) }}</span>
                     <div>
-                      <strong>{{ docLabel(d.doc_type) }}</strong> — {{ d.filename }}
+                      <strong>{{ docLabel(d.doc_type) }}</strong> · {{ d.filename }}
                       <app-status-badge [label]="reviewLabel(d.review_status)" [variant]="reviewVariant(d.review_status)" />
                       @if (d.review_note) { <p class="muted">{{ d.review_note }}</p> }
                     </div>
@@ -245,7 +240,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
                 </div>
               }
               @if (ws.case.status === '04' && !ws.signatures.length) {
-                <p class="muted flow-hint">Estado 04: «Notificar al cliente» solo envía aviso — no cambia el estado. Confirma solo cuando veas la firma en la pestaña Firmas (estado 05).</p>
+                <p class="muted flow-hint">Estado 04: «Notificar al cliente» solo envía aviso. No cambia el estado. Confirma solo cuando veas la firma en la pestaña Firmas (estado 05).</p>
               }
               @if (ws.case.status === '05' && !ws.signatures.length) {
                 <p class="muted flow-hint">Esperando firma virtual del cliente. Puede firmar solo desde su expediente.</p>
@@ -671,8 +666,8 @@ export class LawyerCaseComponent implements OnInit {
   tab: Tab = 'resumen';
   viewedDocIds = new Set<number>();
   qRows: { key: string; label: string; value: string }[] = [];
-  STATE_KEYS = STATE_KEYS;
-  STATE_LABELS = STATE_LABELS;
+  readonly stateKeys = CASE_STATUS_CODES;
+  readonly caseStatusLabel = caseFilterLabel;
   tabDefs: { id: Tab; label: string }[] = [
     { id: 'resumen', label: 'Resumen' },
     { id: 'docs', label: 'Documentos' },
@@ -737,7 +732,7 @@ export class LawyerCaseComponent implements OnInit {
         this.qRows = Object.entries(this.ws.questionnaire || {}).map(([key, val]) => ({
           key,
           label: Q_LABELS[key] || key,
-          value: typeof val === 'boolean' ? (val ? 'Sí' : 'No') : String(val ?? '—'),
+          value: typeof val === 'boolean' ? (val ? 'Sí' : 'No') : String(val ?? 'Sin indicar'),
         }));
       },
       error: (e) => {

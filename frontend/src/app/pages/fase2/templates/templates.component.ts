@@ -203,7 +203,7 @@ interface TemplateDraft {
       color: var(--danger);
     }
     .modal-backdrop {
-      position: fixed; inset: 0; background: oklch(0.15 0.02 230 / 0.45);
+      position: fixed; inset: 0; background: var(--overlay);
       display: grid; place-items: center; z-index: 50; padding: 1rem;
     }
     .modal { max-width: 560px; width: 100%; max-height: 90vh; overflow: auto; }

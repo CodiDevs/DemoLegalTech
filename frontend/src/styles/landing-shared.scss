@@ -173,35 +173,6 @@
     box-shadow: var(--shadow-md);
   }
 
-  /* Listas estilo Talking Tree */
-  .lp-list-tt {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .lp-list-tt li {
-    position: relative;
-    padding: 0.5rem 0 0.5rem 1.5rem;
-    font-size: 0.92rem;
-    color: var(--lp-ink-soft);
-    line-height: 1.55;
-    border-bottom: 1px solid rgb(27 25 23 / 0.06);
-  }
-
-  .lp-list-tt li:last-child { border-bottom: 0; }
-
-  .lp-list-tt li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.85rem;
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 999px;
-    background: var(--lp-accent);
-  }
-
   /* Misma geometría que los botones de app (tokens.scss) */
   .lp-btn {
     display: inline-flex;
@@ -632,10 +603,6 @@
     line-height: 1.5;
   }
 
-  .lp-product-body .lp-list-tt {
-    flex: 1;
-  }
-
   .lp-product-body .lp-btn {
     margin-top: auto;
     align-self: flex-start;
@@ -647,8 +614,6 @@
     list-style: none;
   }
 
-  .lp-product-body .lp-list-tt li { font-size: 0.88rem; }
-
   .lp-product-body .lp-btn {
     margin-top: auto;
     width: fit-content;
@@ -656,49 +621,12 @@
     font-size: 0.88rem;
   }
 
-  .lp-values {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-  }
-
-  .lp-values--rules {
-    gap: 0;
-    border-top: 1px solid var(--lp-border);
-    border-bottom: 1px solid var(--lp-border);
-  }
-
-  .lp-values--rules .lp-value {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 2rem 1.65rem;
-    border-right: 1px solid var(--lp-border);
-  }
-
-  .lp-values--rules .lp-value:last-child { border-right: 0; }
-
-  .lp-value {
-    background: var(--surface);
-    border: 1px solid var(--lp-border);
-    border-radius: var(--lp-radius);
-    padding: 1.75rem 1.5rem;
-    box-shadow: 0 6px 24px rgb(27 25 23 / 0.05);
-  }
-
-  .lp-value,
   .lp-step,
   .lp-cap,
   .lp-quote,
   .lp-plan,
   .lp-product-card {
     transition: box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
-  }
-
-  .lp-value h3 {
-    font-size: 1.05rem;
-    margin-bottom: 0.55rem;
   }
 
   .lp-steps {
@@ -1160,17 +1088,8 @@
       width: calc(100% - 2.15rem + 2.5rem);
     }
     .lp-product-grid,
-    .lp-values,
     .lp-quotes,
     .lp-pricing { grid-template-columns: 1fr 1fr; }
-
-    .lp-values--rules { grid-template-columns: 1fr; }
-    .lp-values--rules .lp-value {
-      border-right: 0;
-      border-bottom: 1px solid var(--lp-border);
-      padding: 1.5rem 0;
-    }
-    .lp-values--rules .lp-value:last-child { border-bottom: 0; }
   }
 
   @media (max-width: 720px) {
@@ -1178,7 +1097,6 @@
     .lp-tool-grid,
     .lp-pill-row,
     .lp-product-grid,
-    .lp-values,
     .lp-steps,
     .lp-steps--flow,
     .lp-cap-grid,
@@ -1343,10 +1261,6 @@
 
     .ls-product-card .lp-product-body p {
       flex: 1;
-    }
-
-    .ls-product-card .lp-list-tt {
-      flex: 0 0 auto;
     }
 
     .ls-product-card .lp-btn {

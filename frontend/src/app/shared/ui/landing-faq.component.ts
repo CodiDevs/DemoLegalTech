@@ -88,7 +88,6 @@ export interface LandingFaqItem {
       padding: 1.1rem 1.15rem;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border);
-      border-left: 3px solid var(--primary);
       background: var(--surface);
       box-shadow: var(--shadow-sm);
     }

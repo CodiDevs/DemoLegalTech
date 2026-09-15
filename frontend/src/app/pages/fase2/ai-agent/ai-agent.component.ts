@@ -28,7 +28,7 @@ interface ChatMsg {
         <select id="caseId" [(ngModel)]="selectedCaseId" (ngModelChange)="onCaseChange($event)">
           <option [ngValue]="0">Sin expediente</option>
           @for (c of cases; track c.id) {
-            <option [ngValue]="c.id">#{{ c.id }} — {{ c.client_name || 'Cliente' }}</option>
+            <option [ngValue]="c.id">#{{ c.id }} · {{ c.client_name || 'Cliente' }}</option>
           }
         </select>
         @if (selectedCaseId > 0) {
@@ -308,7 +308,7 @@ export class Fase2AiComponent implements OnInit {
   get selectedLabel(): string {
     const c = this.selectedCase;
     if (!c) return 'Sin expediente';
-    return `#${c.id} — ${c.client_name || 'Cliente'}`;
+    return `#${c.id} · ${c.client_name || 'Cliente'}`;
   }
 
   get headAside(): string {
