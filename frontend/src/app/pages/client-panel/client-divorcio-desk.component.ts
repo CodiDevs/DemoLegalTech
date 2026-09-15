@@ -354,6 +354,14 @@ interface DocRow {
       gap: var(--space-2);
     }
 
+    /* Los dos caminos de firma miden igual de ancho (200px), o el 100% si no caben.
+       Con el padding del .btn, el label de "Subir documento firmado" salía 14px más ancho. */
+    .desk-sign-actions .btn {
+      width: min(100%, 12.5rem);
+      padding-inline: var(--space-3);
+      justify-content: center;
+    }
+
     .desk-file-btn {
       position: relative;
       overflow: hidden;
