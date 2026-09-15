@@ -73,7 +73,7 @@ Guard de marketing ahora falla si reaparecen `.ls-choreo` / `.ls-plan-items`, cl
 ### 2026-09-15 — Hero expediente plano + pasos
 El mock de `/` iba torcido (`perspective` + `rotateX/Y`) y el copy decía “expediente de ejemplo”. Ahora es un folio plano. Cada fila es un botón: el titular y el Estado siguen el paso activo, con fade+blur.
 
-**Demo:** `/` → clic Evaluar → Firmar. Misma ventana en `/productos/divorcio360` escena Flujo.
+**Demo:** `/` → hover el botón 1 activa Estado 01; hover 4 activa 04. Clic o foco igual. Misma ventana en `/productos/divorcio360` escena Flujo.
 
 ### 2026-09-15 — Cierre anti-slop: estados, paleta, muertos
 Segunda pasada del cierre. Detalle completo en [`docs/NO_SLOP.md`](NO_SLOP.md).

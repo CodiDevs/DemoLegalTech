@@ -54,4 +54,23 @@ describe('DemoCaseWindowComponent', () => {
     expect(buttons[4].classList.contains('is-on')).toBeTrue();
     expect(buttons[4].getAttribute('aria-current')).toBe('step');
   });
+
+  it('activa el paso sobre el que entra el puntero, no el vecino', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const buttons = root.querySelectorAll<HTMLButtonElement>('.demo-case-step');
+
+    buttons[0].dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.currentStep).toBe(1);
+    expect(root.querySelector('.demo-case-status h3')?.textContent?.trim()).toBe(
+      'Cuestionario en curso',
+    );
+
+    buttons[3].dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.currentStep).toBe(4);
+    expect(buttons[3].classList.contains('is-on')).toBeTrue();
+    expect(buttons[3].getAttribute('aria-current')).toBe('step');
+  });
 });

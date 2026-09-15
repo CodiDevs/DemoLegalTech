@@ -58,6 +58,8 @@ export function caseStatusHeadline(n: number, fallback: string): string {
                   [class.is-done]="step.n < currentStep"
                   [attr.aria-current]="step.n === currentStep ? 'step' : null"
                   (click)="selectStep(step.n)"
+                  (pointerenter)="selectStep(step.n)"
+                  (focus)="selectStep(step.n)"
                 >
                   <span class="demo-case-num">{{ step.n }}</span>
                   <span class="demo-case-copy">
