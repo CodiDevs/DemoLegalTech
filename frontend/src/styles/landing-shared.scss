@@ -786,21 +786,6 @@
     outline: 2px solid color-mix(in srgb, var(--lp-accent) 20%, transparent);
   }
 
-  .lp-plan-tag {
-    display: block;
-    min-height: 1.05em;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--lp-accent-ink);
-  }
-
-  .lp-plan-tag.is-spacer {
-    visibility: hidden;
-    user-select: none;
-  }
-
   .lp-plan h3 {
     min-height: 1.4em;
   }

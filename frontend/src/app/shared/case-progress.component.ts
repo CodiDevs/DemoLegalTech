@@ -309,8 +309,6 @@ import {
     .cp-meta {
       font-size: 0.68rem;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
       color: var(--cp-soft);
     }
 
@@ -378,8 +376,6 @@ import {
     .cp-detail-status {
       font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
       color: var(--cp-soft);
     }
 

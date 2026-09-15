@@ -25,7 +25,7 @@ import { Title } from '@angular/platform-browser';
       font-variant-numeric: tabular-nums;
       font-weight: 700;
       letter-spacing: 0.08em;
-      color: var(--brand);
+      color: var(--primary);
       margin: 0 0 0.5rem;
     }
     h1 { font-size: 1.75rem; }

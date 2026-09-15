@@ -91,9 +91,9 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
     .usage { min-width: 200px; text-align: right; }
     .usage strong { font-weight: 650; font-size: 1.5rem; display: block; }
     .bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 0.5rem; }
-    .bar span { display: block; height: 100%; background: var(--brand); }
+    .bar span { display: block; height: 100%; background: var(--primary); }
     .toggle { display: flex; gap: 0.5rem; margin: 1.25rem 0; }
-    .toggle .on { background: var(--brand); color: white; border-color: var(--brand); }
+    .toggle .on { background: var(--primary); color: white; border-color: var(--primary); }
     .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .plan ul { padding-left: 1.1rem; color: var(--text-secondary); font-size: 0.9rem; }
     .plan.current { outline: 2px solid color-mix(in srgb, var(--success) 35%, transparent); }

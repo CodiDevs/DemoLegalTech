@@ -224,7 +224,11 @@ interface HeroAction {
       border-radius: var(--radius-md);
       font-size: var(--text-base);
       font-weight: 600;
-      transition: all var(--dur-fast, 180ms) var(--ease-out);
+      transition:
+        background-color var(--dur-fast, 180ms) var(--ease-out),
+        border-color var(--dur-fast, 180ms) var(--ease-out),
+        color var(--dur-fast, 180ms) var(--ease-out),
+        transform var(--dur-fast, 180ms) var(--ease-out);
     }
 
     .mk-cta-btn {

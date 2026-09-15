@@ -31,7 +31,7 @@ import { Subscription } from 'rxjs';
       position: fixed; inset: 0; background: var(--overlay);
       display: grid; place-items: center; z-index: 100; padding: 1rem;
     }
-    .panel { max-width: 440px; width: 100%; background: var(--surface); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
+    .panel { max-width: 440px; width: 100%; background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-md); }
     .panel h2 { margin-top: 0; font-size: 1.2rem; }
     textarea { width: 100%; margin: 0.75rem 0; }
     .actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }

@@ -177,7 +177,7 @@ interface TemplateDraft {
     .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.25rem; }
     .card { cursor: pointer; display: grid; gap: 0.5rem; }
     .card-head { display: flex; justify-content: space-between; align-items: center; }
-    .cat { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--brand); }
+    .cat { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--primary); }
     .card h2 { font-size: 1.1rem; margin: 0; }
     .card-actions { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
     .card-actions .btn { width: 100%; }
@@ -208,7 +208,7 @@ interface TemplateDraft {
     }
     .modal { max-width: 560px; width: 100%; max-height: 90vh; overflow: auto; }
     .modal-edit { max-width: 880px; }
-    .preview-html { border: 1px solid var(--line); padding: 1rem; border-radius: 8px; margin: 1rem 0; font-size: 0.9rem; }
+    .preview-html { border: 1px solid var(--border); padding: 1rem; border-radius: 8px; margin: 1rem 0; font-size: 0.9rem; }
     .preview-html.live { margin: 0; min-height: 6rem; }
     .preview-label {
       display: block;
@@ -217,7 +217,7 @@ interface TemplateDraft {
       color: var(--text);
       margin-bottom: var(--space-2);
     }
-    .versions { font-size: 0.88rem; color: var(--ink-soft); }
+    .versions { font-size: 0.88rem; color: var(--text-secondary); }
     .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
     .field-add { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); margin-bottom: var(--space-2); }
     .edit-preview-grid {
@@ -226,7 +226,7 @@ interface TemplateDraft {
       gap: var(--space-4);
     }
     .toast {
-      position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--ink);
+      position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--text);
       color: white; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.9rem;
       z-index: 60;
     }

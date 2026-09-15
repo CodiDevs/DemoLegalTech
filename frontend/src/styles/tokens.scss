@@ -142,25 +142,7 @@
   --z-dropdown: 200;
   --z-modal: 400;
 
-  /* =====================================================================
-     Alias heredados — mantienen compatibilidad con componentes existentes
-     ===================================================================== */
-  --ink:        var(--text);
-  --ink-soft:   var(--text-secondary);
-  --paper:      var(--bg);
-  --line:       var(--border);
-  --brand:      var(--primary);
-  --brand-deep: var(--primary-hover);
-  --accent:     var(--primary);
-  --ok:         var(--success);
-  --warn:       var(--warning);
-  --bad:        var(--danger);
-  --shadow:     var(--shadow-md);
-  --radius:     var(--radius-lg);
-  --max:        var(--container-max);
-
   --font-display: 'Fraunces', Georgia, serif;
-  --font-body:    var(--font-sans);
 }
 
 /* =========================================================================
