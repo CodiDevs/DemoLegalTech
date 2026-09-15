@@ -204,13 +204,14 @@ type Filter = 'action' | 'open' | 'done' | 'all';
                     [style.--i]="i"
                     (click)="activateCase(c)"
                   >
-                    <p class="dossier-kicker">Te toca</p>
-                    <h2 class="dossier-title">{{ dossierTitle(c) }}</h2>
-                    <p class="dossier-id">
-                      {{ productName(c) }} · #{{ c.id }} · {{ cityLine(c) }}
-                    </p>
-                    <p class="dossier-hint">{{ nextHint(c) }}</p>
-                    <p class="dossier-meta">{{ metaLine(c) }}</p>
+                    <div class="dossier-body">
+                      <h2 class="dossier-title">{{ dossierTitle(c) }}</h2>
+                      <p class="dossier-id">
+                        {{ productName(c) }} · #{{ c.id }} · {{ cityLine(c) }}
+                      </p>
+                      <p class="dossier-hint">{{ nextHint(c) }}</p>
+                      <p class="dossier-meta">{{ metaLine(c) }}</p>
+                    </div>
                     <span class="dossier-cta btn btn-primary">
                       <app-icon [name]="stageIcon(c)" [size]="16" />
                       {{ goLabel(c) }}
@@ -586,10 +587,18 @@ type Filter = 'action' | 'open' | 'done' | 'all';
       margin-bottom: var(--space-6);
     }
 
+    /* Es un <button>, y el estilo del navegador para los controles centra su contenido:
+       con display:grid eso se aplica como justify-content:center sobre la columna, que
+       quedaba flotando en el medio con ~345px muertos por lado (la columna solo mide los
+       52ch del hint). justify-items:start no lo evita porque alinea los items DENTRO de
+       la columna. justify-content:stretch lo devuelve al borde del padding. */
     .dossier {
       display: grid;
-      gap: var(--space-2);
-      justify-items: start;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      justify-content: stretch;
+      column-gap: var(--space-5);
+      row-gap: var(--space-2);
       width: 100%;
       padding: clamp(1.25rem, 3vw, 1.75rem);
       text-decoration: none;
@@ -620,8 +629,18 @@ type Filter = 'action' | 'open' | 'done' | 'all';
       padding: clamp(1.5rem, 3.5vw, 2rem);
     }
 
+    .dossier-body {
+      display: grid;
+      gap: var(--space-2);
+      justify-items: start;
+      min-width: 0;
+    }
+
     .dossier:not(.is-hero) {
       padding: clamp(1rem, 2.5vw, 1.35rem);
+    }
+
+    .dossier:not(.is-hero) .dossier-body {
       gap: var(--space-1);
     }
 
@@ -642,15 +661,6 @@ type Filter = 'action' | 'open' | 'done' | 'all';
       background:
         linear-gradient(180deg, color-mix(in srgb, var(--warning-subtle) 70%, transparent), transparent 45%),
         var(--surface);
-    }
-
-    .dossier-kicker {
-      margin: 0;
-      font-size: var(--text-xs);
-      font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
     }
 
     .dossier-title {
@@ -685,7 +695,8 @@ type Filter = 'action' | 'open' | 'done' | 'all';
     }
 
     .dossier-cta {
-      margin-top: var(--space-3);
+      justify-self: end;
+      align-self: center;
       pointer-events: none;
     }
 
@@ -944,9 +955,14 @@ type Filter = 'action' | 'open' | 'done' | 'all';
       .archive-stage { grid-area: stage; }
       .archive-go { grid-area: go; }
 
+      .dossier {
+        grid-template-columns: 1fr;
+      }
+
       .dossier-cta {
         width: 100%;
         justify-content: center;
+        margin-top: var(--space-3);
       }
     }
   `],

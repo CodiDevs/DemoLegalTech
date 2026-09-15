@@ -228,6 +228,21 @@ img, svg, video {
 }
 
 /* =========================================================================
+   Superficies del navegador — seleccion, caret y scrollbar desde la paleta.
+   Son las partes que no dibujamos y que igual llevan el diseno.
+   ========================================================================= */
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+  color: var(--text);
+}
+
+html {
+  caret-color: var(--primary);
+  scrollbar-color: color-mix(in srgb, var(--text) 22%, transparent) transparent;
+}
+
+/* =========================================================================
    Botones — jerarquía primary / secondary / ghost / danger
    ========================================================================= */
 

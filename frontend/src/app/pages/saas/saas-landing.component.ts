@@ -916,6 +916,12 @@ import {
     }
 
     .cta-text {
+      /* El flexbox decide el salto de linea ANTES de encoger: con base automatica el
+         texto pedia 568px, los dos botones ~452 y el total no entraba en los 964px del
+         banner, asi que las acciones caian a una segunda fila y la primera quedaba con
+         ~396px vacios a la derecha. Una base encogible los mantiene en la misma fila. */
+      flex: 1 1 24rem;
+      min-width: 0;
       max-width: 36rem;
     }
 

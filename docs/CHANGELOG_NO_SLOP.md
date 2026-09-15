@@ -124,3 +124,18 @@ git diff --stat origin/main..No-Slop
 |---|---|
 | `docs/DEMO_GOALS.md` | 3 entradas nuevas: marketing sin slop, cuestionario rearmado + resto, y el cierre (estados/paleta/muertos) |
 | `docs/NO_SLOP.md` | Criterio, causas con evidencia de código, decisiones deliberadas, verificación y pendientes |
+
+## Espacio y contrato visual
+
+Pasada disparada por un reporte de uso real: la tarjeta "Te toca" de `Tus trámites` dejaba un hueco de 345px por lado.
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/client-panel/client-panel.component.ts` | `.dossier` pasó a dos columnas con `justify-content: stretch`, que desactiva el centrado que aporta la hoja del navegador por ser un `<button>` con `display: grid`. El contenido pasó de arrancar en `x=444` a `x=329` (el borde del padding, 32px) y la CTA cierra en `x=1019` (el borde interno derecho); la tarjeta bajó de 301 a 210px de alto. El texto se agrupó en `.dossier-body` y el colapso a una columna quedó en `max-width: 720px`. Kicker "Te toca" fuera. |
+| `pages/client-panel/client-divorcio-desk.component.ts` | Kicker del hero y del estado vacío fuera, con su regla CSS; el getter `stepKicker` quedó sin consumidor y se borró |
+| `pages/client-panel/divorcio-steps.ts` | Campo `kicker` fuera de `productEmptyCopy` |
+| `pages/saas/saas-landing.component.ts` | `.cta-text` con `flex: 1 1 24rem; min-width: 0`: los dos botones ya no caen a una segunda fila dejando 396px vacíos en la primera (el flexbox decide el salto de línea antes de encoger, así que el texto no cedía) |
+| `styles/tokens.scss` | `::selection`, `caret-color` y `scrollbar-color` desde la paleta: eran las únicas superficies del navegador sin tematizar |
+| `docs/NO_SLOP.md` | Sección con la causa medida en el DOM real, los arreglos, el método de auditoría y sus resultados |
+
+Verificación: build limpio, 109/109 specs, y auditoría renderizada sobre `/cliente` (escritorio y móvil), `/` y `/productos/divorcio360`.

@@ -84,7 +84,7 @@ Causas encontradas leyendo el código, no adivinando:
 ```bash
 bun install --cwd frontend          # deps
 bun run build:frontend              # compila (2 warnings NG8107 preexistentes en fase2/ai-agent)
-bun run test:frontend               # 111 specs, todas verdes
+bun run test:frontend               # 109 specs, todas verdes
 ```
 
 Si Chrome no está instalado, Karma falla con `Cannot start ChromeHeadless`. Se resuelve apuntando a Edge:
@@ -123,6 +123,54 @@ Build y tests en verde después de cada paso.
 **Copy.** Em-dash fuera de `lawyer-case` (nota de firma), `divorcio-steps` y `question-flow-graph`; `Etapa 5 — Firma` → `Etapa 5: Firma` (con el spec actualizado); placeholders `'—'` → `'Sin indicar'`; separadores estructurales a `·`; `Rueda = zoom` → `Rueda = acercar`.
 
 **Verificación:** `bun run build:frontend` limpio y `bun run test:frontend` 109/109 (baja de 116 porque se fueron los 7 specs de los componentes muertos).
+
+## Tercera pasada — espacio y contrato visual (workspace)
+
+Disparada por un reporte concreto del cliente: *"en Tus trámites hay un espacio ridículo donde dice Firma tu minuta"*.
+
+### La causa, medida en el DOM real
+
+El contenido de la tarjeta arrancaba en `x=444` cuando su caja empieza en `x=296` con 32px de padding: debía arrancar en 328. La medición de la app logueada (no de una maqueta) fue:
+
+```
+.dossier       x=296  w=756  padL=32  cols=459.266px  justI=start  display=grid
+.dossier-hint  x=444  w=459.266  maxW=459.266px
+.dossier-cta   x=444  w=139
+```
+
+**`.dossier` es un `<button>`.** El estilo del navegador para los controles de formulario centra su contenido, y como el componente le pone `display: grid`, eso entra como **`justify-content: center` sobre la columna**. La cuenta cierra exacta: 328 + (692 − 459) / 2 = 444. La columna mide solo los `52ch` del hint, así que el resto quedaba como hueco: **345px por lado** a 1560px de ancho, 116px a 1100px.
+
+`justify-items: start` no lo evita: alinea los ítems **dentro** de la columna, no la columna dentro del contenedor. El CSS del proyecto nunca declara `justify-content` ahí: el valor lo aporta la hoja del navegador, y por eso no aparecía leyendo el componente.
+
+Es una clase de bug, no un caso suelto: cualquier control de formulario al que este repo le ponga `display: grid`/`flex` y cuyos tracks no llenen el ancho queda flotando centrado.
+
+### Cambios
+
+- `justify-content: stretch` en `.dossier` para desactivar el centrado heredado.
+- La tarjeta pasó a dos columnas (`minmax(0, 1fr) auto`, `align-items: center`): el texto a la izquierda y la CTA al extremo derecho, que es lo que el usuario eligió. El contenido ahora arranca en `x=329` (el borde del padding) y la CTA cierra en `x=1019` (el borde interno derecho). La tarjeta bajó de **301px a 210px** de alto.
+- El texto se agrupó en `<div class="dossier-body">` para que la CTA no dependa de `grid-row: 1 / -1` sobre filas implícitas, que se rompe cuando cambia el número de líneas.
+- Fuera el kicker **"Te toca"** de la tarjeta y los dos del desk (`Pago`/`Firma`… sobre un título que ya empieza con esa palabra). El craft floor los prohíbe explícitamente y el marketing ya los había perdido: el workspace era el último lugar donde quedaban. Con ellos se fue el campo `kicker` de `productEmptyCopy` y el getter `stepKicker`.
+- **`cta-banner` del home**: sus dos hijos pedían 568 + 24 + ~452 = 1044px en una caja de 964, así que los botones caían a una segunda fila dejando **396px vacíos** en la primera. El flexbox decide el salto de línea **antes** de encoger, por eso el texto no cedía: `.cta-text` pasó a `flex: 1 1 24rem; min-width: 0`.
+- **Superficies del navegador**: `::selection`, `caret-color` y `scrollbar-color` salen ahora de la paleta en `tokens.scss`. Eran las únicas piezas sin tematizar (el foco, el subrayado y el `accent-color` ya lo estaban).
+
+### Cómo se encontró (y cómo revalidar)
+
+Script de auditoría sobre el DOM renderizado: recorre los contenedores `grid`/`flex`, compara la unión de las cajas de sus hijos contra su caja de contenido y reporta el sobrante por lado con el selector y el `justify-content` computado. Sobre la app logueada (token inyectado en `index.html` un momento y restaurado después) y con un clic inyectado para abrir el desk, que de otro modo no se alcanza sin navegador.
+
+Resultados después de los arreglos:
+
+| Ruta | Hallazgos | Qué son |
+| --- | --- | --- |
+| `/cliente` @1560 | 0 | `overflow-x: 0px` |
+| `/cliente` @492 | 1 | La CTA a todo el ancho con su etiqueta centrada, que es el layout móvil buscado |
+| `/` @1560 | 5 | Cinco `justify-content: center` **autorados** (escenas del hero, etiquetas de botón) |
+| `/productos/divorcio360` @1560 | 2 | Una caja de video centrada y la barra de título del mock |
+
+Los cinco sospechosos que la misma auditoría descartó en el panel: `.archive-row`, `.side-item`, `.side-step`, `.seg-btn` y `.desk-file-btn` (llenan el ancho o centran a propósito).
+
+### Observado y no tocado
+
+Las tarjetas de paso del desk (`Sube la minuta firmada…` y las de pago y consulta) tienen la acción a la izquierda bajo el texto, con la mitad derecha libre. **No se reescribieron**: en una tarjeta de paso el aire alrededor de una acción alineada a la izquierda es layout de tarjeta, no una caja vacía como la fila de lista del panel, donde el patrón correcto sí es "info a la izquierda, acción a la derecha". Queda como decisión de diseño si se quiere replicar ahí el patrón del panel.
 
 ## Pendiente
 
