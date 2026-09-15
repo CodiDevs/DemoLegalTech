@@ -722,10 +722,8 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
 
     .cat {
       font-size: var(--text-xs);
-      font-weight: 700;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
+      font-weight: 600;
+      color: var(--text-secondary);
     }
 
     .sheet h2 {
