@@ -311,29 +311,6 @@ import {
         </div>
       </section>
 
-      <!-- 7. Cierre Asertivo -->
-      <section class="landing-section subtle" id="contacto">
-        <div class="landing-shell">
-          <div class="cta-banner">
-            <div class="cta-text">
-              <h2 class="cta-title">Moderniza la práctica civil de tu firma.</h2>
-              <p class="cta-lede">
-                Prueba un expediente de ejemplo, paso a paso, o solicita acceso para los abogados de tu equipo.
-              </p>
-            </div>
-            <div class="cta-actions">
-              <a routerLink="/productos/divorcio360" class="btn btn-primary btn-lg">
-                <span>Iniciar trámite de ejemplo</span>
-                <app-icon name="arrow-right" [size]="16" />
-              </a>
-              <a routerLink="/abogado" class="btn btn-secondary btn-lg">
-                Acceso profesional
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       @if (toast) {
         <div class="lp-toast toast-fade" role="status" aria-live="polite">{{ toast }}</div>
       }
@@ -914,52 +891,6 @@ import {
     .plan-items li {
       font-size: var(--text-sm);
       color: var(--text-secondary);
-    }
-
-    /* Banner CTA Final */
-    .cta-banner {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: clamp(2.5rem, 5vw, 4rem);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-6);
-      flex-wrap: wrap;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .cta-text {
-      /* El flexbox decide el salto de linea ANTES de encoger: con base automatica el
-         texto pedia 568px, los dos botones ~452 y el total no entraba en los 964px del
-         banner, asi que las acciones caian a una segunda fila y la primera quedaba con
-         ~396px vacios a la derecha. Una base encogible los mantiene en la misma fila. */
-      flex: 1 1 24rem;
-      min-width: 0;
-      max-width: 36rem;
-    }
-
-    .cta-title {
-      font-size: clamp(1.75rem, 3vw, 2.25rem);
-      font-weight: 650;
-      letter-spacing: -0.03em;
-      margin: 0 0 var(--space-2);
-      color: var(--text);
-    }
-
-    .cta-lede {
-      font-size: var(--text-base);
-      color: var(--text-secondary);
-      margin: 0;
-      line-height: 1.55;
-    }
-
-    .cta-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      flex-wrap: wrap;
     }
 
     .w-full {
