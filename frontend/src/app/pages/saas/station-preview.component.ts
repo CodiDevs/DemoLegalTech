@@ -329,20 +329,6 @@ import { IconComponent } from '../../shared/icon.component';
       color: var(--text-secondary);
       padding: 0.55rem 0;
       border-bottom: 1px solid var(--border);
-      padding-left: 1rem;
-      position: relative;
-    }
-
-    .fact-list li::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--primary);
-      transform: translateY(-50%);
     }
 
     .fact-list li:last-child {
@@ -399,7 +385,7 @@ import { IconComponent } from '../../shared/icon.component';
       padding: var(--space-4) var(--space-5);
       background: var(--bg-subtle);
       border-radius: var(--radius-md);
-      border-left: 2px solid var(--primary);
+      border-block: 1px solid var(--border);
     }
 
     .minuta-dest {

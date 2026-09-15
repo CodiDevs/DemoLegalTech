@@ -39,13 +39,11 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
         <h2 class="cine-title">Cliente y abogado, misma cámara</h2>
         <div class="dv-split">
           <article>
-            <p class="cine-kicker">Cliente</p>
             <h3>{{ site.values?.[0]?.title }}</h3>
             <p>{{ site.values?.[0]?.desc }}</p>
             <p>{{ site.values?.[1]?.desc }}</p>
           </article>
           <article>
-            <p class="cine-kicker">Abogado</p>
             <h3>{{ site.values?.[2]?.title }}</h3>
             <p>{{ site.values?.[2]?.desc }}</p>
             <p>Bandeja, documentos y minuta sobre el mismo folio que ve el cliente.</p>
@@ -135,7 +133,7 @@ export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestro
     if (this.auth.isLoggedIn) {
       return 'Bandeja, documentos y firma documental: el mismo expediente que ve el cliente.';
     }
-    return 'Responde el cuestionario en minutos. Si calificas, continúas con registro, pago y expediente digital.';
+    return 'Responde el cuestionario de ejemplo. Si calificas, continúas con registro, pago y expediente digital.';
   }
 
   ngOnInit(): void {

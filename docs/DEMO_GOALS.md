@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Anti-slop F2+F3 | `/` — sin 24h ni “expediente real”; pilares 2+1; checkout plano | 2026-09-15 |
 | done | Hero expediente plano + pasos | `/` — folio derecho recto; clic en 1–6 cambia Estado y titular | 2026-09-15 |
 | done | Bootstrap repo | `README.md` — `go run ./cmd/api` + `npm start` | 2026-08-29 |
 | done | Auth + seed users | Login `cliente@demo.ec` / `abogado@demo.ec` (`demo1234`) | 2026-08-29 |
@@ -63,6 +64,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Anti-slop F2+F3
+Guard de marketing ahora falla si reaparecen `.ls-choreo` / `.ls-plan-items`, claims `24h` / `expediente real` / `en minutos`. CSS muerto de home vieja (rail, license-plate, `&.legalstation-landing`) fuera. Home: CTA de ejemplo, pilares asimétricos, plan Professional con tag `10 operadores` (badge Recomendado una sola vez), minuta sin `border-left`. Checkout sin `rotateY`.
+
+**Demo:** `/` → flujo + precios Professional → `/checkout/:id` folio plano. `/productos/traslado360` heads a la izquierda.
 
 ### 2026-09-15 — Hero expediente plano + pasos
 El mock de `/` iba torcido (`perspective` + `rotateX/Y`) y el copy decía “expediente de ejemplo”. Ahora es un folio plano. Cada fila es un botón: el titular y el Estado siguen el paso activo, con fade+blur.

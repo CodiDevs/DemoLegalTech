@@ -138,7 +138,7 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
           <div class="lp-shell">
             <div class="lp-cta-inner">
               <h2>{{ site.ctaTitle }}</h2>
-              <p>Contestas el cuestionario en minutos, creas tu cuenta, haces un solo pago, subes tus documentos, hablas con tu abogado, firmas y cierras en la notaría.</p>
+              <p>Contestas el cuestionario, creas tu cuenta, haces un solo pago, subes tus documentos, hablas con tu abogado, firmas y cierras en la notaría.</p>
               <div class="lp-cta-buttons">
                 <a href="#" (click)="startEvaluation($event)" class="lp-cta-primary">Evaluar mi caso</a>
                 <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>

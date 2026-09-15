@@ -127,7 +127,7 @@ import {
 
             <!-- Indicador sutil de progreso de la sección -->
             <div class="track-progress" aria-hidden="true">
-              <div class="track-progress-bar" [style.width.%]="trackProgress"></div>
+              <div class="track-progress-bar" [style.--p]="trackProgress / 100"></div>
             </div>
           </div>
         </div>
@@ -144,11 +144,8 @@ import {
           </header>
 
           <div class="pillars-grid">
-            <article class="pillar-card">
-              <span class="pillar-icon" aria-hidden="true">
-                <app-icon name="signature" [size]="20" />
-              </span>
-              <h3 class="pillar-title">Firma Electrónica Avanzada</h3>
+            <article class="pillar-card pillar-card--lead">
+              <h3 class="pillar-title">Firma electrónica avanzada</h3>
               <p class="pillar-text">
                 Compatibilidad nativa con certificados acreditados (BCE, Security Data, Consejo de la Judicatura). Misma validez legal y probatoria que la firma manuscrita.
               </p>
@@ -158,7 +155,7 @@ import {
               <span class="pillar-icon" aria-hidden="true">
                 <app-icon name="clipboard" [size]="20" />
               </span>
-              <h3 class="pillar-title">Validación Documental</h3>
+              <h3 class="pillar-title">Validación documental</h3>
               <p class="pillar-text">
                 Verificación preliminar de partidas de matrimonio, cédulas y certificados de gravamen para asegurar la admisibilidad notarial sin errores de digitación.
               </p>
@@ -168,9 +165,9 @@ import {
               <span class="pillar-icon" aria-hidden="true">
                 <app-icon name="shield" [size]="20" />
               </span>
-              <h3 class="pillar-title">Inmutabilidad y Trazabilidad</h3>
+              <h3 class="pillar-title">Cadena de custodia</h3>
               <p class="pillar-text">
-                Sellado de tiempo en cada actuación procesal y registro ordenado de intervenciones de operadores para garantizar la cadena de custodia civil.
+                Sellado de tiempo en cada actuación procesal y registro ordenado de intervenciones de operadores.
               </p>
             </article>
           </div>
@@ -321,7 +318,7 @@ import {
             <div class="cta-text">
               <h2 class="cta-title">Moderniza la práctica civil de tu firma.</h2>
               <p class="cta-lede">
-                Prueba un expediente real en minutos o solicita acceso para los abogados de tu equipo.
+                Prueba un expediente de ejemplo, paso a paso, o solicita acceso para los abogados de tu equipo.
               </p>
             </div>
             <div class="cta-actions">
@@ -558,18 +555,7 @@ import {
       cursor: pointer;
       font-family: inherit;
       width: 100%;
-      opacity: 0.42;
-      transition:
-        opacity 280ms var(--ease-out),
-        transform 280ms var(--ease-out);
-    }
-
-    .journey-step-btn:hover {
-      opacity: 0.78;
-    }
-
-    .journey-step-btn.is-active {
-      opacity: 1;
+      transition: transform 280ms var(--ease-out);
     }
 
     .step-rail {
@@ -641,12 +627,15 @@ import {
     .step-title {
       font-size: var(--text-sm);
       font-weight: 550;
-      color: var(--text);
+      color: var(--text-secondary);
       letter-spacing: -0.01em;
-      transition: font-weight 280ms var(--ease-out);
+      transition:
+        color 280ms var(--ease-out),
+        font-weight 280ms var(--ease-out);
     }
 
     .journey-step-btn.is-active .step-title {
+      color: var(--text);
       font-weight: 650;
     }
 
@@ -698,14 +687,17 @@ import {
     .track-progress-bar {
       height: 100%;
       background: var(--primary);
-      transition: width 120ms ease-out;
+      transform: scaleX(var(--p, 0));
+      transform-origin: left center;
+      transition: transform var(--dur-fast) var(--ease-out);
     }
 
     /* Pilares de Cumplimiento / Seguridad */
     .pillars-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
       gap: var(--space-5);
+      align-items: stretch;
     }
 
     .pillar-card {
@@ -717,6 +709,13 @@ import {
       display: flex;
       flex-direction: column;
       gap: var(--space-2);
+    }
+
+    .pillar-card--lead {
+      grid-row: span 2;
+      justify-content: center;
+      padding: var(--space-6);
+      background: var(--bg-subtle);
     }
 
     .pillar-icon {
@@ -737,11 +736,26 @@ import {
       margin: 0;
     }
 
+    .pillar-card--lead .pillar-title {
+      font-size: var(--text-xl);
+      letter-spacing: -0.03em;
+    }
+
     .pillar-text {
       font-size: var(--text-sm);
       color: var(--text-secondary);
       line-height: var(--leading-normal);
       margin: 0;
+    }
+
+    @media (max-width: 800px) {
+      .pillars-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pillar-card--lead {
+        grid-row: auto;
+      }
     }
 
     /* Precios */
@@ -827,8 +841,9 @@ import {
     }
 
     .plan-card.is-featured {
+      background: color-mix(in srgb, var(--primary) 7%, var(--surface));
       border-color: var(--primary);
-      box-shadow: 0 0 0 1px var(--primary), var(--shadow-md);
+      box-shadow: var(--shadow-md);
     }
 
     .plan-featured-badge {
@@ -839,7 +854,7 @@ import {
       font-weight: 600;
       padding: 2px 10px;
       background: var(--primary);
-      color: #ffffff;
+      color: var(--text-on-primary);
       border-radius: var(--radius-full);
     }
 
@@ -971,40 +986,13 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   faq = LEGALSTATION_FAQ;
   trackProgress = 0;
   @ViewChild('stationsTrack') stationsTrack?: ElementRef<HTMLElement>;
-  private io?: IntersectionObserver;
   private scrollListener?: () => void;
   private isManualScrolling = false;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
+  constructor(private router: Router) {}
 
   ngAfterViewInit(): void {
-    const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo, .lp-reveal');
-    let remaining = 0;
-    this.io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add('is-choreo', 'is-in-view');
-          this.io?.unobserve(entry.target);
-          remaining -= 1;
-          if (remaining <= 0) this.io?.disconnect();
-        }
-      },
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.14 },
-    );
-    nodes.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const alreadyIn = rect.top < window.innerHeight * 0.88 && rect.bottom > 0;
-      if (alreadyIn) {
-        el.classList.add('is-choreo', 'is-in-view');
-        return;
-      }
-      remaining += 1;
-      this.io!.observe(el);
-    });
-    if (remaining <= 0) this.io.disconnect();
-
     this.initTrackScroll();
   }
 
@@ -1050,7 +1038,6 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.io?.disconnect();
     if (this.scrollListener) {
       window.removeEventListener('scroll', this.scrollListener);
     }

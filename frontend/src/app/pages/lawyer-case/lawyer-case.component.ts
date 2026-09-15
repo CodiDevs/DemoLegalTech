@@ -348,7 +348,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
       color: var(--text-muted);
     }
     .st.done { background: var(--success-subtle); color: var(--success); }
-    .st.cur { background: var(--primary); color: white; }
+    .st.cur { background: var(--primary); color: var(--text-on-primary); }
 
     .case-rule {
       display: block;
@@ -547,7 +547,7 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
       place-items: center;
       font-size: 0.7rem;
       font-weight: 700;
-      color: white;
+      color: var(--text-on-primary);
       flex-shrink: 0;
       background: var(--primary);
     }

@@ -8,12 +8,19 @@ import { SaasLandingComponent } from './saas-landing.component';
 
 /** Patrones de plantilla que AGENTS.md §2 prohíbe en superficies de marketing. */
 function expectNoSlop(root: HTMLElement): void {
-  expect(root.querySelectorAll('.section-kicker, .lp-eyebrow, .lp-cta-eyebrow').length).toBe(0);
-  expect(root.querySelectorAll('.card-check, .plan-check, app-landing-statistics, .ls-stats').length).toBe(0);
+  expect(root.querySelectorAll(
+    '.section-kicker, .lp-eyebrow, .lp-cta-eyebrow, .cine-kicker, .dossier-kicker, .preview-kicker, .q-modal-kicker',
+  ).length).toBe(0);
+  expect(root.querySelectorAll(
+    '.card-check, .plan-check, .ls-plan-items, .ls-choreo, app-landing-statistics, .ls-stats',
+  ).length).toBe(0);
 
   const text = root.textContent || '';
   expect(text).not.toMatch(/[—–]/);
   expect(text).not.toMatch(/#LS-|LS-\d{3}|ACT-\d{4}/);
+  expect(text).not.toMatch(/\b24h\b/i);
+  expect(text).not.toMatch(/expediente real/i);
+  expect(text).not.toMatch(/en minutos/i);
 }
 
 const authStub = {
@@ -38,6 +45,10 @@ describe('slop guard — marketing', () => {
     fixture = TestBed.createComponent(SaasLandingComponent);
     fixture.detectChanges();
     expectNoSlop(fixture.nativeElement as HTMLElement);
+    const home = fixture.nativeElement as HTMLElement;
+    expect(home.querySelectorAll('.lp-reveal').length).toBe(0);
+    const featuredTag = home.querySelector('.plan-card.is-featured .plan-tag')?.textContent?.trim();
+    expect(featuredTag).not.toBe('Recomendado');
   });
 
   it('la landing de producto no muestra kickers, checks de garantía ni testimonios', async () => {

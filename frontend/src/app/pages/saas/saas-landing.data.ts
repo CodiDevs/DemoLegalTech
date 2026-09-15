@@ -15,7 +15,7 @@ export const LEGALSTATION_WORKFLOW: StationStep[] = [
     id: 'admision',
     n: 1,
     title: 'Admisión y calificación',
-    badge: '24h',
+    badge: 'Recepción',
     desc: 'Califica admisibilidad notarial y mutuo consentimiento.',
     icon: 'clipboard',
   },
@@ -55,7 +55,7 @@ export const LEGALSTATION_WORKFLOW: StationStep[] = [
 
 export const LEGALSTATION_PLANS = [
   { name: 'Starter', tag: 'Despachos independientes', audience: 'Bufete pequeño. Licencia operadores', price: 99, items: ['1 producto civil activo', '3 usuarios operadores', 'Enlace de admisión para clientes', 'Soporte por correo'], featured: false },
-  { name: 'Professional', tag: 'Recomendado', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['Catálogo civil completo', '10 usuarios operadores', 'Notificaciones automáticas al cliente', 'Asistente de minutas', 'Plantillas notariales maestras'], featured: true },
+  { name: 'Professional', tag: '10 operadores', audience: 'Equipo en crecimiento. Licencia operadores', price: 249, items: ['Catálogo civil completo', '10 usuarios operadores', 'Notificaciones automáticas al cliente', 'Asistente de minutas', 'Plantillas notariales maestras'], featured: true },
   { name: 'Enterprise', tag: 'Multi-sede', audience: 'Grandes firmas y notarías', price: 599, items: ['Operadores ilimitados', 'Instancia dedicada con SSO', 'Marca blanca y flujos a medida', 'Acompañamiento en la puesta en marcha'], featured: false },
 ];
 

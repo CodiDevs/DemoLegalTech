@@ -91,16 +91,6 @@
     line-height: 1.4;
   }
 
-  .lp-eyebrow {
-    display: inline-block;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--lp-accent-ink);
-    margin-bottom: 0.85rem;
-  }
-
   .lp-section {
     padding: var(--space-8) 0;
   }
@@ -136,9 +126,9 @@
   }
 
   .lp-section-head {
-    max-width: 46rem;
-    margin: 0 auto 2.75rem;
-    text-align: center;
+    max-width: 40rem;
+    margin: 0 0 2.75rem;
+    text-align: left;
   }
 
   .lp-section-head h2 {
@@ -1111,255 +1101,12 @@
     .lp-section { padding-block: var(--space-7); }
   }
 
-  &.legalstation-landing {
-    --lp-max: 1200px;
-
-    .lp-shell {
-      max-width: var(--lp-max);
-      padding-inline: clamp(1rem, 4vw, 1.5rem);
-    }
-
-    .lp-eyebrow {
-      margin: 0 0 0.75rem;
-      font-size: 0.78rem;
-      font-weight: 650;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--primary);
-    }
-
-    .lp-steps.lp-steps-in .lp-step {
-      animation: none;
-    }
-
-    .lp-section {
-      padding-block: clamp(4rem, 8vw, 7rem);
-      background: var(--bg);
-    }
-
-    .lp-section.soft {
-      background: var(--bg-muted);
-    }
-
-    .lp-section-head {
-      text-align: left;
-      margin-inline: 0;
-      margin-bottom: clamp(2rem, 4vw, 3rem);
-      max-width: 40rem;
-    }
-
-    .lp-section-head h2 {
-      font-family: var(--font-sans);
-      font-size: clamp(1.85rem, 3.8vw, 2.75rem);
-      font-weight: 600;
-      letter-spacing: -0.035em;
-      max-width: 18ch;
-      margin-bottom: 0.75rem;
-    }
-
-    .lp-section-head p {
-      font-size: clamp(1rem, 1.5vw, 1.1rem);
-      line-height: 1.65;
-      color: var(--text-secondary);
-    }
-
-    .lp-section-head h2,
-    .lp-section-head h3,
-    .lp-product-body h3 {
-      text-wrap: balance;
-    }
-
-    .lp-btn-primary {
-      transition:
-        background var(--dur-fast) var(--ease),
-        border-color var(--dur-fast) var(--ease),
-        color var(--dur-fast) var(--ease);
-    }
-
-    .lp-btn-primary:active {
-      transform: none;
-    }
-
-    .ls-choreo.is-choreo .ls-tilt-slot,
-    .ls-choreo.is-choreo .lp-step {
-      animation: ls-in 0.45s var(--ease-out) both;
-      animation-delay: calc(var(--i, 0) * 50ms);
-    }
-
-    .lp-product-grid.ls-product-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1.25rem;
-      align-items: stretch;
-    }
-
-    .ls-product-card,
-    .ls-plan-card,
-    .ls-steps .lp-step {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-md);
-      transition:
-        box-shadow 200ms var(--ease),
-        border-color 200ms var(--ease);
-    }
-
-    .ls-product-card {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .ls-tilt-slot[data-product='divorcio360'] .ls-product-card {
-      border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
-    }
-
-    .ls-tilt-slot[data-product='traslado360'] .ls-product-card {
-      border-color: color-mix(in srgb, var(--primary) 22%, #7a9eb0 18%, var(--border));
-    }
-
-    .ls-tilt-slot[data-product='bienraiz360'] .ls-product-card {
-      border-color: color-mix(in srgb, var(--primary) 18%, #a89070 16%, var(--border));
-    }
-
-    .ls-product-card img {
-      height: 11rem;
-      object-fit: cover;
-      flex: none;
-      transition: opacity var(--dur-base) var(--ease);
-    }
-
-    .ls-product-card:hover img {
-      opacity: 0.92;
-    }
-
-    .ls-product-card .lp-product-body {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      gap: 0.65rem;
-      padding: 1.25rem 1.25rem 1.35rem;
-    }
-
-    .ls-product-card .lp-product-body p {
-      flex: 1;
-    }
-
-    .ls-product-card .lp-btn {
-      margin-top: auto;
-      align-self: flex-start;
-    }
-
-    .ls-plan-card {
-      padding: 1.75rem 1.5rem;
-    }
-
-    .ls-plan-card.featured {
-      border: 0;
-      box-shadow: var(--shadow-lg);
-      outline: none;
-    }
-
-    .ls-shine-slot {
-      filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--primary) 14%, transparent));
-      transition:
-        transform 200ms var(--ease),
-        filter 200ms var(--ease);
-    }
-
-    .ls-steps {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 1rem;
-    }
-
-    .ls-steps .lp-step {
-      padding: 1.25rem 1.1rem;
-      background: transparent;
-      box-shadow: none;
-      border: 0;
-      border-top: 2px solid var(--primary-border);
-      border-radius: 0;
-    }
-
-    .ls-steps .lp-step-num {
-      color: var(--primary);
-    }
-
-    .ls-enterprise-card {
-      padding: 1.25rem;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: none;
-    }
-
-    .ls-plan-card:not(.featured):hover {
-      box-shadow: var(--shadow-lg);
-      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
-      transform: translateY(-3px);
-      transition:
-        transform 200ms var(--ease),
-        box-shadow 200ms var(--ease),
-        border-color 200ms var(--ease);
-    }
-
-    /* Lift the shine host so featured border + card elevate together */
-    .ls-shine-slot:hover {
-      transform: translateY(-3px);
-      filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--primary) 20%, transparent));
-    }
-
-    .ls-product-card:hover {
-      border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
-    }
-
-    @media (max-width: 1100px) {
-      .ls-steps {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 960px) {
-      .lp-product-grid.ls-product-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .ls-steps {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 560px) {
-      .ls-steps {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    &::after {
-      content: none;
-    }
-  }
 }
 
 @keyframes lp-step-in {
   from {
     opacity: 0;
     transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes ls-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
