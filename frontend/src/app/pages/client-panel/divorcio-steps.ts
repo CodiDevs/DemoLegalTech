@@ -28,7 +28,6 @@ export function isTimelineProduct(id: string): id is TimelineProductId {
 }
 
 export function productEmptyCopy(product: string): {
-  kicker: string;
   title: string;
   hint: string;
   cta: string;
@@ -37,7 +36,6 @@ export function productEmptyCopy(product: string): {
 } {
   if (product === 'traslado360') {
     return {
-      kicker: 'Traslado360',
       title: 'Tu traslado vehicular',
       hint: 'Mutuo acuerdo, pago único y notaría virtual. Abre tu expediente sin salir del panel.',
       cta: 'Iniciar traslado',
@@ -46,7 +44,6 @@ export function productEmptyCopy(product: string): {
     };
   }
   return {
-    kicker: 'Divorcio360',
     title: 'Un solo expediente',
     hint: 'El divorcio es un trámite único. Evalúa tu caso y ábrelo aquí, sin salir del panel.',
     cta: 'Evaluar mi caso',

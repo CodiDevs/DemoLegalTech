@@ -26,7 +26,6 @@ interface DocRow {
   template: `
     @if (!caseItem) {
       <div class="dossier desk-empty">
-        <p class="dossier-kicker">{{ empty.kicker }}</p>
         <h2 class="dossier-title">{{ empty.title }}</h2>
         <p class="dossier-hint">{{ empty.hint }}</p>
         <a [routerLink]="empty.path" class="dossier-cta btn btn-primary">
@@ -37,7 +36,6 @@ interface DocRow {
       </div>
     } @else {
       <article class="dossier desk-hero" [class.is-pay]="step === 'pay' && !caseItem.paid">
-        <p class="dossier-kicker">{{ stepKicker }}</p>
         <h2 class="dossier-title">{{ stepTitle }}</h2>
         <p class="dossier-id">{{ productName }} · #{{ caseItem.id }} · {{ city }}</p>
         <p class="dossier-hint">{{ stepHint }}</p>
@@ -219,15 +217,6 @@ interface DocRow {
 
     .desk-hero.is-pay {
       border-color: color-mix(in srgb, var(--warning) 35%, var(--border));
-    }
-
-    .dossier-kicker {
-      margin: 0;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--primary);
     }
 
     .dossier-title {
@@ -443,17 +432,6 @@ export class ClientDivorcioDeskComponent implements OnChanges {
 
   get stepTitle(): string {
     return productStepTitle(this.step);
-  }
-
-  get stepKicker(): string {
-    const map: Record<ProductDeskStepId, string> = {
-      pay: 'Pago',
-      docs: 'Documentos',
-      call: 'Consulta',
-      sign: 'Firma',
-      notary: 'Notaría',
-    };
-    return map[this.step];
   }
 
   get stepHint(): string {
