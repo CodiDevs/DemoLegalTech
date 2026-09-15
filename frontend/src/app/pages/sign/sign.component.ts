@@ -196,10 +196,12 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       border-radius: 0;
     }
     .sign-steps li::before {
-      content: '○';
-      color: var(--primary);
-      font-size: 0.7rem;
-      line-height: 1;
+      content: '';
+      flex-shrink: 0;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      border: 1.5px solid var(--primary);
     }
     .sign-steps li.active {
       color: var(--primary-hover);
@@ -207,14 +209,20 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       border: none;
     }
     .sign-steps li.active::before {
-      content: '●';
+      background: var(--primary);
     }
     .sign-steps li.done {
       color: var(--primary-hover);
       background: transparent;
     }
     .sign-steps li.done::before {
-      content: '✓';
+      width: 0.8rem;
+      height: 0.8rem;
+      border: 0;
+      border-radius: 0;
+      background: var(--primary);
+      -webkit-mask: var(--icon-check) center / contain no-repeat;
+      mask: var(--icon-check) center / contain no-repeat;
     }
     .sign-layout {
       display: grid;
