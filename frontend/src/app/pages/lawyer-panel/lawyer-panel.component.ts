@@ -196,7 +196,8 @@ interface HoldStage {
 
     .hold {
       display: inline-flex;
-      align-items: baseline;
+      align-items: center;
+      justify-content: center;
       gap: var(--space-2);
       min-height: var(--control-height);
       padding: 0 var(--space-3);
@@ -321,7 +322,7 @@ interface HoldStage {
 
     .case-row {
       display: grid;
-      grid-template-columns: 4.25rem minmax(0, 1.15fr) minmax(0, 1.55fr) auto;
+      grid-template-columns: 4.25rem minmax(0, 1.15fr) minmax(0, 1fr) 9.5rem;
       gap: var(--space-5);
       align-items: center;
       padding: var(--space-4) var(--space-5);
@@ -389,6 +390,7 @@ interface HoldStage {
     }
 
     .now-label {
+      min-width: 0;
       font-size: var(--text-sm);
       font-weight: 650;
       line-height: var(--leading-snug);
@@ -396,6 +398,7 @@ interface HoldStage {
     }
 
     .now-stage {
+      min-width: 0;
       font-size: var(--text-xs);
       font-weight: 550;
       color: var(--text-secondary);
@@ -405,6 +408,9 @@ interface HoldStage {
       display: grid;
       gap: var(--space-1);
       justify-items: end;
+      align-content: center;
+      min-width: 0;
+      text-align: right;
     }
 
     .wait-l {
