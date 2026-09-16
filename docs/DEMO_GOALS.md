@@ -4,6 +4,8 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Rail del despacho hover | `abogado@demo.ec` → `/abogado`: folio quieto; hover revela texto; candado Fijar deja el menú abierto (F5 lo recuerda) | 2026-09-15 |
+| done | Bandeja fusiona Resumen + cobros en licencia | `abogado@demo.ec` → `/abogado`: Detenidos filtra la lista. Sin Resumen en el rail. Facturación: Cobros de trámites (cobrado/pendiente + filas), no 4 KPIs | 2026-09-15 |
 | done | Cliente sin Próximamente | `/cliente` sidebar: Todos + live. Sin SignDesk/MatterFlow/ComplianceHub/NotaryLink | 2026-09-15 |
 | done | Barra del cuestionario se puede volver | `/cuestionario` responde una → “Clic en un paso hecho para volver” → clic en el tramo teal | 2026-09-15 |
 | done | Hero elige trámite en home | `/` → Iniciar un trámite abre Divorcio/Traslado/BienRaíz; `/productos/divorcio360` sigue al cuestionario | 2026-09-15 |
@@ -79,6 +81,16 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 El rail de `/cliente` solo lista trámites vivos. SignDesk y el resto `live: false` no ocupan el pliegue.
 
 **Demo:** `cliente@demo.ec` → `/cliente` → sidebar sin bloque Próximamente.
+
+### 2026-09-15 — Bandeja come Resumen; cobros en licencia
+Resumen salió del rail. `/abogado/fase2/admin` abre la bandeja. Detenidos son atajos de etapa (conteo · días) sobre la lista. Lo cobrado a clientes vive en Facturación B2B: una línea cobrado/pendiente y las filas del trámite, aparte de las facturas de la licencia.
+
+**Demo:** `abogado@demo.ec` → Bandeja (clic en Detenidos) → Facturación B2B (Cobros de trámites) → un `#` abre el expediente.
+
+### 2026-09-15 — Rail del despacho hover
+El aside de `/abogado` no es un panel blanco. El folio reserva el ancho abierto: hover revela el texto en ese hueco; al salir las etiquetas se van y **la página no se recorre**. El candado de abajo (**Fijar**) deja el menú abierto y se recuerda al recargar.
+
+**Demo:** `abogado@demo.ec` → `/abogado` → hover el rail → candado Fijar → F5: el texto sigue.
 
 ### 2026-09-15 — Barra del cuestionario se puede volver
 Los tramos hechos ya eran un hit. Ahora se leen: más gruesos, cursor, hover, y la línea “Clic en un paso hecho para volver”.

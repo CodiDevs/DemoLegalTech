@@ -63,6 +63,23 @@ describe('LawyerPanelComponent bandeja', () => {
     expect(panel.statusFilter).toBe('');
   });
 
+  it('Detenidos agrupa etapas y filtra al clic, sin el cierre', () => {
+    const firma = caseItem({ id: 2, status: '05', status_label: 'Firmas', days_in_status: 6 });
+    const cierre = caseItem({ id: 9, status: '10', status_label: 'Finalizado', days_in_status: 20 });
+    const panel = makePanel([docs, minuta, firma, cierre]);
+
+    expect(panel.holds[0].stage_code).toBe('05');
+    expect(panel.holds.map((h) => h.stage_code).sort()).toEqual(['02', '04', '05']);
+    expect(panel.holds.some((h) => h.stage_code === '10')).toBeFalse();
+
+    panel.filterHold('05');
+    expect(panel.statusFilter).toBe('05');
+    expect(panel.filtered.map((c) => c.id)).toEqual([firma.id]);
+
+    panel.filterHold('05');
+    expect(panel.statusFilter).toBe('');
+  });
+
   it('needsYou ordena, no pinta lavado teal', () => {
     const panel = makePanel([minuta, docs]);
     expect(panel.needsYou(minuta)).toBeTrue();

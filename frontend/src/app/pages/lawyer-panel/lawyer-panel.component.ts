@@ -9,11 +9,19 @@ import {
   CASE_STATUS_FILTER_OPTIONS,
   caseFilterLabel,
   caseLawyerHint,
+  caseShort,
 } from '../../shared/case-status.data';
 import { getProductDisplayName, LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
 import { WorkspaceHeadComponent } from './workspace-head.component';
 
 const PAGE_SIZE = 10;
+
+interface HoldStage {
+  stage_code: string;
+  stage: string;
+  count: number;
+  avg_days: number;
+}
 
 @Component({
   selector: 'app-lawyer-panel',
@@ -22,6 +30,26 @@ const PAGE_SIZE = 10;
   template: `
     <div class="inbox">
       <app-workspace-head title="Bandeja" [aside]="headAside" />
+
+      @if (!loading && !error && holds.length) {
+        <div class="holds-block">
+          <p class="holds-l" id="holds-label">Detenidos</p>
+          <div class="holds" role="group" aria-labelledby="holds-label">
+            @for (h of holds; track h.stage_code) {
+              <button
+                type="button"
+                class="hold"
+                [class.on]="statusFilter === h.stage_code"
+                [attr.aria-pressed]="statusFilter === h.stage_code"
+                (click)="filterHold(h.stage_code)"
+              >
+                <strong>{{ h.stage }}</strong>
+                <span class="tabular">{{ h.count }} · {{ holdWait(h) }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
 
       <div class="inbox-toolbar" role="search" aria-label="Buscar y filtrar expedientes">
         <label class="search-field">
@@ -145,6 +173,72 @@ const PAGE_SIZE = 10;
     .inbox {
       padding-block: var(--space-1) var(--space-6);
     }
+
+    .holds-block {
+      display: grid;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+      animation: inbox-in 480ms var(--ease-out);
+    }
+
+    .holds-l {
+      margin: 0;
+      font-size: var(--text-xs);
+      font-weight: 650;
+      color: var(--text-muted);
+    }
+
+    .holds {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .hold {
+      display: inline-flex;
+      align-items: baseline;
+      gap: var(--space-2);
+      min-height: var(--control-height);
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      color: inherit;
+      cursor: pointer;
+      transition:
+        background 200ms var(--ease-out),
+        border-color 200ms var(--ease-out),
+        color 200ms var(--ease-out);
+    }
+
+    .hold:hover,
+    .hold:focus-visible {
+      border-color: var(--primary-border);
+    }
+
+    .hold:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .hold.on {
+      border-color: var(--primary-border);
+      background: var(--primary-subtle);
+      color: var(--primary);
+    }
+
+    .hold strong {
+      font-size: var(--text-sm);
+      font-weight: 650;
+    }
+
+    .hold span {
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+    }
+
+    .hold.on span { color: var(--primary); }
 
     .inbox-toolbar {
       display: grid;
@@ -489,6 +583,11 @@ export class LawyerPanelComponent implements OnInit {
     this.page = 1;
   }
 
+  filterHold(code: string): void {
+    this.statusFilter = this.statusFilter === code ? '' : code;
+    this.page = 1;
+  }
+
   clearFilters(): void {
     this.query = '';
     this.serviceFilter = '';
@@ -555,6 +654,32 @@ export class LawyerPanelComponent implements OnInit {
 
   get filtersActive(): boolean {
     return !!(this.statusFilter || this.serviceFilter || this.query.trim());
+  }
+
+  get holds(): HoldStage[] {
+    const by = new Map<string, { count: number; days: number }>();
+    for (const c of this.cases) {
+      if (!CASE_STATUS[c.status] || c.status === '10') continue;
+      const cur = by.get(c.status) || { count: 0, days: 0 };
+      cur.count += 1;
+      cur.days += this.daysIn(c) ?? 0;
+      by.set(c.status, cur);
+    }
+    return [...by.entries()]
+      .map(([code, v]) => ({
+        stage_code: code,
+        stage: caseShort(code, code),
+        count: v.count,
+        avg_days: v.count ? v.days / v.count : 0,
+      }))
+      .sort((a, b) => b.avg_days - a.avg_days || b.count - a.count);
+  }
+
+  holdWait(h: HoldStage): string {
+    const d = Math.round(h.avg_days);
+    if (d <= 0) return 'Hoy';
+    if (d === 1) return '1 día';
+    return `${d} días`;
   }
 
   get statusFilterLabel(): string {

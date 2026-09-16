@@ -308,7 +308,6 @@ interface ProductSwitcherItem {
           <h2>Tu cuenta</h2>
           @if (auth.isLoggedIn) {
             <a [routerLink]="homeForRole">{{ roleHomeLabel }}</a>
-            @if (auth.user()?.role === 'abogado') { <a routerLink="/abogado/fase2/admin">Fase 2</a> }
           } @else {
             <a routerLink="/auth">Ingresar</a>
             <a routerLink="/cuestionario">Comprobar si aplico</a>

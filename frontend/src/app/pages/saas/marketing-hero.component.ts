@@ -485,7 +485,7 @@ export class MarketingHeroComponent implements AfterViewInit {
   get secondaryAction(): HeroAction | null {
     if (!this.showSecondary) return null;
     if (this.role === 'abogado') {
-      return { label: 'Ver Fase 2', route: '/abogado/fase2/admin' };
+      return { label: 'Bandeja', route: '/abogado' };
     }
     if (this.secondaryCta === 'Volver a Divorcio360') {
       return { label: this.secondaryCta, route: '/productos/divorcio360' };

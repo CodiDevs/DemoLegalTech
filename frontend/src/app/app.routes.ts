@@ -105,12 +105,8 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./pages/lawyer-case/lawyer-case.component').then((m) => m.LawyerCaseComponent),
           },
-          { path: 'fase2', redirectTo: 'fase2/admin', pathMatch: 'full' },
-          {
-            path: 'fase2/admin',
-            loadComponent: () =>
-              import('./pages/fase2/admin/admin.component').then((m) => m.Fase2AdminComponent),
-          },
+          { path: 'fase2', redirectTo: '/abogado', pathMatch: 'full' },
+          { path: 'fase2/admin', redirectTo: '/abogado', pathMatch: 'full' },
           {
             path: 'fase2/templates',
             loadComponent: () =>
@@ -122,7 +118,7 @@ export const routes: Routes = [
               import('./pages/fase2/ai-agent/ai-agent.component').then((m) => m.Fase2AiComponent),
           },
           // Causas judiciales (SATJE) temporalmente retirado
-          { path: 'fase2/satje', redirectTo: 'fase2/admin', pathMatch: 'full' },
+          { path: 'fase2/satje', redirectTo: '/abogado', pathMatch: 'full' },
           {
             path: 'fase2/billing',
             loadComponent: () =>
@@ -163,11 +159,11 @@ export const routes: Routes = [
           import('./pages/case-detail/case-detail.component').then((m) => m.CaseDetailComponent),
         canActivate: [authGuard],
       },
-      { path: 'fase2', redirectTo: 'abogado/fase2/admin', pathMatch: 'full' },
-      { path: 'fase2/admin', redirectTo: 'abogado/fase2/admin', pathMatch: 'full' },
+      { path: 'fase2', redirectTo: 'abogado', pathMatch: 'full' },
+      { path: 'fase2/admin', redirectTo: 'abogado', pathMatch: 'full' },
       { path: 'fase2/templates', redirectTo: 'abogado/fase2/templates', pathMatch: 'full' },
       { path: 'fase2/ai', redirectTo: 'abogado/fase2/ai', pathMatch: 'full' },
-      { path: 'fase2/satje', redirectTo: 'abogado/fase2/admin', pathMatch: 'full' },
+      { path: 'fase2/satje', redirectTo: 'abogado', pathMatch: 'full' },
       { path: 'fase2/billing', redirectTo: 'abogado/fase2/billing', pathMatch: 'full' },
     ],
   },

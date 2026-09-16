@@ -17,4 +17,49 @@ describe('Fase2BillingComponent licencia', () => {
     expect(c.flagLabel(true)).toBe('Sí');
     expect(c.flagLabel(false)).toBe('No');
   });
+
+  it('cobros de trámites suman cobrado y pendiente, no un grid de KPIs', () => {
+    const api = {
+      mockBilling: () => ({ subscribe: () => undefined }),
+      listCases: () => ({ subscribe: () => undefined }),
+    } as unknown as ApiService;
+    const c = new Fase2BillingComponent(api);
+    c.chargesLoading = false;
+    c.charges = [
+      {
+        id: 6,
+        client_id: 1,
+        status: '03',
+        status_label: 'Revisión',
+        result: 'apto',
+        city: 'Quito',
+        paid: true,
+        amount_cents: 34900,
+        created_at: '',
+        updated_at: '',
+        product: 'divorcio360',
+        client_name: 'Carlos Mendoza',
+      },
+      {
+        id: 8,
+        client_id: 1,
+        status: '01',
+        status_label: 'Recepción',
+        result: 'apto',
+        city: 'Quito',
+        paid: false,
+        amount_cents: 19900,
+        created_at: '',
+        updated_at: '',
+        product: 'traslado360',
+        client_name: 'María Salazar',
+      },
+    ];
+    expect(c.cobradoUsd).toBe(349);
+    expect(c.pendienteUsd).toBe(199);
+    expect(c.chargeRows.map((row) => row.id)).toEqual([8, 6]);
+    expect(c.chargesAside).toContain('cobrado');
+    expect(c.chargesAside).toContain('pendiente');
+    expect(c.chargesAside).not.toContain('KPI');
+  });
 });

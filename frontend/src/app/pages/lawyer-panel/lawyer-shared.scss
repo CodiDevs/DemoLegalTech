@@ -5,8 +5,10 @@
 }
 
 .lawyer-workspace {
+  --lawyer-rail: 14rem;
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: var(--lawyer-rail) minmax(0, 1fr);
+  column-gap: var(--space-3);
   height: 100%;
   min-height: 0;
   background: var(--bg-subtle);
@@ -19,26 +21,40 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  width: 248px;
+  width: 100%;
+  min-width: 0;
   min-height: calc(100dvh - var(--header-height));
-  padding: var(--space-5) var(--space-4) var(--space-6);
-  background: var(--surface);
-  border-right: 1px solid var(--border);
+  padding: var(--space-5) var(--space-3) var(--space-6) var(--space-3);
+  overflow: hidden;
+  background: var(--bg-subtle);
+  border-right: 0;
   animation: lawyer-side-in 480ms var(--ease-out);
 }
 
 .lawyer-sidebar h2 {
   margin: 0 0 var(--space-2);
   padding-inline: var(--space-3);
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
   font-size: var(--text-xs);
   font-weight: 650;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--text-muted);
+  transition:
+    opacity 280ms var(--ease-out),
+    transform 400ms var(--ease-out);
 }
 
 .lawyer-sidebar h2.lawyer-nav-section {
   margin-top: var(--space-6);
+}
+
+.lawyer-workspace.is-open .lawyer-sidebar h2 {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
 .lawyer-sidebar nav {
@@ -49,35 +65,103 @@
 .lawyer-sidebar nav a {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--space-3);
   min-height: var(--control-height);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   text-decoration: none;
   color: var(--text-secondary);
   font-weight: 600;
   font-size: var(--text-sm);
-  transition:
-    background 180ms var(--ease-out),
-    color 180ms var(--ease-out),
-    box-shadow 180ms var(--ease-out);
+  background: transparent;
+  transition: color 180ms var(--ease-out);
 }
 
 .lawyer-sidebar nav a app-icon {
   flex-shrink: 0;
 }
 
+.lawyer-sidebar nav a span {
+  opacity: 0;
+  transform: translateX(-8px);
+  white-space: nowrap;
+  pointer-events: none;
+  transition:
+    opacity 280ms var(--ease-out),
+    transform 400ms var(--ease-out);
+}
+
+.lawyer-workspace.is-open .lawyer-sidebar nav a span {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
 .lawyer-sidebar nav a:hover {
-  background: var(--bg-muted);
   color: var(--text);
 }
 
 .lawyer-sidebar nav a.on {
-  background: var(--primary-subtle);
   color: var(--primary);
 }
 
 .lawyer-sidebar nav a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.rail-pin {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: stretch;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-height);
+  margin-top: auto;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms var(--ease-out);
+}
+
+.rail-pin app-icon {
+  flex-shrink: 0;
+}
+
+.rail-pin span {
+  opacity: 0;
+  transform: translateX(-8px);
+  white-space: nowrap;
+  pointer-events: none;
+  transition:
+    opacity 280ms var(--ease-out),
+    transform 400ms var(--ease-out);
+}
+
+.lawyer-workspace.is-open .rail-pin span {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.rail-pin:hover {
+  color: var(--text);
+}
+
+.rail-pin.on {
+  color: var(--primary);
+}
+
+.rail-pin:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
@@ -88,7 +172,7 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding: var(--space-6) var(--container-pad) var(--space-8);
+  padding: var(--space-6) var(--container-pad) var(--space-8) var(--space-4);
 }
 
 .lawyer-main router-outlet {
@@ -127,8 +211,10 @@
     min-height: 0;
   }
 
-  .lawyer-workspace {
+  .lawyer-workspace,
+  .lawyer-workspace.is-open {
     grid-template-columns: 1fr;
+    column-gap: 0;
     height: auto;
     min-height: 0;
   }
@@ -137,10 +223,30 @@
     position: static;
     width: auto;
     min-height: 0;
+    overflow: visible;
     border-right: 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 0;
     padding: var(--space-4) var(--container-pad);
     animation: lawyer-main-in 360ms var(--ease-out);
+  }
+
+  .lawyer-sidebar h2,
+  .lawyer-workspace.is-open .lawyer-sidebar h2,
+  .lawyer-sidebar nav a span,
+  .lawyer-workspace.is-open .lawyer-sidebar nav a span,
+  .rail-pin span,
+  .lawyer-workspace.is-open .rail-pin span {
+    height: auto;
+    margin: 0 0 var(--space-2);
+    padding-inline: var(--space-3);
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .lawyer-sidebar h2.lawyer-nav-section,
+  .lawyer-workspace.is-open .lawyer-sidebar h2.lawyer-nav-section {
+    margin-top: var(--space-6);
   }
 
   .lawyer-sidebar nav {
@@ -148,7 +254,16 @@
     flex-wrap: wrap;
   }
 
+  .lawyer-sidebar nav a,
+  .lawyer-workspace.is-open .lawyer-sidebar nav a {
+    padding-inline: var(--space-3);
+  }
+
   .lawyer-main {
     padding-inline: var(--container-pad);
+  }
+
+  .rail-pin {
+    display: none;
   }
 }

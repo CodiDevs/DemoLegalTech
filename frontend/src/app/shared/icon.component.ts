@@ -21,7 +21,7 @@ export type IconName =
   | 'scale' | 'shield' | 'building' | 'home' | 'briefcase'
   | 'map-pin' | 'flag' | 'plane' | 'chart' | 'calendar' | 'gavel'
   // Sistema
-  | 'bell' | 'search' | 'lock' | 'log-out' | 'credit-card'
+  | 'bell' | 'search' | 'lock' | 'unlock' | 'log-out' | 'credit-card'
   | 'video' | 'mail' | 'plus' | 'trash' | 'inbox' | 'sparkle';
 
 @Component({
@@ -199,6 +199,10 @@ export type IconName =
         @case ('lock') {
           <rect x="4.5" y="10.5" width="15" height="10.5" rx="2" />
           <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+        }
+        @case ('unlock') {
+          <rect x="4.5" y="10.5" width="15" height="10.5" rx="2" />
+          <path d="M8 10.5V7.5a4 4 0 0 1 8 0" />
         }
         @case ('log-out') {
           <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
