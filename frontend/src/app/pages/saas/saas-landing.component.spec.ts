@@ -6,26 +6,8 @@ import { SaasLandingComponent } from './saas-landing.component';
 
 describe('SaasLandingComponent', () => {
   let fixture: ComponentFixture<SaasLandingComponent>;
-  let observed: IntersectionObserverCallback | undefined;
-  let disconnect: jasmine.Spy;
-  const OriginalIO = window.IntersectionObserver;
 
   beforeEach(async () => {
-    observed = undefined;
-    disconnect = jasmine.createSpy('disconnect');
-    window.IntersectionObserver = class FakeIO implements IntersectionObserver {
-      readonly root = null;
-      readonly rootMargin = '';
-      readonly thresholds = [];
-      constructor(cb: IntersectionObserverCallback) {
-        observed = cb;
-      }
-      observe = jasmine.createSpy('observe');
-      unobserve = jasmine.createSpy('unobserve');
-      disconnect = disconnect;
-      takeRecords = () => [];
-    } as unknown as typeof IntersectionObserver;
-
     await TestBed.configureTestingModule({
       imports: [SaasLandingComponent],
       providers: [
@@ -42,7 +24,6 @@ describe('SaasLandingComponent', () => {
 
   afterEach(() => {
     if (fixture && !fixture.componentRef.hostView.destroyed) fixture.destroy();
-    window.IntersectionObserver = OriginalIO;
   });
 
   it('pinta las tarjetas del catálogo de trámites', () => {
@@ -51,22 +32,10 @@ describe('SaasLandingComponent', () => {
     expect(cards.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('desconecta el observer tras marcar capítulos en vista', () => {
-    spyOnProperty(window, 'innerHeight', 'get').and.returnValue(1);
+  it('no monta nodos de choreografía muerta', () => {
     fixture.detectChanges();
-    expect(observed).toBeDefined();
-
-    const nodes = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.ls-choreo, .lp-reveal'),
-    );
-    if (nodes.length > 0) {
-      observed!(
-        nodes.map((target) => ({ isIntersecting: true, target } as IntersectionObserverEntry)),
-        {} as IntersectionObserver,
-      );
-      expect(nodes[0].classList.contains('is-in-view')).toBeTrue();
-      expect(disconnect).toHaveBeenCalled();
-    }
+    const nodes = (fixture.nativeElement as HTMLElement).querySelectorAll('.ls-choreo, .lp-reveal');
+    expect(nodes.length).toBe(0);
   });
 
   it('recorrido: cinco estaciones del flujo civil y selección de estación', () => {

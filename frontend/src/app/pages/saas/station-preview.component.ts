@@ -8,11 +8,9 @@ import { IconComponent } from '../../shared/icon.component';
   template: `
     <div class="station-preview-window" [attr.data-station]="stationIndex">
       <header class="docket-header">
-        <div class="docket-title tabular">
+        <div class="docket-title">
           <app-icon name="scale" [size]="14" class="docket-icon" />
-          <span class="docket-id">#LS-2026-0842</span>
-          <span class="docket-sep">·</span>
-          <span class="docket-matter">Divorcio mutuo consentimiento</span>
+          <span class="docket-matter">Divorcio por mutuo consentimiento, datos de ejemplo</span>
         </div>
         <div class="docket-tag tabular">
           <span class="docket-tag-count">0{{ stationIndex + 1 }}</span>
@@ -48,8 +46,6 @@ import { IconComponent } from '../../shared/icon.component';
                 <li>Sin hijos menores</li>
                 <li>Régimen liquidado</li>
               </ul>
-
-              <p class="pane-foot">Plazo estimado · 14 días</p>
             </div>
           }
 
@@ -152,11 +148,6 @@ import { IconComponent } from '../../shared/icon.component';
                 </div>
               </div>
 
-              <div class="acta-block">
-                <span class="meta-label">Acta notarial</span>
-                <span class="acta-num tabular">ACT-2026-170130-00412</span>
-              </div>
-
               <ul class="doc-list">
                 <li>
                   <app-icon name="file-text" [size]="15" class="doc-icon" />
@@ -214,15 +205,6 @@ import { IconComponent } from '../../shared/icon.component';
     .docket-icon {
       color: var(--primary);
       flex-shrink: 0;
-    }
-
-    .docket-id {
-      font-weight: 650;
-      color: var(--text);
-    }
-
-    .docket-sep {
-      color: var(--border-strong);
     }
 
     .docket-tag {
@@ -347,20 +329,6 @@ import { IconComponent } from '../../shared/icon.component';
       color: var(--text-secondary);
       padding: 0.55rem 0;
       border-bottom: 1px solid var(--border);
-      padding-left: 1rem;
-      position: relative;
-    }
-
-    .fact-list li::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--primary);
-      transform: translateY(-50%);
     }
 
     .fact-list li:last-child {
@@ -417,7 +385,7 @@ import { IconComponent } from '../../shared/icon.component';
       padding: var(--space-4) var(--space-5);
       background: var(--bg-subtle);
       border-radius: var(--radius-md);
-      border-left: 2px solid var(--primary);
+      border-block: 1px solid var(--border);
     }
 
     .minuta-dest {
@@ -435,21 +403,6 @@ import { IconComponent } from '../../shared/icon.component';
       font-size: var(--text-sm);
       line-height: 1.6;
       color: var(--text-secondary);
-    }
-
-    .acta-block {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      padding: var(--space-3) 0;
-      border-block: 1px solid var(--border);
-    }
-
-    .acta-num {
-      font-size: var(--text-base);
-      font-weight: 650;
-      letter-spacing: -0.01em;
-      color: var(--text);
     }
 
     .pane-foot {

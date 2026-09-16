@@ -110,29 +110,20 @@ describe('SignComponent', () => {
     expect(fixture.componentInstance.selectedFile?.name).toBe('f.png');
   });
 
-  it('muestra el lienzo de LegalStation antes de cobrar', () => {
+  it('muestra el QR de LegalStation y cobra sin lienzo', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('.sign-pad')).not.toBeNull();
-    expect(root.textContent).toContain('Limpiar');
-    expect(root.textContent).toContain('Confirmar');
-    expect(root.textContent).not.toContain('Pagar $15.00 y firmar');
+    expect(root.querySelector('.sign-pad')).toBeNull();
+    expect(root.querySelector('.sign-qr')).not.toBeNull();
+    expect(root.textContent).toContain('Sello QR LegalStation');
+    expect(root.textContent).toContain('No es una rúbrica');
+    expect(root.textContent).toContain('Pagar $15.00 y obtener QR');
+    expect(root.textContent).not.toContain('Limpiar');
+    expect(root.textContent).not.toContain('Confirmar');
     const steps = root.querySelector('.sign-steps') as HTMLElement;
     expect(getComputedStyle(steps).pointerEvents).toBe('none');
-  });
-
-  it('confirma la firma del lienzo y entonces permite pagar', () => {
-    fixture.detectChanges();
-    const cmp = fixture.componentInstance;
-    const canvas = (fixture.nativeElement as HTMLElement).querySelector('.sign-pad') as HTMLCanvasElement;
-    spyOn(canvas, 'toDataURL').and.returnValue('data:image/png;base64,xx');
-    cmp.padDirty = true;
-    cmp.confirmPlatformPad();
-    fixture.detectChanges();
-    const root = fixture.nativeElement as HTMLElement;
-    expect(cmp.platformSignatureDataUrl).toBe('data:image/png;base64,xx');
-    expect(root.textContent).toContain('Firma registrada');
-    expect(root.textContent).toContain('Pagar $15.00 y firmar');
+    expect(fixture.componentInstance.signatureFileName).toBe('sello-qr.png');
+    expect(fixture.componentInstance.platformSignatureDataUrl.startsWith('data:image/png')).toBeTrue();
   });
 
   it('no envía sin archivo; busy durante envío; error recuperable y reupload', () => {
@@ -159,11 +150,12 @@ describe('SignComponent', () => {
     cmp.startReupload();
     expect(cmp.mode).toBe('upload');
     expect(cmp.selectedFile).toBeNull();
+    expect(cmp.stampSrc).toBe('');
   });
 
-  it('muestra firma de plataforma como cobro aparte y llama sign con channel platform', fakeAsync(() => {
+  it('tras el cobro entrega el QR: descargar o aplicar a la minuta', fakeAsync(() => {
     api.sign.and.returnValue(of({
-      image_url: '/firma.pdf',
+      image_url: '/sello-qr.png',
       signed_at: '2026-09-13',
       ip: '1.1.1.1',
       channel: 'platform',
@@ -172,7 +164,7 @@ describe('SignComponent', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('$15.00');
-    expect(root.textContent).toContain('Firmar con LegalStation');
+    expect(root.textContent).toContain('Sello QR LegalStation');
     const cmp = fixture.componentInstance;
     cmp.submitPlatform();
     expect(api.sign).not.toHaveBeenCalled();
@@ -184,24 +176,41 @@ describe('SignComponent', () => {
     tick(600);
     expect(cmp.payStage).toBe('signed');
     tick(500);
-    expect(api.sign).toHaveBeenCalledWith(4, null, 'platform');
+    expect(api.sign).not.toHaveBeenCalled();
+    expect(cmp.assetReady).toBeTrue();
+    expect(cmp.mode).toBe('upload');
+    expect(cmp.stampSrc).toContain('data:image/png');
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Descargar');
+    expect(root.textContent).toContain('Aplicar a la minuta');
+    expect(root.textContent).toContain('sello-qr.png');
+    cmp.applyToMinuta();
+    expect(api.sign).toHaveBeenCalled();
+    const [id, file, channel] = api.sign.calls.mostRecent().args;
+    expect(id).toBe(4);
+    expect(channel).toBe('platform');
+    expect(file).toBeInstanceOf(File);
+    expect((file as File).name).toBe('sello-qr.png');
     expect(cmp.mode).toBe('done');
     expect(cmp.payingPlatform).toBeFalse();
     fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Firma aplicada');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('QR aplicado');
+    cmp.startReupload();
+    expect(cmp.stampSrc).toBe('');
     expect(cmp.signedAtLabel('2026-09-13T21:40:45Z')).toContain('2026');
     expect(cmp.signedAtLabel('t')).toBe('t');
   }));
 
-  it('no cobra plataforma si el envío falla', fakeAsync(() => {
+  it('si aplicar falla, el QR sigue listo', fakeAsync(() => {
     api.sign.and.returnValue(throwError(() => ({ error: { error: 'cobro' } })));
     fixture.detectChanges();
     const cmp = fixture.componentInstance;
     cmp.submitPlatform();
-    expect(cmp.payingPlatform).toBeTrue();
     tick(2200);
+    expect(cmp.assetReady).toBeTrue();
+    cmp.applyToMinuta();
     expect(cmp.mode).toBe('upload');
-    expect(cmp.payingPlatform).toBeFalse();
+    expect(cmp.assetReady).toBeTrue();
     expect(cmp.error).toBe('cobro');
   }));
 });

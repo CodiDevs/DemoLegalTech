@@ -20,9 +20,8 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     <app-product-flow-shell
       [theme]="theme"
       [crumb]="crumb"
-      eyebrow="Pago seguro · Payphone"
       title="Pago del trámite"
-      subtitle="Un solo cobro — sin suscripción mensual."
+      subtitle="Un solo cobro. Sin suscripción mensual."
     >
       @if (caseItem) {
         <div
@@ -324,8 +323,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       align-items: center;
       justify-content: center;
       padding: var(--space-4);
-      background: oklch(0.12 0.02 230 / 0.62);
-      backdrop-filter: blur(4px);
+      background: var(--overlay-strong);
       animation: overlay-in var(--dur-base) var(--ease);
     }
 

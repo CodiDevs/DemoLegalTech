@@ -4,6 +4,21 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Cuestionario se guarda en el navegador | `/cuestionario` responde 2 → Inicio → vuelve: sigue en la misma pregunta | 2026-09-15 |
+| done | Rail del despacho hover | `abogado@demo.ec` → `/abogado`: folio quieto; hover revela texto; candado Fijar deja el menú abierto (F5 lo recuerda) | 2026-09-15 |
+| done | Bandeja fusiona Resumen + cobros en licencia | `abogado@demo.ec` → `/abogado`: Detenidos filtra la lista. Sin Resumen en el rail. Facturación: Cobros de trámites (cobrado/pendiente + filas), no 4 KPIs | 2026-09-15 |
+| done | Cliente sin Próximamente | `/cliente` sidebar: Todos + live. Sin SignDesk/MatterFlow/ComplianceHub/NotaryLink | 2026-09-15 |
+| done | Barra del cuestionario se puede volver | `/cuestionario` responde una → “Clic en un paso hecho para volver” → clic en el tramo teal | 2026-09-15 |
+| done | Hero elige trámite en home | `/` → Iniciar un trámite abre Divorcio/Traslado/BienRaíz; `/productos/divorcio360` sigue al cuestionario | 2026-09-15 |
+| done | Subtítulos solo si aportan dato | `/` catálogo/FAQ sin lede; Precios sí. `/cuestionario` pregunta sin pista bajo el H1. `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice | 2026-09-15 |
+| done | Sello QR LegalStation | `cliente@demo.ec` → `/firma/:id`: QR (no rúbrica), pagar $15, Descargar o Aplicar a la minuta | 2026-09-15 |
+| done | Asistente expediente real + Enviar a la vista | `abogado@demo.ec` → Asistente: select `#id · producto · etapa` (no fuerza #1); Enviar queda en el pliegue | 2026-09-15 |
+| done | Despacho Facturación + Modelos + Servicios | `abogado@demo.ec` → Licencia: tabla de planes (no 3-up); Modelos: Familia no FAMILIA; Servicios: tabs sin 2/2/0 ni slug | 2026-09-15 |
+| done | Despacho Resumen + expediente destilado | `abogado@demo.ec` → `/abogado/fase2/admin`: Te toca, no 4 KPIs; Detenidos → bandeja con filtro de etapa; `/abogado/caso/6` etapas con nombre, Q cerrado, un primary; Asistente H1 + icono search | 2026-09-15 |
+| done | Despacho /abogado (chrome + bandeja folio) | `abogado@demo.ec` → `/abogado`: sin Cómo funciona/Precios ni footer; filas con verbo; filtro Revisión dice “Hay N en la bandeja” | 2026-09-15 |
+| done | Guest cuestionario, auth al cobrar | Logout → `/productos/divorcio360` → Iniciar Formulario → `/cuestionario`; resultado → cuenta para pagar | 2026-09-15 |
+| done | Anti-slop F2+F3 | `/` — sin 24h ni “expediente real”; pilares 2+1; checkout plano | 2026-09-15 |
+| done | Hero expediente plano + pasos | `/` — folio derecho recto; clic en 1–6 cambia Estado y titular | 2026-09-15 |
 | done | Bootstrap repo | `README.md` — `go run ./cmd/api` + `npm start` | 2026-08-29 |
 | done | Auth + seed users | Login `cliente@demo.ec` / `abogado@demo.ec` (`demo1234`) | 2026-08-29 |
 | done | Cuestionario inteligente | Landing → Cuestionario → green/yellow/red | 2026-08-29 |
@@ -57,8 +72,148 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Bandeja búsqueda + filtros | `/abogado` — busca por nombre/#; Servicio + Estado (Revisión preseleccionado); 10/página | 2026-09-14 |
 | done | Precios toggle Servicios/Licencia | `/#precios` — toggle; Servicios = honorarios $349/$199/$299; Licenciamiento = planes mes | 2026-09-14 |
 | done | Expediente abogado dossier denso | `abogado@demo.ec` → `/abogado/caso/4` — cabecera tipográfica + tabs; pendientes en rail derecho | 2026-09-14 |
+| done | Marketing sin AI slop | `/` + Divorcio/Traslado/BienRaiz sin tiras de métricas, checkmarks, testimonios, kickers ni códigos falsos | 2026-09-15 |
+| done | Cuestionario rearmado + resto sin slop | `/cuestionario` con hoja y progreso únicos; KPIs de Fase 2 honestos; inglés y em-dash fuera | 2026-09-15 |
+| done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Cuestionario se guarda en el navegador
+Cada respuesta del cuestionario (Divorcio360 y Traslado/BienRaíz) queda en `localStorage`. Cerrar la pestaña o ir a otra página no borra el avance. El expediente creado sí limpia el borrador.
+
+**Demo:** `/cuestionario` → Sí → Sí → `/` → `/cuestionario`: sigue en la tercera pregunta, con las dos primeras marcadas.
+
+### 2026-09-15 — Cliente sin Próximamente
+El rail de `/cliente` solo lista trámites vivos. SignDesk y el resto `live: false` no ocupan el pliegue.
+
+**Demo:** `cliente@demo.ec` → `/cliente` → sidebar sin bloque Próximamente.
+
+### 2026-09-15 — Bandeja come Resumen; cobros en licencia
+Resumen salió del rail. `/abogado/fase2/admin` abre la bandeja. Detenidos son atajos de etapa (conteo · días) sobre la lista. Lo cobrado a clientes vive en Facturación B2B: una línea cobrado/pendiente y las filas del trámite, aparte de las facturas de la licencia.
+
+**Demo:** `abogado@demo.ec` → Bandeja (clic en Detenidos) → Facturación B2B (Cobros de trámites) → un `#` abre el expediente.
+
+### 2026-09-15 — Rail del despacho hover
+El aside de `/abogado` no es un panel blanco. El folio reserva el ancho abierto: hover revela el texto en ese hueco; al salir las etiquetas se van y **la página no se recorre**. El candado de abajo (**Fijar**) deja el menú abierto y se recuerda al recargar.
+
+**Demo:** `abogado@demo.ec` → `/abogado` → hover el rail → candado Fijar → F5: el texto sigue.
+
+### 2026-09-15 — Barra del cuestionario se puede volver
+Los tramos hechos ya eran un hit. Ahora se leen: más gruesos, cursor, hover, y la línea “Clic en un paso hecho para volver”.
+
+**Demo:** `/cuestionario` → Sí → clic en el primer tramo teal → vuelve a “¿Los dos quieren divorciarse?”.
+
+### 2026-09-15 — Hero elige trámite en home
+En LegalStation el CTA del hero ya no clava Divorcio360. Se abre la lista de trámites vivos. En cada sitio de producto, el CTA sigue al cuestionario.
+
+**Demo:** `/` → Iniciar un trámite → Traslado360. `/productos/divorcio360` → Iniciar Formulario → `/cuestionario`.
+
+### 2026-09-15 — Subtítulos solo si aportan dato
+El H1/H2 no arrastra un párrafo de relleno. Se queda el lede si trae precio, cupo, restricción o el siguiente paso. Fuera: parafraseo del título.
+
+**Demo:** `/` catálogo y FAQ sin lede; Precios sí (pago único vs licencia). `/cuestionario` solo la pregunta y Sí/No. `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice.
+
+### 2026-09-15 — Sello QR LegalStation
+La firma electrónica del SaaS no es una rúbrica dibujada. Es un QR (`sello-qr.png`) de verificación: se paga $15, se descarga o se aplica a la minuta. El QR queda sobre el PDF.
+
+**Demo:** `cliente@demo.ec` → `/firma/:id` con minuta → Pagar $15 y obtener QR → Descargar y/o Aplicar a la minuta.
+
+### 2026-09-15 — Asistente expediente real + Enviar a la vista
+El select deja de clavar el caso `#1`. Abre el primero del sort (Revisión primero). Cada opción es `#id · producto · etapa`, porque el seed usa un solo cliente. El compositor (Enviar) queda dentro del viewport: el chat llena el alto del despacho y el log es el que scrollea. Bandeja: solo fuera de plazo lleva lavado; “te toca” ya está en el verbo de la fila.
+
+**Demo:** `abogado@demo.ec` → Asistente de revisión → cambiar de expediente en el select → Enviar visible sin bajar. Bandeja: fila con “Fuera de plazo” en ámbar, el resto sin teal.
+
+### 2026-09-15 — Despacho Facturación + Modelos + Servicios
+Licencia deja el 3-up SaaS: una tabla (precio, operadores, casos, asistente, SATJE). Modelos: categoría en Inter normal, chips cuadrados. Servicios: tabs Todos/Publicados/Borradores; conteo solo en el masthead; sin `/slug` en la tarjeta.
+
+**Demo:** `abogado@demo.ec` → Facturación B2B (tabla, plan actual marcado) → Modelos → Servicios.
+
+### 2026-09-15 — Despacho Resumen + expediente destilado
+Resumen deja el teatro de 4 KPIs: una línea en el masthead y la lista **Te toca**. Detenidos es una lista quieta: clic abre la bandeja con `?estado=` de esa etapa. Expediente muestra etapas con nombre (Recepción, Revisión, Minuta…), cuestionario cerrado y filtrado (sin tenencia si no hay hijos), y un solo `btn-primary`. Asistente: H1 «Asistente», icono search en el rail.
+
+**Demo:** `abogado@demo.ec` → Resumen → un folio de Te toca → expediente #6 (chips con nombre, abrir Cuestionario) → Asistente de revisión.
+
+### 2026-09-15 — Despacho /abogado (chrome + bandeja folio)
+`/abogado/**` deja de ser landing con sidebar. Header: marca → bandeja, campana, Dra. Sin Servicios/Inicio/Cómo funciona/Precios ni pie de productos. Bandeja sigue marcada en `/abogado/caso/:id`. Inbox abre en todos los estados; filtro vacío dice “Ninguno en Revisión. Hay N en la bandeja.” Filas folio: número, nombre, ciudad, verbo, días. Sin cajita de icono, sin 10 pips, sin “Abrir”, sin hover que empuja.
+
+**Demo:** login `abogado@demo.ec` → `/abogado` (lista con trabajo) → un expediente (Bandeja sigue on) → filtro Estado Revisión (empty honesto → Ver todos). Home `/` sigue con nav de marketing.
+
+### 2026-09-15 — Guest cuestionario, auth al cobrar
+**Iniciar Formulario** (invitado) va a `/cuestionario`, no a `/auth`. El resultado apto pide cuenta para pagar (`next=checkout`); checkout sigue con `authGuard`.
+
+**Demo:** logout → `/productos/divorcio360` → Iniciar Formulario → completar cuestionario → Crear cuenta para pagar / Ya tengo cuenta → checkout.
+
+### 2026-09-15 — Anti-slop F2+F3
+Guard de marketing ahora falla si reaparecen `.ls-choreo` / `.ls-plan-items`, claims `24h` / `expediente real` / `en minutos`. CSS muerto de home vieja (rail, license-plate, `&.legalstation-landing`) fuera. Home: CTA de ejemplo, pilares asimétricos, plan Professional con tag `10 operadores` (badge Recomendado una sola vez), minuta sin `border-left`. Checkout sin `rotateY`.
+
+**Demo:** `/` → flujo + precios Professional → `/checkout/:id` folio plano. `/productos/traslado360` heads a la izquierda.
+
+### 2026-09-15 — Hero expediente plano + pasos
+El mock de `/` iba torcido (`perspective` + `rotateX/Y`) y el copy decía “expediente de ejemplo”. Ahora es un folio plano. Cada fila es un botón: el titular y el Estado siguen el paso activo, con fade+blur.
+
+**Demo:** `/` → hover el botón 1 activa Estado 01; hover 4 activa 04. Clic o foco igual. Misma ventana en `/productos/divorcio360` escena Flujo.
+
+### 2026-09-15 — Cierre anti-slop: estados, paleta, muertos
+Segunda pasada del cierre. Detalle completo en [`docs/NO_SLOP.md`](NO_SLOP.md).
+
+- **Estados**: 6 definiciones y 4 vocabularios para los mismos 10 estados → `shared/case-status.data.ts` (`short`, `clientHint`, `lawyerHint`, `filterLabel`) consumido por `client-panel`, `lawyer-panel` y `lawyer-case`. Se unificó también la lista de códigos (`STATE_KEYS` era un tercer origen). Guard nuevo: `case-status.data.spec.ts`.
+- **Paleta**: tokens `--overlay`/`--overlay-strong`; `--shadow-md`/`--shadow-lg` a una capa; `case-detail` migrado de 5 `oklch()` + `white` + tokens viejos a los de estado; `#2f7d51` → `#2b7749` (eran dos verdes); `#faf7f0` → `--bg-subtle`; confeti del recibo a paleta de marca.
+- **Tells**: `backdrop-filter` fuera del header y de los 3 overlays; los 6 `border-left` de acento de 3-4px pasaron a tinte de fondo o badge; sheen infinito del segmento activo borrado.
+- **Muertos**: 11 componentes y sus carpetas (incluido `fase2-shell` + `mock-badge` y `route-curtain` + `cinematic-path` con sus specs) más el CSS huérfano (`.lp-values`, `.lp-list-tt`, `.container-narrow`, `.btn-accent`, `.badge-demo`).
+- **Copy**: em-dash fuera en expediente, pasos del cliente y grafo de servicios; placeholders `'—'` → `'Sin indicar'`.
+
+**Demo:** `abogado@demo.ec` → `/abogado` y `/abogado/caso/1` (estados y acentos), `cliente@demo.ec` → `/cliente`. Verificación: `bun run build:frontend` y `bun run test:frontend` (109 specs).
+
+### 2026-09-15 — Cuestionario rearmado + resto del frontend sin slop
+El cuestionario no estaba solo feo: estaba roto. Un folio vertical "01 / 09", una hoja de 608px con ~300px de vacío, y un documento SVG con sello de agua desbordándose por detrás. Detalle completo en [`docs/NO_SLOP.md`](NO_SLOP.md).
+
+**Causas**
+- `onboarding.scss` estilizaba `.ob-card` (21 reglas), un componente que ningún template usa: los cuestionarios usan `.ob-sheet` (estilado en `cinematic.scss`). Las reglas de veredicto `is-apto/is-evaluacion/is-no_aplica` apuntaban al fantasma, así que el borde de color del resultado nunca se aplicaba. Se portaron a `.ob-sheet`.
+- `/* Questionnaire monument */ .theme-divorcio .ob { max-width: 72rem }`: un formulario de una pregunta a 1152px de ancho.
+- Diez capas decorativas detrás de una pregunta.
+
+**Cambios**
+- Stage de 10 capas a 3 (papel, una luz, renglones). Fuera barrido, sello, viñeta y las 5 "washes" por categoría.
+- Una sola lectura de progreso: se elimina el folio vertical y el hint redundante.
+- Hoja con `--radius-lg` y `--shadow-md` de una capa; `min-height` de `min(70vh, 38rem)` a `min(46vh, 24rem)`; bloque centrado.
+- `--max-width` del formulario a 40rem (44rem en pantallas grandes).
+- Botones Sí/No sobrios (4.5rem, un estado) sin barrido, `translateX` ni anillo-sello.
+- Igual en `product-questionnaire`.
+- KPIs de Fase 2 sin defaults inventados (`|| 21595`, `|| 94`, `|| 18.4`, `|| 14`, `|| 8`, `|| 64`) ni `SLA objetivo: ≤ 21 días`; sin API, la tarjeta dice "Sin datos".
+- Fuera el eyebrow del flujo (`product-flow-shell` + 5 llamadas): dos eran el pill con `·` prohibido.
+- Auth: "Inicia sesión", "Cuentas de ejemplo", sin eyebrow, copy corregido.
+- Inglés fuera del copy español (`timeline`, `SLA`, `workflow`, `zoom`, `preview`, `Push notifications`, `Offline`, `Canvas`).
+- `index.html` sin em-dash ni "100% virtuales".
+
+**Demo:** `/cuestionario` (paso 1, revisión y resultado) y `/productos/traslado360/cuestionario`. Verificación: `bun run build:frontend` y `bun run test:frontend` (111 specs).
+
+**Pendiente:** unificar los 4 mapas de estado, borrar los 9 componentes muertos y su CSS, y los tells de CSS restantes (header con blur, confeti violeta, `border-left` de acento). Ver `docs/NO_SLOP.md`.
+
+### 2026-09-15 — Marketing sin AI slop (landings + cuestionario)
+Erradicación de los patrones que `AGENTS.md` §2 prohíbe en la superficie de marketing, más el copy inflado.
+
+**Fuera del producto**
+- `LandingStatisticsComponent` eliminado (tira de 3 métricas sintéticas) y el campo `stats` del modelo de producto. La escena `#evidencia` de Divorcio360 ahora deriva del `workflow` y del `price` reales.
+- Checkmarks de garantías fuera del catálogo y de los planes de licencia; `.lp-plan li::before` y `.lp-list-check` borrados.
+- Testimonios fabricados ('Ana R.', 'María V.', 'Bufete Ruiz', 'Vega & Asociados') eliminados junto con el campo `testimonials`.
+- Headers con código falso: `#LS-2026-0842` y `ACT-2026-170130-00412` (station preview), `Expediente LS-014` y `Estado 04 · minuta lista` (demo case window).
+- Eyebrows y kickers fuera (`.section-kicker`, `.lp-eyebrow`, `.lp-cta-eyebrow`, `.cine-kicker` de escena). El pill `Un solo pago · sin cuotas mensuales` eliminado.
+- Los 5 SVG de `demo-scenes` ya no rotulan "DEMO" (cierra el intento del 2026-09-13, que solo cubrió el mock del home): `DOCUMENTO FICTICIO`, `DE EJEMPLO`, `Firmante A/B`, `Expediente de ejemplo`.
+- Métrica inventada `~14 días resolución` y `Plazo estimado · 14 días` eliminadas. Campos muertos de la landing borrados (`featuredProduct`, `sidePlans`, `enterprise`, `LEGALSTATION_ENTERPRISE`, inputs sin uso del hero).
+
+**Copy**
+- H1 a 3–5 palabras: `Divorcio por mutuo acuerdo.`, `Traslado vehicular sin filas.`, `Traslado de inmueble sin gravámenes.`
+- Em-dash retórico fuera del copy corto (ledes, `pq-price`, barras de mock, opciones de cuestionario, placeholders de revisión).
+- Slogan canónico sin la tautología "sin filas ni trámites" ni "al mismo costo", que el propio test veta.
+- "inteligente" y "en vivo" fuera del catálogo; `alt` de galería sin "DEMO"; garantías genéricas reescritas (`SLA 99.9% y soporte 24/7` → acompañamiento en la puesta en marcha).
+
+**Guards**
+- `product-sites.data.spec.ts`: el guard de copy ahora recorre los 7 productos y el catálogo, y suma `—`, `inteligente`, `en vivo`, `\bSLA\b`, `kanban`, `\bsync\b`.
+- Nuevo `slop-guard.spec.ts`: renderiza las 4 landings y asserta ausencia de kickers, checks de garantía, códigos de expediente y em-dash.
+
+**Demo:** guest en `/`, `/productos/divorcio360`, `/productos/traslado360` y `/productos/bienraiz360`. Verificación: `bun run test:frontend` (111 specs) y `bun run build:frontend`.
+
+**Pendiente (fuera de este slice):** overflow horizontal por debajo de ~400px, preexistente y visible también en `/auth`. Restan en auth (`ACCESO RÁPIDO (DEMO)`, `Bienvenido de nuevo`), checkout/upload (em-dash), `client-panel` ("timeline"), `STAGE_HINT`/`STAGE_SHORT` duplicados, header con blur y 5 componentes muertos.
 
 ### 2026-09-14 — Expediente abogado dossier denso
 `abogado@demo.ec` → Bandeja → expediente en revisión (ej. `#4`). Cabecera sin caja (H1 Fraunces + badge + progreso compacto + regla teal). Pendientes y «Próxima acción» en el rail derecho. Un solo panel por tab (Resumen/Documentos/Minuta/Firmas/Historial).

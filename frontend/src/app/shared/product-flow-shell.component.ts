@@ -26,9 +26,8 @@ export type ProductFlowTheme = 'divorcio' | 'legalstation' | 'traslado' | 'bienr
             }
           </nav>
         }
-        @if (eyebrow || title) {
+        @if (title) {
           <header class="pf-head">
-            @if (eyebrow) { <span class="lp-eyebrow">{{ eyebrow }}</span> }
             @if (title) { <h1>{{ title }}</h1> }
             @if (subtitle) { <p class="pf-muted">{{ subtitle }}</p> }
           </header>
@@ -43,7 +42,6 @@ export type ProductFlowTheme = 'divorcio' | 'legalstation' | 'traslado' | 'bienr
 })
 export class ProductFlowShellComponent {
   @Input() theme: ProductFlowTheme = 'divorcio';
-  @Input() eyebrow = '';
   @Input() title = '';
   @Input() subtitle = '';
   @Input() steps: ProgressStep[] = [];

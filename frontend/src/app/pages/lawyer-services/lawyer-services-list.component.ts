@@ -19,18 +19,16 @@ type Lane = 'all' | 'publicado' | 'borrador';
         <a routerLink="/abogado/servicios/nuevo" class="btn btn-primary">Nuevo servicio</a>
       </app-workspace-head>
 
-      <div class="lanes" role="group" aria-label="Filtrar servicios">
+      <div class="filters" role="tablist" aria-label="Filtrar servicios">
         @for (lane of lanes; track lane.id) {
           <button
             type="button"
-            class="lane"
+            role="tab"
+            class="filter"
             [class.on]="filter === lane.id"
-            [attr.aria-pressed]="filter === lane.id"
+            [attr.aria-selected]="filter === lane.id"
             (click)="filter = lane.id"
-          >
-            <span class="lane-n tabular">{{ count(lane.id) }}</span>
-            <span class="lane-l">{{ lane.label }}</span>
-          </button>
+          >{{ lane.label }}</button>
         }
       </div>
 
@@ -69,7 +67,6 @@ type Lane = 'all' | 'publicado' | 'borrador';
                 <strong class="price tabular">{{ moneyUSD(s.price_usd) }}</strong>
                 <span>{{ s.duration_hint || 'Plazo a definir' }}</span>
               </div>
-              <p class="slug">/{{ s.slug }}</p>
               <div class="actions">
                 <a class="btn btn-primary" [routerLink]="['/abogado/servicios', s.id]">Editar</a>
                 <button type="button" class="btn btn-secondary" (click)="dup(s)" [disabled]="busy">Duplicar</button>
@@ -88,57 +85,39 @@ type Lane = 'all' | 'publicado' | 'borrador';
   styles: [`
     .svc { max-width: 980px; }
 
-    .lanes {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--space-2);
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
       margin-bottom: var(--space-5);
+      border-bottom: 1px solid var(--border);
     }
 
-    .lane {
-      display: grid;
-      gap: 0.15rem;
-      min-height: 4rem;
-      padding: var(--space-3);
-      text-align: left;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
+    .filter {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: var(--space-2) var(--space-3);
+      font: inherit;
+      font-size: var(--text-sm);
+      font-weight: 600;
       color: var(--text-secondary);
-      box-shadow: var(--shadow-sm);
-      animation: svc-in 480ms var(--ease-out) both;
-      transition:
-        transform 240ms var(--ease-out),
-        border-color 200ms var(--ease),
-        background 200ms var(--ease),
-        box-shadow 240ms var(--ease);
+      cursor: pointer;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      margin-bottom: -1px;
+      border-bottom: 2px solid transparent;
+      transition: color 180ms var(--ease-out), border-color 180ms var(--ease-out), background 180ms var(--ease-out);
     }
-
-    .lanes .lane:nth-child(1) { animation-delay: 40ms; }
-    .lanes .lane:nth-child(2) { animation-delay: 70ms; }
-    .lanes .lane:nth-child(3) { animation-delay: 100ms; }
-
-    .lane:hover:not(.on) {
-      transform: translateY(-3px);
-      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
-      box-shadow: var(--shadow-md);
-      color: var(--text);
-    }
-
-    .lane.on {
-      background: var(--primary-subtle);
-      border-color: var(--primary-border);
+    .filter:hover { color: var(--text); background: var(--bg-muted); }
+    .filter.on {
       color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: transparent;
     }
-
-    .lane-n {
-      font-size: var(--text-lg);
-      font-weight: 700;
-      color: var(--text);
+    .filter:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
     }
-
-    .lane.on .lane-n { color: var(--primary); }
-    .lane-l { font-size: var(--text-xs); font-weight: 650; }
 
     .grid {
       display: grid;
@@ -154,16 +133,15 @@ type Lane = 'all' | 'publicado' | 'borrador';
       border-radius: var(--radius-lg);
       background: var(--surface);
       box-shadow: var(--shadow-sm);
-      animation: svc-card 560ms var(--ease-out) both;
-      animation-delay: calc(var(--i) * 50ms);
+      animation: svc-card 560ms var(--ease-out);
       transition:
-        transform 240ms var(--ease-out),
-        box-shadow 240ms var(--ease-out);
+        background 220ms var(--ease-out),
+        border-color 220ms var(--ease-out);
     }
 
     .card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
+      background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
     }
 
     .card-top {
@@ -175,10 +153,8 @@ type Lane = 'all' | 'publicado' | 'borrador';
 
     .cat {
       font-size: var(--text-xs);
-      font-weight: 700;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
+      font-weight: 600;
+      color: var(--text-secondary);
     }
 
     .card h2 {
@@ -205,7 +181,6 @@ type Lane = 'all' | 'publicado' | 'borrador';
     }
 
     .price { color: var(--text); font-size: var(--text-base); }
-    .slug { margin: 0; font-size: var(--text-xs); color: var(--text-muted); }
 
     .actions {
       display: grid;
@@ -244,7 +219,7 @@ type Lane = 'all' | 'publicado' | 'borrador';
       border-radius: var(--radius-md);
       font-size: var(--text-sm);
       z-index: 60;
-      animation: svc-in 280ms var(--ease-out) both;
+      animation: svc-in 280ms var(--ease-out);
     }
 
     .tabular { font-variant-numeric: tabular-nums; }
@@ -255,12 +230,12 @@ type Lane = 'all' | 'publicado' | 'borrador';
     }
 
     @keyframes svc-card {
-      from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
-      to { opacity: 1; transform: none; filter: none; }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
     }
 
     @media (max-width: 640px) {
-      .lanes { grid-template-columns: 1fr; }
+      .filters { gap: 0; }
     }
   `],
 })

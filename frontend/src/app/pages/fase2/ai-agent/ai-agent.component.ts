@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../../core/api.service';
 import { IconComponent } from '../../../shared/icon.component';
 import { getProductDisplayName } from '../../../shared/product-sites.data';
+import { caseShort } from '../../../shared/case-status.data';
 import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
 
 interface AIResult {
@@ -23,12 +24,12 @@ interface ChatMsg {
   imports: [FormsModule, RouterLink, IconComponent, WorkspaceHeadComponent],
   template: `
     <div class="desk">
-      <app-workspace-head title="Revisión" [aside]="headAside">
+      <app-workspace-head title="Asistente" [aside]="headAside">
         <label class="sr-only" for="caseId">Expediente</label>
         <select id="caseId" [(ngModel)]="selectedCaseId" (ngModelChange)="onCaseChange($event)">
           <option [ngValue]="0">Sin expediente</option>
           @for (c of cases; track c.id) {
-            <option [ngValue]="c.id">#{{ c.id }} — {{ c.client_name || 'Cliente' }}</option>
+            <option [ngValue]="c.id">{{ optionLabel(c) }}</option>
           }
         </select>
         @if (selectedCaseId > 0) {
@@ -65,7 +66,7 @@ interface ChatMsg {
                 </p>
               }
               @if (data.recommendations?.[0]; as next) {
-                <p class="brief-next"><span>Siguiente</span> {{ next }}</p>
+                <p class="brief-next"><strong>Siguiente.</strong> {{ next }}</p>
               }
             }
           </aside>
@@ -105,10 +106,22 @@ interface ChatMsg {
     </div>
   `,
   styles: [`
+    :host {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+    }
+
     .desk {
       display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
       gap: var(--space-4);
-      padding-block: var(--space-1) var(--space-6);
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+      padding-block: var(--space-1) 0;
     }
 
     .desk select {
@@ -127,14 +140,17 @@ interface ChatMsg {
       grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
       gap: var(--space-4);
       align-items: stretch;
-      min-height: calc(100dvh - var(--header-height) - 9rem);
+      min-height: 0;
+      height: 100%;
     }
 
     .brief {
       display: grid;
       align-content: start;
       gap: var(--space-3);
-      animation: desk-in 520ms var(--ease-out) both;
+      min-height: 0;
+      overflow: auto;
+      animation: desk-in 420ms var(--ease-out);
     }
 
     .brief-k {
@@ -165,14 +181,8 @@ interface ChatMsg {
       font-size: var(--text-sm);
     }
 
-    .brief-next span {
-      display: block;
-      font-size: var(--text-xs);
+    .brief-next strong {
       font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 0.15rem;
     }
 
     .muted {
@@ -185,9 +195,9 @@ interface ChatMsg {
       display: grid;
       grid-template-rows: minmax(0, 1fr) auto auto;
       gap: var(--space-3);
-      min-height: 22rem;
-      max-height: calc(100dvh - var(--header-height) - 9rem);
-      animation: desk-in 560ms var(--ease-out) both;
+      min-height: 0;
+      height: 100%;
+      animation: desk-in 480ms var(--ease-out);
     }
 
     .chat-log {
@@ -197,6 +207,7 @@ interface ChatMsg {
       gap: var(--space-2);
       padding-right: 2px;
       scrollbar-width: thin;
+      min-height: 0;
     }
 
     .bubble {
@@ -221,13 +232,14 @@ interface ChatMsg {
       display: flex;
       flex-wrap: wrap;
       gap: var(--space-2);
+      flex-shrink: 0;
     }
 
     .chip {
       min-height: 2rem;
       padding: 0 var(--space-3);
       border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-sm);
       background: var(--surface);
       color: var(--text-secondary);
       font-size: var(--text-xs);
@@ -243,6 +255,8 @@ interface ChatMsg {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: var(--space-2);
+      flex-shrink: 0;
+      background: var(--surface);
     }
 
     .state {
@@ -253,28 +267,21 @@ interface ChatMsg {
     }
 
     @keyframes desk-in {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-        filter: blur(6px);
-      }
-      to {
-        opacity: 1;
-        transform: none;
-        filter: blur(0);
-      }
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
     }
 
     @media (max-width: 860px) {
+      :host { height: auto; flex: none; min-height: 0; }
+      .desk { height: auto; flex: none; }
       .board {
         grid-template-columns: 1fr;
-        min-height: 0;
+        height: auto;
       }
       .chat {
-        max-height: none;
+        height: auto;
         min-height: 24rem;
       }
-      .tools select { min-width: 0; flex: 1 1 12rem; }
     }
   `]
 })
@@ -308,7 +315,7 @@ export class Fase2AiComponent implements OnInit {
   get selectedLabel(): string {
     const c = this.selectedCase;
     if (!c) return 'Sin expediente';
-    return `#${c.id} — ${c.client_name || 'Cliente'}`;
+    return `#${c.id} · ${c.client_name || 'Cliente'}`;
   }
 
   get headAside(): string {
@@ -320,6 +327,14 @@ export class Fase2AiComponent implements OnInit {
     return getProductDisplayName(c.product || 'divorcio360');
   }
 
+  optionLabel(c: CaseItem): string {
+    return `#${c.id} · ${this.productName(c)} · ${caseShort(c.status, c.status_label || c.status)}`;
+  }
+
+  pickDefaultCaseId(list: CaseItem[]): number {
+    return list[0]?.id ?? 0;
+  }
+
   loadCases(): void {
     this.casesError = false;
     this.api.listCases().subscribe({
@@ -329,7 +344,7 @@ export class Fase2AiComponent implements OnInit {
           const bw = b.status === '03' ? 0 : 1;
           return aw - bw || b.id - a.id;
         });
-        this.selectedCaseId = this.cases.some((c) => c.id === 1) ? 1 : (this.cases[0]?.id ?? 0);
+        this.selectedCaseId = this.pickDefaultCaseId(this.cases);
         this.run();
       },
       error: () => {

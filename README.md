@@ -166,7 +166,7 @@ Las ofertas custom persisten en SQLite (`lawyer_services`). API: `GET/POST /api/
 
 ### Fase 2 (mock)
 
-Rutas abogado: `/fase2/admin`, `/templates`, `/ai`, `/satje`, `/billing`, `/mobile` — badge «Fase 2 · mock».
+Rutas abogado: `/abogado` (bandeja), `/abogado/fase2/templates`, `/abogado/fase2/ai`, `/abogado/fase2/billing`. `/fase2/admin` redirige a la bandeja.
 
 ---
 

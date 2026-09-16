@@ -96,9 +96,7 @@ describe('HeroScrollVideoPinRevealComponent', () => {
       );
 
       expect(labels).toEqual(['Cómo funciona', 'Iniciar Formulario']);
-      expect(root.querySelector('.hsvr-cta-primary')?.getAttribute('href')).toBe(
-        '/auth?returnUrl=%2Fcuestionario&product=divorcio360',
-      );
+      expect(root.querySelector('.hsvr-cta-primary')?.getAttribute('href')).toBe('/cuestionario');
     });
   });
 

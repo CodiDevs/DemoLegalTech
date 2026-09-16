@@ -59,7 +59,7 @@ import { IconComponent } from '../../shared/icon.component';
               <a class="item-link" [routerLink]="rowLink(c)" (click)="openCase(c)">
                 <app-payment-card
                   [title]="'Expediente #' + c.id"
-                  [subtitle]="c.status_label + ' · ' + (c.city || '—')"
+                  [subtitle]="c.status_label + ' · ' + (c.city || 'Sin indicar')"
                   [amountCents]="c.amount_cents"
                   [paid]="c.paid"
                 />

@@ -1,7 +1,7 @@
 /* =========================================================================
    Stage del formulario — mesa de expediente.
-   Capas decorativas detrás de la hoja (.ob). Solo transform/opacity/filter:
-   el stage nunca provoca layout ni repaint costoso.
+   Tres capas detrás de la hoja (.ob): papel, una luz y los renglones del folio.
+   Solo transform/opacity: el stage nunca provoca layout ni repaint costoso.
    Motion always-on por regla de demo (PRODUCT.md).
    ========================================================================= */
 
@@ -23,7 +23,7 @@
   animation: fs-drift 140s linear infinite;
 }
 
-/* 2. Luz de ventana: dos deriva en contrafase */
+/* 2. Luz de ventana */
 .form-stage-glow {
   position: absolute;
   border-radius: 50%;
@@ -39,28 +39,7 @@
   animation: fs-drift-a 54s var(--ease-out) infinite alternate;
 }
 
-.form-stage-glow--b {
-  right: -14%;
-  bottom: -22%;
-  width: min(64vw, 52rem);
-  height: min(64vw, 52rem);
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--warning) 11%, transparent), transparent 70%);
-  animation: fs-drift-b 76s var(--ease-out) infinite alternate;
-}
-
-/* 3. Barrido de luz que cruza la mesa */
-.form-stage-sweep {
-  position: absolute;
-  top: -25%;
-  left: 0;
-  width: 38%;
-  height: 150%;
-  background: linear-gradient(100deg, transparent, color-mix(in srgb, #ffffff 60%, transparent), transparent);
-  opacity: 0.05;
-  animation: fs-sweep 19s linear infinite;
-}
-
-/* 4. Renglones de folio: bucle sin costura (una línea cada 3rem) */
+/* 3. Renglones de folio: bucle sin costura (una línea cada 3rem) */
 .form-stage-ruling {
   position: absolute;
   inset: 0;
@@ -71,53 +50,10 @@
   animation: fs-ruling 160s linear infinite;
 }
 
-/* 5. Sello de agua */
-.form-stage-seal {
-  position: absolute;
-  right: -8vw;
-  bottom: -10vh;
-  width: min(48vw, 34rem);
-  height: min(48vw, 34rem);
-  background: url('/demo-scenes/legal-seal-demo.svg') center / contain no-repeat;
-  opacity: 0.055;
-  animation: fs-seal 96s var(--ease-out) infinite alternate;
-}
-
-/* 6. Lavado del expediente según la categoría de la pregunta */
-.form-stage-wash {
-  position: absolute;
-  right: -6%;
-  bottom: -12%;
-  width: min(46vw, 26rem);
-  height: min(46vw, 26rem);
-  background-position: center;
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0;
-  transition: opacity 700ms var(--ease-out);
-  animation: fs-wash 64s var(--ease-out) infinite alternate;
-}
-
-.form-stage-wash[data-wash='identity'] { background-image: url('/demo-scenes/identity-demo.svg'); }
-.form-stage-wash[data-wash='family'] { background-image: url('/demo-scenes/marriage-record-demo.svg'); }
-.form-stage-wash[data-wash='assets'] { background-image: url('/demo-scenes/legal-draft-demo.svg'); }
-.form-stage-wash[data-wash='abroad'] { background-image: url('/demo-scenes/signature-demo.svg'); }
-.form-stage-wash[data-wash='pact'] { background-image: url('/demo-scenes/legal-seal-demo.svg'); }
-
-.form-stage[data-cat='identity'] .form-stage-wash[data-wash='identity'],
-.form-stage[data-cat='family'] .form-stage-wash[data-wash='family'],
-.form-stage[data-cat='assets'] .form-stage-wash[data-wash='assets'],
-.form-stage[data-cat='abroad'] .form-stage-wash[data-wash='abroad'],
-.form-stage[data-cat='pact'] .form-stage-wash[data-wash='pact'] {
-  opacity: 0.16;
-}
-
-/* 7. Viñeta: enfoca la hoja */
-.form-stage-vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(120% 90% at 50% 42%, transparent 45%, color-mix(in srgb, var(--neutral-900) 9%, transparent) 100%);
-}
+/* El cuestionario de Divorcio360 se apoya en el papel en vez de flotar sobre él: el renglón
+   y las fibras se dejan ver un poco más. Mismo asset y misma animación, solo presencia. */
+body.divorcio-flow-mode .form-stage-ruling { opacity: 0.95; }
+body.divorcio-flow-mode .form-stage-texture { opacity: 0.72; }
 
 /* ---------- Motion ---------- */
 
@@ -132,29 +68,9 @@
   100% { transform: translate3d(9%, 7%, 0) scale(1.08); }
 }
 
-@keyframes fs-drift-b {
-  0% { transform: translate3d(0, 0, 0) scale(1.04); }
-  100% { transform: translate3d(-8%, -6%, 0) scale(1); }
-}
-
-@keyframes fs-sweep {
-  0% { transform: rotate(11deg) translate3d(-60%, 0, 0); }
-  100% { transform: rotate(11deg) translate3d(420%, 0, 0); }
-}
-
 @keyframes fs-ruling {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(0, -3rem, 0); }
-}
-
-@keyframes fs-seal {
-  0% { transform: rotate(-6deg) scale(1); }
-  100% { transform: rotate(3deg) scale(1.05); }
-}
-
-@keyframes fs-wash {
-  0% { transform: rotate(-3deg) translate3d(0, 0, 0); }
-  100% { transform: rotate(5deg) translate3d(-3%, -4%, 0); }
 }
 
 /* El stage no compite con la hoja */
@@ -164,31 +80,11 @@
 }
 
 /* Texto que vive sobre el fondo animado: sube un escalón y gana relieve */
-.landing-page.product-flow .ob-step-label,
-.landing-page.product-flow .ob-step-hint {
+.landing-page.product-flow .ob-step-label {
   color: var(--text-secondary);
-  text-shadow: 0 1px 0 color-mix(in srgb, #fff 60%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 60%, transparent);
 }
 
-.landing-page.product-flow .ob-counter,
 .landing-page.product-flow .ob-note {
-  text-shadow: 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
-}
-
-@media (max-width: 900px) {
-  .form-stage-sweep,
-  .form-stage-seal {
-    display: none;
-  }
-
-  .form-stage-wash {
-    width: min(64vw, 22rem);
-    height: min(64vw, 22rem);
-  }
-}
-
-@media (max-width: 560px) {
-  .form-stage-glow--b {
-    display: none;
-  }
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 55%, transparent);
 }

@@ -4,6 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, QuestionnaireAnswers, QuestionnaireResult } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import {
+  clearLocalJson,
+  DIVORCIO_Q_DRAFT_KEY,
+  Q_RESULT_KEY,
+  readLocalJson,
+  writeLocalAndSessionJson,
+  writeLocalJson,
+} from '../../core/local-json';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
 import { setActiveProduct } from '../../shared/product-sites.data';
@@ -24,12 +32,18 @@ type AnswerKey = keyof QuestionnaireAnswers;
 interface Question {
   key: AnswerKey;
   text: string;
-  /** Explicación en lenguaje llano de por qué se pregunta. */
-  hint: string;
   icon: IconName;
   /** Resumen corto para la pantalla de revisión. */
   summary: string;
   showIf?: () => boolean;
+}
+
+interface DivorcioDraft {
+  answers: QuestionnaireAnswers;
+  cursor: number;
+  answered: string[];
+  stage: 'questions' | 'review' | 'result';
+  result?: QuestionnaireResult | null;
 }
 
 @Component({
@@ -38,53 +52,52 @@ interface Question {
   imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
-      <div class="form-stage" aria-hidden="true" [attr.data-cat]="currentCategory">
+      <div class="form-stage" aria-hidden="true">
         <span class="form-stage-texture"></span>
         <span class="form-stage-glow form-stage-glow--a"></span>
-        <span class="form-stage-glow form-stage-glow--b"></span>
-        <span class="form-stage-sweep"></span>
         <span class="form-stage-ruling"></span>
-        <span class="form-stage-seal"></span>
-        <span class="form-stage-wash" data-wash="identity"></span>
-        <span class="form-stage-wash" data-wash="family"></span>
-        <span class="form-stage-wash" data-wash="assets"></span>
-        <span class="form-stage-wash" data-wash="abroad"></span>
-        <span class="form-stage-wash" data-wash="pact"></span>
-        <span class="form-stage-vignette"></span>
       </div>
 
-      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [attr.data-cat]="currentCategory" [class.is-loading]="submitting">
+      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [class.is-loading]="submitting">
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
-          @for (p of [position]; track p) {
-            <p class="ob-counter" aria-hidden="true">
-              {{ pad(p) }} / {{ pad(visibleQuestions.length) }}
-            </p>
-          }
           <div class="ob-questions">
-            <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + position + ' de ' + visibleQuestions.length">
-              <div class="ob-segments">
+            <div
+              class="ob-progress"
+              role="group"
+              [attr.aria-label]="progressLabel"
+              [attr.aria-describedby]="canGoBack ? 'ob-progress-hint' : null"
+            >
+              <ol class="ob-segments">
                 @for (q of visibleQuestions; track q.key; let i = $index) {
-                  <button
-                    type="button"
+                  <li
                     class="ob-seg"
                     [class.is-done]="i + 1 < position"
                     [class.is-current]="i + 1 === position"
-                    [disabled]="i + 1 > position"
-                    [attr.aria-label]="segLabel(i)"
-                    [attr.title]="i + 1 < position ? 'Volver al paso ' + (i + 1) : null"
                     [attr.aria-current]="i + 1 === position ? 'step' : null"
-                    (click)="goToStep(i)"
                   >
-                    <span class="ob-seg-bar" aria-hidden="true"></span>
-                  </button>
+                    <span
+                      class="ob-seg-bar"
+                      [class.is-filled]="i + 1 <= position"
+                      aria-hidden="true"
+                    ></span>
+                    @if (i + 1 < position) {
+                      <button
+                        type="button"
+                        class="ob-seg-hit"
+                        [attr.aria-label]="segLabel(i)"
+                        [attr.title]="'Volver al paso ' + (i + 1)"
+                        (click)="goToStep(i)"
+                      ></button>
+                    }
+                  </li>
                 }
-              </div>
+              </ol>
               <div class="ob-progress-meta">
-                <p class="ob-step-label">Paso {{ position }} de {{ visibleQuestions.length }}</p>
+                <p class="ob-folio">{{ categoryLabel }}</p>
                 @if (canGoBack) {
-                  <p class="ob-step-hint">Toca un paso anterior para volver</p>
+                  <p id="ob-progress-hint" class="ob-progress-hint">Clic en un paso hecho para volver</p>
                 }
               </div>
             </div>
@@ -94,10 +107,7 @@ interface Question {
                 <!-- Al hacer track por clave el nodo se recrea y la animación se reinicia -->
                 @for (q of [current]; track q.key) {
                   <section class="ob-sheet" [class.ob-sheet--back]="direction === -1">
-                <span class="ob-icon"><app-icon [name]="q.icon" [size]="22" /></span>
-
                 <h1>{{ q.text }}</h1>
-                <p class="ob-hint">{{ q.hint }}</p>
 
                 @if (q.key === 'city') {
                   <div class="ob-location">
@@ -134,6 +144,7 @@ interface Question {
                         id="location-city"
                         name="location-city"
                         [(ngModel)]="answers.city"
+                        (ngModelChange)="onCityChange()"
                       >
                         @for (city of citiesForProvince; track city) {
                           <option [value]="city">{{ city }}</option>
@@ -148,14 +159,32 @@ interface Question {
                     (click)="submitCity()"
                   >Continuar</button>
                 } @else {
-                  <div class="ob-choices">
-                    <button #firstChoice type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, true)" (click)="answer(true)">
+                  <div
+                    class="ob-choices"
+                    role="radiogroup"
+                    [attr.aria-label]="q.text"
+                    (keydown)="onChoiceKey($event)"
+                  >
+                    <button
+                      #firstChoice
+                      type="button"
+                      class="ob-choice"
+                      role="radio"
+                      [attr.aria-checked]="isSelected(q.key, true)"
+                      [class.is-selected]="isSelected(q.key, true)"
+                      (click)="answer(true)"
+                    >
                       <span>Sí</span>
-                      <app-icon name="chevron-right" [size]="17" />
                     </button>
-                    <button type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, false)" (click)="answer(false)">
+                    <button
+                      type="button"
+                      class="ob-choice"
+                      role="radio"
+                      [attr.aria-checked]="isSelected(q.key, false)"
+                      [class.is-selected]="isSelected(q.key, false)"
+                      (click)="answer(false)"
+                    >
                       <span>No</span>
-                      <app-icon name="chevron-right" [size]="17" />
                     </button>
                   </div>
                 }
@@ -263,11 +292,12 @@ interface Question {
                     }
                   </button>
                 } @else if (!auth.isLoggedIn) {
+                  <p class="ob-hint">Para pagar el trámite, entra o crea tu cuenta.</p>
                   <a
                     class="btn btn-primary btn-lg btn-block"
                     routerLink="/auth"
                     [queryParams]="{ next: 'checkout', result: result.code, city: locationLabel, product: 'divorcio360' }"
-                  >Continuar y crear mi cuenta</a>
+                  >Crear cuenta para pagar</a>
                   <a
                     class="btn btn-secondary btn-block"
                     routerLink="/auth"
@@ -357,35 +387,30 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'both_want_divorce',
       text: '¿Los dos quieren divorciarse?',
-      hint: 'Si están de acuerdo, el trámite se resuelve en notaría y es mucho más rápido.',
       icon: 'users',
       summary: 'Ambos de acuerdo',
     },
     {
       key: 'marriage_in_ecuador',
       text: '¿Se casaron en Ecuador?',
-      hint: 'Lo necesitamos para pedir el acta de matrimonio correcta.',
       icon: 'flag',
       summary: 'Matrimonio en Ecuador',
     },
     {
       key: 'someone_abroad',
       text: '¿Alguno de los dos vive fuera del país?',
-      hint: 'Se puede firmar igual desde el extranjero, solo cambian algunos pasos.',
       icon: 'plane',
       summary: 'Alguien vive fuera',
     },
     {
       key: 'have_children',
       text: '¿Tienen hijos en común?',
-      hint: 'De esto depende qué documentos hacen falta.',
       icon: 'baby',
       summary: 'Tienen hijos',
     },
     {
       key: 'minor_dependents',
       text: '¿Alguno es menor de edad o depende de ustedes?',
-      hint: 'Cuenta cualquier hijo menor de 18 años o que dependa económicamente de ustedes.',
       icon: 'calendar',
       summary: 'Hijos menores o dependientes',
       showIf: () => this.answers.have_children,
@@ -393,7 +418,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'custody_regulated',
       text: '¿Ya acordaron manutención, con quién viven y las visitas?',
-      hint: 'Es decir, si ya está definido cuánto se paga, dónde viven y cada cuánto se visitan.',
       icon: 'scale',
       summary: 'Manutención y visitas acordadas',
       showIf: () => this.answers.have_children && this.answers.minor_dependents,
@@ -401,7 +425,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'has_mediation_acta',
       text: '¿Tienen ese acuerdo por escrito y firmado?',
-      hint: 'Un acta de mediación o una resolución de un juez donde consta lo acordado.',
       icon: 'file-text',
       summary: 'Acuerdo por escrito',
       showIf: () => this.answers.have_children && this.answers.minor_dependents,
@@ -409,14 +432,12 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'have_assets',
       text: '¿Compraron bienes mientras estuvieron casados?',
-      hint: 'Casas, terrenos, vehículos o cuentas que consiguieron durante el matrimonio.',
       icon: 'home',
       summary: 'Bienes en el matrimonio',
     },
     {
       key: 'conjugal_society',
       text: '¿Sus bienes están en sociedad conyugal?',
-      hint: 'Es lo habitual en Ecuador, salvo que firmaran separación de bienes ante notario.',
       icon: 'chart',
       summary: 'Sociedad conyugal',
       showIf: () => this.answers.have_assets,
@@ -424,7 +445,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'want_liquidate_assets',
       text: '¿Quieren repartir los bienes ahora?',
-      hint: 'También pueden divorciarse primero y repartir más adelante.',
       icon: 'briefcase',
       summary: 'Repartir bienes ahora',
       showIf: () => this.answers.have_assets,
@@ -432,14 +452,12 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'ids_valid',
       text: '¿Los dos tienen la cédula o el pasaporte vigente?',
-      hint: 'Sin documentos vigentes la notaría no puede firmar.',
       icon: 'id-card',
       summary: 'Documentos vigentes',
     },
     {
       key: 'city',
       text: '¿Dónde están ubicados?',
-      hint: 'Indica país, provincia y ciudad donde realizan el trámite.',
       icon: 'map-pin',
       summary: 'Ubicación',
     },
@@ -472,16 +490,17 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.normalizeLocation();
     if (this.route.snapshot.queryParamMap.get('resume') === 'result') {
       this.restoreResult();
+      return;
     }
+    this.restoreDraft();
   }
 
   private restoreResult(): void {
-    const cached = sessionStorage.getItem('d360_q_result');
+    const cached = readLocalJson<{ answers?: QuestionnaireAnswers }>(Q_RESULT_KEY);
     if (!cached) return;
     try {
-      const p = JSON.parse(cached);
-      if (p.answers) {
-        this.answers = { ...this.answers, ...p.answers };
+      if (cached.answers) {
+        this.answers = { ...this.answers, ...cached.answers };
         this.normalizeLocation();
       }
       this.restoreSub = this.api.evaluate(this.answers).pipe(
@@ -498,6 +517,60 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
         },
       });
     } catch { /* ignore */ }
+  }
+
+  private restoreDraft(): void {
+    const draft = readLocalJson<DivorcioDraft>(DIVORCIO_Q_DRAFT_KEY);
+    if (!draft) return;
+    if (!draft.answered?.length && draft.stage !== 'review' && draft.stage !== 'result') return;
+    if (draft.answers) {
+      this.answers = { ...this.answers, ...draft.answers };
+      this.normalizeLocation();
+    }
+    this.answered = new Set(
+      (draft.answered || []).filter((k): k is AnswerKey => k in this.answers),
+    );
+    if (typeof draft.cursor === 'number' && draft.cursor >= 0 && draft.cursor < this.all.length) {
+      this.cursor = draft.cursor;
+    }
+    this.clampCursor();
+    this.rebuildTrail();
+    if (draft.stage === 'review' || draft.stage === 'result') this.stage = draft.stage;
+    if (draft.stage === 'result' && draft.result) {
+      this.result = draft.result;
+      this.displayPrice = draft.result.price_usd;
+    } else if (this.stage === 'result') {
+      this.stage = 'review';
+    }
+  }
+
+  private clampCursor(): void {
+    if (this.cursor < 0 || this.cursor >= this.all.length) this.cursor = 0;
+    const q = this.all[this.cursor];
+    if (q.showIf && !q.showIf()) {
+      const next = this.nextVisibleAfter(-1);
+      this.cursor = next === -1 ? 0 : next;
+    }
+  }
+
+  private rebuildTrail(): void {
+    const vis = this.visibleQuestions;
+    const pos = vis.findIndex((q) => q.key === this.current.key);
+    this.trail = vis
+      .slice(0, Math.max(0, pos))
+      .map((q) => this.all.findIndex((item) => item.key === q.key))
+      .filter((i) => i >= 0);
+  }
+
+  private saveDraft(): void {
+    const draft: DivorcioDraft = {
+      answers: this.answers,
+      cursor: this.cursor,
+      answered: [...this.answered],
+      stage: this.stage,
+      result: this.result,
+    };
+    writeLocalJson(DIVORCIO_Q_DRAFT_KEY, draft);
   }
 
   ngAfterViewInit(): void {
@@ -552,10 +625,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     return this.visibleQuestions.findIndex((q) => q.key === this.current.key) + 1;
   }
 
-  pad(n: number): string {
-    return String(n).padStart(2, '0');
-  }
-
   get currentCategory(): string {
     const k = this.current?.key;
     if (k === 'city' || k === 'ids_valid' || k === 'marriage_in_ecuador') return 'identity';
@@ -565,6 +634,38 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     if (k === 'have_assets' || k === 'conjugal_society' || k === 'want_liquidate_assets') return 'assets';
     if (k === 'someone_abroad') return 'abroad';
     return 'pact';
+  }
+
+  get categoryLabel(): string {
+    const labels: Record<string, string> = {
+      identity: 'Identidad',
+      family: 'Familia',
+      assets: 'Patrimonio',
+      abroad: 'Exterior',
+      pact: 'Pacto',
+    };
+    return labels[this.currentCategory] || '';
+  }
+
+  /* El progreso, para el lector de pantalla: dice lo mismo que la marca visible, incluida la
+     sección del expediente. */
+  get progressLabel(): string {
+    const seccion = this.categoryLabel ? `, sección ${this.categoryLabel}` : '';
+    const back = this.canGoBack ? '. Los pasos hechos se pueden pulsar para volver' : '';
+    return `Paso ${this.position} de ${this.visibleQuestions.length}${seccion}${back}`;
+  }
+
+  /* Grupo de opciones: las flechas mueven el foco entre las respuestas, como espera el
+     patrón de radiogroup. Elegir sigue siendo Enter, Espacio o el clic. */
+  onChoiceKey(event: KeyboardEvent): void {
+    if (!['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(event.key)) return;
+    event.preventDefault();
+    const group = event.currentTarget as HTMLElement;
+    const items = Array.from(group.querySelectorAll<HTMLElement>('.ob-choice'));
+    if (items.length < 2) return;
+    const step = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
+    const next = (items.indexOf(document.activeElement as HTMLElement) + step + items.length) % items.length;
+    items[next]?.focus();
   }
 
   get progressPercent(): number {
@@ -642,11 +743,17 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     const province = provinces[0];
     this.answers.province = province?.id ?? '';
     this.answers.city = province?.cities[0] ?? '';
+    this.saveDraft();
   }
 
   onProvinceChange(): void {
     const cities = this.citiesForProvince;
     this.answers.city = cities[0] ?? '';
+    this.saveDraft();
+  }
+
+  onCityChange(): void {
+    this.saveDraft();
   }
 
   private normalizeLocation(): void {
@@ -675,12 +782,14 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
 
     if (next === -1) {
       this.stage = 'review';
+      this.saveDraft();
       return;
     }
 
     this.trail.push(this.cursor);
     this.cursor = next;
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   back(): void {
@@ -689,17 +798,20 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.direction = -1;
     this.cursor = previous;
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   backToQuestions(): void {
     this.direction = -1;
     this.stage = 'questions';
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   backToReview(): void {
     this.direction = -1;
     this.stage = 'review';
+    this.saveDraft();
   }
 
   /** Vuelve a una pregunta concreta desde la pantalla de revisión. */
@@ -716,6 +828,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.direction = -1;
     this.stage = 'questions';
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   isSelected(key: AnswerKey, value: boolean): boolean {
@@ -748,11 +861,13 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
         this.stage = 'result';
         this.direction = 1;
         this.tweenPrice(res.price_usd);
-        sessionStorage.setItem('d360_q_result', JSON.stringify({
+        const payload = {
           result: res.code,
           city: this.locationLabel,
           answers: this.answers,
-        }));
+        };
+        writeLocalAndSessionJson(Q_RESULT_KEY, payload);
+        this.saveDraft();
       },
       error: () => {
         if (this.destroyed) return;
@@ -770,7 +885,10 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.api.createCase(this.result.code, this.locationLabel, this.answers).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
-      next: (c) => void this.router.navigate(['/checkout', c.id]),
+      next: (c) => {
+        clearLocalJson(DIVORCIO_Q_DRAFT_KEY);
+        void this.router.navigate(['/checkout', c.id]);
+      },
       error: () => {
         this.submitting = false;
         this.submitError = 'No pudimos crear tu expediente. Inténtalo de nuevo en unos segundos.';

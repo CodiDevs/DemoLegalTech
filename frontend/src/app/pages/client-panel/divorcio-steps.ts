@@ -28,7 +28,6 @@ export function isTimelineProduct(id: string): id is TimelineProductId {
 }
 
 export function productEmptyCopy(product: string): {
-  kicker: string;
   title: string;
   hint: string;
   cta: string;
@@ -37,7 +36,6 @@ export function productEmptyCopy(product: string): {
 } {
   if (product === 'traslado360') {
     return {
-      kicker: 'Traslado360',
       title: 'Tu traslado vehicular',
       hint: 'Mutuo acuerdo, pago único y notaría virtual. Abre tu expediente sin salir del panel.',
       cta: 'Iniciar traslado',
@@ -46,9 +44,8 @@ export function productEmptyCopy(product: string): {
     };
   }
   return {
-    kicker: 'Divorcio360',
     title: 'Un solo expediente',
-    hint: 'El divorcio es un trámite único. Evalúa tu caso y ábrelo aquí — sin salir del panel.',
+    hint: 'El divorcio es un trámite único. Evalúa tu caso y ábrelo aquí, sin salir del panel.',
     cta: 'Evaluar mi caso',
     path: getProductQuestionnairePath('divorcio360'),
     icon: 'scale',
@@ -75,20 +72,37 @@ function stepHint(product: string, id: ProductDeskStepId): string {
   }
 }
 
+/** Urgencia del expediente: más alto, más te toca. Ordena la lista y elige el caso del desk,
+    para que la tarjeta extendida sea la primera y no la última. */
+export function caseUrgency(c: CaseItem): number {
+  if (!c.paid) return 400;
+  if (c.status === '02') return 300;
+  if (c.can_sign) return 350;
+  if (c.status === '05') return 280;
+  if (c.status !== '10') return 100 + Number(c.status || '0');
+  return 0;
+}
+
+/** Fecha larga en el idioma del producto: "15 sept 2026". */
+export function formatDateLong(iso?: string): string {
+  const d = new Date(iso || '');
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/** Fecha corta, para las tarjetas de la lista: "15 sept". */
+export function formatDateShort(iso?: string): string {
+  const d = new Date(iso || '');
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('es-EC', { day: 'numeric', month: 'short' });
+}
+
 /** Prefer the case that needs action for this product. */
 export function pickProductCase(cases: CaseItem[], product: string): CaseItem | null {
   const id = normalizeProductId(product);
   const list = cases.filter((c) => normalizeProductId(c.product) === id);
   if (!list.length) return null;
-  const rank = (c: CaseItem): number => {
-    if (!c.paid) return 400;
-    if (c.status === '02') return 300;
-    if (c.can_sign) return 350;
-    if (c.status === '05') return 280;
-    if (c.status !== '10') return 100 + Number(c.status || '0');
-    return 0;
-  };
-  return [...list].sort((a, b) => rank(b) - rank(a) || b.id - a.id)[0];
+  return [...list].sort((a, b) => caseUrgency(b) - caseUrgency(a) || b.id - a.id)[0];
 }
 
 export function productStepState(c: CaseItem | null, id: ProductDeskStepId): ProductDeskStepState {

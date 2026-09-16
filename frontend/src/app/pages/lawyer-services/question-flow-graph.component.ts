@@ -39,7 +39,7 @@ export interface FlowDisconnectEvent {
   template: `
     <div class="flow">
       <div class="flow-toolbar">
-        <span>Rueda = zoom · Arrastra nodos · Conecta desde los círculos</span>
+        <span>Rueda = acercar · Arrastra nodos · Conecta desde los círculos</span>
         <div class="flow-zoom">
           <button type="button" class="z-btn" (click)="zoomBy(-0.1)" aria-label="Alejar">−</button>
           <span class="tabular">{{ zoomLabel }}</span>
@@ -152,7 +152,7 @@ export interface FlowDisconnectEvent {
                   }
                 </header>
 
-                <p class="node-prompt">{{ n.q.prompt || 'Sin texto — clic para editar' }}</p>
+                <p class="node-prompt">{{ n.q.prompt || 'Sin texto, clic para editar' }}</p>
                 <p class="node-type">
                   @if (isOutcome(n.q)) {
                     Asesoría {{ moneyUSD((n.q.price_delta_cents || 0) / 100) }}

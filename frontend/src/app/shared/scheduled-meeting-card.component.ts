@@ -27,9 +27,9 @@ import { DatePipe } from '@angular/common';
   styles: [`
     .scheduled-card {
       padding: var(--space-4) var(--space-5);
-      border: 1px dashed var(--success-border, oklch(0.72 0.06 165));
+      border: 1px dashed var(--success-border, #b9dcc6);
       border-radius: var(--radius-lg);
-      background: var(--success-subtle, oklch(0.97 0.02 165));
+      background: var(--success-subtle, #e6f2ea);
     }
 
     .scheduled-title {

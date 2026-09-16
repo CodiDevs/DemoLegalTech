@@ -93,7 +93,7 @@ describe('CheckoutComponent', () => {
     expect(text).toContain('Gastos notariales');
     expect(text).toContain('Se paga por separado');
     expect(text).toContain('$349.00');
-    expect(text).toContain('Firma electrónica LegalStation');
+    expect(text).toContain('Sello QR LegalStation');
     expect(text).toContain('No incluye gastos notariales');
     expect(fixture.componentInstance.cart.totalCents).toBe(34900);
     const notary = fixture.componentInstance.cart.lines.find((line) => line.id === 'notary');

@@ -5,6 +5,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { ApiService, QuestionnaireResult } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { QuestionnaireComponent } from './questionnaire.component';
+import { DIVORCIO_Q_DRAFT_KEY, Q_RESULT_KEY } from '../../core/local-json';
 
 const APTO: QuestionnaireResult = {
   code: 'apto',
@@ -23,6 +24,9 @@ describe('QuestionnaireComponent', () => {
 
   beforeEach(async () => {
     resume = null;
+    localStorage.removeItem(DIVORCIO_Q_DRAFT_KEY);
+    localStorage.removeItem(Q_RESULT_KEY);
+    sessionStorage.removeItem(Q_RESULT_KEY);
     api = {
       evaluate: jasmine.createSpy('evaluate').and.returnValue(of(APTO)),
       createCase: jasmine.createSpy('createCase').and.returnValue(of({ id: 42 })),
@@ -49,12 +53,38 @@ describe('QuestionnaireComponent', () => {
 
   afterEach(() => {
     if (fixture && !fixture.componentRef.hostView.destroyed) fixture.destroy();
-    sessionStorage.removeItem('d360_q_result');
+    sessionStorage.removeItem(Q_RESULT_KEY);
+    localStorage.removeItem(Q_RESULT_KEY);
+    localStorage.removeItem(DIVORCIO_Q_DRAFT_KEY);
   });
 
   function cmp(): QuestionnaireComponent {
     return fixture.componentInstance;
   }
+
+  it('no pone un lede bajo la pregunta', () => {
+    fixture.detectChanges();
+    const sheet = (fixture.nativeElement as HTMLElement).querySelector('.ob-sheet');
+    expect(sheet?.querySelector('h1')?.textContent).toContain('¿Los dos quieren divorciarse?');
+    expect(sheet?.querySelector('.ob-hint')).toBeNull();
+  });
+
+  it('enseña que un paso hecho vuelve al clic en la barra', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).not.toContain('Clic en un paso hecho para volver');
+    expect(root.querySelector('.ob-seg-hit')).toBeNull();
+
+    cmp().answer(true);
+    fixture.detectChanges();
+    expect(cmp().current.key).toBe('marriage_in_ecuador');
+    expect(root.textContent).toContain('Clic en un paso hecho para volver');
+    const hit = root.querySelector('.ob-seg-hit') as HTMLButtonElement | null;
+    expect(hit).not.toBeNull();
+    hit?.click();
+    fixture.detectChanges();
+    expect(cmp().current.key).toBe('both_want_divorce');
+  });
 
   it('muestra preguntas condicionales solo cuando aplican', () => {
     fixture.detectChanges();
@@ -129,7 +159,7 @@ describe('QuestionnaireComponent', () => {
 
   it('cancela restoreResult si el HTTP llega después de destroy', fakeAsync(() => {
     resume = 'result';
-    sessionStorage.setItem('d360_q_result', JSON.stringify({ answers: { both_want_divorce: true } }));
+    sessionStorage.setItem(Q_RESULT_KEY, JSON.stringify({ answers: { both_want_divorce: true } }));
     const pending = new Subject<QuestionnaireResult>();
     api.evaluate.and.returnValue(pending);
     const local = TestBed.createComponent(QuestionnaireComponent);
@@ -147,5 +177,66 @@ describe('QuestionnaireComponent', () => {
     fixture.detectChanges();
     const active = document.activeElement as HTMLElement | null;
     expect(active?.classList.contains('ob-choice')).toBeTrue();
+  });
+
+  it('recupera el avance desde localStorage', () => {
+    fixture.detectChanges();
+    cmp().answer(true);
+    expect(cmp().current.key).toBe('marriage_in_ecuador');
+    fixture.destroy();
+
+    const again = TestBed.createComponent(QuestionnaireComponent);
+    again.detectChanges();
+    const second = again.componentInstance;
+    expect(second.current.key).toBe('marriage_in_ecuador');
+    expect(second.isSelected('both_want_divorce', true)).toBeTrue();
+    again.destroy();
+  });
+});
+
+describe('QuestionnaireComponent guest result', () => {
+  let fixture: ComponentFixture<QuestionnaireComponent>;
+  let api: { evaluate: jasmine.Spy; createCase: jasmine.Spy; requestMeeting: jasmine.Spy };
+
+  beforeEach(async () => {
+    localStorage.removeItem(DIVORCIO_Q_DRAFT_KEY);
+    localStorage.removeItem(Q_RESULT_KEY);
+    sessionStorage.removeItem(Q_RESULT_KEY);
+    api = {
+      evaluate: jasmine.createSpy('evaluate').and.returnValue(of(APTO)),
+      createCase: jasmine.createSpy('createCase').and.returnValue(of({ id: 42 })),
+      requestMeeting: jasmine.createSpy('requestMeeting').and.returnValue(of({})),
+    };
+    await TestBed.configureTestingModule({
+      imports: [QuestionnaireComponent],
+      providers: [
+        provideRouter([{ path: 'auth', component: QuestionnaireComponent }]),
+        { provide: ApiService, useValue: api },
+        { provide: AuthService, useValue: { isLoggedIn: false, user: signal(null) } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: { get: () => null } } },
+        },
+      ],
+    }).compileComponents();
+    fixture = TestBed.createComponent(QuestionnaireComponent);
+  });
+
+  afterEach(() => {
+    if (fixture && !fixture.componentRef.hostView.destroyed) fixture.destroy();
+  });
+
+  it('pide cuenta para pagar y no crea expediente', () => {
+    const cmp = fixture.componentInstance;
+    cmp.result = APTO;
+    cmp.stage = 'result';
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Crear cuenta para pagar');
+    expect(root.textContent).toContain('Ya tengo cuenta');
+    const href = root.querySelector('a.btn-primary')?.getAttribute('href') || '';
+    expect(href).toContain('/auth');
+    expect(href).toContain('next=checkout');
+    expect(api.createCase).not.toHaveBeenCalled();
   });
 });

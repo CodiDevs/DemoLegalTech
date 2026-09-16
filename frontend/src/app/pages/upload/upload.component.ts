@@ -30,9 +30,8 @@ interface DocRow {
     <app-product-flow-shell
       [theme]="theme"
       [crumb]="crumb"
-      [eyebrow]="productName + ' · Carga documental'"
       title="Documentos del trámite"
-      subtitle="Sube los archivos requeridos. Puedes reemplazar cualquier documento cuando quieras — no necesitas borrar el anterior."
+      subtitle="Puedes reemplazar un archivo sin borrar el anterior."
       [steps]="flowSteps"
       [activeStep]="docsStepIndex"
     >

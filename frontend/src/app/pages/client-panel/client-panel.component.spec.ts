@@ -46,8 +46,17 @@ describe('ClientPanelComponent expediente layout', () => {
     const panel = makePanel([unpaid, upload, waiting, signable, closed]);
     panel.filter = 'all';
 
-    expect(panel.actionInView.map((c) => c.id)).toEqual([signable.id, upload.id, unpaid.id]);
+    expect(panel.actionInView.map((c) => c.id)).toEqual([unpaid.id, signable.id, upload.id]);
     expect(panel.archiveInView.map((c) => c.id)).toEqual([closed.id, waiting.id]);
+  });
+
+  it('lo más urgente encabeza la lista y es el caso abierto del desk', () => {
+    const panel = makePanel([upload, signable, unpaid]);
+    panel.product = 'divorcio360';
+
+    expect(panel.actionInView[0].id).toBe(unpaid.id);
+    expect(panel.openCaseId).toBe(unpaid.id);
+    expect(panel.openCaseInView).toBeTrue();
   });
 
   it('títulos de dossier usan verbo humano', () => {
@@ -68,13 +77,13 @@ describe('ClientPanelComponent expediente layout', () => {
 
   it('metaLine describe pago y etapa en prosa sin pips', () => {
     const panel = makePanel([]);
-    expect(panel.metaLine(signable)).toBe('Pagado · $349 · Etapa 5 — Firma');
-    expect(panel.metaLine(unpaid)).toBe('Por pagar · $349 · Etapa 1 — Recepción');
+    expect(panel.metaLine(signable)).toBe('Pagado · $349 · Etapa 5: Firma');
+    expect(panel.metaLine(unpaid)).toBe('Por pagar · $349 · Etapa 1: Recepción');
   });
 
-  it('lede cambia cuando no hay nada pendiente', () => {
+  it('lede solo cuando el archivo es todo lo que queda', () => {
     const withAction = makePanel([signable, waiting]);
-    expect(withAction.pageLede).toContain('Qué te toca ahora');
+    expect(withAction.pageLede).toBe('');
 
     const archiveOnly = makePanel([waiting, closed]);
     expect(archiveOnly.pageLede).toContain('Nada pendiente');
@@ -96,7 +105,6 @@ describe('ClientPanelComponent expediente layout', () => {
     panel.filter = 'all';
 
     expect(panel.liveServices.every((s) => s.live)).toBeTrue();
-    expect(panel.soonServices.every((s) => !s.live)).toBeTrue();
     expect(panel.liveServices.some((s) => s.id === 'divorcio360')).toBeTrue();
     expect(panel.countProductTotal('divorcio360')).toBe(2);
     expect(panel.countProductTotal('traslado360')).toBe(1);

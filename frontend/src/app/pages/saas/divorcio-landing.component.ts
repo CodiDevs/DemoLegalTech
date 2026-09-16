@@ -36,17 +36,14 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
       <app-hero-scroll-video-pin-reveal />
 
       <app-cinematic-scene sceneId="sistema" [act]="2" theme="cream">
-        <p class="cine-kicker">Un expediente</p>
         <h2 class="cine-title">Cliente y abogado, misma cámara</h2>
         <div class="dv-split">
           <article>
-            <p class="cine-kicker">Cliente</p>
             <h3>{{ site.values?.[0]?.title }}</h3>
             <p>{{ site.values?.[0]?.desc }}</p>
             <p>{{ site.values?.[1]?.desc }}</p>
           </article>
           <article>
-            <p class="cine-kicker">Abogado</p>
             <h3>{{ site.values?.[2]?.title }}</h3>
             <p>{{ site.values?.[2]?.desc }}</p>
             <p>Bandeja, documentos y minuta sobre el mismo folio que ve el cliente.</p>
@@ -55,15 +52,12 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
       </app-cinematic-scene>
 
       <app-cinematic-scene sceneId="evidencia" [act]="2" theme="cream">
-        <p class="cine-kicker">Cada etapa deja evidencia</p>
-        <h2 class="cine-title">{{ site.stats[0].value }} · {{ site.stats[2].value }}</h2>
-        <p class="cine-lede">{{ site.stats[0].detail }} Honorario de referencia {{ site.stats[2].value }}.</p>
+        <h2 class="cine-title">{{ site.workflow.length }} etapas, un solo expediente</h2>
         <app-demo-document-stack variant="archive" />
       </app-cinematic-scene>
 
       <app-cinematic-scene sceneId="flujo" [act]="2" theme="cream">
-        <p class="cine-kicker">Todo el recorrido</p>
-        <h2 class="cine-title">Cuestionario, pago, docs y firma. Un marco.</h2>
+        <h2 class="cine-title">Cuestionario, pago, documentos y firma.</h2>
         <div class="ls-journey">
           <div class="dv-flow-switch">
             @for (step of site.workflow; track step.n; let i = $index) {
@@ -82,8 +76,7 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
 
       <app-cinematic-scene sceneId="precios" [act]="2" theme="cream">
         <div class="dv-price-stage">
-          <p class="cine-kicker">Empieza aquí</p>
-          <p class="amount">$349</p>
+          <p class="amount">\${{ site.price }}</p>
           <h2 class="cine-title">{{ ctaTitle }}</h2>
           <p class="cine-lede">{{ ctaBody }} No incluye gastos notariales.</p>
           <a [routerLink]="primaryAction.path" class="lp-btn lp-btn-primary lp-cta-primary">
@@ -139,7 +132,7 @@ export class DivorcioLandingComponent implements OnInit, AfterViewInit, OnDestro
     if (this.auth.isLoggedIn) {
       return 'Bandeja, documentos y firma documental: el mismo expediente que ve el cliente.';
     }
-    return 'Responde el cuestionario en minutos. Si calificas, continúas con registro, pago y expediente digital.';
+    return 'Responde el cuestionario de ejemplo. Si calificas, continúas con registro, pago y expediente digital.';
   }
 
   ngOnInit(): void {

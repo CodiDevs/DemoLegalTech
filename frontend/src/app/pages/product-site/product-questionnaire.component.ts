@@ -3,6 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import {
+  clearLocalJson,
+  productQDraftKey,
+  Q_RESULT_KEY,
+  readLocalJson,
+  writeLocalAndSessionJson,
+  writeLocalJson,
+} from '../../core/local-json';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import {
   getProductSite,
@@ -24,22 +32,18 @@ type Stage = 'questions' | 'review' | 'done';
         <div class="form-stage" aria-hidden="true">
           <span class="form-stage-texture"></span>
           <span class="form-stage-glow form-stage-glow--a"></span>
-          <span class="form-stage-glow form-stage-glow--b"></span>
-          <span class="form-stage-sweep"></span>
           <span class="form-stage-ruling"></span>
-          <span class="form-stage-seal"></span>
-          <span class="form-stage-vignette"></span>
         </div>
 
         <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction">
           @if (stage === 'questions' && currentField) {
-            @for (p of [stepLabel]; track p) {
-              <p class="ob-counter" aria-hidden="true">
-                {{ pad(p) }} / {{ pad(fields.length) }}
-              </p>
-            }
             <div class="ob-questions">
-              <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length">
+              <div
+                class="ob-progress"
+                role="group"
+                [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length"
+                [attr.aria-describedby]="fieldIndex > 0 ? 'ob-progress-hint' : null"
+              >
                 <div class="ob-segments">
                   @for (f of fields; track f.id; let i = $index) {
                     <button
@@ -60,7 +64,7 @@ type Stage = 'questions' | 'review' | 'done';
                 <div class="ob-progress-meta">
                   <p class="ob-step-label">Paso {{ stepLabel }} de {{ fields.length }}</p>
                   @if (fieldIndex > 0) {
-                    <p class="ob-step-hint">Toca un paso anterior para volver</p>
+                    <p id="ob-progress-hint" class="ob-progress-hint">Clic en un paso hecho para volver</p>
                   }
                 </div>
               </div>
@@ -79,6 +83,7 @@ type Stage = 'questions' | 'review' | 'done';
                             type="text"
                             [(ngModel)]="answers[f.id]"
                             [placeholder]="f.placeholder || ''"
+                            (ngModelChange)="saveDraft()"
                             (keyup.enter)="canContinue && next()"
                           />
                         </div>
@@ -93,7 +98,7 @@ type Stage = 'questions' | 'review' | 'done';
                         </div>
                       } @else if (f.type === 'select') {
                         <div class="ob-field">
-                          <select [(ngModel)]="answers[f.id]">
+                          <select [(ngModel)]="answers[f.id]" (ngModelChange)="saveDraft()">
                             @for (opt of f.options; track opt.value) {
                               <option [value]="opt.value">{{ opt.label }}</option>
                             }
@@ -128,7 +133,6 @@ type Stage = 'questions' | 'review' | 'done';
             <section class="ob-sheet">
               <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
               <h1>Revisa tu información</h1>
-              <p class="ob-hint">Confirma los datos antes de crear tu expediente de {{ site.name }}.</p>
 
               <ul class="ob-review">
                 @for (field of site.questionnaire; track field.id; let i = $index) {
@@ -141,7 +145,7 @@ type Stage = 'questions' | 'review' | 'done';
                 }
               </ul>
 
-              <p class="pq-price">Honorario orientativo: <strong>\${{ site.price }}</strong> — pago único.</p>
+              <p class="pq-price">Honorario orientativo: <strong>\${{ site.price }}</strong>. Pago único.</p>
 
               <div class="ob-actions">
                 @if (auth.isLoggedIn) {
@@ -150,8 +154,9 @@ type Stage = 'questions' | 'review' | 'done';
                     @else { Crear mi expediente }
                   </button>
                 } @else {
+                  <p class="ob-hint">Para pagar el trámite, entra o crea tu cuenta.</p>
                   <a [routerLink]="['/auth']" [queryParams]="authParams" class="btn btn-primary btn-lg btn-block" (click)="prepareGuestCheckout()">
-                    Registrarme para continuar
+                    Crear cuenta para pagar
                   </a>
                   <a [routerLink]="['/auth']" [queryParams]="loginParams" class="btn btn-secondary btn-block" (click)="prepareGuestCheckout()">
                     Ya tengo cuenta
@@ -238,10 +243,6 @@ export class ProductQuestionnaireComponent implements OnInit {
     return Math.round((this.stepLabel / this.totalSteps) * 100);
   }
 
-  pad(n: number): string {
-    return String(n).padStart(2, '0');
-  }
-
   fieldIcon(field: QuestionField): IconName {
     if (field.type === 'boolean') return 'check-circle';
     if (field.type === 'select') return 'clipboard';
@@ -324,9 +325,9 @@ export class ProductQuestionnaireComponent implements OnInit {
     const v = this.answers[field.id];
     if (field.type === 'boolean') return v ? 'Sí' : 'No';
     if (field.type === 'select') {
-      return field.options?.find((o) => o.value === v)?.label || String(v ?? '—');
+      return field.options?.find((o) => o.value === v)?.label || String(v ?? 'Sin indicar');
     }
-    return String(v ?? '—');
+    return String(v ?? 'Sin indicar');
   }
 
   /** Guest → auth → createCase: seed the same cache Divorcio uses. */
@@ -340,10 +341,12 @@ export class ProductQuestionnaireComponent implements OnInit {
     const city = String(this.answers['city'] || 'Quito');
     const answers = { ...this.answers, product: this.site.id };
     setActiveProduct(this.site.id);
-    sessionStorage.setItem(
-      'd360_q_result',
-      JSON.stringify({ result: 'apto', city, answers, product: this.site.id }),
-    );
+    writeLocalAndSessionJson(Q_RESULT_KEY, {
+      result: 'apto',
+      city,
+      answers,
+      product: this.site.id,
+    });
   }
 
   start(): void {
@@ -354,6 +357,7 @@ export class ProductQuestionnaireComponent implements OnInit {
     this.seedCheckoutResult();
     this.api.createCase('apto', city, q, this.site.id).subscribe({
       next: (c) => {
+        clearLocalJson(this.storageKey());
         this.caseId = c.id;
         this.stage = 'done';
         this.busy = false;
@@ -373,24 +377,28 @@ export class ProductQuestionnaireComponent implements OnInit {
 
   saveDraft(): void {
     if (!this.site) return;
-    sessionStorage.setItem(
-      this.storageKey(),
-      JSON.stringify({ answers: this.answers, fieldIndex: this.fieldIndex, stage: this.stage }),
-    );
+    writeLocalJson(this.storageKey(), {
+      answers: this.answers,
+      fieldIndex: this.fieldIndex,
+      stage: this.stage,
+    });
   }
 
   private storageKey(): string {
-    return `ls_product_q_${this.site?.slug || ''}`;
+    return productQDraftKey(this.site?.slug || '');
   }
 
   private restoreDraft(): void {
-    const raw = sessionStorage.getItem(this.storageKey());
-    if (!raw) return;
-    try {
-      const p = JSON.parse(raw);
-      if (p.answers) this.answers = { ...this.answers, ...p.answers };
-      if (typeof p.fieldIndex === 'number') this.fieldIndex = p.fieldIndex;
-      if (p.stage === 'review') this.stage = 'review';
-    } catch { /* ignore */ }
+    const p = readLocalJson<{
+      answers?: Record<string, unknown>;
+      fieldIndex?: number;
+      stage?: Stage;
+    }>(this.storageKey());
+    if (!p) return;
+    if (p.answers) this.answers = { ...this.answers, ...p.answers };
+    if (typeof p.fieldIndex === 'number') {
+      this.fieldIndex = Math.min(Math.max(0, p.fieldIndex), Math.max(0, this.fields.length - 1));
+    }
+    if (p.stage === 'review') this.stage = 'review';
   }
 }

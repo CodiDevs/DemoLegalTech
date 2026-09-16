@@ -37,7 +37,6 @@ interface CaseAction {
       <app-product-flow-shell
         [theme]="theme"
         [crumb]="crumb"
-        eyebrow="Expediente digital"
         [title]="'Caso #' + data.case.id"
         [subtitle]="data.case.client_name + ' · ' + data.case.status_label"
       >
@@ -71,7 +70,6 @@ interface CaseAction {
                   <app-scheduled-meeting-card
                     [scheduledAt]="data.case.consultation_at"
                     [pendingRequest]="data.case.consultation_at === 'requested'"
-                    subtitle="Consulta con abogado"
                   />
                 } @else {
                   <p class="pf-muted">Elige fecha y hora. Te enviaremos el enlace de la videollamada por correo.</p>
@@ -79,7 +77,6 @@ interface CaseAction {
                     #consultScheduler
                     [storageKey]="consultStorageKey"
                     confirmLabel="Confirmar consulta"
-                    scheduledSubtitle="Consulta con abogado"
                     [saveFn]="consultSaveFn"
                     (scheduled)="reload()"
                   />
@@ -110,7 +107,7 @@ interface CaseAction {
               @if (!docs.length) { <p class="muted">Sin documentos cargados.</p> }
               @for (d of docs; track d.id) {
                 <div class="doc-row">
-                  <span>{{ docLabel(d.doc_type) }} — {{ d.filename }}</span>
+                  <span>{{ docLabel(d.doc_type) }} · {{ d.filename }}</span>
                   <span class="pill" [class]="d.review_status">{{ reviewLabel(d.review_status) }}</span>
                   @if (d.review_note && d.review_status === 'rejected') {
                     <p class="muted">{{ d.review_note }}</p>
@@ -188,9 +185,9 @@ interface CaseAction {
   `,
   styles: [`
     .wrap { padding-block: 2rem 3rem; }
-    .lede { margin-bottom: 1rem; color: var(--ink-soft); }
-    .banner { padding: 0.85rem 1rem; border-radius: 10px; background: oklch(0.94 0.03 210); margin-bottom: 1rem; }
-    .banner.warn { background: oklch(0.95 0.04 85); }
+    .lede { margin-bottom: 1rem; color: var(--text-secondary); }
+    .banner { padding: 0.85rem 1rem; border-radius: 10px; background: var(--info-subtle); margin-bottom: 1rem; }
+    .banner.warn { background: var(--warning-subtle); }
     .layout { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 1.25rem; }
     .actions-panel { text-align: center; }
     .actions-panel h2 { text-align: left; margin-bottom: var(--space-4); }
@@ -225,12 +222,12 @@ interface CaseAction {
     .meet-section { margin-top: 1rem; display: grid; gap: var(--space-3); }
     .meet-section h2 { margin: 0; font-size: var(--text-lg); }
     .events, .note { list-style: none; padding: 0; }
-    .events li, .note, .doc-row { border-top: 1px solid var(--line); padding: 0.75rem 0; }
-    .sig img { max-width: 200px; border: 1px solid var(--line); border-radius: 8px; background: white; }
+    .events li, .note, .doc-row { border-top: 1px solid var(--border); padding: 0.75rem 0; }
+    .sig img { max-width: 200px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
     .pill { font-size: 0.72rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.5rem; }
-    .pill.pending { background: oklch(0.93 0.03 85); }
-    .pill.approved { background: oklch(0.93 0.04 150); color: var(--ok); }
-    .pill.rejected { background: oklch(0.93 0.04 25); color: var(--bad); }
+    .pill.pending { background: var(--warning-subtle); color: var(--warning); }
+    .pill.approved { background: var(--success-subtle); color: var(--success); }
+    .pill.rejected { background: var(--danger-subtle); color: var(--danger); }
     @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
   `]
 })

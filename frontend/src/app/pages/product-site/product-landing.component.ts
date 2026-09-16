@@ -3,7 +3,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { getProductSite, ProductSiteConfig, setActiveProduct, CANONICAL_SLOGAN, getProductQuestionnairePath } from '../../shared/product-sites.data';
 import { AuthService } from '../../core/auth.service';
 import { ElasticGalleryComponent } from '../saas/elastic-gallery.component';
-import { LandingStatisticsComponent } from '../saas/landing-statistics.component';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { CaseProgressComponent } from '../../shared/case-progress.component';
 import { buildMarketingProgressStages, CaseProgressStage } from '../../shared/case-progress.model';
@@ -23,7 +22,6 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
   imports: [
     RouterLink,
     ElasticGalleryComponent,
-    LandingStatisticsComponent,
     IconComponent,
     CaseProgressComponent,
   ],
@@ -53,10 +51,8 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
         <section class="ps-hero lp-section soft">
           <div class="lp-shell ps-hero-grid">
             <div class="ps-hero-copy">
-              <p class="lp-eyebrow">{{ site.name }} · pagas una sola vez</p>
               <h1>{{ site.heroTitle }} <span class="lp-highlight">{{ site.heroHighlight }}</span></h1>
               <p class="ps-lede">{{ site.heroLede }}</p>
-              <span class="ps-badge">Un solo pago · sin cuotas mensuales</span>
               <div class="ps-cta-row">
                 <a href="#" (click)="startEvaluation($event)" class="lp-btn lp-btn-primary">
                   Evaluar mi caso
@@ -67,8 +63,7 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
             </div>
             <div class="ps-mock-ui">
               <div class="ps-mock-bar">
-                <span></span><span></span><span></span>
-                <strong>{{ site.name }} — expediente de ejemplo</strong>
+                <strong>{{ site.name }}</strong>
               </div>
               <div class="ps-mock-body">
                 @for (s of site.workflow.slice(0, 4); track s.n) {
@@ -89,9 +84,7 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
         <section class="lp-section" id="flujo">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">Así funciona</p>
               <h2>Seis pasos, <span class="lp-highlight">un solo expediente.</span></h2>
-              <p>El mismo recorrido de LegalStation, adaptado a {{ site.name }}.</p>
             </div>
             <app-case-progress
               variant="marketing"
@@ -108,47 +101,20 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
         <section class="lp-section soft">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">En números</p>
-              <h2>Confianza <span class="lp-highlight">medible.</span></h2>
-            </div>
-            <app-landing-statistics theme="divorcio" [stats]="site.stats" />
-          </div>
-        </section>
-
-        <section class="lp-section">
-          <div class="lp-shell">
-            <div class="lp-section-head">
-              <p class="lp-eyebrow">Producto en acción</p>
               <h2>Pantallas reales <span class="lp-highlight">del trámite.</span></h2>
             </div>
             <app-elastic-gallery theme="divorcio" [items]="site.gallery" />
           </div>
         </section>
 
-        <section class="lp-section soft">
-          <div class="lp-shell">
-            <div class="lp-testimonials">
-              @for (t of site.testimonials; track t.author) {
-                <blockquote class="ps-quote">
-                  <p>"{{ t.quote }}"</p>
-                  <footer>{{ t.author }} · {{ t.role }}</footer>
-                </blockquote>
-              }
-            </div>
-          </div>
-        </section>
-
         <section class="lp-section" id="precios">
           <div class="lp-shell">
             <div class="lp-section-head">
-              <p class="lp-eyebrow">Pagas una sola vez</p>
               <h2>Precios claros <span class="lp-highlight">sin cuotas mensuales.</span></h2>
-              <p>Pagas un solo importe por tu trámite. La licencia LegalStation es solo para bufetes.</p>
             </div>
             <div class="lp-pricing">
               @for (plan of site.plans; track plan.name) {
                 <article class="lp-plan lp-lift" [class.featured]="plan.featured">
-                  <span class="lp-plan-tag" [class.is-spacer]="!plan.featured">Recomendado</span>
                   <h3>{{ plan.name }}</h3>
                   <p class="lp-muted">{{ plan.audience }}</p>
                   <div class="lp-plan-price">\${{ plan.price }}<small> pago único</small></div>
@@ -169,9 +135,7 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
         <section class="lp-cta-panel">
           <div class="lp-shell">
             <div class="lp-cta-inner">
-              <p class="lp-cta-eyebrow">{{ site.name }} listo</p>
               <h2>{{ site.ctaTitle }}</h2>
-              <p>Contestas el cuestionario en minutos, creas tu cuenta, haces un solo pago, subes tus documentos, hablas con tu abogado, firmas y cierras en la notaría.</p>
               <div class="lp-cta-buttons">
                 <a href="#" (click)="startEvaluation($event)" class="lp-cta-primary">Evaluar mi caso</a>
                 <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
@@ -192,19 +156,6 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
       align-items: center;
       gap: var(--space-2);
       flex-wrap: wrap;
-    }
-
-    .ps-badge {
-      display: inline-block;
-      margin-top: var(--space-3);
-      font-size: var(--text-xs);
-      font-weight: 700;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      padding: var(--space-1) var(--space-2);
-      border-radius: var(--radius-full);
-      background: var(--lp-accent-soft);
-      color: var(--lp-accent-deep);
     }
 
     .ps-hero-grid {
@@ -241,129 +192,14 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
       max-height: 420px;
     }
 
-    .ps-timeline {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--space-3);
-    }
-
-    .ps-timeline-item {
-      text-align: left;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-4);
-      background: var(--surface);
-      color: var(--text);
-      box-shadow: var(--shadow-sm);
-      cursor: pointer;
-      font: inherit;
-      display: grid;
-      grid-template-columns: 2.5rem minmax(0, 1fr);
-      gap: var(--space-3);
-      align-items: start;
-      width: 100%;
-      min-width: 0;
-      transition:
-        border-color var(--dur-fast) var(--ease),
-        box-shadow var(--dur-fast) var(--ease);
-    }
-
-    .ps-timeline-item.active,
-    .ps-timeline-item:hover {
-      border-color: var(--lp-accent);
-      box-shadow: var(--shadow-md);
-    }
-
-    .ps-timeline-num {
-      width: 2.25rem;
-      height: 2.25rem;
-      border-radius: var(--radius-full);
-      display: grid;
-      place-items: center;
-      font-weight: 700;
-      background: var(--lp-accent-soft);
-      color: var(--lp-accent-deep);
-    }
-
-    .ps-timeline-item h3 {
-      margin: 0 0 var(--space-1);
-      font-size: var(--text-base);
-    }
-
-    .ps-timeline-item p {
-      margin: 0;
-      font-size: var(--text-sm);
-      color: var(--text-muted);
-      line-height: var(--leading-snug);
-    }
-
-    .ps-preview h3 {
-      font-size: clamp(var(--text-lg), 2vw, var(--text-xl));
-      margin: var(--space-1) 0 var(--space-2);
-    }
-
-    .ps-screen-tag {
-      display: inline-block;
-      margin-top: var(--space-1);
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: var(--tracking-wide);
-      color: var(--lp-accent-ink);
-    }
-
-    .ps-preview {
-      margin-top: var(--space-5);
-      padding: var(--space-5);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-md);
-    }
-
-    .lp-testimonials {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-    }
-
-    .ps-quote {
-      margin: 0;
-      padding: var(--space-5);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-md);
-    }
-
-    .ps-quote p {
-      margin: 0 0 var(--space-3);
-      font-style: italic;
-      line-height: var(--leading-normal);
-    }
-
-    .ps-quote footer {
-      font-size: var(--text-sm);
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    @media (max-width: 1024px) {
-      .ps-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
     @media (max-width: 900px) {
       .ps-hero-grid { grid-template-columns: 1fr; }
       .ps-mock-ui { max-height: none; }
-      .lp-testimonials { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
-      .ps-timeline { grid-template-columns: 1fr; }
       .ps-hero-copy h1 { max-width: none; }
-      .ps-mock-bar strong { margin-left: 0; width: 100%; }
+      .ps-mock-bar strong { width: 100%; }
     }
   `],
 })

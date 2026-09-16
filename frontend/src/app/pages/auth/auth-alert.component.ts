@@ -34,7 +34,7 @@ import { IconComponent } from '../../shared/icon.component';
     .auth-alert[data-tone='success'] {
       border-color: var(--success-border, #b7d7c4);
       background: var(--success-subtle, #eef7f1);
-      color: var(--success, #2f7d51);
+      color: var(--success, #2b7749);
     }
 
     .auth-alert-body {

@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  HostListener,
   Input,
   ViewChild,
 } from '@angular/core';
@@ -10,6 +11,12 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { IconComponent } from '../../shared/icon.component';
 import { DemoCaseWindowComponent } from '../../shared/demo/demo-case-window.component';
+import {
+  LEGALSTATION_CATALOG,
+  ProductCatalogEntry,
+  getProductQuestionnairePath,
+  setActiveProduct,
+} from '../../shared/product-sites.data';
 
 interface HeroAction {
   label: string;
@@ -62,26 +69,59 @@ interface HeroAction {
             </div>
 
             <h1 class="mk-brand-name">
-              {{ titleLine1 || 'Expedientes civiles, resueltos.' }}
+              {{ titleLine1 || 'Cuestionario, documentos, firma y ya estás divorciado!' }}
             </h1>
 
             <p class="mk-slogan">
-              {{ lede || 'Automatización de admisión, biometría, minutas y cobro arancelario para estudios jurídicos y áreas legales.' }}
+              {{ lede || 'Nunca fué tan fácil y rápido divorciarte!' }}
             </p>
 
             <div class="mk-cta">
-              @if (useFragment) {
+              @if (pickService) {
+                <div class="mk-cta-pick">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-lg mk-cta-btn"
+                    [attr.aria-expanded]="servicesOpen"
+                    aria-haspopup="menu"
+                    aria-controls="mk-service-menu"
+                    (click)="toggleServices()"
+                  >
+                    <span>{{ primaryCta }}</span>
+                    <span class="mk-cta-chevron" [class.is-open]="servicesOpen" aria-hidden="true">
+                      <app-icon name="chevron-down" [size]="16" />
+                    </span>
+                  </button>
+                  @if (servicesOpen) {
+                    <ul id="mk-service-menu" class="mk-service-menu" role="menu">
+                      @for (p of liveServices; track p.id) {
+                        <li role="none">
+                          <a
+                            role="menuitem"
+                            class="mk-service-item"
+                            [routerLink]="questionnairePath(p.id)"
+                            (click)="pickServiceId(p.id)"
+                          >
+                            <strong>{{ p.name }}</strong>
+                            <span>{{ p.pillDesc }}</span>
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              } @else if (useFragment) {
                 <a
                   class="btn btn-primary btn-lg mk-cta-btn"
                   [href]="'#' + primaryFragment"
                   (click)="scrollToSection($event, primaryFragment)"
                 >
-                  <span>{{ primaryLabel }}</span>
+                  <span>{{ primaryCta }}</span>
                   <app-icon name="arrow-right" [size]="16" />
                 </a>
               } @else {
-                <a class="btn btn-primary btn-lg mk-cta-btn" [routerLink]="primaryLink">
-                  <span>{{ primaryLabel }}</span>
+                <a class="btn btn-primary btn-lg mk-cta-btn" [routerLink]="primaryRoute">
+                  <span>{{ primaryCta }}</span>
                   <app-icon name="arrow-right" [size]="16" />
                 </a>
               }
@@ -97,7 +137,7 @@ interface HeroAction {
           </div>
 
           <div class="mk-dossier-float">
-            <app-demo-case-window mode="overview" [activeStep]="2" />
+            <app-demo-case-window mode="overview" />
           </div>
         </div>
       </section>
@@ -106,7 +146,7 @@ interface HeroAction {
   styles: [`
     :host { display: block; width: 100%; }
 
-    .mk-hero {
+    .mk-hero.mk-sticky {
       position: relative;
       isolation: isolate;
       display: flex;
@@ -114,7 +154,7 @@ interface HeroAction {
       justify-content: center;
       min-height: 100svh;
       padding-block: clamp(4rem, 10vh, 7rem);
-      overflow: hidden;
+      overflow: visible;
       color: var(--text-inverse);
       background-color: #121413;
       background-image: var(--mk-poster);
@@ -157,7 +197,9 @@ interface HeroAction {
       margin: 0 auto;
     }
 
-    .mk-content {
+    .mk-content.mk-wordmark-mask {
+      position: relative;
+      z-index: 4;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
@@ -214,6 +256,60 @@ interface HeroAction {
       gap: var(--space-3);
     }
 
+    .mk-cta-pick {
+      position: relative;
+    }
+
+    .mk-cta-chevron {
+      display: inline-flex;
+      transition: transform 180ms var(--ease-out);
+    }
+
+    .mk-cta-chevron.is-open {
+      transform: rotate(180deg);
+    }
+
+    .mk-service-menu {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      left: 0;
+      z-index: var(--z-dropdown);
+      min-width: min(20.5rem, 78vw);
+      margin: 0;
+      padding: var(--space-2);
+      list-style: none;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      animation: mk-in 320ms var(--ease-out);
+    }
+
+    .mk-service-item {
+      display: grid;
+      gap: 0.15rem;
+      padding: 0.7rem 0.85rem;
+      border-radius: var(--radius-md);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .mk-service-item:hover,
+    .mk-service-item:focus-visible {
+      background: var(--primary-subtle);
+      outline: none;
+    }
+
+    .mk-service-item strong {
+      font-weight: 650;
+    }
+
+    .mk-service-item span {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
     .mk-cta-btn,
     .mk-cta-secondary {
       text-decoration: none;
@@ -224,7 +320,11 @@ interface HeroAction {
       border-radius: var(--radius-md);
       font-size: var(--text-base);
       font-weight: 600;
-      transition: all var(--dur-fast, 180ms) var(--ease-out);
+      transition:
+        background-color var(--dur-fast, 180ms) var(--ease-out),
+        border-color var(--dur-fast, 180ms) var(--ease-out),
+        color var(--dur-fast, 180ms) var(--ease-out),
+        transform var(--dur-fast, 180ms) var(--ease-out);
     }
 
     .mk-cta-btn {
@@ -304,33 +404,39 @@ interface HeroAction {
         flex-direction: column;
         align-items: stretch;
       }
+      .mk-cta .btn,
+      .mk-cta-pick {
+        width: 100%;
+      }
       .mk-cta .btn {
         justify-content: center;
+      }
+      .mk-service-menu {
+        right: 0;
+        min-width: 0;
         width: 100%;
       }
     }
   `],
 })
 export class MarketingHeroComponent implements AfterViewInit {
-  @Input() primaryCta = 'Abrir Divorcio360';
+  @Input() primaryCta = 'Iniciar un trámite';
   @Input() secondaryCta = 'Cómo funciona';
-  @Input() primaryRoute = '/productos/divorcio360';
+  @Input() primaryRoute = '/cuestionario';
   @Input() primaryFragment = '';
+  @Input() pickService = true;
   @Input() showSecondary = false;
   @Input() secondaryAuthQuery: Record<string, string> = {};
 
-  @Input() theme: 'legalstation' | 'divorcio' = 'legalstation';
   @Input() titleLine1 = '';
-  @Input() titleHighlight = '';
-  @Input() subtitle = '';
   @Input() lede = '';
-  @Input() stats: unknown[] = [];
-  @Input() images: [string, string, string] = ['', '', ''];
 
   readonly videoSrc = '/videos/legalstation-hero.mp4';
   readonly posterSrc = '/videos/legalstation-hero-poster.jpg';
 
   useStaticFallback = false;
+  servicesOpen = false;
+  readonly liveServices: ProductCatalogEntry[] = LEGALSTATION_CATALOG.filter((p) => p.live);
   private playAttempt = 0;
 
   @ViewChild('videoRef') videoRef?: ElementRef<HTMLVideoElement>;
@@ -371,26 +477,21 @@ export class MarketingHeroComponent implements AfterViewInit {
     return !!this.primaryFragment && this.role !== 'abogado' && this.role !== 'cliente';
   }
 
-  get primaryLink(): string {
-    if (this.role === 'abogado') return '/abogado';
-    if (this.role === 'cliente') return '/cliente';
-    return this.primaryRoute;
-  }
-
-  get primaryLabel(): string {
-    return this.role === 'cliente' ? 'Mis expedientes' : this.primaryCta;
-  }
+  /* El CTA primario del hero es la accion de la pagina en todos los roles. Antes forzaba el
+     atajo del rol, y en el inicio un cliente veia "Mis expedientes" aca y "Mi expediente" en
+     el secundario: dos botones casi iguales, los dos a /cliente y ninguno al formulario. El
+     atajo del rol vive en la barra (shell), que es donde corresponde. */
 
   get secondaryAction(): HeroAction | null {
     if (!this.showSecondary) return null;
     if (this.role === 'abogado') {
-      return { label: 'Ver Fase 2', route: '/abogado/fase2/admin' };
+      return { label: 'Bandeja', route: '/abogado' };
     }
     if (this.secondaryCta === 'Volver a Divorcio360') {
       return { label: this.secondaryCta, route: '/productos/divorcio360' };
     }
     if (this.role === 'cliente') {
-      return { label: 'Mi expediente', route: '/cliente' };
+      return { label: 'Mis expedientes', route: '/cliente' };
     }
     if (this.auth.isLoggedIn) return null;
     return { label: this.secondaryCta, route: '/auth', query: this.secondaryAuthQuery };
@@ -401,5 +502,31 @@ export class MarketingHeroComponent implements AfterViewInit {
     if (!el) return;
     event.preventDefault();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  questionnairePath(id: string): string {
+    return getProductQuestionnairePath(id);
+  }
+
+  toggleServices(): void {
+    this.servicesOpen = !this.servicesOpen;
+  }
+
+  pickServiceId(id: string): void {
+    setActiveProduct(id);
+    this.servicesOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeServices(event: MouseEvent): void {
+    if (!this.servicesOpen) return;
+    const node = event.target as HTMLElement | null;
+    if (node?.closest('.mk-cta-pick')) return;
+    this.servicesOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  closeServicesOnEscape(): void {
+    this.servicesOpen = false;
   }
 }

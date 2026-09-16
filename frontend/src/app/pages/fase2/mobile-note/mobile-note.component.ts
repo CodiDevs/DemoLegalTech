@@ -50,13 +50,13 @@ import { DataTableComponent } from '../../../shared/data-table.component';
     .phones { display: flex; gap: 1rem; flex-wrap: wrap; }
     .phone {
       width: 160px; min-height: 280px; border-radius: 24px; padding: 1rem 0.75rem;
-      background: linear-gradient(160deg, oklch(0.35 0.06 210), oklch(0.25 0.04 230));
+      background: linear-gradient(160deg, var(--neutral-700), var(--neutral-900));
       color: white; text-align: center;
     }
-    .notch { width: 60px; height: 8px; border-radius: 99px; background: oklch(0.15 0.02 230); margin: 0 auto 1rem; }
+    .notch { width: 60px; height: 8px; border-radius: 99px; background: var(--neutral-900); margin: 0 auto 1rem; }
     .screen-title { font-weight: 650; font-size: 0.95rem; margin: 0 0 0.75rem; }
     .screen-body { text-align: left; font-size: 0.72rem; opacity: 0.9; }
-    .line { padding: 0.35rem 0; border-bottom: 1px solid oklch(1 0 0 / 0.15); }
+    .line { padding: 0.35rem 0; border-bottom: 1px solid rgb(255 255 255 / 0.15); }
     .roadmap { color: var(--text-secondary); }
     .qr { margin-top: 1rem; }
     .mono { font-variant-numeric: tabular-nums; font-size: 0.82rem; }
@@ -67,10 +67,10 @@ export class Fase2MobileComponent {
   screens = [
     { title: 'Mi expediente', lines: ['Caso #1', 'Revisión jurídica', 'Documentos aprobados', 'Línea de 10 estados'] },
     { title: 'Línea de estados', lines: ['01 Información recibida', '02 Documentos pendientes', '03 Revisión jurídica (actual)'] },
-    { title: 'Firma', lines: ['Minuta lista', 'Canvas firma', 'Evidencia IP/fecha'] },
+    { title: 'Firma', lines: ['Minuta lista', 'Firma en pantalla', 'Evidencia IP/fecha'] },
   ];
   roadmap = [
-    'Push notifications de cambio de estado',
+    'Notificaciones push de cambio de estado',
     'Biometría para acceso rápido',
     'Firma nativa con ECI acreditada',
     'Carga de docs desde cámara',
@@ -82,8 +82,8 @@ export class Fase2MobileComponent {
   ];
   compareRows = [
     { feature: 'Línea de estados del expediente', pwa: 'Sí', native: 'Sí' },
-    { feature: 'Push notifications', pwa: 'Limitado', native: 'Sí' },
-    { feature: 'Firma ECI', pwa: 'Canvas mock', native: 'SDK nativo' },
-    { feature: 'Offline', pwa: 'Parcial', native: 'Sí' },
+    { feature: 'Notificaciones push', pwa: 'Limitado', native: 'Sí' },
+    { feature: 'Firma ECI', pwa: 'Lienzo en pantalla', native: 'SDK nativo' },
+    { feature: 'Sin conexión', pwa: 'Parcial', native: 'Sí' },
   ];
 }

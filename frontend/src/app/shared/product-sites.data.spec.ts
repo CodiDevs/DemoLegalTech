@@ -1,4 +1,5 @@
 import {
+  LEGALSTATION_CATALOG,
   PRODUCT_SITES,
   buildClientFlowCrumb,
   getDivorcioFormAction,
@@ -36,11 +37,14 @@ describe('product-sites.data', () => {
     });
   });
 
-  it('lleva Iniciar Formulario al cuestionario, con auth si es invitado', () => {
+  it('lleva Iniciar Formulario al cuestionario, también si es invitado', () => {
     expect(getDivorcioFormAction(null)).toEqual({
       label: 'Iniciar Formulario',
-      path: '/auth',
-      query: { returnUrl: '/cuestionario', product: 'divorcio360' },
+      path: '/cuestionario',
+    });
+    expect(getDivorcioFormAction(null, 'traslado360')).toEqual({
+      label: 'Iniciar Formulario',
+      path: '/productos/traslado360/cuestionario',
     });
     expect(getDivorcioFormAction('cliente')).toEqual({
       label: 'Iniciar Formulario',
@@ -65,20 +69,45 @@ describe('product-sites.data', () => {
     }
   });
 
-  it('publica métricas de producto sin copy de demo', () => {
-    const site = PRODUCT_SITES['divorcio360'];
-    const visibleCopy = JSON.stringify({
-      heroLede: site.heroLede,
-      workflow: site.workflow,
-      values: site.values,
-      stats: site.stats,
-      plans: site.plans,
-    });
+  it('publica copy de producto sin métricas inventadas ni lenguaje de demo', () => {
+    expect(PRODUCT_SITES['divorcio360'].plans.length).toBe(1);
 
-    expect(site.stats.map((stat) => stat.value)).toEqual(['6 etapas', '1 expediente', '$349']);
-    expect(site.plans.length).toBe(1);
-    expect(visibleCopy).not.toMatch(/24\/7|1 click|SLA|timeline|intake|mismo costo/i);
-    expect(visibleCopy).not.toMatch(/demo|demostración/i);
+    for (const [slug, site] of Object.entries(PRODUCT_SITES)) {
+      const visibleCopy = JSON.stringify({
+        slug,
+        heroTitle: site.heroTitle,
+        heroHighlight: site.heroHighlight,
+        heroLede: site.heroLede,
+        ctaTitle: site.ctaTitle,
+        workflow: site.workflow,
+        values: site.values,
+        gallery: site.gallery.map((item) => item.alt),
+        plans: site.plans,
+        docTypes: site.docTypes,
+        questionnaire: site.questionnaire,
+      });
+
+      expect(visibleCopy).not.toMatch(/24\/7|1 click|\bSLA\b|timeline|intake|mismo costo/i);
+      expect(visibleCopy).not.toMatch(/demo|demostración/i);
+      expect(visibleCopy).not.toMatch(/inteligente|en vivo|sin filas ni trámites/i);
+      expect(visibleCopy).not.toMatch(/[—–]/);
+    }
+  });
+
+  it('mantiene el catálogo sin jerga de plantilla ni copy de demo', () => {
+    for (const entry of LEGALSTATION_CATALOG) {
+      const visibleCopy = JSON.stringify({
+        id: entry.id,
+        tagline: entry.tagline,
+        pillDesc: entry.pillDesc,
+        showcaseDesc: entry.showcaseDesc,
+        features: entry.features,
+      });
+
+      expect(visibleCopy).not.toMatch(/\bSLA\b|kanban|\bsync\b|inteligente|en vivo/i);
+      expect(visibleCopy).not.toMatch(/demo|demostración/i);
+      expect(visibleCopy).not.toMatch(/[—–]/);
+    }
   });
 
   it('arma migas del flujo cliente ancladas en Mis trámites', () => {

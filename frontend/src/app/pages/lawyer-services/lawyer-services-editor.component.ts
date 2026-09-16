@@ -36,7 +36,6 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
 
       <app-workspace-head
         [title]="creating ? 'Nuevo servicio' : (draft.name || 'Editar servicio')"
-        aside="Honorario, documentos y preguntas"
       />
 
       @if (loadError) {
@@ -117,7 +116,7 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
                 <div>
                   <label>Flujo de ingreso</label>
                   <p class="field-hint">
-                    Lienzo tipo workflow: rueda para zoom, clic en un nodo para editarlo, + para crear pregunta.
+                    Lienzo tipo flujo: rueda para acercar, clic en un nodo para editarlo, + para crear pregunta.
                   </p>
                 </div>
               </div>
@@ -140,7 +139,7 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
             <div class="form-actions">
               <a routerLink="/abogado/servicios" class="btn btn-ghost">Cancelar</a>
               <button type="button" class="btn btn-secondary" (click)="showPreview = !showPreview" [disabled]="busy">
-                {{ showPreview ? 'Ocultar preview' : 'Ver Preview' }}
+                {{ showPreview ? 'Ocultar vista previa' : 'Ver vista previa' }}
               </button>
               <button type="submit" class="btn btn-primary" [disabled]="busy">
                 {{ busy ? 'Guardando…' : creating ? 'Crear servicio' : 'Guardar cambios' }}
@@ -148,8 +147,8 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
             </div>
 
             @if (showPreview) {
-              <section class="preview-panel" aria-label="Vista previa">
-                <p class="preview-kicker">Así lo verá el cliente</p>
+              <section class="preview-panel" aria-labelledby="preview-heading">
+                <h2 class="preview-heading" id="preview-heading">Así lo verá el cliente</h2>
                 <article class="sheet">
                   <div class="sheet-top">
                     <span class="cat">{{ categoryLabel(draft.category) }}</span>
@@ -214,13 +213,13 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
               >
                 <header class="q-modal-head">
                   <div>
-                    <p class="q-modal-kicker" id="q-modal-title">
+                    <h2 class="q-modal-title" id="q-modal-title">
                       @if (creatingQuestion) {
                         {{ isNoAplica(q) ? 'Nuevo No aplica' : 'Nueva pregunta' }}
                       } @else {
                         {{ isNoAplica(q) ? 'Editar No aplica' : 'Editar pregunta' }}
                       }
-                    </p>
+                    </h2>
                     <div class="q-card-top">
                       <span class="q-id tabular">{{ q.id }}</span>
                       @if (!creatingQuestion && isStartQuestion(q)) {
@@ -396,13 +395,12 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
 
     .back:hover { color: var(--text); }
 
-    .preview-kicker {
+    .preview-heading {
       margin: 0 0 var(--space-2);
-      font-size: var(--text-xs);
-      font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
+      font-family: var(--font-sans);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-secondary);
     }
 
     .folio {
@@ -450,8 +448,7 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
       justify-content: center;
       padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
       margin: 0;
-      background: color-mix(in srgb, var(--text) 45%, transparent);
-      backdrop-filter: blur(5px);
+      background: var(--overlay);
     }
 
     .q-modal {
@@ -475,13 +472,12 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
       border-bottom: 1px solid var(--border);
     }
 
-    .q-modal-kicker {
+    .q-modal-title {
       margin: 0 0 var(--space-1);
-      font-size: var(--text-xs);
-      font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--text);
     }
 
     .q-modal-close {
@@ -725,10 +721,8 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
 
     .cat {
       font-size: var(--text-xs);
-      font-weight: 700;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
+      font-weight: 600;
+      color: var(--text-secondary);
     }
 
     .sheet h2 {

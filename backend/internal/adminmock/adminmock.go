@@ -271,7 +271,7 @@ func (s *Service) BillingRecurring(w http.ResponseWriter, r *http.Request) {
 	tenant["platform_pct"] = 85
 	tenant["suggested_client_price_usd"] = 349
 	write(w, map[string]any{
-		"demo": true, "note": "Licencia LegalStation para bufetes — el cliente final paga honorarios por trámite, no esta suscripción.",
+		"demo": true, "note": "Licencia LegalStation para bufetes. El cliente final paga honorarios por trámite, no esta suscripción.",
 		"current_tenant": tenant,
 		"plans":          defaultPlans(),
 		"invoices": []map[string]any{

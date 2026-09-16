@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { CASE_STATUS_ICONS } from '../../shared/case-progress.model';
+import { caseClientHint, caseShort } from '../../shared/case-status.data';
 import {
   LEGALSTATION_CATALOG,
   ProductCatalogEntry,
@@ -15,39 +16,16 @@ import { ClientDivorcioDeskComponent } from './client-divorcio-desk.component';
 import {
   ProductDeskStepId,
   buildProductSteps,
+  caseUrgency,
   currentProductStep,
+  formatDateLong,
+  formatDateShort,
   isTimelineProduct,
   pickProductCase,
   productSideDesc,
 } from './divorcio-steps';
 
 type Filter = 'action' | 'open' | 'done' | 'all';
-
-const STAGE_HINT: Record<string, string> = {
-  '01': 'Completa el pago para abrir el expediente.',
-  '02': 'Sube los documentos que faltan.',
-  '03': 'El abogado está revisando tus documentos.',
-  '04': 'Espera la minuta del abogado.',
-  '05': 'Firma la minuta.',
-  '06': 'El trámite va a notaría.',
-  '07': 'Pendiente la comparecencia.',
-  '08': 'Pendiente el acta.',
-  '09': 'Inscripción en Registro Civil.',
-  '10': 'Trámite cerrado.',
-};
-
-const STAGE_SHORT: Record<string, string> = {
-  '01': 'Recepción',
-  '02': 'Documentos',
-  '03': 'Revisión',
-  '04': 'Minuta',
-  '05': 'Firma',
-  '06': 'Notaría',
-  '07': 'Cita',
-  '08': 'Acta',
-  '09': 'Registro',
-  '10': 'Cierre',
-};
 
 @Component({
   selector: 'app-client-panel',
@@ -134,23 +112,14 @@ const STAGE_SHORT: Record<string, string> = {
             }
           </nav>
         </div>
-
-        @if (soonServices.length) {
-          <div class="side-block side-block--soon">
-            <p class="side-label" id="client-nav-soon">Próximamente</p>
-            <ul class="side-soon-list" aria-labelledby="client-nav-soon">
-              @for (s of soonServices; track s.id) {
-                <li>{{ s.name }}</li>
-              }
-            </ul>
-          </div>
-        }
       </aside>
 
       <div class="client-main">
         <header class="inbox-head">
           <h1>{{ pageTitle }}</h1>
-          <p class="inbox-lede">{{ pageLede }}</p>
+          @if (pageLede) {
+            <p class="inbox-lede">{{ pageLede }}</p>
+          }
         </header>
 
         @if (loading) {
@@ -167,14 +136,16 @@ const STAGE_SHORT: Record<string, string> = {
             </div>
             <button type="button" class="btn btn-secondary" (click)="load()">Volver a intentar</button>
           </div>
-        } @else if (isDeskProduct(product)) {
-          <app-client-divorcio-desk
-            [product]="product"
-            [caseItem]="deskCase"
-            [step]="deskStep"
-            (goStep)="selectDeskStep($event)"
-            (caseChanged)="onDeskCaseChanged($event)"
-          />
+        } @else if (isDeskProduct(product) && countProductTotal(product) === 0) {
+          <div class="desk-shell is-loose">
+            <app-client-divorcio-desk
+              [product]="product"
+              [caseItem]="deskCase"
+              [step]="deskStep"
+              (goStep)="selectDeskStep($event)"
+              (caseChanged)="onDeskCaseChanged($event)"
+            />
+          </div>
         } @else if (!cases.length && product === 'all') {
           <div class="panel empty-state">
             <span class="empty-icon"><app-icon name="inbox" [size]="22" /></span>
@@ -183,105 +154,184 @@ const STAGE_SHORT: Record<string, string> = {
             <button type="button" class="btn btn-primary" (click)="setProduct('divorcio360')">Abrir Divorcio360</button>
           </div>
         } @else {
-          <div class="seg" role="group" aria-label="Filtrar trámites">
-            @for (f of filterDefs; track f.id) {
-              <button
-                type="button"
-                class="seg-btn"
-                [class.on]="filter === f.id"
-                [attr.aria-pressed]="filter === f.id"
-                (click)="setFilter(f.id)"
-              >
-                {{ f.label }}
-                <span class="seg-n tabular">{{ countFor(f.id) }}</span>
-              </button>
-            }
-          </div>
-
-          @if (!filtered.length) {
-            <div class="panel empty-state">
-              <span class="empty-icon"><app-icon name="search" [size]="22" /></span>
-              <h2>Nada en «{{ filterLabel }}»</h2>
-              @if (product !== 'all' && countProductTotal(product) === 0) {
-                <p>Aún no tienes trámites de {{ selectedServiceName }}. Puedes iniciar uno ahora.</p>
-                <a [routerLink]="startPath" class="btn btn-primary">Iniciar {{ selectedServiceName }}</a>
-                <button type="button" class="btn btn-secondary" (click)="setProduct('all')">Ver todos</button>
-              } @else {
-                <p>
-                  @if (cases.length) {
-                    Hay {{ cases.length }} trámites en tu cuenta. Este recorte está vacío.
-                  } @else {
-                    Este recorte está vacío.
-                  }
-                </p>
-                <button type="button" class="btn btn-secondary" (click)="clearFilters()">Ver todos</button>
+          <div class="inbox-cases">
+            <div class="seg" role="group" aria-label="Filtrar trámites">
+              @for (f of filterDefs; track f.id) {
+                <button
+                  type="button"
+                  class="seg-btn"
+                  [class.on]="filter === f.id"
+                  [attr.aria-pressed]="filter === f.id"
+                  (click)="setFilter(f.id)"
+                >
+                  {{ f.label }}
+                  <span class="seg-n tabular">{{ countFor(f.id) }}</span>
+                </button>
               }
             </div>
-          } @else {
-            @if (actionInView.length) {
-              <section class="dossier-stack" [attr.aria-label]="'Te toca: ' + filterLabel">
-                @for (c of actionInView; track trackKey(c); let i = $index) {
-                  <button
-                    type="button"
-                    class="dossier"
-                    [class.is-hero]="i === 0"
-                    [class.is-pay]="!c.paid"
-                    [style.--i]="i"
-                    (click)="activateCase(c)"
-                  >
-                    <p class="dossier-kicker">Te toca</p>
-                    <h2 class="dossier-title">{{ dossierTitle(c) }}</h2>
-                    <p class="dossier-id">
-                      {{ productName(c) }} · #{{ c.id }} · {{ cityLine(c) }}
-                    </p>
-                    <p class="dossier-hint">{{ nextHint(c) }}</p>
-                    <p class="dossier-meta">{{ metaLine(c) }}</p>
-                    <span class="dossier-cta btn btn-primary">
-                      <app-icon [name]="stageIcon(c)" [size]="16" />
-                      {{ goLabel(c) }}
-                      <app-icon name="arrow-right" [size]="16" />
-                    </span>
-                  </button>
-                }
-              </section>
-            }
 
-            @if (archiveInView.length) {
-              <section class="archive" [attr.aria-label]="archiveHeading">
-                <h2 class="archive-head">{{ archiveHeading }}</h2>
-                <ul class="archive-list">
-                  @for (c of archiveInView; track trackKey(c); let i = $index) {
-                    <li>
+            @if (!filtered.length) {
+              <div class="panel empty-state">
+                <span class="empty-icon"><app-icon name="search" [size]="22" /></span>
+                <h2>Nada en «{{ filterLabel }}»</h2>
+                @if (product !== 'all' && countProductTotal(product) === 0) {
+                  <p>Aún no tienes trámites de {{ selectedServiceName }}. Puedes iniciar uno ahora.</p>
+                  <a [routerLink]="startPath" class="btn btn-primary">Iniciar {{ selectedServiceName }}</a>
+                  <button type="button" class="btn btn-secondary" (click)="setProduct('all')">Ver todos</button>
+                } @else {
+                  <p>
+                    @if (cases.length) {
+                      Hay {{ cases.length }} trámites en tu cuenta. Este recorte está vacío.
+                    } @else {
+                      Este recorte está vacío.
+                    }
+                  </p>
+                  <button type="button" class="btn btn-secondary" (click)="clearFilters()">Ver todos</button>
+                }
+              </div>
+            } @else {
+              @let openId = openCaseId;
+
+              @if (actionInView.length) {
+                <section class="dossier-grid" [attr.aria-label]="'Te toca: ' + filterLabel">
+                  @for (c of actionInView; track trackKey(c); let i = $index) {
+                    <div
+                      class="dossier-cell"
+                      [class.is-open]="openId === c.id"
+                      [class.is-pay]="!c.paid"
+                      [style.--i]="i"
+                    >
                       <button
                         type="button"
-                        class="archive-row"
-                        [style.--i]="i"
+                        class="dossier"
+                        [attr.aria-expanded]="openId === c.id"
+                        [attr.aria-controls]="'case-panel-' + c.id"
                         (click)="activateCase(c)"
                       >
-                        <span class="archive-mark" aria-hidden="true">
-                          <app-icon [name]="stageIcon(c)" [size]="16" />
-                        </span>
-                        <div class="archive-who">
-                          <strong>{{ productName(c) }} #{{ c.id }}</strong>
-                          <span>{{ cityLine(c) }}</span>
-                        </div>
-                        <div class="archive-stage">
-                          <span>{{ stageProse(c) }}</span>
-                          <span class="archive-pay tabular">
-                            {{ c.paid ? 'Pagado' : 'Por pagar' }} · {{ money(c.amount_cents) }}
+                        <div class="dossier-body">
+                          <h2 class="dossier-title">{{ dossierTitle(c) }}</h2>
+                          <p class="dossier-id">
+                            {{ productName(c) }} · #{{ c.id }} · {{ cityLine(c) }}
+                          </p>
+                          <p class="dossier-hint">{{ nextHint(c) }}</p>
+                          @if (openId === c.id) {
+                            <dl class="dossier-facts">
+                              @for (f of caseFacts(c); track f.label) {
+                                <div class="dossier-fact">
+                                  <dt>{{ f.label }}</dt>
+                                  <dd>{{ f.value }}</dd>
+                                </div>
+                              }
+                            </dl>
+                          }
+                          <span class="dossier-track" role="img" [attr.aria-label]="trackLabel(c)">
+                            @for (s of productSteps(c); track s.id) {
+                              <i [class]="'is-' + s.state"></i>
+                            }
                           </span>
+                          @if (openId !== c.id) {
+                            <dl class="dossier-facts">
+                              @for (f of tileSpecs(c); track f.label) {
+                                <div class="dossier-fact">
+                                  <dt>{{ f.label }}</dt>
+                                  <dd>{{ f.value }}</dd>
+                                </div>
+                              }
+                            </dl>
+                          }
                         </div>
-                        <span class="archive-go">
-                          {{ goLabel(c) }}
-                          <app-icon name="arrow-right" [size]="14" />
-                        </span>
+                        @if (openId === c.id) {
+                          <p class="dossier-meta">{{ metaLine(c) }}</p>
+                        } @else {
+                          <span class="dossier-cta btn btn-primary">
+                            <app-icon [name]="stageIcon(c)" [size]="16" />
+                            {{ goLabel(c) }}
+                            <app-icon name="arrow-right" [size]="16" />
+                          </span>
+                        }
                       </button>
-                    </li>
+
+                      @if (openId === c.id) {
+                        <div class="desk-shell" [attr.id]="'case-panel-' + c.id">
+                          <app-client-divorcio-desk
+                            [product]="product"
+                            [caseItem]="c"
+                            [step]="deskStep"
+                            [embedded]="true"
+                            (goStep)="selectDeskStep($event)"
+                            (caseChanged)="onDeskCaseChanged($event)"
+                          />
+                        </div>
+                      }
+                    </div>
                   }
-                </ul>
-              </section>
+                </section>
+              }
+
+              @if (archiveInView.length) {
+                <section class="archive" [attr.aria-label]="archiveHeading">
+                  <h2 class="archive-head">{{ archiveHeading }}</h2>
+                  <ul class="archive-list">
+                    @for (c of archiveInView; track trackKey(c); let i = $index) {
+                      <li class="dossier-cell" [class.is-open]="openId === c.id">
+                        <button
+                          type="button"
+                          class="archive-row"
+                          [attr.aria-expanded]="openId === c.id"
+                          [attr.aria-controls]="'case-panel-' + c.id"
+                          [style.--i]="i"
+                          (click)="activateCase(c)"
+                        >
+                          <span class="archive-mark" aria-hidden="true">
+                            <app-icon [name]="stageIcon(c)" [size]="16" />
+                          </span>
+                          <div class="archive-who">
+                            <strong>{{ productName(c) }} #{{ c.id }}</strong>
+                            <span>{{ cityLine(c) }}</span>
+                          </div>
+                          <div class="archive-stage">
+                            <span>{{ stageProse(c) }}</span>
+                            <span class="archive-pay tabular">
+                              {{ c.paid ? 'Pagado' : 'Por pagar' }} · {{ money(c.amount_cents) }}
+                            </span>
+                          </div>
+                          <span class="archive-go">
+                            {{ goLabel(c) }}
+                            <app-icon name="arrow-right" [size]="14" />
+                          </span>
+                        </button>
+
+                        @if (openId === c.id) {
+                          <div class="desk-shell" [attr.id]="'case-panel-' + c.id">
+                            <app-client-divorcio-desk
+                              [product]="product"
+                              [caseItem]="c"
+                              [step]="deskStep"
+                              [embedded]="true"
+                              (goStep)="selectDeskStep($event)"
+                              (caseChanged)="onDeskCaseChanged($event)"
+                            />
+                          </div>
+                        }
+                      </li>
+                    }
+                  </ul>
+                </section>
+              }
+
+              @if (deskCase && !openCaseInView) {
+                <div class="desk-shell is-loose">
+                  <app-client-divorcio-desk
+                    [product]="product"
+                    [caseItem]="deskCase"
+                    [step]="deskStep"
+                    (goStep)="selectDeskStep($event)"
+                    (caseChanged)="onDeskCaseChanged($event)"
+                  />
+                </div>
+              }
             }
-          }
+          </div>
         }
       </div>
     </div>
@@ -323,12 +373,6 @@ const STAGE_SHORT: Record<string, string> = {
     .side-block {
       display: grid;
       gap: var(--space-2);
-    }
-
-    .side-block--soon {
-      margin-top: auto;
-      padding-top: var(--space-4);
-      border-top: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
     }
 
     .side-label {
@@ -514,24 +558,82 @@ const STAGE_SHORT: Record<string, string> = {
       transform: scale(0.985);
     }
 
-    .side-soon-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .side-soon-list li {
-      font-size: var(--text-xs);
-      color: var(--text-muted);
-      line-height: 1.3;
-    }
-
     .client-main {
       min-width: 0;
       padding: var(--space-6) var(--container-pad) var(--space-8);
       animation: main-in 360ms var(--ease-out) both;
+    }
+
+    /* La lista dejó de ser una columna angosta pegada a un caso: las tarjetas van de a dos
+       y la del expediente abierto lleva el trámite adentro. Todas miden lo mismo de ancho:
+       sin flex-grow, la que cae sola en una línea impar no se estira; queda en su columna,
+       alineada con las de arriba, y el lugar que no ocupa queda libre. */
+    .inbox-cases {
+      display: grid;
+      gap: var(--space-5);
+    }
+
+    .dossier-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+      container-type: inline-size;
+    }
+
+    .dossier-cell {
+      flex: 0 1 calc(50% - var(--space-3) / 2);
+      min-width: 0;
+    }
+
+    /* Todas del mismo tamaño: sin esto la tarjeta cuya pista ocupa dos líneas queda más
+       alta que las de la otra fila y se leen como tamaños distintos. */
+    .dossier-cell:not(.is-open) .dossier { min-height: 12.5rem; }
+
+    /* La pista reserva siempre dos líneas en las tarjetas de la lista. El min-height es un
+       piso, no un techo: con la pista de una línea al lado de una de dos, la primera queda
+       más baja. Reservar el alto las iguala sin recortar el texto. */
+    .dossier-cell:not(.is-open) .dossier-hint { min-height: 2lh; }
+
+    /* En la tarjeta de la lista la línea de pasos cruza el ancho del cuerpo, con las
+       especificaciones debajo: antes quedaba pegada a la izquierda con aire al lado. */
+    .dossier-cell:not(.is-open) .dossier-track { max-width: none; }
+
+    @media (max-width: 1100px) {
+      .dossier-cell { flex-basis: 100%; }
+    }
+
+    /* El expediente abierto es una sola tarjeta: la cabecera arriba con el estado al
+       extremo derecho, la línea, y el trámite debajo. El borde tintado es su única señal:
+       las tarjetas ya traen su elevación, y sumarle otra sería declararla dos veces. */
+    .dossier-cell.is-open {
+      flex-basis: 100%;
+      padding: clamp(1.25rem, 2vw, 1.75rem);
+      border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+    }
+
+    .dossier-cell.is-open .dossier,
+    .dossier-cell.is-open .archive-row {
+      padding: 0 0 var(--space-4);
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+    }
+
+    /* El contenedor de consulta es el envoltorio que define el ancho, no el componente:
+       así el desk responde al espacio que le toca en cada contexto. */
+    .desk-shell {
+      min-width: 0;
+      container-type: inline-size;
+    }
+
+    .dossier-cell.is-open .desk-shell,
+    .inbox-cases .desk-shell.is-loose {
+      margin-top: var(--space-4);
     }
 
     .inbox-head {
@@ -611,10 +713,18 @@ const STAGE_SHORT: Record<string, string> = {
       margin-bottom: var(--space-6);
     }
 
+    /* Es un <button>, y el estilo del navegador para los controles centra su contenido:
+       con display:grid eso se aplica como justify-content:center sobre la columna, que
+       quedaba flotando en el medio con ~345px muertos por lado (la columna solo mide los
+       52ch del hint). justify-items:start no lo evita porque alinea los items DENTRO de
+       la columna. justify-content:stretch lo devuelve al borde del padding. */
     .dossier {
       display: grid;
-      gap: var(--space-2);
-      justify-items: start;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      justify-content: stretch;
+      column-gap: var(--space-5);
+      row-gap: var(--space-2);
       width: 100%;
       padding: clamp(1.25rem, 3vw, 1.75rem);
       text-decoration: none;
@@ -641,17 +751,45 @@ const STAGE_SHORT: Record<string, string> = {
         border-color 200ms var(--ease);
     }
 
-    .dossier.is-hero {
-      padding: clamp(1.5rem, 3.5vw, 2rem);
+    .dossier-body {
+      display: grid;
+      gap: var(--space-2);
+      justify-items: start;
+      min-width: 0;
     }
 
-    .dossier:not(.is-hero) {
-      padding: clamp(1rem, 2.5vw, 1.35rem);
-      gap: var(--space-1);
+    /* La fila de datos del abierto, entre el nombre y la línea de pasos. Ocupa el ancho del
+       cuerpo (que es un grid con justify-items: start, así que hay que estirarla) y reparte
+       los pares; cuando el contenedor es angosto se envuelve y va pegada a la izquierda. */
+    .dossier-facts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-self: stretch;
+      gap: var(--space-2) var(--space-6);
+      margin: var(--space-1) 0 0;
     }
 
-    .dossier:not(.is-hero) .dossier-title {
-      font-size: var(--text-xl);
+    .dossier-fact {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+
+    .dossier-fact dt {
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+    }
+
+    .dossier-fact dd {
+      margin: 0;
+      color: var(--text);
+      font-size: var(--text-sm);
+      font-weight: 600;
+    }
+
+    @container (min-width: 34rem) {
+      .dossier-facts { justify-content: space-between; }
     }
 
     .dossier:hover {
@@ -667,15 +805,6 @@ const STAGE_SHORT: Record<string, string> = {
       background:
         linear-gradient(180deg, color-mix(in srgb, var(--warning-subtle) 70%, transparent), transparent 45%),
         var(--surface);
-    }
-
-    .dossier-kicker {
-      margin: 0;
-      font-size: var(--text-xs);
-      font-weight: 650;
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
-      color: var(--primary);
     }
 
     .dossier-title {
@@ -702,6 +831,29 @@ const STAGE_SHORT: Record<string, string> = {
       color: var(--text);
     }
 
+    /* Avance del trámite en la tarjeta: cinco segmentos, uno por paso, con el estado real
+       que ya calcula el desk. El ancho es explícito porque el cuerpo de la tarjeta no
+       estira a sus hijos: sin él, los segmentos caían a 0px. */
+    .dossier-track {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      gap: 4px;
+      width: 100%;
+      max-width: 22rem;
+      margin-top: var(--space-3);
+    }
+
+    .dossier-track i {
+      height: 4px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--border) 70%, transparent);
+    }
+
+    .dossier-track i.is-upcoming { background: var(--border); }
+    .dossier-track i.is-current { background: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+    .dossier-track i.is-done { background: var(--primary); }
+
     .dossier-meta {
       margin: 0;
       font-size: var(--text-xs);
@@ -710,7 +862,8 @@ const STAGE_SHORT: Record<string, string> = {
     }
 
     .dossier-cta {
-      margin-top: var(--space-3);
+      justify-self: end;
+      align-self: center;
       pointer-events: none;
     }
 
@@ -942,22 +1095,27 @@ const STAGE_SHORT: Record<string, string> = {
         animation: main-in 360ms var(--ease-out) both;
       }
 
-      .side-block--soon {
-        margin-top: 0;
-      }
-
-      .side-soon-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem 0.85rem;
-      }
-
       .client-main {
         padding-inline: var(--container-pad);
       }
     }
 
-    @media (max-width: 720px) {
+    /* Igual la fila del archivo. */
+    .archive {
+      container-type: inline-size;
+    }
+
+    @container (max-width: 34rem) {
+      .dossier {
+        grid-template-columns: 1fr;
+      }
+
+      .dossier-cta {
+        width: 100%;
+        justify-content: center;
+        margin-top: var(--space-3);
+      }
+
       .archive-row {
         grid-template-columns: auto minmax(0, 1fr) auto;
         grid-template-areas:
@@ -968,11 +1126,6 @@ const STAGE_SHORT: Record<string, string> = {
       .archive-who { grid-area: who; }
       .archive-stage { grid-area: stage; }
       .archive-go { grid-area: go; }
-
-      .dossier-cta {
-        width: 100%;
-        justify-content: center;
-      }
     }
   `],
 })
@@ -1003,12 +1156,45 @@ export class ClientPanelComponent implements OnInit {
     return this.catalogServices.filter((s) => s.live);
   }
 
-  get soonServices(): ProductCatalogEntry[] {
-    return this.catalogServices.filter((s) => !s.live);
-  }
-
   isDeskProduct(id: string): boolean {
     return isTimelineProduct(id);
+  }
+
+  get openCaseId(): number | null {
+    return this.deskCase?.id ?? null;
+  }
+
+  /* El desk vive dentro de la tarjeta abierta. Si el recorte de filtros la dejó fuera de
+     las dos listas, se renderiza suelto para no perder el trámite de vista. */
+  get openCaseInView(): boolean {
+    const id = this.openCaseId;
+    if (id == null) return false;
+    return this.actionInView.some((c) => c.id === id) || this.archiveInView.some((c) => c.id === id);
+  }
+
+  /* Datos del expediente que llenan la cabecera del abierto, entre el nombre y la línea de
+     pasos: con un solo trámite el ancho sobraba y el medio quedaba vacío. Son los mismos
+     cuatro que antes vivían en el bloque Expediente de la ficha, así que no se dicen dos
+     veces. */
+  caseFacts(c: CaseItem): { label: string; value: string }[] {
+    return [
+      { label: 'Abierto el', value: formatDateLong(c.created_at) || 'Sin fecha' },
+      { label: 'Minuta', value: c.has_minuta ? 'Lista' : 'En preparación' },
+      { label: 'Notaría', value: (c.notary_name || '').trim() || 'Por definir' },
+      { label: 'Comparecencia', value: formatDateLong(c.appointment_at) || 'Por agendar' },
+    ];
+  }
+
+  /* Resumen de la tarjeta de la lista, debajo de la línea de pasos: el estado del paso de
+     documentos, que es lo que hace falta para decidir si se entra, y la fecha de apertura.
+     Solo lo llevan las tarjetas; el expediente abierto ya tiene sus cuatro datos arriba. */
+  tileSpecs(c: CaseItem): { label: string; value: string }[] {
+    const docs = this.productSteps(c).find((s) => s.id === 'docs');
+    const value = docs?.state === 'done' ? 'Listo' : docs?.state === 'current' ? 'En curso' : 'Pendiente';
+    return [
+      { label: 'Documentos', value },
+      { label: 'Abierto el', value: formatDateShort(c.created_at) || 'Sin fecha' },
+    ];
   }
 
   deskCaseFor(productId: string): CaseItem | null {
@@ -1174,7 +1360,9 @@ export class ClientPanelComponent implements OnInit {
   }
 
   get actionInView(): CaseItem[] {
-    return this.filtered.filter((c) => this.needsYou(c));
+    return this.filtered
+      .filter((c) => this.needsYou(c))
+      .sort((a, b) => caseUrgency(b) - caseUrgency(a) || b.id - a.id);
   }
 
   get archiveInView(): CaseItem[] {
@@ -1182,26 +1370,10 @@ export class ClientPanelComponent implements OnInit {
   }
 
   get pageLede(): string {
-    if (this.loading || this.error) {
-      return 'Qué te toca ahora. Un clic continúa.';
-    }
-    if (this.isDeskProduct(this.product)) {
-      if (!this.deskCase) {
-        return this.product === 'traslado360'
-          ? 'Un expediente de traslado. Elige un paso en la barra o inicia el trámite.'
-          : 'Un solo expediente de mutuo acuerdo. Elige un paso en la barra o inicia la evaluación.';
-      }
-      return 'Mismo panel, un paso a la vez. El timeline de la izquierda marca dónde vas.';
-    }
-    if (this.product !== 'all' && this.countProductTotal(this.product) === 0) {
-      return `Aún no tienes trámites de ${this.selectedServiceName}. Puedes iniciar uno cuando quieras.`;
-    }
-    if (!this.cases.length) {
-      return 'Elige un servicio e inicia tu primer expediente.';
-    }
-    if (this.cases.some((c) => this.needsYou(c) && this.matchesProduct(c, this.product))) {
-      return 'Qué te toca ahora. Un clic continúa.';
-    }
+    if (this.loading || this.error || this.isDeskProduct(this.product)) return '';
+    if (this.product !== 'all' && this.countProductTotal(this.product) === 0) return '';
+    if (!this.cases.length) return '';
+    if (this.cases.some((c) => this.needsYou(c) && this.matchesProduct(c, this.product))) return '';
     return 'Nada pendiente. El resto está en archivo.';
   }
 
@@ -1232,20 +1404,20 @@ export class ClientPanelComponent implements OnInit {
     if (!c.paid) return 'Completa el pago';
     if (c.can_sign) return 'Firma tu minuta';
     if (c.status === '02') return 'Sube tus documentos';
-    return STAGE_SHORT[c.status] || 'Abre el expediente';
+    return caseShort(c.status, 'Abre el expediente');
   }
 
   nextHint(c: CaseItem): string {
     if (!c.paid) return 'Completa el pago para continuar.';
     if (c.can_sign) return c.sign_hint || 'Firma la minuta.';
-    return STAGE_HINT[c.status] || 'Abre el expediente.';
+    return caseClientHint(c.status);
   }
 
   stageProse(c: CaseItem): string {
     const n = parseInt(c.status, 10);
-    const label = STAGE_SHORT[c.status] || c.status_label;
+    const label = caseShort(c.status, c.status_label);
     if (!Number.isFinite(n)) return label;
-    return `Etapa ${n} — ${label}`;
+    return `Etapa ${n}: ${label}`;
   }
 
   metaLine(c: CaseItem): string {
@@ -1257,6 +1429,19 @@ export class ClientPanelComponent implements OnInit {
     if (!c.paid) return 'credit-card';
     if (c.can_sign) return 'signature';
     return CASE_STATUS_ICONS[c.status] || 'inbox';
+  }
+
+  productSteps(c: CaseItem) {
+    return buildProductSteps(c, normalizeProductId(c.product || this.product));
+  }
+
+  trackLabel(c: CaseItem): string {
+    const steps = this.productSteps(c);
+    const current = steps.findIndex((s) => s.state === 'current');
+    const done = steps.filter((s) => s.state === 'done').length;
+    const index = current >= 0 ? current + 1 : Math.max(done, 1);
+    const name = current >= 0 ? steps[current].label : steps[Math.max(done - 1, 0)].label;
+    return `Paso ${index} de ${steps.length}: ${name}`;
   }
 
   productName(c: CaseItem): string {

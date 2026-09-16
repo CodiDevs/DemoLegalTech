@@ -544,7 +544,7 @@ func (s *Service) nextActions(c cases.Case, blockers []string) []ActionDef {
 		return append(actions, ActionDef{
 			ID:          "notify_client_sign",
 			Label:       "Notificar al cliente",
-			Description: "Aviso de firma virtual — el cliente también puede firmar solo desde su expediente",
+			Description: "Aviso de firma virtual. El cliente también puede firmar solo desde su expediente",
 		})
 	case "05":
 		actions := revertAction(c.Status)
@@ -552,7 +552,7 @@ func (s *Service) nextActions(c cases.Case, blockers []string) []ActionDef {
 			return append(actions, ActionDef{
 				ID:          "notify_client_sign",
 				Label:       "Notificar al cliente",
-				Description: "Aún sin firma — reenvía el aviso para firma virtual",
+				Description: "Aún sin firma. Reenvía el aviso para firma virtual",
 			})
 		}
 		return append(actions, ActionDef{

@@ -6,13 +6,11 @@ import { LandingFaqComponent } from '../../shared/ui/landing-faq.component';
 import { MarketingHeroComponent } from './marketing-hero.component';
 import { StationPreviewComponent } from './station-preview.component';
 import {
-  LEGALSTATION_ENTERPRISE,
   LEGALSTATION_FAQ,
   LEGALSTATION_PLANS,
   LEGALSTATION_SERVICE_PLANS,
   LEGALSTATION_WORKFLOW,
   PricingMode,
-  StationStep,
 } from './saas-landing.data';
 
 @Component({
@@ -29,8 +27,8 @@ import {
     <div class="landing-page legalstation-landing">
       <!-- 1. Hero Minimalista -->
       <app-marketing-hero
-        primaryCta="Iniciar trámite · Divorcio360"
-        primaryRoute="/productos/divorcio360"
+        primaryCta="Iniciar un trámite"
+        [pickService]="true"
         secondaryCta="Acceso profesional"
         [showSecondary]="true"
       />
@@ -39,11 +37,7 @@ import {
       <section class="landing-section" id="catalogo" aria-labelledby="cat-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">Catálogo operativo</span>
             <h2 id="cat-heading" class="section-title">Trámites estandarizados. Listos para despacho.</h2>
-            <p class="section-lede">
-              Cada módulo procesa la admisión remota del cliente, valida la documentación y confecciona la minuta civil para firma notarial.
-            </p>
           </header>
 
           <div class="catalog-grid">
@@ -56,18 +50,13 @@ import {
 
                   <ul class="card-features">
                     @for (f of p.features; track f) {
-                      <li>
-                        <app-icon name="check" [size]="14" class="card-check" />
-                        <span>{{ f }}</span>
-                      </li>
+                      <li>{{ f }}</li>
                     }
                   </ul>
                 </div>
 
                 <div class="card-bottom">
                   <div class="card-meta tabular">
-                    <span class="meta-item">{{ productEstimate(p.id) }}</span>
-                    <span class="meta-sep">·</span>
                     <span class="meta-item">{{ productPrice(p.id) }}</span>
                   </div>
                   <a
@@ -90,9 +79,7 @@ import {
         <div class="stations-sticky-scene">
           <div class="landing-shell w-full">
             <header class="section-head section-head--compact">
-              <span class="section-kicker">Ciclo de tramitación</span>
               <h2 id="flujo-heading" class="section-title">Cinco estaciones. Despacho continuo.</h2>
-              <p class="section-lede">Validación notarial en cada hito del expediente.</p>
             </header>
 
             <div class="journey-split">
@@ -136,7 +123,7 @@ import {
 
             <!-- Indicador sutil de progreso de la sección -->
             <div class="track-progress" aria-hidden="true">
-              <div class="track-progress-bar" [style.width.%]="trackProgress"></div>
+              <div class="track-progress-bar" [style.--p]="trackProgress / 100"></div>
             </div>
           </div>
         </div>
@@ -146,19 +133,12 @@ import {
       <section class="landing-section" id="seguridad" aria-labelledby="seguridad-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">Marco legal y técnico</span>
             <h2 id="seguridad-heading" class="section-title">Validez plena en sede notarial y judicial.</h2>
-            <p class="section-lede">
-              Cada etapa cumple estrictamente con el Código Orgánico de la Función Judicial y la Ley de Comercio Electrónico.
-            </p>
           </header>
 
           <div class="pillars-grid">
-            <article class="pillar-card">
-              <span class="pillar-icon" aria-hidden="true">
-                <app-icon name="signature" [size]="20" />
-              </span>
-              <h3 class="pillar-title">Firma Electrónica Avanzada</h3>
+            <article class="pillar-card pillar-card--lead">
+              <h3 class="pillar-title">Firma electrónica avanzada</h3>
               <p class="pillar-text">
                 Compatibilidad nativa con certificados acreditados (BCE, Security Data, Consejo de la Judicatura). Misma validez legal y probatoria que la firma manuscrita.
               </p>
@@ -168,7 +148,7 @@ import {
               <span class="pillar-icon" aria-hidden="true">
                 <app-icon name="clipboard" [size]="20" />
               </span>
-              <h3 class="pillar-title">Validación Documental</h3>
+              <h3 class="pillar-title">Validación documental</h3>
               <p class="pillar-text">
                 Verificación preliminar de partidas de matrimonio, cédulas y certificados de gravamen para asegurar la admisibilidad notarial sin errores de digitación.
               </p>
@@ -178,9 +158,9 @@ import {
               <span class="pillar-icon" aria-hidden="true">
                 <app-icon name="shield" [size]="20" />
               </span>
-              <h3 class="pillar-title">Inmutabilidad y Trazabilidad</h3>
+              <h3 class="pillar-title">Cadena de custodia</h3>
               <p class="pillar-text">
-                Sellado de tiempo en cada actuación procesal y registro ordenado de intervenciones de operadores para garantizar la cadena de custodia civil.
+                Sellado de tiempo en cada actuación procesal y registro ordenado de intervenciones de operadores.
               </p>
             </article>
           </div>
@@ -191,7 +171,6 @@ import {
       <section class="landing-section subtle" id="precios" aria-labelledby="precios-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">{{ pricingMode === 'servicios' ? 'Honorarios por trámite' : 'Licenciamiento B2B' }}</span>
             <h2 id="precios-heading" class="section-title">
               {{ pricingMode === 'servicios' ? 'Honorarios claros por cada trámite.' : 'Precios claros según la escala de tu bufete.' }}
             </h2>
@@ -247,10 +226,7 @@ import {
 
                   <ul class="plan-items">
                     @for (item of svc.items; track item) {
-                      <li>
-                        <app-icon name="check" [size]="14" class="plan-check" />
-                        <span>{{ item }}</span>
-                      </li>
+                      <li>{{ item }}</li>
                     }
                   </ul>
 
@@ -286,10 +262,7 @@ import {
 
                   <ul class="plan-items">
                     @for (item of plan.items; track item) {
-                      <li>
-                        <app-icon name="check" [size]="14" class="plan-check" />
-                        <span>{{ item }}</span>
-                      </li>
+                      <li>{{ item }}</li>
                     }
                   </ul>
 
@@ -321,38 +294,10 @@ import {
       <section class="landing-section" id="faq" aria-labelledby="faq-heading">
         <div class="landing-shell">
           <header class="section-head">
-            <span class="section-kicker">Dudas resueltas</span>
             <h2 id="faq-heading" class="section-title">Preguntas frecuentes.</h2>
-            <p class="section-lede">
-              Detalles sobre la plataforma, el modelo operativo y la tramitación de expedientes.
-            </p>
           </header>
 
           <app-landing-faq [items]="faq" />
-        </div>
-      </section>
-
-      <!-- 7. Cierre Asertivo -->
-      <section class="landing-section subtle" id="contacto">
-        <div class="landing-shell">
-          <div class="cta-banner">
-            <div class="cta-text">
-              <span class="section-kicker">Despliegue inmediato</span>
-              <h2 class="cta-title">Moderniza la práctica civil de tu firma.</h2>
-              <p class="cta-lede">
-                Prueba un expediente real en minutos o solicita acceso para los abogados de tu equipo.
-              </p>
-            </div>
-            <div class="cta-actions">
-              <a routerLink="/productos/divorcio360" class="btn btn-primary btn-lg">
-                <span>Iniciar trámite de ejemplo</span>
-                <app-icon name="arrow-right" [size]="16" />
-              </a>
-              <a routerLink="/abogado" class="btn btn-secondary btn-lg">
-                Acceso profesional
-              </a>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -389,16 +334,6 @@ import {
       max-width: 46rem;
     }
 
-    .section-kicker {
-      display: block;
-      font-size: var(--text-xs);
-      font-weight: 650;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--primary);
-      margin-bottom: var(--space-2);
-    }
-
     .section-title {
       margin: 0 0 var(--space-2);
       font-size: clamp(2rem, 3.6vw, 2.75rem);
@@ -406,6 +341,10 @@ import {
       letter-spacing: -0.03em;
       line-height: 1.12;
       color: var(--text);
+    }
+
+    .section-head:not(:has(.section-lede)) .section-title {
+      margin-bottom: 0;
     }
 
     .section-lede {
@@ -475,17 +414,9 @@ import {
     }
 
     .card-features li {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-2);
       font-size: var(--text-xs);
       color: var(--text-secondary);
       line-height: 1.4;
-    }
-
-    .card-check {
-      color: var(--primary);
-      flex-shrink: 0;
     }
 
     .card-bottom {
@@ -503,10 +434,6 @@ import {
       font-size: var(--text-xs);
       color: var(--text-muted);
       font-weight: 500;
-    }
-
-    .meta-sep {
-      color: var(--border-strong);
     }
 
     .product-btn {
@@ -599,18 +526,7 @@ import {
       cursor: pointer;
       font-family: inherit;
       width: 100%;
-      opacity: 0.42;
-      transition:
-        opacity 280ms var(--ease-out),
-        transform 280ms var(--ease-out);
-    }
-
-    .journey-step-btn:hover {
-      opacity: 0.78;
-    }
-
-    .journey-step-btn.is-active {
-      opacity: 1;
+      transition: transform 280ms var(--ease-out);
     }
 
     .step-rail {
@@ -682,12 +598,15 @@ import {
     .step-title {
       font-size: var(--text-sm);
       font-weight: 550;
-      color: var(--text);
+      color: var(--text-secondary);
       letter-spacing: -0.01em;
-      transition: font-weight 280ms var(--ease-out);
+      transition:
+        color 280ms var(--ease-out),
+        font-weight 280ms var(--ease-out);
     }
 
     .journey-step-btn.is-active .step-title {
+      color: var(--text);
       font-weight: 650;
     }
 
@@ -739,14 +658,17 @@ import {
     .track-progress-bar {
       height: 100%;
       background: var(--primary);
-      transition: width 120ms ease-out;
+      transform: scaleX(var(--p, 0));
+      transform-origin: left center;
+      transition: transform var(--dur-fast) var(--ease-out);
     }
 
     /* Pilares de Cumplimiento / Seguridad */
     .pillars-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
       gap: var(--space-5);
+      align-items: stretch;
     }
 
     .pillar-card {
@@ -758,6 +680,13 @@ import {
       display: flex;
       flex-direction: column;
       gap: var(--space-2);
+    }
+
+    .pillar-card--lead {
+      grid-row: span 2;
+      justify-content: center;
+      padding: var(--space-6);
+      background: var(--bg-subtle);
     }
 
     .pillar-icon {
@@ -778,11 +707,26 @@ import {
       margin: 0;
     }
 
+    .pillar-card--lead .pillar-title {
+      font-size: var(--text-xl);
+      letter-spacing: -0.03em;
+    }
+
     .pillar-text {
       font-size: var(--text-sm);
       color: var(--text-secondary);
       line-height: var(--leading-normal);
       margin: 0;
+    }
+
+    @media (max-width: 800px) {
+      .pillars-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pillar-card--lead {
+        grid-row: auto;
+      }
     }
 
     /* Precios */
@@ -868,8 +812,9 @@ import {
     }
 
     .plan-card.is-featured {
+      background: color-mix(in srgb, var(--primary) 7%, var(--surface));
       border-color: var(--primary);
-      box-shadow: 0 0 0 1px var(--primary), var(--shadow-md);
+      box-shadow: var(--shadow-md);
     }
 
     .plan-featured-badge {
@@ -880,7 +825,7 @@ import {
       font-weight: 600;
       padding: 2px 10px;
       background: var(--primary);
-      color: #ffffff;
+      color: var(--text-on-primary);
       border-radius: var(--radius-full);
     }
 
@@ -938,56 +883,8 @@ import {
     }
 
     .plan-items li {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-2);
       font-size: var(--text-sm);
       color: var(--text-secondary);
-    }
-
-    .plan-check {
-      color: var(--primary);
-      flex-shrink: 0;
-    }
-
-    /* Banner CTA Final */
-    .cta-banner {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: clamp(2.5rem, 5vw, 4rem);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-6);
-      flex-wrap: wrap;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .cta-text {
-      max-width: 36rem;
-    }
-
-    .cta-title {
-      font-size: clamp(1.75rem, 3vw, 2.25rem);
-      font-weight: 650;
-      letter-spacing: -0.03em;
-      margin: 0 0 var(--space-2);
-      color: var(--text);
-    }
-
-    .cta-lede {
-      font-size: var(--text-base);
-      color: var(--text-secondary);
-      margin: 0;
-      line-height: 1.55;
-    }
-
-    .cta-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      flex-wrap: wrap;
     }
 
     .w-full {
@@ -1006,53 +903,21 @@ import {
 export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   toast = '';
   liveProducts = LEGALSTATION_CATALOG.filter((p) => p.live);
-  featuredProduct = this.liveProducts.find((p) => p.id === 'divorcio360') ?? null;
-  supportingProducts = this.liveProducts.filter((p) => p.id !== 'divorcio360');
   workflow = LEGALSTATION_WORKFLOW;
   journeyFocus = 0;
   pricingMode: PricingMode = 'licenciamiento';
   plans = LEGALSTATION_PLANS;
   servicePlans = LEGALSTATION_SERVICE_PLANS;
-  featuredPlan = LEGALSTATION_PLANS.find((p) => p.featured) ?? LEGALSTATION_PLANS[1];
-  sidePlans = LEGALSTATION_PLANS.filter((p) => !p.featured);
-  enterprise = LEGALSTATION_ENTERPRISE;
   faq = LEGALSTATION_FAQ;
   trackProgress = 0;
   @ViewChild('stationsTrack') stationsTrack?: ElementRef<HTMLElement>;
-  private io?: IntersectionObserver;
   private scrollListener?: () => void;
   private isManualScrolling = false;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(private router: Router, private host: ElementRef<HTMLElement>) {}
+  constructor(private router: Router) {}
 
   ngAfterViewInit(): void {
-    const nodes = this.host.nativeElement.querySelectorAll('.ls-choreo, .lp-reveal');
-    let remaining = 0;
-    this.io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add('is-choreo', 'is-in-view');
-          this.io?.unobserve(entry.target);
-          remaining -= 1;
-          if (remaining <= 0) this.io?.disconnect();
-        }
-      },
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.14 },
-    );
-    nodes.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const alreadyIn = rect.top < window.innerHeight * 0.88 && rect.bottom > 0;
-      if (alreadyIn) {
-        el.classList.add('is-choreo', 'is-in-view');
-        return;
-      }
-      remaining += 1;
-      this.io!.observe(el);
-    });
-    if (remaining <= 0) this.io.disconnect();
-
     this.initTrackScroll();
   }
 
@@ -1098,7 +963,6 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.io?.disconnect();
     if (this.scrollListener) {
       window.removeEventListener('scroll', this.scrollListener);
     }
@@ -1133,15 +997,6 @@ export class SaasLandingComponent implements AfterViewInit, OnDestroy {
       case 'traslado360': return 'Vehicular & Civil';
       case 'bienraiz360': return 'Inmobiliario & Notarial';
       default: return 'Trámite civil';
-    }
-  }
-
-  productEstimate(id: string): string {
-    switch (id) {
-      case 'divorcio360': return '~14 días resolución';
-      case 'traslado360': return '~19 días resolución';
-      case 'bienraiz360': return '~8 días resolución';
-      default: return 'Despacho ágil';
     }
   }
 

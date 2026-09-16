@@ -17,17 +17,17 @@
 
 .ob {
   display: grid;
-  align-content: start; /* ponytail: no center — progress must stay put when card height changes */
+  align-content: start;
   gap: var(--space-5);
   width: 100%;
-  max-width: 32rem;
+  max-width: 40rem;
   margin-inline: auto;
   padding: var(--space-6) var(--container-pad) var(--space-8);
 }
 
 body.divorcio-flow-mode .ob {
-  align-content: start;
-  min-height: auto;
+  align-content: center;
+  min-height: calc(100dvh - var(--header-height, 3.75rem));
   padding-block: var(--space-6);
 }
 
@@ -44,12 +44,6 @@ body.divorcio-flow-mode .ob {
   width: 100%;
 }
 
-.ob-card-slot {
-  min-height: 18rem;
-  display: grid;
-  align-items: start;
-}
-
 /* ---------- Progreso (segmentos, no pills) ---------- */
 
 .ob-progress {
@@ -64,6 +58,10 @@ body.divorcio-flow-mode .ob {
   align-items: center;
   width: 100%;
   box-sizing: border-box;
+  /* Lista de verdad: el progreso es una lista de pasos, no una fila de controles. */
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .ob-seg {
@@ -73,8 +71,9 @@ body.divorcio-flow-mode .ob {
   align-items: center;
   justify-content: stretch;
   min-width: 0;
-  min-height: 2.25rem;
-  height: 2.25rem;
+  /* 44px: el objetivo táctil llega al mínimo cómodo aunque la marca visible siga en 4-6px. */
+  min-height: 2.75rem;
+  height: 2.75rem;
   margin: 0;
   padding: 0 !important;
   border: 0 !important;
@@ -98,6 +97,7 @@ body.divorcio-flow-mode .ob {
   overflow: hidden;
   background: var(--border-strong);
   box-sizing: border-box;
+  transition: transform 180ms var(--ease-out);
 }
 
 .ob-seg-bar::after {
@@ -110,48 +110,62 @@ body.divorcio-flow-mode .ob {
   transition: transform 480ms var(--ease-out);
 }
 
+/* El paso ya respondido es el único navegable. El botón se superpone a la barra en vez de
+   envolverla: así la barra conserva su caja y el lector de pantalla no anuncia botones
+   deshabilitados en un indicador de progreso. */
+.ob-seg-hit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* La tinta de los pasos hechos y del actual. Va en la barra misma, no en el estado del item:
+   con el estado del item la regla perdía la cascada y el paso actual quedaba sin llenar. */
+.ob-seg.is-done .ob-seg-bar::after,
+.ob-seg.is-current .ob-seg-bar::after,
+.ob-seg-bar.is-filled::after {
+  transform: scaleX(1);
+}
+
 .ob-seg.is-done {
   cursor: pointer;
 }
 
-.ob-seg.is-done .ob-seg-bar::after,
-.ob-seg.is-current .ob-seg-bar::after {
-  transform: scaleX(1);
+.ob-seg.is-done .ob-seg-bar {
+  height: 6px;
+}
+
+.ob-seg.is-done:hover .ob-seg-bar {
+  transform: scaleY(1.35);
+  transform-origin: center;
 }
 
 .ob-seg.is-done:hover .ob-seg-bar::after {
   background: var(--lp-accent-deep, var(--primary-hover));
 }
 
-.ob-seg.is-done:focus-visible {
+.ob-seg:disabled {
+  cursor: default;
+}
+
+.ob-seg-hit:focus-visible {
   outline: 2px solid var(--lp-accent, var(--primary));
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
-.ob-seg:disabled {
-  opacity: 1;
-  cursor: default;
-}
-
 .ob-seg.is-current {
   cursor: default;
   pointer-events: none;
-}
-
-/* Brillo que recorre el segmento activo */
-.ob-seg.is-current .ob-seg-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 70%, transparent), transparent);
-  transform: translateX(-110%);
-  animation: ob-seg-sheen 2.6s var(--ease-out) infinite;
-}
-
-@keyframes ob-seg-sheen {
-  0% { transform: translateX(-110%); }
-  55%, 100% { transform: translateX(110%); }
 }
 
 .ob-progress-meta {
@@ -169,28 +183,14 @@ body.divorcio-flow-mode .ob {
   color: var(--text-muted);
 }
 
-.ob-step-hint {
+.ob-progress-hint {
   margin: 0;
   font-size: var(--text-xs);
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* ---------- Tarjeta ---------- */
-
-.ob-card {
-  min-height: 17.5rem; /* keeps foot/progress stable across Si/No vs city */
-  padding: var(--space-7) var(--space-6);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  animation: ob-card-in 560ms var(--ease-out) both;
-}
-
-.ob-card.ob-card--back {
-  animation-name: ob-card-in-back;
-}
 
 .ob-icon {
   display: grid;
@@ -201,12 +201,6 @@ body.divorcio-flow-mode .ob {
   border-radius: var(--radius-md);
   background: var(--lp-accent-soft, var(--primary-subtle));
   color: var(--lp-accent, var(--primary));
-}
-
-.ob-card h1 {
-  font-size: clamp(1.85rem, 3.8vw, 2.65rem);
-  line-height: var(--leading-tight);
-  margin-bottom: var(--space-2);
 }
 
 .ob-hint {
@@ -247,62 +241,22 @@ body.divorcio-flow-mode .ob {
     box-shadow var(--dur-fast) var(--ease);
 }
 
-/* Barrido de tinta al pasar el cursor */
-.ob-choice::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(115deg, color-mix(in srgb, var(--lp-accent, var(--primary)) 16%, transparent), color-mix(in srgb, var(--lp-accent, var(--primary)) 6%, transparent));
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path 380ms var(--ease-out);
-}
-
-.ob-choice > * {
-  position: relative;
-  z-index: 1;
-}
-
 .ob-choice app-icon { color: var(--text-muted); }
 
 .ob-choice:hover {
   border-color: var(--lp-accent, var(--primary));
-  transform: translateX(6px);
   box-shadow: var(--shadow-md);
-}
-
-.ob-choice:hover::before,
-.ob-choice:focus-visible::before {
-  clip-path: inset(0 0 0 0);
 }
 
 .ob-choice:hover app-icon { color: var(--lp-accent, var(--primary)); }
 
 .ob-choice:active {
-  transform: translateX(4px) scale(0.985);
+  transform: scale(0.985);
 }
 
 .ob-choice.is-selected {
   border-color: var(--lp-accent, var(--primary));
-  box-shadow: 0 0 0 2px var(--lp-accent, var(--primary));
-}
-
-.ob-choice.is-selected::before {
-  clip-path: inset(0 0 0 0);
-}
-
-/* Sello al elegir */
-.ob-choice.is-selected::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  border: 2px solid color-mix(in srgb, var(--lp-accent, var(--primary)) 60%, transparent);
-  animation: ob-choice-stamp 640ms var(--ease-out) both;
-}
-
-@keyframes ob-choice-stamp {
-  from { transform: scale(0.94); opacity: 0.95; }
-  to { transform: scale(1.07); opacity: 0; }
+  background: var(--lp-accent-soft, var(--primary-subtle));
 }
 
 .ob-field { margin-bottom: var(--space-4); }
@@ -413,48 +367,32 @@ body.divorcio-flow-mode .ob {
 
 /* ---------- Resultado ---------- */
 
-.ob-card.is-apto .ob-icon {
-  background: var(--success-subtle);
-  color: var(--success);
+.ob-sheet.is-apto {
+  border-color: var(--success-border);
 }
 
-.ob-card.is-evaluacion .ob-icon {
-  background: var(--warning-subtle);
-  color: var(--warning);
+.ob-sheet.is-evaluacion {
+  border-color: var(--warning-border);
 }
 
-.ob-card.is-no_aplica .ob-icon {
-  background: var(--danger-subtle);
-  color: var(--danger);
+.ob-sheet.is-no_aplica {
+  border-color: var(--danger-border);
 }
 
-.ob-card.is-no_aplica h1 {
+.ob-sheet.is-no_aplica h1 {
   font-size: var(--text-2xl);
   margin-bottom: var(--space-4);
 }
 
-.ob-card.is-no_aplica .ob-message {
+.ob-sheet.is-no_aplica .ob-message {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   margin-bottom: var(--space-6);
 }
 
-.ob-card.is-no_aplica .ob-actions {
+.ob-sheet.is-no_aplica .ob-actions {
   margin-top: var(--space-2);
   gap: var(--space-3);
-}
-
-.ob-card.is-apto {
-  border-color: var(--success-border);
-  box-shadow: var(--shadow-lg);
-}
-
-.ob-card.is-evaluacion {
-  border-color: var(--warning-border);
-}
-
-.ob-card.is-no_aplica {
-  border-color: var(--danger-border);
 }
 
 .ob.is-loading .btn-primary {
@@ -538,43 +476,108 @@ body.divorcio-flow-mode .ob {
 /* ---------- Responsive ---------- */
 
 @media (min-width: 1280px) and (min-height: 700px) {
-  .ob { max-width: 40rem; }
-  .ob-card { padding: var(--space-8) var(--space-7); }
-  .ob-card h1 { font-size: clamp(2.1rem, 3.4vw, 2.9rem); }
+  .ob { max-width: 44rem; }
   .ob-seg-bar { height: 6px; }
-  .ob-choice { min-height: 3.65rem; }
 }
 
 @media (max-width: 560px) {
-  .ob-card { padding: var(--space-5) var(--space-4); }
-  .ob-card h1 { font-size: var(--text-xl); }
   .ob-choice { font-size: var(--text-base); padding: var(--space-3) var(--space-4); }
   .ob-note { text-align: left; }
   .ob-foot { flex-wrap: wrap; }
 }
 
-@keyframes ob-card-in {
-  from {
-    opacity: 0;
-    transform: translateY(22px);
-    filter: blur(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: blur(0);
-  }
-}
+/* =========================================================================
+   El folio se contesta — cuestionario de Divorcio360.
+   El stage ya dibuja papel, glow y renglones, y el veredicto ya tiene sello; esta
+   pantalla se compromete con ese mundo: la pregunta manda, la pista baja la voz y
+   la respuesta se sella. Sin colores, fuentes ni primitivas nuevas.
+   Solo este flujo: Traslado360 y BienRaiz360 comparten .ob-* y quedan igual.
+   ========================================================================= */
 
-@keyframes ob-card-in-back {
-  from {
-    opacity: 0;
-    transform: translateY(-16px);
-    filter: blur(6px);
+.landing-page.product-flow.theme-divorcio {
+  /* El formulario no es una tarjeta sobre papel: es el folio. El panel pierde fondo, borde,
+     radio y sombra, y el texto se apoya en el renglón que el escenario ya dibuja. */
+  .ob-sheet {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: blur(0);
+
+  /* 1. La pregunta es el titular del folio, y lo más grande de la pantalla. */
+  .ob h1 {
+    font-size: clamp(2.1rem, 5vw, 4rem);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+    margin-bottom: var(--space-3);
+  }
+
+  .ob-questions .ob-sheet h1 {
+    margin-bottom: var(--space-6);
+  }
+
+  /* 2. La pista baja la voz: el salto de tamaño es lo que hace titular a la pregunta. */
+  .ob-hint {
+    max-width: 46ch;
+    margin-bottom: var(--space-6);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+  }
+
+  /* La sección del expediente nombra el bloque. Inter, no Fraunces: el H1 de la pregunta manda. */
+  .ob-folio {
+    margin: 0;
+    font-size: var(--text-base);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    color: var(--text);
+  }
+
+  /* La respuesta es un sello, no un botón de formulario: el par de marcas en blanco del acta,
+     que se entinta al elegir. La tipografía es la marca: sin icono, sin relleno y sin la
+     elevación del sistema. Las dos van apenas inclinadas, y en ángulos distintos. */
+  .ob-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+
+  .ob-choice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 0.58;
+    padding: 0;
+    background: none;
+    border: 2px solid color-mix(in srgb, var(--text) 20%, transparent);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: clamp(var(--text-2xl), 3.4vw, var(--text-3xl));
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: color-mix(in srgb, var(--text) 72%, transparent);
+    transform: rotate(-1.4deg);
+    transition:
+      border-color 200ms var(--ease-out),
+      color 200ms var(--ease-out),
+      background 200ms var(--ease-out);
+  }
+
+  .ob-choice:nth-child(2) { transform: rotate(1.1deg); }
+
+  .ob-choice:hover,
+  .ob-choice.is-selected {
+    border-color: var(--lp-accent, var(--primary));
+    color: var(--lp-accent, var(--primary));
+    box-shadow: none;
+  }
+
+  /* Entintado: el sello ya marcado. */
+  .ob-choice.is-selected {
+    background: color-mix(in srgb, var(--lp-accent, var(--primary)) 7%, transparent);
   }
 }
