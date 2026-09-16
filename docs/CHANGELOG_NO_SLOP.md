@@ -255,3 +255,37 @@ Verificación: `grow=0`, `justify=normal` y pista de dos líneas medidos en el r
 | `docs/NO_SLOP.md` | Diagnóstico, cambios, alcance y verificación de la pasada. |
 
 Verificación: 123/123 specs, capturas de escritorio y móvil de las tres pantallas del formulario, y el cuestionario de Traslado360 sin cambios como control del alcance.
+
+## Auditoría técnica del formulario y sus arreglos
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/questionnaire/questionnaire.component.ts` | Las opciones pasan a `radiogroup`/`radio` con `aria-checked` y manejo de flechas (`onChoiceKey`); el progreso pasa de botones deshabilitados a una lista con botones solo en los pasos respondidos y `aria-current` en el actual; `progressLabel` reemplaza el nombre accesible viejo; sale `data-cat`. |
+| `styles/onboarding.scss` | `.ob-segments` como lista real, `.ob-seg` a 44px, botón `.ob-seg-hit` para el paso navegable con su anillo de foco, y fuera la regla `.ob-seg:disabled` que quedó sin uso. |
+| `styles/form-stage.scss` | Los dos `text-shadow` de `#fff` pasan a `var(--surface)`. |
+| `docs/design.md` | La semántica de la pregunta y del progreso, con su alcance. |
+| `docs/NO_SLOP.md` | La auditoría (17/20, detector en cero), los arreglos, lo descartado con su razón y la verificación. |
+
+Verificación: 131/131 specs, detector de la skill en `[]`, camino completo hasta el paso 12 con el foco moviéndose por flechas, pasos a 44px y select a 16px.
+
+## La barra de progreso vuelve a marcar el paso actual
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/questionnaire/questionnaire.component.ts` | La barra es hija directa del item en todos los estados, con `[class.is-filled]="i + 1 <= position"`; el botón del paso respondido queda superpuesto y vacío. |
+| `styles/onboarding.scss` | `.ob-seg-hit` pasa a `position: absolute` (envolver la barra la colapsaba a 0×0) y la tinta se marca en la barra (`.ob-seg-bar.is-filled::after`), porque el estado del item perdía la cascada y el paso actual quedaba sin llenar. Sale la regla vieja de `.is-done`/`.is-current`. |
+| `docs/design.md` | La regla de la tinta del progreso y por qué vive en la barra. |
+| `docs/NO_SLOP.md` | Los dos defectos propios, con la medición antes y después, y la lección. |
+
+Verificación: medido antes `0x0` y `matrix(0,0,0,1,0,0)` en el paso actual; después la captura del paso 2 muestra los pasos 1 y 2 con tinta y el resto vacíos. 131/131 specs y detector en `[]`.
+
+## El formulario rehecho: el folio y los sellos
+
+| Archivo | Qué cambió |
+|---|---|
+| `pages/questionnaire/questionnaire.component.ts` | La marca queda en el nombre de la sección, en minúscula y sin número ni icono; sale el getter `folioMark` y los iconos de check de las opciones. El resto del template (la ramificación, la ubicación, la revisión, el veredicto) no cambia de estructura. |
+| `styles/onboarding.scss` | La hoja pierde fondo, borde, radio y sombra: el formulario va sobre el folio, sin tarjeta. La pregunta sube a `clamp(2.1rem, 5vw, 4rem)`. Las opciones pasan a sellos: borde hairline al 20%, etiqueta en Fraunces al centro, inclinaciones distintas, y entintado al elegir. Salen las reglas `.ob-stamp`. |
+| `docs/design.md` | El folio sin tarjeta, la sección en voz baja y la respuesta como sello. |
+| `docs/NO_SLOP.md` | El plan con tokens, tipos y disposición, la revisión contra el brief, el cambio y la verificación. |
+
+Verificación: 131/131 specs, capturas de escritorio y móvil con el sello centrado, el par legible y la barra marcando el paso actual.

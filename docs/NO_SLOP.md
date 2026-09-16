@@ -392,6 +392,119 @@ Todo anclado a `.landing-page.product-flow.theme-divorcio` y `body.divorcio-flow
 
 123/123 specs, capturas de escritorio y móvil de las tres pantallas del formulario, y el cuestionario de Traslado360 como control del alcance. Sin cambios de comportamiento: el orden, la ramificación, las claves de respuestas y la API quedan igual.
 
+## Decimocuarta pasada — auditoría técnica del formulario y sus arreglos
+
+Pedido: *"haz una auditoría al formulario de divorcio con la skill impeccable"*, y después seguir los pasos que recomendara.
+
+### La auditoría
+
+El detector de la skill corrió sobre el componente y su CSS: **0 hallazgos**. Las cinco dimensiones dieron 17/20 (Good): un P1, dos P2 y cuatro P3, ningún P0.
+
+### Lo que se arregló
+
+- **[P1] El estado de la respuesta no se anunciaba**: las opciones Sí/No eran botones y la marca del sello vivía en `aria-hidden`, así que un lector de pantalla no podía saber qué se contestó. Ahora son un `radiogroup` con `role="radio"` y `aria-checked`, más las flechas para mover el foco, que es el patrón que el rol espera.
+- **[P2] El progreso anunciaba botones deshabilitados**: los pasos futuros eran `<button disabled>`. Ahora es una lista (`ol`/`li`): los respondidos son botones navegables, el actual un marcador con `aria-current="step"` y el resto marcadores pasivos. Medido en el paso 12: 0 botones deshabilitados y 11 navegables.
+- **[P2] El nombre accesible no coincidía con lo visible**: decía "Paso N de M" mientras en pantalla se lee la marca del folio. Ahora dice `Paso 12 de 12, sección Identidad`.
+- **[P3] Objetivo táctil del progreso**: de 36px a 44px, con la marca visible intacta en 4–6px.
+- **[P3] Color fuera de tokens**: dos `text-shadow` con `#fff` pasaron a `var(--surface)`.
+- **[P3] `data-cat` sin consumidor**: eliminado, junto con la regla `.ob-seg:disabled` que quedó sin uso.
+- **[P3] Anillo de foco**: apuntaba al botón viejo del paso; ahora al botón real del paso respondido.
+
+### Lo que se decidió no tocar
+
+- **`optimize` (P3)**: diferir el agendador de reuniones con `@defer` dejaría al `ViewChild` sin resolver cuando el flujo retoma una reunión pendiente. Riesgo real a cambio de un chunk más chico en una ruta que ya es lazy: no se hizo.
+- **`prefers-reduced-motion`**: el brief lo prohíbe (`demo-motion.mdc`) y ya estaba documentado. No es un hallazgo, es una decisión.
+
+### Verificación
+
+131/131 specs y el camino completo recorrido hasta la pregunta de ubicación (12 pasos): el foco se mueve con las flechas, los pasos miden 44px, y el select 16px — por debajo de eso iOS zoomea y rompe el layout del formulario. Evidencia: viewport emulado y eventos de teclado sintetizados en Edge headless; táctil en dispositivo real sin probar.
+
+### Dos defectos propios que la auditoría no vio
+
+Los arreglos de arriba se verificaron con sondeos de atributos, y esa verificación no mira el render. Al volver a mirarlo aparecieron dos defectos que yo mismo había introducido:
+
+- **La barra dejó de marcar el paso actual**: el estado del item (`.is-current`) no ganaba la cascada sobre el `::after`, así que el paso actual quedaba sin tinta y solo se veía el ya respondido. Medido: `transform: matrix(0,0,0,1,0,0)` en el actual. Ahora la marca va en la barra misma (`is-filled`).
+- **La barra del paso respondido medía 0×0**: al envolverla en el botón con `display: grid`, el envoltorio colapsaba su caja. El botón pasó a superponerse (`position: absolute`) y la barra volvió a ser hija directa del item. Medido de nuevo: `89x6`.
+
+Lección para el registro: una verificación de accesibilidad por atributos no reemplaza mirar el render. Los dos defectos pasaron los sondeos y solo aparecieron en la captura.
+
+### Auditoría de copy (skill no-ai-slop)
+
+Modo detect sobre las 12 preguntas, sus pistas y sus resúmenes, más los rótulos de la pantalla. Resultado: **limpio**. Ninguna palabra prohibida, ninguna frase vacía, ningún contraste binario, ninguna línea de relleno, ninguna fragmentación dramática y **cero guiones largos**. El único punto es un "Es decir," en la pista de manutención y visitas, que se puede quitar sin perder nada ("Si ya está definido cuánto se paga…").
+
+## Decimoquinta pasada — auditoría de apariencia (guía frontend-design)
+
+Pedido: *"haz una auditoría con el frontend skill y puedes rehacer el formulario, tampoco quiero AI slop en la apariencia; eso de 01/10, los números se ve como IA"*.
+
+### Lo que la guía marca y el formulario tenía
+
+- **Marcadores numerados** (`01 / 07`): el caso exacto del pedido. La guía los admite solo si el contenido es una secuencia, y acá la secuencia ya la dice la barra: el número era chrome.
+- **Rótulos en mayúsculas espaciadas** (`PACTO`): tell directo en la lista.
+- **Etiquetas sobre el contenido**: la marca era una etiqueta encima de la pregunta.
+- **Metadatos unidos con puntos medios** (`A · B · C`): el punto separador.
+- **`→` en botones y enlaces**: en el formulario ya no quedaba; las opciones perdieron el chevron en la pasada anterior.
+
+### El cambio
+
+La marca queda en **el nombre de la sección solo**, en minúscula, sin número y sin icono. Sale el getter `folioMark` y las tres reglas de la marca vieja (`.ob-folio-icon`, `.ob-folio-n`, `.ob-folio-cat`). El `aria-label` del progreso sigue diciendo "Paso 1 de 7, sección Pacto": es su nombre para el lector de pantalla, no chrome visible.
+
+### Lo que la guía marca y no se toca, con razón
+
+- **Fondo crema + display serif**: fijados por `PRODUCT.md`. El brief manda sobre la guía.
+- **Acento terracota**: la app usa teal `#2f6f68`, fuera de ese tell.
+- **Kit de tarjetas**: un solo radio (14px) y elevación por tokens.
+- **Movimiento**: la guía pide moderación; la app ya tiene un momento por pantalla y mantiene el movimiento siempre encendido porque el brief lo exige.
+
+### Verificación
+
+131/131 specs, capturas de escritorio y móvil: la marca visible es solo la sección, sin mayúsculas forzadas ni dígitos, y la barra sigue marcando el paso actual.
+
+## Decimosexta pasada — el formulario rehecho de cero
+
+Pedido: *"rehaz el formulario de cero porque se ve horrible y no tiene personalidad, aparte se ve ai slop; usa recomendaciones de las skills impeccable y de frontend-design"*.
+
+### El plan, y su revisión contra el brief
+
+Tokens: papel `#fcfcfb`, tinta `#2b2824`, teal `#2f6f68`, callado `#6e6a62`, hairline `#cfccc5`. Nada nuevo: sale todo de `tokens.scss`.
+
+Tipos: Fraunces para la pregunta y para el sello; Inter para lo callado. La pregunta es lo más grande de la pantalla y la tipografía hace de marca, no de vehículo.
+
+Disposición: una sola columna alineada a la izquierda **sobre el folio**, sin tarjeta.
+
+```
+────────────────────────  barra (la regla del folio)
+Pacto                      sección, en voz baja
+¿Los dos quieren…?         Fraunces, lo más grande
+Si están de acuerdo…       Inter, callado
+
+┌─────────────┐  ┌─────────────┐
+│     SÍ      │  │     NO      │    sellos en blanco, apenas inclinados
+└─────────────┘  └─────────────┘
+
+← Salir                    nota al margen
+```
+
+Principios: el formulario **es** el folio, no una tarjeta sobre papel; la respuesta es **un acto** (un sello que se entinta), no un botón; un solo movimiento memorable; la tipografía es la marca.
+
+### Qué se revisó del plan
+
+El diagnóstico de por qué se veía genérico: el formulario era una **tarjeta** —el contenedor perezoso— y las respuestas eran dos rectángulos blancos, que es el kit por defecto de la categoría. Las dos cosas se fueron: no hay tarjeta, y las respuestas son sellos.
+
+### El cambio
+
+- La hoja pierde fondo, borde, radio y sombra: el texto se apoya en los renglones del escenario.
+- La pregunta sube a `clamp(2.1rem, 5vw, 4rem)` con `text-wrap: balance`.
+- Las opciones dejan de ser filas con relleno: son dos sellos con borde hairline, la etiqueta en Fraunces al centro, y una inclinación distinta cada uno. Al elegir, el sello se entinta. Sale el icono de check y sus reglas.
+- Las tres pantallas del formulario heredan el trato: revisión y veredicto también van sobre el folio, sin tarjeta.
+
+### Lo que no se tocó
+
+Nada de la lógica: el orden, la ramificación, las claves, la API y las tres etapas siguen igual. Y los tokens del brief (papel, tinta, teal, Fraunces) siguen siendo la única fuente.
+
+### Verificación
+
+131/131 specs, capturas de escritorio y móvil: el sello quedó centrado, el par se lee como dos marcas, y la barra sigue marcando el paso actual.
+
 ## Pendiente
 
 - **Overflow horizontal real por debajo de ~400px**: el corte de las capturas headless es un artefacto de Edge en Windows (impone un ancho de layout mínimo cercano a 500px y recorta el PNG). Falta medirlo en un dispositivo o DevTools reales para descartarlo del todo.
