@@ -3,6 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import {
+  clearLocalJson,
+  productQDraftKey,
+  Q_RESULT_KEY,
+  readLocalJson,
+  writeLocalAndSessionJson,
+  writeLocalJson,
+} from '../../core/local-json';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import {
   getProductSite,
@@ -75,6 +83,7 @@ type Stage = 'questions' | 'review' | 'done';
                             type="text"
                             [(ngModel)]="answers[f.id]"
                             [placeholder]="f.placeholder || ''"
+                            (ngModelChange)="saveDraft()"
                             (keyup.enter)="canContinue && next()"
                           />
                         </div>
@@ -89,7 +98,7 @@ type Stage = 'questions' | 'review' | 'done';
                         </div>
                       } @else if (f.type === 'select') {
                         <div class="ob-field">
-                          <select [(ngModel)]="answers[f.id]">
+                          <select [(ngModel)]="answers[f.id]" (ngModelChange)="saveDraft()">
                             @for (opt of f.options; track opt.value) {
                               <option [value]="opt.value">{{ opt.label }}</option>
                             }
@@ -332,10 +341,12 @@ export class ProductQuestionnaireComponent implements OnInit {
     const city = String(this.answers['city'] || 'Quito');
     const answers = { ...this.answers, product: this.site.id };
     setActiveProduct(this.site.id);
-    sessionStorage.setItem(
-      'd360_q_result',
-      JSON.stringify({ result: 'apto', city, answers, product: this.site.id }),
-    );
+    writeLocalAndSessionJson(Q_RESULT_KEY, {
+      result: 'apto',
+      city,
+      answers,
+      product: this.site.id,
+    });
   }
 
   start(): void {
@@ -346,6 +357,7 @@ export class ProductQuestionnaireComponent implements OnInit {
     this.seedCheckoutResult();
     this.api.createCase('apto', city, q, this.site.id).subscribe({
       next: (c) => {
+        clearLocalJson(this.storageKey());
         this.caseId = c.id;
         this.stage = 'done';
         this.busy = false;
@@ -365,24 +377,28 @@ export class ProductQuestionnaireComponent implements OnInit {
 
   saveDraft(): void {
     if (!this.site) return;
-    sessionStorage.setItem(
-      this.storageKey(),
-      JSON.stringify({ answers: this.answers, fieldIndex: this.fieldIndex, stage: this.stage }),
-    );
+    writeLocalJson(this.storageKey(), {
+      answers: this.answers,
+      fieldIndex: this.fieldIndex,
+      stage: this.stage,
+    });
   }
 
   private storageKey(): string {
-    return `ls_product_q_${this.site?.slug || ''}`;
+    return productQDraftKey(this.site?.slug || '');
   }
 
   private restoreDraft(): void {
-    const raw = sessionStorage.getItem(this.storageKey());
-    if (!raw) return;
-    try {
-      const p = JSON.parse(raw);
-      if (p.answers) this.answers = { ...this.answers, ...p.answers };
-      if (typeof p.fieldIndex === 'number') this.fieldIndex = p.fieldIndex;
-      if (p.stage === 'review') this.stage = 'review';
-    } catch { /* ignore */ }
+    const p = readLocalJson<{
+      answers?: Record<string, unknown>;
+      fieldIndex?: number;
+      stage?: Stage;
+    }>(this.storageKey());
+    if (!p) return;
+    if (p.answers) this.answers = { ...this.answers, ...p.answers };
+    if (typeof p.fieldIndex === 'number') {
+      this.fieldIndex = Math.min(Math.max(0, p.fieldIndex), Math.max(0, this.fields.length - 1));
+    }
+    if (p.stage === 'review') this.stage = 'review';
   }
 }

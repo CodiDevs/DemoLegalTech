@@ -5,6 +5,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { ApiService, QuestionnaireResult } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { QuestionnaireComponent } from './questionnaire.component';
+import { DIVORCIO_Q_DRAFT_KEY, Q_RESULT_KEY } from '../../core/local-json';
 
 const APTO: QuestionnaireResult = {
   code: 'apto',
@@ -23,6 +24,9 @@ describe('QuestionnaireComponent', () => {
 
   beforeEach(async () => {
     resume = null;
+    localStorage.removeItem(DIVORCIO_Q_DRAFT_KEY);
+    localStorage.removeItem(Q_RESULT_KEY);
+    sessionStorage.removeItem(Q_RESULT_KEY);
     api = {
       evaluate: jasmine.createSpy('evaluate').and.returnValue(of(APTO)),
       createCase: jasmine.createSpy('createCase').and.returnValue(of({ id: 42 })),
@@ -49,7 +53,9 @@ describe('QuestionnaireComponent', () => {
 
   afterEach(() => {
     if (fixture && !fixture.componentRef.hostView.destroyed) fixture.destroy();
-    sessionStorage.removeItem('d360_q_result');
+    sessionStorage.removeItem(Q_RESULT_KEY);
+    localStorage.removeItem(Q_RESULT_KEY);
+    localStorage.removeItem(DIVORCIO_Q_DRAFT_KEY);
   });
 
   function cmp(): QuestionnaireComponent {
@@ -153,7 +159,7 @@ describe('QuestionnaireComponent', () => {
 
   it('cancela restoreResult si el HTTP llega después de destroy', fakeAsync(() => {
     resume = 'result';
-    sessionStorage.setItem('d360_q_result', JSON.stringify({ answers: { both_want_divorce: true } }));
+    sessionStorage.setItem(Q_RESULT_KEY, JSON.stringify({ answers: { both_want_divorce: true } }));
     const pending = new Subject<QuestionnaireResult>();
     api.evaluate.and.returnValue(pending);
     const local = TestBed.createComponent(QuestionnaireComponent);
@@ -172,6 +178,20 @@ describe('QuestionnaireComponent', () => {
     const active = document.activeElement as HTMLElement | null;
     expect(active?.classList.contains('ob-choice')).toBeTrue();
   });
+
+  it('recupera el avance desde localStorage', () => {
+    fixture.detectChanges();
+    cmp().answer(true);
+    expect(cmp().current.key).toBe('marriage_in_ecuador');
+    fixture.destroy();
+
+    const again = TestBed.createComponent(QuestionnaireComponent);
+    again.detectChanges();
+    const second = again.componentInstance;
+    expect(second.current.key).toBe('marriage_in_ecuador');
+    expect(second.isSelected('both_want_divorce', true)).toBeTrue();
+    again.destroy();
+  });
 });
 
 describe('QuestionnaireComponent guest result', () => {
@@ -179,6 +199,9 @@ describe('QuestionnaireComponent guest result', () => {
   let api: { evaluate: jasmine.Spy; createCase: jasmine.Spy; requestMeeting: jasmine.Spy };
 
   beforeEach(async () => {
+    localStorage.removeItem(DIVORCIO_Q_DRAFT_KEY);
+    localStorage.removeItem(Q_RESULT_KEY);
+    sessionStorage.removeItem(Q_RESULT_KEY);
     api = {
       evaluate: jasmine.createSpy('evaluate').and.returnValue(of(APTO)),
       createCase: jasmine.createSpy('createCase').and.returnValue(of({ id: 42 })),

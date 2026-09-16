@@ -5,6 +5,7 @@ import { AuthService } from '../../core/auth.service';
 import { ApiService } from '../../core/api.service';
 import { IconComponent } from '../../shared/icon.component';
 import { getProductQuestionnairePath } from '../../shared/product-sites.data';
+import { Q_RESULT_KEY, readLocalJson } from '../../core/local-json';
 import { AuthAlertComponent } from './auth-alert.component';
 import { AUTH_COPY, AuthMode } from './auth-copy.data';
 import { AuthLayoutComponent } from './auth-layout.component';
@@ -604,18 +605,19 @@ export class AuthComponent implements OnInit {
 
   private afterAuth(role: string): void {
     if (this.next === 'checkout' && role === 'cliente') {
-      const cached = sessionStorage.getItem('d360_q_result');
+      const cached = readLocalJson<{
+        result?: string;
+        city?: string;
+        answers?: Record<string, unknown>;
+      }>(Q_RESULT_KEY);
       let result = this.qResult;
       let city = this.city;
       let questionnaire: any = {};
 
       if (cached) {
-        try {
-          const p = JSON.parse(cached);
-          result = p.result || result;
-          city = p.city || city;
-          questionnaire = p.answers || {};
-        } catch { /* URL values */ }
+        result = cached.result || result;
+        city = cached.city || city;
+        questionnaire = cached.answers || {};
       }
 
       this.api.createCase(result, city, questionnaire, this.product).subscribe({

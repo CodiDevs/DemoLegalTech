@@ -4,6 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, QuestionnaireAnswers, QuestionnaireResult } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import {
+  clearLocalJson,
+  DIVORCIO_Q_DRAFT_KEY,
+  Q_RESULT_KEY,
+  readLocalJson,
+  writeLocalAndSessionJson,
+  writeLocalJson,
+} from '../../core/local-json';
 import { IconComponent, IconName } from '../../shared/icon.component';
 import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
 import { setActiveProduct } from '../../shared/product-sites.data';
@@ -28,6 +36,14 @@ interface Question {
   /** Resumen corto para la pantalla de revisión. */
   summary: string;
   showIf?: () => boolean;
+}
+
+interface DivorcioDraft {
+  answers: QuestionnaireAnswers;
+  cursor: number;
+  answered: string[];
+  stage: 'questions' | 'review' | 'result';
+  result?: QuestionnaireResult | null;
 }
 
 @Component({
@@ -128,6 +144,7 @@ interface Question {
                         id="location-city"
                         name="location-city"
                         [(ngModel)]="answers.city"
+                        (ngModelChange)="onCityChange()"
                       >
                         @for (city of citiesForProvince; track city) {
                           <option [value]="city">{{ city }}</option>
@@ -473,16 +490,17 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.normalizeLocation();
     if (this.route.snapshot.queryParamMap.get('resume') === 'result') {
       this.restoreResult();
+      return;
     }
+    this.restoreDraft();
   }
 
   private restoreResult(): void {
-    const cached = sessionStorage.getItem('d360_q_result');
+    const cached = readLocalJson<{ answers?: QuestionnaireAnswers }>(Q_RESULT_KEY);
     if (!cached) return;
     try {
-      const p = JSON.parse(cached);
-      if (p.answers) {
-        this.answers = { ...this.answers, ...p.answers };
+      if (cached.answers) {
+        this.answers = { ...this.answers, ...cached.answers };
         this.normalizeLocation();
       }
       this.restoreSub = this.api.evaluate(this.answers).pipe(
@@ -499,6 +517,60 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
         },
       });
     } catch { /* ignore */ }
+  }
+
+  private restoreDraft(): void {
+    const draft = readLocalJson<DivorcioDraft>(DIVORCIO_Q_DRAFT_KEY);
+    if (!draft) return;
+    if (!draft.answered?.length && draft.stage !== 'review' && draft.stage !== 'result') return;
+    if (draft.answers) {
+      this.answers = { ...this.answers, ...draft.answers };
+      this.normalizeLocation();
+    }
+    this.answered = new Set(
+      (draft.answered || []).filter((k): k is AnswerKey => k in this.answers),
+    );
+    if (typeof draft.cursor === 'number' && draft.cursor >= 0 && draft.cursor < this.all.length) {
+      this.cursor = draft.cursor;
+    }
+    this.clampCursor();
+    this.rebuildTrail();
+    if (draft.stage === 'review' || draft.stage === 'result') this.stage = draft.stage;
+    if (draft.stage === 'result' && draft.result) {
+      this.result = draft.result;
+      this.displayPrice = draft.result.price_usd;
+    } else if (this.stage === 'result') {
+      this.stage = 'review';
+    }
+  }
+
+  private clampCursor(): void {
+    if (this.cursor < 0 || this.cursor >= this.all.length) this.cursor = 0;
+    const q = this.all[this.cursor];
+    if (q.showIf && !q.showIf()) {
+      const next = this.nextVisibleAfter(-1);
+      this.cursor = next === -1 ? 0 : next;
+    }
+  }
+
+  private rebuildTrail(): void {
+    const vis = this.visibleQuestions;
+    const pos = vis.findIndex((q) => q.key === this.current.key);
+    this.trail = vis
+      .slice(0, Math.max(0, pos))
+      .map((q) => this.all.findIndex((item) => item.key === q.key))
+      .filter((i) => i >= 0);
+  }
+
+  private saveDraft(): void {
+    const draft: DivorcioDraft = {
+      answers: this.answers,
+      cursor: this.cursor,
+      answered: [...this.answered],
+      stage: this.stage,
+      result: this.result,
+    };
+    writeLocalJson(DIVORCIO_Q_DRAFT_KEY, draft);
   }
 
   ngAfterViewInit(): void {
@@ -671,11 +743,17 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     const province = provinces[0];
     this.answers.province = province?.id ?? '';
     this.answers.city = province?.cities[0] ?? '';
+    this.saveDraft();
   }
 
   onProvinceChange(): void {
     const cities = this.citiesForProvince;
     this.answers.city = cities[0] ?? '';
+    this.saveDraft();
+  }
+
+  onCityChange(): void {
+    this.saveDraft();
   }
 
   private normalizeLocation(): void {
@@ -704,12 +782,14 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
 
     if (next === -1) {
       this.stage = 'review';
+      this.saveDraft();
       return;
     }
 
     this.trail.push(this.cursor);
     this.cursor = next;
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   back(): void {
@@ -718,17 +798,20 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.direction = -1;
     this.cursor = previous;
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   backToQuestions(): void {
     this.direction = -1;
     this.stage = 'questions';
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   backToReview(): void {
     this.direction = -1;
     this.stage = 'review';
+    this.saveDraft();
   }
 
   /** Vuelve a una pregunta concreta desde la pantalla de revisión. */
@@ -745,6 +828,7 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.direction = -1;
     this.stage = 'questions';
     this.pendingFocus = true;
+    this.saveDraft();
   }
 
   isSelected(key: AnswerKey, value: boolean): boolean {
@@ -777,11 +861,13 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
         this.stage = 'result';
         this.direction = 1;
         this.tweenPrice(res.price_usd);
-        sessionStorage.setItem('d360_q_result', JSON.stringify({
+        const payload = {
           result: res.code,
           city: this.locationLabel,
           answers: this.answers,
-        }));
+        };
+        writeLocalAndSessionJson(Q_RESULT_KEY, payload);
+        this.saveDraft();
       },
       error: () => {
         if (this.destroyed) return;
@@ -799,7 +885,10 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     this.api.createCase(this.result.code, this.locationLabel, this.answers).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
-      next: (c) => void this.router.navigate(['/checkout', c.id]),
+      next: (c) => {
+        clearLocalJson(DIVORCIO_Q_DRAFT_KEY);
+        void this.router.navigate(['/checkout', c.id]);
+      },
       error: () => {
         this.submitting = false;
         this.submitError = 'No pudimos crear tu expediente. Inténtalo de nuevo en unos segundos.';

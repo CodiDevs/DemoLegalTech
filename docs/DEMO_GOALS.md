@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Cuestionario se guarda en el navegador | `/cuestionario` responde 2 → Inicio → vuelve: sigue en la misma pregunta | 2026-09-15 |
 | done | Rail del despacho hover | `abogado@demo.ec` → `/abogado`: folio quieto; hover revela texto; candado Fijar deja el menú abierto (F5 lo recuerda) | 2026-09-15 |
 | done | Bandeja fusiona Resumen + cobros en licencia | `abogado@demo.ec` → `/abogado`: Detenidos filtra la lista. Sin Resumen en el rail. Facturación: Cobros de trámites (cobrado/pendiente + filas), no 4 KPIs | 2026-09-15 |
 | done | Cliente sin Próximamente | `/cliente` sidebar: Todos + live. Sin SignDesk/MatterFlow/ComplianceHub/NotaryLink | 2026-09-15 |
@@ -76,6 +77,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Cuestionario se guarda en el navegador
+Cada respuesta del cuestionario (Divorcio360 y Traslado/BienRaíz) queda en `localStorage`. Cerrar la pestaña o ir a otra página no borra el avance. El expediente creado sí limpia el borrador.
+
+**Demo:** `/cuestionario` → Sí → Sí → `/` → `/cuestionario`: sigue en la tercera pregunta, con las dos primeras marcadas.
 
 ### 2026-09-15 — Cliente sin Próximamente
 El rail de `/cliente` solo lista trámites vivos. SignDesk y el resto `live: false` no ocupan el pliegue.
