@@ -4,10 +4,13 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Escritorio con cifras de ejemplo | `abogado@demo.ec` → **Escritorio**: libros Tu práctica + La página (honorarios, visitas, barras de la semana) y debajo el folio que te toca. Cifras inventadas, rotuladas de ejemplo | 2026-09-16 |
+| done | Escritorio (dashboard) vs Facturación B2B | `abogado@demo.ec` → rail **Escritorio** (`/abogado/fase2/admin`: folio que te toca + Detenidos) y **Facturación B2B** (cobros). No se mezclan | 2026-09-16 |
+| done | Resumen y Facturación B2B son módulos distintos | `abogado@demo.ec` → rail: Escritorio (`/abogado/fase2/admin`, Te toca) y Facturación B2B (`/abogado/fase2/billing`, cobros). No es un tab. Bandeja sigue con Detenidos | 2026-09-16 |
 | done | Lenguaje visual P0 + colofón CodiDevs | `/` H1 «Expedientes civiles, resueltos.» + catálogo Divorcio protagonista + pie «Hecho por CodiDevs». Traslado/BienRaiz misma cámara. `/cuestionario` folio + colofón. Checkout una acta. Firma: QR sin tarjeta. `/auth` tres líneas. `/cliente` y `/abogado` sello en el rail | 2026-09-15 |
 | done | Cuestionario se guarda en el navegador | `/cuestionario` responde 2 → Inicio → vuelve: sigue en la misma pregunta | 2026-09-15 |
 | done | Rail del despacho hover | `abogado@demo.ec` → `/abogado`: folio quieto; hover revela texto; candado Fijar deja el menú abierto (F5 lo recuerda) | 2026-09-15 |
-| done | Bandeja fusiona Resumen + cobros en licencia | `abogado@demo.ec` → `/abogado`: Detenidos filtra la lista. Sin Resumen en el rail. Facturación: Cobros de trámites (cobrado/pendiente + filas), no 4 KPIs | 2026-09-15 |
+| superseded | Bandeja fusiona Resumen + cobros en licencia | Revertido 2026-09-16: Resumen vuelve al rail; cobros siguen en Facturación B2B | 2026-09-15 |
 | done | Cliente sin Próximamente | `/cliente` sidebar: Todos + live. Sin SignDesk/MatterFlow/ComplianceHub/NotaryLink | 2026-09-15 |
 | done | Barra del cuestionario se puede volver | `/cuestionario` responde una → “Clic en un paso hecho para volver” → clic en el tramo teal | 2026-09-15 |
 | done | Hero elige trámite en home | `/` → Iniciar un trámite abre Divorcio/Traslado/BienRaíz; `/productos/divorcio360` sigue al cuestionario | 2026-09-15 |
@@ -78,6 +81,27 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-16 — Escritorio con cifras de ejemplo
+El dashboard del despacho lleva dos libros: **Tu práctica** (honorarios, neto, mix) y **La página** (visitas, trámites, cierre). Todo es ficticio, rotulado «de ejemplo». Debajo sigue el folio que te toca y Detenidos. Facturación B2B no se fusiona.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → rail **Escritorio**. Ver $7.396 cobrados y 1.158 visitas; barras lun–dom; luego el expediente de hoy.
+
+### 2026-09-16 — Escritorio, el dashboard del despacho
+Resumen deja de ser un informe. El rail dice **Escritorio**. La pantalla responde “qué me toca hoy”: el folio de delante es el expediente, no un KPI.
+
+- **Escritorio** `/abogado/fase2/admin`: H1 «Hoy te toca.» (o «Nada te toca.» si el siguiente sello no es del abogado) + folio grande y los tres siguientes. Si hay más, lista corta **En espera** / **También en el escritorio**. **Detenidos** son chips centrados con el conteo en el bloque; clic abre la bandeja con `?estado=`. Link quieto a Facturación B2B. Sin 4 tarjetas, sin cobros, sin planes.
+- **Facturación B2B** `/abogado/fase2/billing`: cobros, licencia e historial. Sigue aparte.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → rail **Escritorio** (folio grande → expediente) → chip Detenidos → Bandeja filtrada → rail **Facturación B2B**. El chrome (WorkspaceHead, hover rail, «Hecho por CodiDevs») no se pierde.
+
+### 2026-09-16 — Resumen y Facturación B2B, módulos aparte
+El despacho deja de meter el resumen del bufete en la bandeja. **Resumen** y **Facturación B2B** son destinos distintos: rail, ruta y pantalla.
+
+- **Resumen** `/abogado/fase2/admin`: masthead + **Te toca** (folios, no 4 KPIs). Detenidos abre la bandeja con `?estado=`.
+- **Facturación B2B** `/abogado/fase2/billing`: Cobros de trámites (tabla cobrado/pendiente) + planes de licencia + historial. Sin tabla de cobros dentro de Resumen.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → `/abogado` (Bandeja, Detenidos intacto) → rail **Resumen** (Te toca, un `#` abre expediente) → rail **Facturación B2B** (Cobros de trámites). El chrome del despacho no se pierde al cambiar.
 
 ### 2026-09-15 — Lenguaje visual P0 + colofón CodiDevs
 Una cámara en todo el recorrido cliente: cream, Fraunces en H1, teal, motion `--dur-cine`. El cierre es «Hecho por CodiDevs» (Inter + Fraunces), no un span ALL-CAPS.

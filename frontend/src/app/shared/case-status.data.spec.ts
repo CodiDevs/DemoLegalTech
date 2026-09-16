@@ -6,6 +6,7 @@ import {
   caseClientHint,
   caseFilterLabel,
   caseLawyerHint,
+  caseNeedsLawyer,
   caseShort,
 } from './case-status.data';
 
@@ -52,5 +53,15 @@ describe('case-status.data', () => {
     expect(caseClientHint('', 'Sin indicar')).toBe('Sin indicar');
     expect(caseLawyerHint(null, 'Sin indicar')).toBe('Sin indicar');
     expect(caseFilterLabel('99', 'Sin indicar')).toBe('Sin indicar');
+  });
+
+  it('marca las etapas que esperan al abogado', () => {
+    expect(caseNeedsLawyer('03')).toBeTrue();
+    expect(caseNeedsLawyer('04')).toBeTrue();
+    expect(caseNeedsLawyer('06')).toBeTrue();
+    expect(caseNeedsLawyer('05')).toBeFalse();
+    expect(caseNeedsLawyer('02')).toBeFalse();
+    expect(caseNeedsLawyer('10')).toBeFalse();
+    expect(caseNeedsLawyer(null)).toBeFalse();
   });
 });

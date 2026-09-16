@@ -9,6 +9,7 @@ import {
   CASE_STATUS_FILTER_OPTIONS,
   caseFilterLabel,
   caseLawyerHint,
+  caseNeedsLawyer,
   caseShort,
 } from '../../shared/case-status.data';
 import { getProductDisplayName, LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
@@ -717,7 +718,7 @@ export class LawyerPanelComponent implements OnInit {
   }
 
   needsYou(c: CaseItem): boolean {
-    return ['03', '04', '06', '07', '08', '09'].includes(c.status);
+    return caseNeedsLawyer(c.status);
   }
 
   nextHint(status: string): string {

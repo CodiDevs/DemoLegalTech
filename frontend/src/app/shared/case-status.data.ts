@@ -117,3 +117,18 @@ export function caseFilterLabel(code: string | undefined | null, fallback = ''):
   const key = (code || '').trim();
   return CASE_STATUS[key]?.filterLabel ?? fallback;
 }
+
+/** Etapas en las que el abogado debe actuar (escritorio / te toca). */
+export function caseNeedsLawyer(code: string | undefined | null): boolean {
+  switch ((code || '').trim()) {
+    case '03':
+    case '04':
+    case '06':
+    case '07':
+    case '08':
+    case '09':
+      return true;
+    default:
+      return false;
+  }
+}

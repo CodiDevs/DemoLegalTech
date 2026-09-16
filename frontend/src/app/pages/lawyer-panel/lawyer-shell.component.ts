@@ -9,7 +9,7 @@ const RAIL_PIN_KEY = 'd360_lawyer_rail_pinned';
 interface WorkspaceNavItem {
   path: string;
   label: string;
-  icon: 'inbox' | 'briefcase' | 'file-text' | 'search' | 'scale' | 'credit-card';
+  icon: 'inbox' | 'briefcase' | 'chart' | 'file-text' | 'search' | 'scale' | 'credit-card';
   exact?: boolean;
   lawyerOnly?: boolean;
 }
@@ -79,6 +79,7 @@ export class LawyerShellComponent implements OnInit {
   ];
 
   private readonly toolsNav: WorkspaceNavItem[] = [
+    { path: '/abogado/fase2/admin', label: 'Escritorio', icon: 'chart', lawyerOnly: true },
     { path: '/abogado/fase2/templates', label: 'Modelos de documentos', icon: 'file-text', lawyerOnly: true },
     { path: '/abogado/fase2/ai', label: 'Asistente de revisión', icon: 'search', lawyerOnly: true },
     // Temporalmente retirado: Causas judiciales (SATJE)

@@ -27,6 +27,7 @@ describe('LawyerShellComponent nav', () => {
     expect(makeShell('/abogado').bandejaOn).toBeTrue();
     expect(makeShell('/abogado/caso/6').bandejaOn).toBeTrue();
     expect(makeShell('/abogado/servicios').bandejaOn).toBeFalse();
+    expect(makeShell('/abogado/fase2/admin').bandejaOn).toBeFalse();
     expect(makeShell('/abogado/fase2/billing').bandejaOn).toBeFalse();
   });
 
@@ -36,7 +37,12 @@ describe('LawyerShellComponent nav', () => {
     const ai = shell.visibleTools.find((t) => t.path === '/abogado/fase2/ai');
     expect(ai?.icon).toBe('search');
     expect(ai?.label).toContain('Asistente');
-    expect(shell.visibleTools.some((t) => t.label === 'Resumen')).toBeFalse();
+    const escritorio = shell.visibleTools.find((t) => t.label === 'Escritorio');
+    expect(escritorio?.path).toBe('/abogado/fase2/admin');
+    expect(escritorio?.icon).toBe('chart');
+    const billing = shell.visibleTools.find((t) => t.label === 'Facturación B2B');
+    expect(billing?.path).toBe('/abogado/fase2/billing');
+    expect(billing?.path).not.toBe(escritorio?.path);
   });
 
   it('el rail cierra al salir, también después de abrirlo', () => {
