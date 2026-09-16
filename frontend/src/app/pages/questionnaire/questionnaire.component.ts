@@ -24,8 +24,6 @@ type AnswerKey = keyof QuestionnaireAnswers;
 interface Question {
   key: AnswerKey;
   text: string;
-  /** Explicación en lenguaje llano de por qué se pregunta. */
-  hint: string;
   icon: IconName;
   /** Resumen corto para la pantalla de revisión. */
   summary: string;
@@ -49,7 +47,12 @@ interface Question {
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
           <div class="ob-questions">
-            <div class="ob-progress" role="group" [attr.aria-label]="progressLabel">
+            <div
+              class="ob-progress"
+              role="group"
+              [attr.aria-label]="progressLabel"
+              [attr.aria-describedby]="canGoBack ? 'ob-progress-hint' : null"
+            >
               <ol class="ob-segments">
                 @for (q of visibleQuestions; track q.key; let i = $index) {
                   <li
@@ -77,6 +80,9 @@ interface Question {
               </ol>
               <div class="ob-progress-meta">
                 <p class="ob-folio">{{ categoryLabel }}</p>
+                @if (canGoBack) {
+                  <p id="ob-progress-hint" class="ob-progress-hint">Clic en un paso hecho para volver</p>
+                }
               </div>
             </div>
 
@@ -86,7 +92,6 @@ interface Question {
                 @for (q of [current]; track q.key) {
                   <section class="ob-sheet" [class.ob-sheet--back]="direction === -1">
                 <h1>{{ q.text }}</h1>
-                <p class="ob-hint">{{ q.hint }}</p>
 
                 @if (q.key === 'city') {
                   <div class="ob-location">
@@ -365,35 +370,30 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'both_want_divorce',
       text: '¿Los dos quieren divorciarse?',
-      hint: 'Si están de acuerdo, el trámite se resuelve en notaría y es mucho más rápido.',
       icon: 'users',
       summary: 'Ambos de acuerdo',
     },
     {
       key: 'marriage_in_ecuador',
       text: '¿Se casaron en Ecuador?',
-      hint: 'Lo necesitamos para pedir el acta de matrimonio correcta.',
       icon: 'flag',
       summary: 'Matrimonio en Ecuador',
     },
     {
       key: 'someone_abroad',
       text: '¿Alguno de los dos vive fuera del país?',
-      hint: 'Se puede firmar igual desde el extranjero, solo cambian algunos pasos.',
       icon: 'plane',
       summary: 'Alguien vive fuera',
     },
     {
       key: 'have_children',
       text: '¿Tienen hijos en común?',
-      hint: 'De esto depende qué documentos hacen falta.',
       icon: 'baby',
       summary: 'Tienen hijos',
     },
     {
       key: 'minor_dependents',
       text: '¿Alguno es menor de edad o depende de ustedes?',
-      hint: 'Cuenta cualquier hijo menor de 18 años o que dependa económicamente de ustedes.',
       icon: 'calendar',
       summary: 'Hijos menores o dependientes',
       showIf: () => this.answers.have_children,
@@ -401,7 +401,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'custody_regulated',
       text: '¿Ya acordaron manutención, con quién viven y las visitas?',
-      hint: 'Es decir, si ya está definido cuánto se paga, dónde viven y cada cuánto se visitan.',
       icon: 'scale',
       summary: 'Manutención y visitas acordadas',
       showIf: () => this.answers.have_children && this.answers.minor_dependents,
@@ -409,7 +408,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'has_mediation_acta',
       text: '¿Tienen ese acuerdo por escrito y firmado?',
-      hint: 'Un acta de mediación o una resolución de un juez donde consta lo acordado.',
       icon: 'file-text',
       summary: 'Acuerdo por escrito',
       showIf: () => this.answers.have_children && this.answers.minor_dependents,
@@ -417,14 +415,12 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'have_assets',
       text: '¿Compraron bienes mientras estuvieron casados?',
-      hint: 'Casas, terrenos, vehículos o cuentas que consiguieron durante el matrimonio.',
       icon: 'home',
       summary: 'Bienes en el matrimonio',
     },
     {
       key: 'conjugal_society',
       text: '¿Sus bienes están en sociedad conyugal?',
-      hint: 'Es lo habitual en Ecuador, salvo que firmaran separación de bienes ante notario.',
       icon: 'chart',
       summary: 'Sociedad conyugal',
       showIf: () => this.answers.have_assets,
@@ -432,7 +428,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'want_liquidate_assets',
       text: '¿Quieren repartir los bienes ahora?',
-      hint: 'También pueden divorciarse primero y repartir más adelante.',
       icon: 'briefcase',
       summary: 'Repartir bienes ahora',
       showIf: () => this.answers.have_assets,
@@ -440,14 +435,12 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     {
       key: 'ids_valid',
       text: '¿Los dos tienen la cédula o el pasaporte vigente?',
-      hint: 'Sin documentos vigentes la notaría no puede firmar.',
       icon: 'id-card',
       summary: 'Documentos vigentes',
     },
     {
       key: 'city',
       text: '¿Dónde están ubicados?',
-      hint: 'Indica país, provincia y ciudad donde realizan el trámite.',
       icon: 'map-pin',
       summary: 'Ubicación',
     },
@@ -586,7 +579,8 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
      sección del expediente. */
   get progressLabel(): string {
     const seccion = this.categoryLabel ? `, sección ${this.categoryLabel}` : '';
-    return `Paso ${this.position} de ${this.visibleQuestions.length}${seccion}`;
+    const back = this.canGoBack ? '. Los pasos hechos se pueden pulsar para volver' : '';
+    return `Paso ${this.position} de ${this.visibleQuestions.length}${seccion}${back}`;
   }
 
   /* Grupo de opciones: las flechas mueven el foco entre las respuestas, como espera el

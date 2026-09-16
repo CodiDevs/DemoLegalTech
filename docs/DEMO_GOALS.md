@@ -4,8 +4,9 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Barra del cuestionario se puede volver | `/cuestionario` responde una → “Clic en un paso hecho para volver” → clic en el tramo teal | 2026-09-15 |
 | done | Hero elige trámite en home | `/` → Iniciar un trámite abre Divorcio/Traslado/BienRaíz; `/productos/divorcio360` sigue al cuestionario | 2026-09-15 |
-| done | Subtítulos solo si aportan dato | `/` catálogo/FAQ sin lede; Precios sí. `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice | 2026-09-15 |
+| done | Subtítulos solo si aportan dato | `/` catálogo/FAQ sin lede; Precios sí. `/cuestionario` pregunta sin pista bajo el H1. `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice | 2026-09-15 |
 | done | Sello QR LegalStation | `cliente@demo.ec` → `/firma/:id`: QR (no rúbrica), pagar $15, Descargar o Aplicar a la minuta | 2026-09-15 |
 | done | Asistente expediente real + Enviar a la vista | `abogado@demo.ec` → Asistente: select `#id · producto · etapa` (no fuerza #1); Enviar queda en el pliegue | 2026-09-15 |
 | done | Despacho Facturación + Modelos + Servicios | `abogado@demo.ec` → Licencia: tabla de planes (no 3-up); Modelos: Familia no FAMILIA; Servicios: tabs sin 2/2/0 ni slug | 2026-09-15 |
@@ -73,6 +74,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 ## Entries
 
+### 2026-09-15 — Barra del cuestionario se puede volver
+Los tramos hechos ya eran un hit. Ahora se leen: más gruesos, cursor, hover, y la línea “Clic en un paso hecho para volver”.
+
+**Demo:** `/cuestionario` → Sí → clic en el primer tramo teal → vuelve a “¿Los dos quieren divorciarse?”.
+
 ### 2026-09-15 — Hero elige trámite en home
 En LegalStation el CTA del hero ya no clava Divorcio360. Se abre la lista de trámites vivos. En cada sitio de producto, el CTA sigue al cuestionario.
 
@@ -81,7 +87,7 @@ En LegalStation el CTA del hero ya no clava Divorcio360. Se abre la lista de tr�
 ### 2026-09-15 — Subtítulos solo si aportan dato
 El H1/H2 no arrastra un párrafo de relleno. Se queda el lede si trae precio, cupo, restricción o el siguiente paso. Fuera: parafraseo del título.
 
-**Demo:** `/` catálogo y FAQ sin lede; Precios sí (pago único vs licencia). `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice.
+**Demo:** `/` catálogo y FAQ sin lede; Precios sí (pago único vs licencia). `/cuestionario` solo la pregunta y Sí/No. `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice.
 
 ### 2026-09-15 — Sello QR LegalStation
 La firma electrónica del SaaS no es una rúbrica dibujada. Es un QR (`sello-qr.png`) de verificación: se paga $15, se descarga o se aplica a la minuta. El QR queda sobre el PDF.

@@ -56,6 +56,30 @@ describe('QuestionnaireComponent', () => {
     return fixture.componentInstance;
   }
 
+  it('no pone un lede bajo la pregunta', () => {
+    fixture.detectChanges();
+    const sheet = (fixture.nativeElement as HTMLElement).querySelector('.ob-sheet');
+    expect(sheet?.querySelector('h1')?.textContent).toContain('¿Los dos quieren divorciarse?');
+    expect(sheet?.querySelector('.ob-hint')).toBeNull();
+  });
+
+  it('enseña que un paso hecho vuelve al clic en la barra', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).not.toContain('Clic en un paso hecho para volver');
+    expect(root.querySelector('.ob-seg-hit')).toBeNull();
+
+    cmp().answer(true);
+    fixture.detectChanges();
+    expect(cmp().current.key).toBe('marriage_in_ecuador');
+    expect(root.textContent).toContain('Clic en un paso hecho para volver');
+    const hit = root.querySelector('.ob-seg-hit') as HTMLButtonElement | null;
+    expect(hit).not.toBeNull();
+    hit?.click();
+    fixture.detectChanges();
+    expect(cmp().current.key).toBe('both_want_divorce');
+  });
+
   it('muestra preguntas condicionales solo cuando aplican', () => {
     fixture.detectChanges();
     expect(cmp().visibleQuestions.some((q) => q.key === 'minor_dependents')).toBeFalse();

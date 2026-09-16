@@ -30,7 +30,12 @@ type Stage = 'questions' | 'review' | 'done';
         <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction">
           @if (stage === 'questions' && currentField) {
             <div class="ob-questions">
-              <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length">
+              <div
+                class="ob-progress"
+                role="group"
+                [attr.aria-label]="'Paso ' + stepLabel + ' de ' + fields.length"
+                [attr.aria-describedby]="fieldIndex > 0 ? 'ob-progress-hint' : null"
+              >
                 <div class="ob-segments">
                   @for (f of fields; track f.id; let i = $index) {
                     <button
@@ -50,6 +55,9 @@ type Stage = 'questions' | 'review' | 'done';
                 </div>
                 <div class="ob-progress-meta">
                   <p class="ob-step-label">Paso {{ stepLabel }} de {{ fields.length }}</p>
+                  @if (fieldIndex > 0) {
+                    <p id="ob-progress-hint" class="ob-progress-hint">Clic en un paso hecho para volver</p>
+                  }
                 </div>
               </div>
 
