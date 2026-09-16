@@ -31,7 +31,7 @@ import { Component, Input } from '@angular/core';
 
     .ws-head {
       margin-bottom: var(--space-5);
-      animation: ws-head-in 480ms var(--ease-out) both;
+      animation: ws-head-in 480ms var(--ease-out);
     }
 
     .ws-head-row {

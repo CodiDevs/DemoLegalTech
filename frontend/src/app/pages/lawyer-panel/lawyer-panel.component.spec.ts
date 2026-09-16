@@ -62,4 +62,11 @@ describe('LawyerPanelComponent bandeja', () => {
     panel.applyEstadoQuery('99');
     expect(panel.statusFilter).toBe('');
   });
+
+  it('needsYou ordena, no pinta lavado teal', () => {
+    const panel = makePanel([minuta, docs]);
+    expect(panel.needsYou(minuta)).toBeTrue();
+    expect(panel.needsYou(docs)).toBeFalse();
+    expect(panel.filtered[0].id).toBe(minuta.id);
+  });
 });

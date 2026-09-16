@@ -89,7 +89,6 @@ const PAGE_SIZE = 10;
               <a
                 class="case-row"
                 [class.is-sla]="c.sla_warning"
-                [class.is-act]="needsYou(c)"
                 [style.--i]="i"
                 [routerLink]="['/abogado/caso', c.id]"
               >
@@ -256,10 +255,6 @@ const PAGE_SIZE = 10;
     .case-row:focus-visible {
       outline: 2px solid var(--focus-ring);
       outline-offset: 2px;
-    }
-
-    .case-row.is-act {
-      background: var(--primary-subtle);
     }
 
     .case-row.is-sla {

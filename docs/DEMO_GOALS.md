@@ -5,6 +5,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
 | done | Sello QR LegalStation | `cliente@demo.ec` → `/firma/:id`: QR (no rúbrica), pagar $15, Descargar o Aplicar a la minuta | 2026-09-15 |
+| done | Asistente expediente real + Enviar a la vista | `abogado@demo.ec` → Asistente: select `#id · producto · etapa` (no fuerza #1); Enviar queda en el pliegue | 2026-09-15 |
 | done | Despacho Facturación + Modelos + Servicios | `abogado@demo.ec` → Licencia: tabla de planes (no 3-up); Modelos: Familia no FAMILIA; Servicios: tabs sin 2/2/0 ni slug | 2026-09-15 |
 | done | Despacho Resumen + expediente destilado | `abogado@demo.ec` → `/abogado/fase2/admin`: Te toca, no 4 KPIs; Detenidos → bandeja con filtro de etapa; `/abogado/caso/6` etapas con nombre, Q cerrado, un primary; Asistente H1 + icono search | 2026-09-15 |
 | done | Despacho /abogado (chrome + bandeja folio) | `abogado@demo.ec` → `/abogado`: sin Cómo funciona/Precios ni footer; filas con verbo; filtro Revisión dice “Hay N en la bandeja” | 2026-09-15 |
@@ -74,6 +75,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 La firma electrónica del SaaS no es una rúbrica dibujada. Es un QR (`sello-qr.png`) de verificación: se paga $15, se descarga o se aplica a la minuta. El QR queda sobre el PDF.
 
 **Demo:** `cliente@demo.ec` → `/firma/:id` con minuta → Pagar $15 y obtener QR → Descargar y/o Aplicar a la minuta.
+
+### 2026-09-15 — Asistente expediente real + Enviar a la vista
+El select deja de clavar el caso `#1`. Abre el primero del sort (Revisión primero). Cada opción es `#id · producto · etapa`, porque el seed usa un solo cliente. El compositor (Enviar) queda dentro del viewport: el chat llena el alto del despacho y el log es el que scrollea. Bandeja: solo fuera de plazo lleva lavado; “te toca” ya está en el verbo de la fila.
+
+**Demo:** `abogado@demo.ec` → Asistente de revisión → cambiar de expediente en el select → Enviar visible sin bajar. Bandeja: fila con “Fuera de plazo” en ámbar, el resto sin teal.
 
 ### 2026-09-15 — Despacho Facturación + Modelos + Servicios
 Licencia deja el 3-up SaaS: una tabla (precio, operadores, casos, asistente, SATJE). Modelos: categoría en Inter normal, chips cuadrados. Servicios: tabs Todos/Publicados/Borradores; conteo solo en el masthead; sin `/slug` en la tarjeta.
