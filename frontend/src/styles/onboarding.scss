@@ -58,6 +58,10 @@ body.divorcio-flow-mode .ob {
   align-items: center;
   width: 100%;
   box-sizing: border-box;
+  /* Lista de verdad: el progreso es una lista de pasos, no una fila de controles. */
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .ob-seg {
@@ -67,8 +71,9 @@ body.divorcio-flow-mode .ob {
   align-items: center;
   justify-content: stretch;
   min-width: 0;
-  min-height: 2.25rem;
-  height: 2.25rem;
+  /* 44px: el objetivo táctil llega al mínimo cómodo aunque la marca visible siga en 4-6px. */
+  min-height: 2.75rem;
+  height: 2.75rem;
   margin: 0;
   padding: 0 !important;
   border: 0 !important;
@@ -104,12 +109,27 @@ body.divorcio-flow-mode .ob {
   transition: transform 480ms var(--ease-out);
 }
 
-.ob-seg.is-done {
+/* El paso ya respondido es el único navegable. El botón se superpone a la barra en vez de
+   envolverla: así la barra conserva su caja y el lector de pantalla no anuncia botones
+   deshabilitados en un indicador de progreso. */
+.ob-seg-hit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.ob-seg.is-done .ob-seg-bar::after,
-.ob-seg.is-current .ob-seg-bar::after {
+/* La tinta de los pasos hechos y del actual. Va en la barra misma, no en el estado del item:
+   con el estado del item la regla perdía la cascada y el paso actual quedaba sin llenar. */
+.ob-seg-bar.is-filled::after {
   transform: scaleX(1);
 }
 
@@ -117,15 +137,10 @@ body.divorcio-flow-mode .ob {
   background: var(--lp-accent-deep, var(--primary-hover));
 }
 
-.ob-seg.is-done:focus-visible {
+.ob-seg-hit:focus-visible {
   outline: 2px solid var(--lp-accent, var(--primary));
   outline-offset: 2px;
   border-radius: var(--radius-sm);
-}
-
-.ob-seg:disabled {
-  opacity: 1;
-  cursor: default;
 }
 
 .ob-seg.is-current {
@@ -453,10 +468,20 @@ body.divorcio-flow-mode .ob {
    ========================================================================= */
 
 .landing-page.product-flow.theme-divorcio {
-  /* 1. La pregunta es el titular del folio. */
+  /* El formulario no es una tarjeta sobre papel: es el folio. El panel pierde fondo, borde,
+     radio y sombra, y el texto se apoya en el renglón que el escenario ya dibuja. */
+  .ob-sheet {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* 1. La pregunta es el titular del folio, y lo más grande de la pantalla. */
   .ob h1 {
-    font-size: clamp(1.7rem, 4.4vw, 3.2rem);
-    line-height: 1.08;
+    font-size: clamp(2.1rem, 5vw, 4rem);
+    line-height: 1.04;
     letter-spacing: -0.035em;
     text-wrap: balance;
     margin-bottom: var(--space-3);
@@ -471,68 +496,55 @@ body.divorcio-flow-mode .ob {
     line-height: 1.6;
   }
 
-  /* 3. La marca del folio: el número del paso, la sección del expediente y el icono de la
-        pregunta, que deja de ser un cuadro de 3rem y pasa a esta línea en tinta suave. */
+  /* La sección del expediente, en voz baja. Sin número, sin mayúsculas y sin icono: el avance
+     ya lo dice la barra, y el "01 / 07" era chrome de plantilla que el contenido no pide. */
   .ob-folio {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
     margin: 0;
     font-size: var(--text-xs);
     color: var(--text-muted);
   }
 
-  .ob-folio-icon {
-    display: grid;
-    place-items: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    color: var(--lp-accent, var(--primary));
-    opacity: 0.85;
+  /* La respuesta es un sello, no un botón de formulario: el par de marcas en blanco del acta,
+     que se entinta al elegir. La tipografía es la marca: sin icono, sin relleno y sin la
+     elevación del sistema. Las dos van apenas inclinadas, y en ángulos distintos. */
+  .ob-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
   }
 
-  .ob-folio-n {
-    font-weight: 600;
-    color: var(--text-secondary);
-    letter-spacing: 0.02em;
-  }
-
-  .ob-folio-cat {
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .ob-folio-cat:not(:empty)::before {
-    content: '·';
-    margin-right: var(--space-2);
-    color: var(--border-strong);
-  }
-
-  /* 4. La respuesta se sella: el check dibujado entra con un giro leve al elegir, sobre una
-        fila más alta que la del sistema compartido. La escala del texto es fluida para no
-        pisar el ajuste de móvil que ya trae el archivo. */
   .ob-choice {
+    display: flex;
     align-items: center;
-    padding-block: var(--space-5);
-    font-size: clamp(var(--text-lg), 2.6vw, var(--text-xl));
-  }
-
-  .ob-stamp {
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    width: 2rem;
-    height: 2rem;
-    color: var(--lp-accent, var(--primary));
-    opacity: 0;
-    transform: rotate(-12deg) scale(0.7);
+    justify-content: center;
+    aspect-ratio: 1 / 0.58;
+    padding: 0;
+    background: none;
+    border: 2px solid color-mix(in srgb, var(--text) 20%, transparent);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: clamp(var(--text-2xl), 3.4vw, var(--text-3xl));
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: color-mix(in srgb, var(--text) 72%, transparent);
+    transform: rotate(-1.4deg);
     transition:
-      opacity 220ms var(--ease-out),
-      transform 320ms var(--ease-out);
+      border-color 200ms var(--ease-out),
+      color 200ms var(--ease-out),
+      background 200ms var(--ease-out);
   }
 
-  .ob-choice.is-selected .ob-stamp {
-    opacity: 1;
-    transform: rotate(-8deg) scale(1);
+  .ob-choice:nth-child(2) { transform: rotate(1.1deg); }
+
+  .ob-choice:hover,
+  .ob-choice.is-selected {
+    border-color: var(--lp-accent, var(--primary));
+    color: var(--lp-accent, var(--primary));
+    box-shadow: none;
+  }
+
+  /* Entintado: el sello ya marcado. */
+  .ob-choice.is-selected {
+    background: color-mix(in srgb, var(--lp-accent, var(--primary)) 7%, transparent);
   }
 }

@@ -44,35 +44,39 @@ interface Question {
         <span class="form-stage-ruling"></span>
       </div>
 
-      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [attr.data-cat]="currentCategory" [class.is-loading]="submitting">
+      <div class="ob" [attr.data-stage]="stage" [attr.data-dir]="direction" [class.is-loading]="submitting">
 
         <!-- ============ Preguntas ============ -->
         @if (stage === 'questions') {
           <div class="ob-questions">
-            <div class="ob-progress" role="group" [attr.aria-label]="'Paso ' + position + ' de ' + visibleQuestions.length">
-              <div class="ob-segments">
+            <div class="ob-progress" role="group" [attr.aria-label]="progressLabel">
+              <ol class="ob-segments">
                 @for (q of visibleQuestions; track q.key; let i = $index) {
-                  <button
-                    type="button"
+                  <li
                     class="ob-seg"
                     [class.is-done]="i + 1 < position"
                     [class.is-current]="i + 1 === position"
-                    [disabled]="i + 1 > position"
-                    [attr.aria-label]="segLabel(i)"
-                    [attr.title]="i + 1 < position ? 'Volver al paso ' + (i + 1) : null"
                     [attr.aria-current]="i + 1 === position ? 'step' : null"
-                    (click)="goToStep(i)"
                   >
-                    <span class="ob-seg-bar" aria-hidden="true"></span>
-                  </button>
+                    <span
+                      class="ob-seg-bar"
+                      [class.is-filled]="i + 1 <= position"
+                      aria-hidden="true"
+                    ></span>
+                    @if (i + 1 < position) {
+                      <button
+                        type="button"
+                        class="ob-seg-hit"
+                        [attr.aria-label]="segLabel(i)"
+                        [attr.title]="'Volver al paso ' + (i + 1)"
+                        (click)="goToStep(i)"
+                      ></button>
+                    }
+                  </li>
                 }
-              </div>
+              </ol>
               <div class="ob-progress-meta">
-                <p class="ob-folio">
-                  <span class="ob-folio-icon"><app-icon [name]="current.icon" [size]="14" /></span>
-                  <span class="ob-folio-n tabular">{{ folioMark }}</span>
-                  <span class="ob-folio-cat">{{ categoryLabel }}</span>
-                </p>
+                <p class="ob-folio">{{ categoryLabel }}</p>
               </div>
             </div>
 
@@ -133,14 +137,32 @@ interface Question {
                     (click)="submitCity()"
                   >Continuar</button>
                 } @else {
-                  <div class="ob-choices">
-                    <button #firstChoice type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, true)" (click)="answer(true)">
+                  <div
+                    class="ob-choices"
+                    role="radiogroup"
+                    [attr.aria-label]="q.text"
+                    (keydown)="onChoiceKey($event)"
+                  >
+                    <button
+                      #firstChoice
+                      type="button"
+                      class="ob-choice"
+                      role="radio"
+                      [attr.aria-checked]="isSelected(q.key, true)"
+                      [class.is-selected]="isSelected(q.key, true)"
+                      (click)="answer(true)"
+                    >
                       <span>Sí</span>
-                      <span class="ob-stamp" aria-hidden="true"><app-icon name="check" [size]="16" /></span>
                     </button>
-                    <button type="button" class="ob-choice" [class.is-selected]="isSelected(q.key, false)" (click)="answer(false)">
+                    <button
+                      type="button"
+                      class="ob-choice"
+                      role="radio"
+                      [attr.aria-checked]="isSelected(q.key, false)"
+                      [class.is-selected]="isSelected(q.key, false)"
+                      (click)="answer(false)"
+                    >
                       <span>No</span>
-                      <span class="ob-stamp" aria-hidden="true"><app-icon name="check" [size]="16" /></span>
                     </button>
                   </div>
                 }
@@ -549,12 +571,6 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
     return 'pact';
   }
 
-  /* La marca del folio: número del paso sobre el total, en tabular, más la sección del
-     expediente. El componente ya agrupa las preguntas por categoría, pero nunca la mostraba. */
-  get folioMark(): string {
-    return `${String(this.position).padStart(2, '0')} / ${this.visibleQuestions.length}`;
-  }
-
   get categoryLabel(): string {
     const labels: Record<string, string> = {
       identity: 'Identidad',
@@ -564,6 +580,26 @@ export class QuestionnaireComponent implements OnInit, AfterViewInit, AfterViewC
       pact: 'Pacto',
     };
     return labels[this.currentCategory] || '';
+  }
+
+  /* El progreso, para el lector de pantalla: dice lo mismo que la marca visible, incluida la
+     sección del expediente. */
+  get progressLabel(): string {
+    const seccion = this.categoryLabel ? `, sección ${this.categoryLabel}` : '';
+    return `Paso ${this.position} de ${this.visibleQuestions.length}${seccion}`;
+  }
+
+  /* Grupo de opciones: las flechas mueven el foco entre las respuestas, como espera el
+     patrón de radiogroup. Elegir sigue siendo Enter, Espacio o el clic. */
+  onChoiceKey(event: KeyboardEvent): void {
+    if (!['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(event.key)) return;
+    event.preventDefault();
+    const group = event.currentTarget as HTMLElement;
+    const items = Array.from(group.querySelectorAll<HTMLElement>('.ob-choice'));
+    if (items.length < 2) return;
+    const step = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
+    const next = (items.indexOf(document.activeElement as HTMLElement) + step + items.length) % items.length;
+    items[next]?.focus();
   }
 
   get progressPercent(): number {

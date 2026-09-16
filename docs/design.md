@@ -60,11 +60,14 @@ Siempre on. Ver `.cursor/rules/demo-motion.mdc`.
 
 ## Estructura del cuestionario (Divorcio360)
 
-- **El folio es la espina del formulario**: detrás del panel corren las fibras de papel, el glow y los renglones (`form-stage.scss`). El formulario se apoya en ese papel, no flota sobre él.
-- **La marca del folio**: arriba de la pregunta va `01 / 07 · PACTO` — número del paso en tabular, sección del expediente (`currentCategory`) y el icono de la pregunta. La sección agrupa por identidad, familia, patrimonio, exterior y pacto.
-- **La pregunta manda y la pista baja la voz**: el `h1` en Fraunces a tamaño pleno (`clamp(1.7rem, 4.4vw, 3.2rem)`), la pista en `--text-muted` y `--text-xs`. El salto de tamaño es lo que la hace titular.
-- **La respuesta se sella**: el elegido muestra el check dibujado, girado, en el acento. Nada de chevrons decorativos: la fila ya se defiende con hover y presión.
+- **El folio es la espina del formulario, y no hay tarjeta**: detrás corren las fibras de papel, el glow y los renglones (`form-stage.scss`). El formulario no es un panel sobre ese papel: es el folio. La hoja pierde fondo, borde, radio y sombra, y el texto se apoya en el renglón. Las reglas de `Superficie` valen para paneles y secciones; una pantalla de flujo completo, como esta, va sobre el escenario.
+- **La sección del expediente, en voz baja**: arriba de la pregunta va solo el nombre de la sección (`Pacto`, `Identidad`, `Familia`, `Patrimonio`, `Exterior`), en minúscula, sin numeración y sin icono. El avance lo dice la barra. El `01 / 07`, las mayúsculas espaciadas y la etiqueta sobre el contenido eran chrome de plantilla: marcas que la guía `frontend-design` lista como tells. El `aria-label` del progreso sí dice "Paso 1 de 7, sección Pacto", porque es su nombre para el lector de pantalla, no chrome visible.
+- **La pregunta manda y la pista baja la voz**: el `h1` en Fraunces a tamaño pleno (`clamp(2.1rem, 5vw, 4rem)`), la pista en `--text-muted` y `--text-xs`. El salto de tamaño es lo que la hace titular.
+- **La respuesta es un sello, no un botón**: el par de marcas en blanco del acta. La tipografía es la marca (Fraunces, sin icono ni relleno), el borde es un hairline de tinta al 20%, y las dos van apenas inclinadas en ángulos distintos, como se apoyan dos sellos sobre un papel. Al elegir, el sello se entinta: borde y palabra en el acento, más un lavado al 7%. El comportamiento no cambia: son `role="radio"` con `aria-checked` y las flechas mueven el foco.
 - **Un solo momento de movimiento**: la entrada de la pregunta (`ob-sheet-in`) y el sello al elegir. Nada más se mueve.
+- **Semántica de la pregunta**: las opciones son un `radiogroup` (`role="radio"` + `aria-checked`, con las flechas moviendo el foco) y el progreso es una lista real: los pasos respondidos son botones navegables, el actual un marcador con `aria-current="step"` y los futuros marcadores pasivos, nunca botones deshabilitados. El paso mide 44px de alto aunque su marca visible siga en 4–6px.
+- **El progreso accesible dice lo mismo que la marca visible**: "Paso 12 de 12, sección Identidad".
+- **La tinta del progreso**: la barra marca los pasos hechos **y el actual**. La marca vive en la barra misma (`is-filled`) y no en el estado del item, porque con el estado la regla perdía la cascada y el paso actual quedaba sin llenar. El paso respondido es un botón superpuesto a la barra (`position: absolute`), nunca un envoltorio: envolverla colapsaba su caja a 0×0.
 - **Alcance**: todo esto vive bajo `.landing-page.product-flow.theme-divorcio` y `body.divorcio-flow-mode`. Los cuestionarios de Traslado360 y BienRaiz360 comparten `.ob-*` y no cambian.
 
 ## Checklist antes de UI nueva

@@ -82,9 +82,9 @@ body.divorcio-flow-mode .form-stage-texture { opacity: 0.72; }
 /* Texto que vive sobre el fondo animado: sube un escalón y gana relieve */
 .landing-page.product-flow .ob-step-label {
   color: var(--text-secondary);
-  text-shadow: 0 1px 0 color-mix(in srgb, #fff 60%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 60%, transparent);
 }
 
 .landing-page.product-flow .ob-note {
-  text-shadow: 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 55%, transparent);
 }
