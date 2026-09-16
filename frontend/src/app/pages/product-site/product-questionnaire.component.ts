@@ -116,7 +116,6 @@ type Stage = 'questions' | 'review' | 'done';
             <section class="ob-sheet">
               <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
               <h1>Revisa tu información</h1>
-              <p class="ob-hint">Confirma los datos antes de crear tu expediente de {{ site.name }}.</p>
 
               <ul class="ob-review">
                 @for (field of site.questionnaire; track field.id; let i = $index) {

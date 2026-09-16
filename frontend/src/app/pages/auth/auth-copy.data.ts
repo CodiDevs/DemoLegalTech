@@ -27,7 +27,7 @@ export const AUTH_NEXT_STEPS: AuthAsideStep[] = [
 export const AUTH_COPY = {
   brand: 'LegalStation',
   loginTitle: 'Inicia sesión',
-  loginLead: 'Accede a tu cuenta para continuar tu trámite.',
+  loginLead: '',
   checkoutLoginLead: 'Entra para pagar el trámite y abrir el expediente.',
   registerTitle: 'Crea tu cuenta',
   registerLead: 'Con una sola cuenta gestionas cualquier trámite de LegalStation.',

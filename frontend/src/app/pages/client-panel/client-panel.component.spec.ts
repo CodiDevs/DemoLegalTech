@@ -81,9 +81,9 @@ describe('ClientPanelComponent expediente layout', () => {
     expect(panel.metaLine(unpaid)).toBe('Por pagar · $349 · Etapa 1: Recepción');
   });
 
-  it('lede cambia cuando no hay nada pendiente', () => {
+  it('lede solo cuando el archivo es todo lo que queda', () => {
     const withAction = makePanel([signable, waiting]);
-    expect(withAction.pageLede).toContain('Qué te toca ahora');
+    expect(withAction.pageLede).toBe('');
 
     const archiveOnly = makePanel([waiting, closed]);
     expect(archiveOnly.pageLede).toContain('Nada pendiente');

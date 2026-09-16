@@ -20,9 +20,6 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       [theme]="theme"
       [crumb]="crumb"
       [title]="mode === 'done' ? 'Firma registrada' : 'Firma tu minuta'"
-      [subtitle]="mode === 'done'
-        ? 'El abogado ya puede revisar el documento en el expediente.'
-        : 'Revisa la minuta. Sube un PDF ya firmado, o compra el sello QR de LegalStation y úsalo aquí.'"
     >
       @if (signBlocked) {
         <div class="pf-card lp-lift sign-blocked">
@@ -46,7 +43,6 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
                 }
                 <h2>Vista previa de la minuta</h2>
               </div>
-              <p class="pf-muted">Lee el documento antes de firmar. Si tienes dudas, agenda consulta con tu abogado.</p>
               <div class="sign-minuta-stage">
                 <iframe class="pf-preview-frame sign-frame" [src]="minutaUrl" title="Minuta"></iframe>
                 @if (stampSrc) {
@@ -62,9 +58,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
                 <span class="pf-badge">Paso 2</span>
                 <h2>Cómo firmar</h2>
               </div>
-              <p class="pf-muted">Elige una vía. Subir tu documento no cobra extra. El sello QR de LegalStation sí, aparte del trámite.</p>
               <h3 class="sign-path-title">Ya tengo el documento firmado</h3>
-              <p class="pf-muted">PDF o imagen ya sellados. Sin costo extra aquí.</p>
               <label
                 class="up-dropzone"
                 [class.has-file]="!!selectedFile"

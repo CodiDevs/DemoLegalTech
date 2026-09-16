@@ -53,7 +53,6 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
 
       <app-cinematic-scene sceneId="evidencia" [act]="2" theme="cream">
         <h2 class="cine-title">{{ site.workflow.length }} etapas, un solo expediente</h2>
-        <p class="cine-lede">Cada etapa deja evidencia: documentos, mensajes y estado en el mismo folio. Honorario de referencia \${{ site.price }}.</p>
         <app-demo-document-stack variant="archive" />
       </app-cinematic-scene>
 

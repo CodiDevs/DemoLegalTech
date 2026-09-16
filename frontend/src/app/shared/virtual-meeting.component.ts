@@ -17,14 +17,12 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
         [theme]="theme"
         [crumb]="crumb"
         title="Consulta con abogado"
-        subtitle="Solicita tu consulta virtual. Tu abogado revisará tu expediente y te contactará para coordinar."
         [steps]="flowSteps"
         [activeStep]="consultStepIndex"
       >
         <div class="up-layout">
           <aside class="up-side lp-lift">
             <h3>Tu progreso</h3>
-            <p class="pf-muted">Pasos del trámite hasta la consulta.</p>
             <ul class="up-checklist">
               <li [class.done]="docsComplete">
                 <span class="up-check-icon">
@@ -62,7 +60,6 @@ import { ScheduledMeetingCardComponent } from './scheduled-meeting-card.componen
                   <app-scheduled-meeting-card
                     [scheduledAt]="caseItem.consultation_at!"
                     [pendingRequest]="!consultationScheduled"
-                    subtitle="Consulta con abogado · Expediente #{{ caseItem.id }}"
                   />
                 </div>
               } @else {

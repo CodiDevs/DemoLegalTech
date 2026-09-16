@@ -36,7 +36,6 @@ import { QuestionFlowGraphComponent, FlowConnectEvent, FlowDisconnectEvent, Flow
 
       <app-workspace-head
         [title]="creating ? 'Nuevo servicio' : (draft.name || 'Editar servicio')"
-        aside="Honorario, documentos y preguntas"
       />
 
       @if (loadError) {

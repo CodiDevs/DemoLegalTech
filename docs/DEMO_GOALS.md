@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Subtítulos solo si aportan dato | `/` secciones sin lede de relleno; `/firma` sin párrafo bajo el H1; `/cliente` lede solo si archivo | 2026-09-15 |
 | done | Sello QR LegalStation | `cliente@demo.ec` → `/firma/:id`: QR (no rúbrica), pagar $15, Descargar o Aplicar a la minuta | 2026-09-15 |
 | done | Asistente expediente real + Enviar a la vista | `abogado@demo.ec` → Asistente: select `#id · producto · etapa` (no fuerza #1); Enviar queda en el pliegue | 2026-09-15 |
 | done | Despacho Facturación + Modelos + Servicios | `abogado@demo.ec` → Licencia: tabla de planes (no 3-up); Modelos: Familia no FAMILIA; Servicios: tabs sin 2/2/0 ni slug | 2026-09-15 |
@@ -70,6 +71,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Subtítulos solo si aportan dato
+El H1/H2 no arrastra un párrafo de relleno. Se queda el lede si trae precio, cupo, restricción o el siguiente paso. Fuera: parafraseo del título.
+
+**Demo:** `/` catálogo y FAQ sin lede; Precios sí (pago único vs licencia). `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice.
 
 ### 2026-09-15 — Sello QR LegalStation
 La firma electrónica del SaaS no es una rúbrica dibujada. Es un QR (`sello-qr.png`) de verificación: se paga $15, se descarga o se aplica a la minuta. El QR queda sobre el PDF.

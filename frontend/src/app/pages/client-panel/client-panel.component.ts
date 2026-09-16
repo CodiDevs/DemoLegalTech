@@ -128,7 +128,9 @@ type Filter = 'action' | 'open' | 'done' | 'all';
       <div class="client-main">
         <header class="inbox-head">
           <h1>{{ pageTitle }}</h1>
-          <p class="inbox-lede">{{ pageLede }}</p>
+          @if (pageLede) {
+            <p class="inbox-lede">{{ pageLede }}</p>
+          }
         </header>
 
         @if (loading) {
@@ -1413,26 +1415,10 @@ export class ClientPanelComponent implements OnInit {
   }
 
   get pageLede(): string {
-    if (this.loading || this.error) {
-      return 'Qué te toca ahora. Un clic continúa.';
-    }
-    if (this.isDeskProduct(this.product)) {
-      if (!this.deskCase) {
-        return this.product === 'traslado360'
-          ? 'Un expediente de traslado. Elige un paso en la barra o inicia el trámite.'
-          : 'Un solo expediente de mutuo acuerdo. Elige un paso en la barra o inicia la evaluación.';
-      }
-      return 'Mismo panel, un paso a la vez. La línea de pasos de la izquierda marca dónde vas.';
-    }
-    if (this.product !== 'all' && this.countProductTotal(this.product) === 0) {
-      return `Aún no tienes trámites de ${this.selectedServiceName}. Puedes iniciar uno cuando quieras.`;
-    }
-    if (!this.cases.length) {
-      return 'Elige un servicio e inicia tu primer expediente.';
-    }
-    if (this.cases.some((c) => this.needsYou(c) && this.matchesProduct(c, this.product))) {
-      return 'Qué te toca ahora. Un clic continúa.';
-    }
+    if (this.loading || this.error || this.isDeskProduct(this.product)) return '';
+    if (this.product !== 'all' && this.countProductTotal(this.product) === 0) return '';
+    if (!this.cases.length) return '';
+    if (this.cases.some((c) => this.needsYou(c) && this.matchesProduct(c, this.product))) return '';
     return 'Nada pendiente. El resto está en archivo.';
   }
 

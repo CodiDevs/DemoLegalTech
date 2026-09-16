@@ -31,7 +31,7 @@ interface DocRow {
       [theme]="theme"
       [crumb]="crumb"
       title="Documentos del trámite"
-      subtitle="Sube los archivos requeridos. Puedes reemplazar cualquier documento cuando quieras, sin borrar el anterior."
+      subtitle="Puedes reemplazar un archivo sin borrar el anterior."
       [steps]="flowSteps"
       [activeStep]="docsStepIndex"
     >

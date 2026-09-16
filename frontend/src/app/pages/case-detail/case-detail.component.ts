@@ -70,7 +70,6 @@ interface CaseAction {
                   <app-scheduled-meeting-card
                     [scheduledAt]="data.case.consultation_at"
                     [pendingRequest]="data.case.consultation_at === 'requested'"
-                    subtitle="Consulta con abogado"
                   />
                 } @else {
                   <p class="pf-muted">Elige fecha y hora. Te enviaremos el enlace de la videollamada por correo.</p>
@@ -78,7 +77,6 @@ interface CaseAction {
                     #consultScheduler
                     [storageKey]="consultStorageKey"
                     confirmLabel="Confirmar consulta"
-                    scheduledSubtitle="Consulta con abogado"
                     [saveFn]="consultSaveFn"
                     (scheduled)="reload()"
                   />

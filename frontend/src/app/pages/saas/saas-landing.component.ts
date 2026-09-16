@@ -38,9 +38,6 @@ import {
         <div class="landing-shell">
           <header class="section-head">
             <h2 id="cat-heading" class="section-title">Trámites estandarizados. Listos para despacho.</h2>
-            <p class="section-lede">
-              Cada módulo procesa la admisión remota del cliente, valida la documentación y confecciona la minuta civil para firma notarial.
-            </p>
           </header>
 
           <div class="catalog-grid">
@@ -83,7 +80,6 @@ import {
           <div class="landing-shell w-full">
             <header class="section-head section-head--compact">
               <h2 id="flujo-heading" class="section-title">Cinco estaciones. Despacho continuo.</h2>
-              <p class="section-lede">Validación notarial en cada hito del expediente.</p>
             </header>
 
             <div class="journey-split">
@@ -138,9 +134,6 @@ import {
         <div class="landing-shell">
           <header class="section-head">
             <h2 id="seguridad-heading" class="section-title">Validez plena en sede notarial y judicial.</h2>
-            <p class="section-lede">
-              Cada etapa cumple estrictamente con el Código Orgánico de la Función Judicial y la Ley de Comercio Electrónico.
-            </p>
           </header>
 
           <div class="pillars-grid">
@@ -302,9 +295,6 @@ import {
         <div class="landing-shell">
           <header class="section-head">
             <h2 id="faq-heading" class="section-title">Preguntas frecuentes.</h2>
-            <p class="section-lede">
-              Detalles sobre la plataforma, el modelo operativo y la tramitación de expedientes.
-            </p>
           </header>
 
           <app-landing-faq [items]="faq" />
@@ -351,6 +341,10 @@ import {
       letter-spacing: -0.03em;
       line-height: 1.12;
       color: var(--text);
+    }
+
+    .section-head:not(:has(.section-lede)) .section-title {
+      margin-bottom: 0;
     }
 
     .section-lede {

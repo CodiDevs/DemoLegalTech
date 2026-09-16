@@ -46,6 +46,9 @@ describe('slop guard — marketing', () => {
     fixture.detectChanges();
     expectNoSlop(fixture.nativeElement as HTMLElement);
     const home = fixture.nativeElement as HTMLElement;
+    expect(home.querySelectorAll('.section-lede').length).toBe(1);
+    expect(home.textContent).toContain('Suscripción mensual para operadores del bufete');
+    expect(home.textContent).not.toContain('Detalles sobre la plataforma');
     expect(home.querySelectorAll('.lp-reveal').length).toBe(0);
     const featuredTag = home.querySelector('.plan-card.is-featured .plan-tag')?.textContent?.trim();
     expect(featuredTag).not.toBe('Recomendado');
@@ -70,6 +73,8 @@ describe('slop guard — marketing', () => {
     const root = fixture.nativeElement as HTMLElement;
     expectNoSlop(root);
     expect(root.querySelectorAll('.lp-testimonials, .ps-quote, .ps-badge').length).toBe(0);
+    expect(root.textContent).not.toContain('El mismo recorrido de LegalStation');
+    expect(root.textContent).not.toContain('Contestas el cuestionario');
   });
 
   it('la landing de Divorcio360 no muestra kickers de escena ni códigos falsos', async () => {
@@ -84,5 +89,6 @@ describe('slop guard — marketing', () => {
     const root = fixture.nativeElement as HTMLElement;
     expectNoSlop(root);
     expect(root.querySelectorAll('.ls-stats').length).toBe(0);
+    expect(root.textContent).not.toContain('Cada etapa deja evidencia');
   });
 });

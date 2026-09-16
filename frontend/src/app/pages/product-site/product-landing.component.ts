@@ -85,7 +85,6 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
           <div class="lp-shell">
             <div class="lp-section-head">
               <h2>Seis pasos, <span class="lp-highlight">un solo expediente.</span></h2>
-              <p>El mismo recorrido de LegalStation, adaptado a {{ site.name }}.</p>
             </div>
             <app-case-progress
               variant="marketing"
@@ -112,7 +111,6 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
           <div class="lp-shell">
             <div class="lp-section-head">
               <h2>Precios claros <span class="lp-highlight">sin cuotas mensuales.</span></h2>
-              <p>Pagas un solo importe por tu trámite. La licencia LegalStation es solo para bufetes.</p>
             </div>
             <div class="lp-pricing">
               @for (plan of site.plans; track plan.name) {
@@ -138,7 +136,6 @@ const PRODUCT_FLOW_ICONS: IconName[] = [
           <div class="lp-shell">
             <div class="lp-cta-inner">
               <h2>{{ site.ctaTitle }}</h2>
-              <p>Contestas el cuestionario, creas tu cuenta, haces un solo pago, subes tus documentos, hablas con tu abogado, firmas y cierras en la notaría.</p>
               <div class="lp-cta-buttons">
                 <a href="#" (click)="startEvaluation($event)" class="lp-cta-primary">Evaluar mi caso</a>
                 <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
