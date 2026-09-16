@@ -112,17 +112,6 @@ type Filter = 'action' | 'open' | 'done' | 'all';
             }
           </nav>
         </div>
-
-        @if (soonServices.length) {
-          <div class="side-block side-block--soon">
-            <p class="side-label" id="client-nav-soon">Próximamente</p>
-            <ul class="side-soon-list" aria-labelledby="client-nav-soon">
-              @for (s of soonServices; track s.id) {
-                <li>{{ s.name }}</li>
-              }
-            </ul>
-          </div>
-        }
       </aside>
 
       <div class="client-main">
@@ -386,12 +375,6 @@ type Filter = 'action' | 'open' | 'done' | 'all';
       gap: var(--space-2);
     }
 
-    .side-block--soon {
-      margin-top: auto;
-      padding-top: var(--space-4);
-      border-top: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
-    }
-
     .side-label {
       margin: 0;
       font-size: 0.68rem;
@@ -573,20 +556,6 @@ type Filter = 'action' | 'open' | 'done' | 'all';
 
     .side-item:active {
       transform: scale(0.985);
-    }
-
-    .side-soon-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .side-soon-list li {
-      font-size: var(--text-xs);
-      color: var(--text-muted);
-      line-height: 1.3;
     }
 
     .client-main {
@@ -1126,16 +1095,6 @@ type Filter = 'action' | 'open' | 'done' | 'all';
         animation: main-in 360ms var(--ease-out) both;
       }
 
-      .side-block--soon {
-        margin-top: 0;
-      }
-
-      .side-soon-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem 0.85rem;
-      }
-
       .client-main {
         padding-inline: var(--container-pad);
       }
@@ -1195,10 +1154,6 @@ export class ClientPanelComponent implements OnInit {
 
   get liveServices(): ProductCatalogEntry[] {
     return this.catalogServices.filter((s) => s.live);
-  }
-
-  get soonServices(): ProductCatalogEntry[] {
-    return this.catalogServices.filter((s) => !s.live);
   }
 
   isDeskProduct(id: string): boolean {

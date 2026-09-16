@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Cliente sin Próximamente | `/cliente` sidebar: Todos + live. Sin SignDesk/MatterFlow/ComplianceHub/NotaryLink | 2026-09-15 |
 | done | Barra del cuestionario se puede volver | `/cuestionario` responde una → “Clic en un paso hecho para volver” → clic en el tramo teal | 2026-09-15 |
 | done | Hero elige trámite en home | `/` → Iniciar un trámite abre Divorcio/Traslado/BienRaíz; `/productos/divorcio360` sigue al cuestionario | 2026-09-15 |
 | done | Subtítulos solo si aportan dato | `/` catálogo/FAQ sin lede; Precios sí. `/cuestionario` pregunta sin pista bajo el H1. `/firma/:id` título solo. `/cliente` sin “Qué te toca ahora” si la lista ya lo dice | 2026-09-15 |
@@ -73,6 +74,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Cliente sin Próximamente
+El rail de `/cliente` solo lista trámites vivos. SignDesk y el resto `live: false` no ocupan el pliegue.
+
+**Demo:** `cliente@demo.ec` → `/cliente` → sidebar sin bloque Próximamente.
 
 ### 2026-09-15 — Barra del cuestionario se puede volver
 Los tramos hechos ya eran un hit. Ahora se leen: más gruesos, cursor, hover, y la línea “Clic en un paso hecho para volver”.

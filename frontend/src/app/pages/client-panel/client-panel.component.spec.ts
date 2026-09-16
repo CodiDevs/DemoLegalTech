@@ -105,7 +105,6 @@ describe('ClientPanelComponent expediente layout', () => {
     panel.filter = 'all';
 
     expect(panel.liveServices.every((s) => s.live)).toBeTrue();
-    expect(panel.soonServices.every((s) => !s.live)).toBeTrue();
     expect(panel.liveServices.some((s) => s.id === 'divorcio360')).toBeTrue();
     expect(panel.countProductTotal('divorcio360')).toBe(2);
     expect(panel.countProductTotal('traslado360')).toBe(1);
