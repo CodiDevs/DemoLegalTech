@@ -4,7 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
-| done | API en Render + SPA en Vercel | https://legalstation.vercel.app — login `cliente@demo.ec` / `abogado@demo.ec` (`demo1234`). `/api` proxy a `legalstation-api.onrender.com`. Free plan: primer hit tras sleep puede tardar ~45s | 2026-09-16 |
+| done | API en Render + SPA en Vercel | Código listo (`render.yaml` + rewrite `/api`). Falta Apply en Render. Luego login `cliente@demo.ec` / `abogado@demo.ec` (`demo1234`) en https://legalstation.vercel.app | 2026-09-16 |
 | done | Frontend en Vercel | Abrir https://legalstation.vercel.app — home + landings | 2026-09-16 |
 | done | Divorcio360 hero sin folio pin | `/productos/divorcio360`: H1 + CTAs. Sin círculo, sin mock de etapas | 2026-09-16 |
 | done | Escritorio con cifras de ejemplo | `abogado@demo.ec` → **Escritorio**: libros Tu práctica + La página (honorarios, visitas, barras de la semana) y debajo el folio que te toca. Cifras inventadas, rotuladas de ejemplo | 2026-09-16 |

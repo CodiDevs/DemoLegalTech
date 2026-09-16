@@ -10,6 +10,7 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates tzdata \
 	&& mkdir -p /app/data /app/uploads
 COPY --from=build /api /app/api
+COPY --from=build /src/demo-fixtures /app/demo-fixtures
 ENV PORT=8080
 EXPOSE 8080
 CMD ["/app/api"]
