@@ -146,9 +146,9 @@ func (s *Service) Sign(w http.ResponseWriter, r *http.Request) {
 	notifyTitle := "Documento firmado recibido"
 	notifyBody := fmt.Sprintf("Cliente subió documento firmado — expediente #%d", caseID)
 	if channel == ChannelPlatform {
-		note = fmt.Sprintf("Firma LegalStation aplicada (demo, $%d) — IP %s — %s", PlatformFeeCents/100, ip, now)
-		notifyTitle = "Firma LegalStation aplicada"
-		notifyBody = fmt.Sprintf("Cliente usó firma de plataforma ($%d aparte) — expediente #%d", PlatformFeeCents/100, caseID)
+		note = fmt.Sprintf("Archivo de firma LegalStation aplicado (demo, $%d). IP %s. %s", PlatformFeeCents/100, ip, now)
+		notifyTitle = "Archivo de firma LegalStation"
+		notifyBody = fmt.Sprintf("Cliente aplicó su archivo de firma ($%d aparte) al expediente #%d", PlatformFeeCents/100, caseID)
 	}
 	_, _ = s.DB.Exec(
 		`INSERT INTO case_events (case_id, status, note, actor_id, created_at) VALUES (?,?,?,?,?)`,
@@ -166,6 +166,19 @@ func (s *Service) Sign(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) readSignedPayload(r *http.Request, channel string) ([]byte, string, error) {
 	if channel == ChannelPlatform {
+		if file, hdr, err := r.FormFile("file"); err == nil {
+			defer file.Close()
+			ext := strings.ToLower(filepath.Ext(hdr.Filename))
+			okExt := map[string]bool{".pdf": true, ".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+			if !okExt[ext] {
+				return nil, "", clientError("solo PDF o imagen")
+			}
+			b, err := io.ReadAll(file)
+			if err != nil {
+				return nil, "", fmt.Errorf("error al leer archivo")
+			}
+			return b, ext, nil
+		}
 		src := filepath.Join(filepath.Dir(s.UploadDir), "demo-fixtures", "firma-demo.pdf")
 		b, err := os.ReadFile(src)
 		return b, ".pdf", err

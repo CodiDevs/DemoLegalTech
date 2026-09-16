@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
@@ -6,6 +6,7 @@ import { ApiService } from '../../core/api.service';
 import { ProductFlowShellComponent } from '../../shared/product-flow-shell.component';
 import { buildClientFlowCrumb, productThemeFromCase, setActiveProduct } from '../../shared/product-sites.data';
 import { ESIGN_FEE_CENTS, signatureChannelLabel } from '../../shared/esign';
+import { esignQrPayload, qrPngDataUrl } from '../../shared/qr-png';
 
 type SignMode = 'upload' | 'done';
 type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
@@ -21,7 +22,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       [title]="mode === 'done' ? 'Firma registrada' : 'Firma tu minuta'"
       [subtitle]="mode === 'done'
         ? 'El abogado ya puede revisar el documento en el expediente.'
-        : 'Revisa la minuta. Sube tu documento ya firmado, o usa la firma de LegalStation (se cobra aparte).'"
+        : 'Revisa la minuta. Sube un PDF ya firmado, o compra el sello QR de LegalStation y úsalo aquí.'"
     >
       @if (signBlocked) {
         <div class="pf-card lp-lift sign-blocked">
@@ -36,15 +37,22 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
           <li [class.active]="mode === 'done'" [class.done]="mode === 'done'">Confirmación</li>
         </ol>
 
-        <div class="sign-layout sign-stage" [class.is-sending]="busy" [class.is-done]="mode === 'done'">
-          @if (minutaUrl && mode !== 'done') {
+        <div class="sign-layout sign-stage" [class.is-sending]="busy" [class.is-done]="mode === 'done'" [class.has-minuta]="!!minutaUrl && (mode !== 'done' || !!stampSrc)">
+          @if (minutaUrl && (mode !== 'done' || stampSrc)) {
             <section class="pf-card lp-lift sign-minuta">
               <div class="sign-section-head">
-                <span class="pf-badge">Paso 1</span>
+                @if (mode !== 'done') {
+                  <span class="pf-badge">Paso 1</span>
+                }
                 <h2>Vista previa de la minuta</h2>
               </div>
               <p class="pf-muted">Lee el documento antes de firmar. Si tienes dudas, agenda consulta con tu abogado.</p>
-              <iframe class="pf-preview-frame sign-frame" [src]="minutaUrl" title="Minuta"></iframe>
+              <div class="sign-minuta-stage">
+                <iframe class="pf-preview-frame sign-frame" [src]="minutaUrl" title="Minuta"></iframe>
+                @if (stampSrc) {
+                  <img class="sign-on-pdf" [src]="stampSrc" alt="" />
+                }
+              </div>
             </section>
           }
 
@@ -54,9 +62,9 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
                 <span class="pf-badge">Paso 2</span>
                 <h2>Cómo firmar</h2>
               </div>
-              <p class="pf-muted">Elige una vía. Subir tu documento no cobra extra. La firma de LegalStation sí, aparte del trámite.</p>
+              <p class="pf-muted">Elige una vía. Subir tu documento no cobra extra. El sello QR de LegalStation sí, aparte del trámite.</p>
               <h3 class="sign-path-title">Ya tengo el documento firmado</h3>
-              <p class="pf-muted">PDF o imagen de tu firma electrónica o escaneo. Sin costo extra aquí.</p>
+              <p class="pf-muted">PDF o imagen ya sellados. Sin costo extra aquí.</p>
               <label
                 class="up-dropzone"
                 [class.has-file]="!!selectedFile"
@@ -81,31 +89,25 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
               </div>
               <p class="sign-or" aria-hidden="true">o</p>
               <div class="sign-platform">
-                <h3 class="sign-path-title">Firmar con LegalStation</h3>
+                <h3 class="sign-path-title">Sello QR LegalStation</h3>
                 <p class="sign-platform-price">{{ esignFeeLabel }} USD</p>
-                <p class="pf-muted">Dibuja tu firma. Luego cobramos {{ esignFeeLabel }} (Payphone mock) y aplicamos el sello a la minuta.</p>
-                @if (!platformSignatureDataUrl) {
-                  <canvas
-                    #signPad
-                    class="sign-pad"
-                    (pointerdown)="onPadDown($event)"
-                    (pointermove)="onPadMove($event)"
-                    (pointerup)="onPadUp()"
-                    (pointercancel)="onPadUp()"
-                  ></canvas>
+                <p class="pf-muted">No es una rúbrica. Es un QR de verificación. Lo descargas o lo aplicas a esta minuta. Cobro aparte (Payphone de prueba).</p>
+                @if (platformSignatureDataUrl) {
+                  <img class="sign-qr" [src]="platformSignatureDataUrl" alt="QR de firma electrónica" />
+                  <p class="sign-file-name">{{ signatureFileName }}</p>
+                }
+                @if (!assetReady) {
                   <div class="sign-actions">
-                    <button class="btn btn-secondary" type="button" (click)="clearPlatformPad()">Limpiar</button>
-                    <button class="btn btn-primary" type="button" (click)="confirmPlatformPad()" [disabled]="!padDirty">
-                      Confirmar
+                    <button class="btn btn-primary" type="button" (click)="submitPlatform()" [disabled]="busy || !platformSignatureDataUrl">
+                      {{ payingPlatform ? 'Cobrando…' : 'Pagar ' + esignFeeLabel + ' y obtener QR' }}
                     </button>
                   </div>
                 } @else {
-                  <p class="sign-pad-ok">Firma registrada</p>
-                  <img class="sign-pad-preview" [src]="platformSignatureDataUrl" alt="Firma capturada" />
+                  <p class="sign-pad-ok">Archivo listo</p>
                   <div class="sign-actions">
-                    <button class="btn btn-secondary" type="button" (click)="clearPlatformPad()">Limpiar</button>
-                    <button class="btn btn-primary" type="button" (click)="submitPlatform()" [disabled]="busy">
-                      {{ payingPlatform ? 'Cobrando…' : 'Pagar ' + esignFeeLabel + ' y firmar' }}
+                    <button class="btn btn-secondary" type="button" (click)="downloadSignature()">Descargar</button>
+                    <button class="btn btn-primary" type="button" (click)="applyToMinuta()" [disabled]="busy">
+                      {{ busy ? 'Aplicando…' : 'Aplicar a la minuta' }}
                     </button>
                   </div>
                 }
@@ -116,7 +118,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
             <section class="sign-finale pf-card" aria-live="polite">
               <img class="seal" src="/demo-scenes/legal-seal-demo.svg" width="120" height="120" alt="" />
               <div class="sign-finale-copy">
-                <h2>{{ signature?.channel === 'platform' ? 'Firma aplicada' : 'Documento enviado' }}</h2>
+                <h2>{{ signature?.channel === 'platform' ? 'QR aplicado' : 'Documento enviado' }}</h2>
                 <p class="pf-muted">{{ finaleCopy }}</p>
                 @if (signature) {
                   <dl class="sign-meta">
@@ -136,7 +138,10 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
                   @if (isPdf(signature.image_url)) {
                     <a class="sign-doc-link" [href]="signature.image_url" target="_blank">Ver documento enviado</a>
                   } @else {
-                    <img [src]="signature.image_url" alt="Documento firmado" class="sign-thumb" />
+                    <img [src]="signature.image_url" alt="Sello QR" class="sign-thumb" />
+                    @if (signature.channel === 'platform') {
+                      <a class="sign-doc-link" [href]="signature.image_url" [download]="signatureFileName">Descargar QR</a>
+                    }
                   }
                 }
                 <div class="sign-actions sign-cta-late">
@@ -230,7 +235,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       gap: var(--space-4);
       align-items: start;
     }
-    .sign-layout.is-done {
+    .sign-layout.is-done:not(.has-minuta) {
       grid-template-columns: 1fr;
       justify-items: start;
     }
@@ -267,7 +272,25 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       font-size: var(--text-lg);
       font-family: var(--font-sans);
     }
-    .sign-frame { min-height: 360px; margin-top: var(--space-3); }
+    .sign-frame { min-height: 360px; margin-top: 0; }
+    .sign-minuta-stage {
+      position: relative;
+      margin-top: var(--space-3);
+    }
+    .sign-on-pdf {
+      position: absolute;
+      right: var(--space-4);
+      bottom: var(--space-4);
+      width: 5.5rem;
+      height: 5.5rem;
+      object-fit: contain;
+      pointer-events: none;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      animation: pf-in 420ms var(--ease-out);
+    }
     .sign-actions {
       display: flex;
       gap: var(--space-3);
@@ -288,12 +311,12 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       background: var(--bg-subtle);
     }
     .sign-thumb {
-      max-width: 200px;
-      max-height: 100px;
+      max-width: 7.5rem;
+      max-height: 7.5rem;
       object-fit: contain;
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
-      background: var(--surface);
+      background: #fff;
       padding: var(--space-2);
     }
     .sign-meta {
@@ -327,7 +350,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       width: min(100%, 44rem);
       padding: var(--space-6);
       color: var(--text);
-      animation: pf-in 560ms var(--ease-out) both;
+      animation: pf-in 560ms var(--ease-out);
     }
     .sign-finale-copy {
       display: grid;
@@ -372,9 +395,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       margin: var(--space-5) 0;
       color: var(--text-muted);
       font-size: var(--text-xs);
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-weight: 650;
     }
     .sign-or::before,
     .sign-or::after {
@@ -387,42 +408,39 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       border: 1px solid var(--primary);
       border-radius: var(--radius-lg);
       background: var(--primary-subtle);
-      animation: pf-in 560ms var(--ease-out) 80ms both;
+      animation: pf-in 560ms var(--ease-out);
     }
     .sign-platform .sign-path-title { margin-top: 0; }
     .sign-platform-price {
       margin: 0 0 var(--space-2);
-      font-size: var(--text-2xl);
-      font-weight: 700;
+      font-size: var(--text-lg);
+      font-weight: 650;
       font-variant-numeric: tabular-nums;
       color: var(--primary-hover);
     }
-    .sign-platform .sign-actions { margin-top: var(--space-4); }
-    .sign-pad {
-      display: block;
-      width: 100%;
-      height: 11rem;
-      margin-top: var(--space-4);
-      background: var(--bg-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      touch-action: none;
-      cursor: crosshair;
+    .sign-file-name {
+      margin: var(--space-2) 0 0;
+      font-size: var(--text-sm);
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
     }
+    .sign-qr {
+      display: block;
+      width: 10rem;
+      height: 10rem;
+      margin-top: var(--space-4);
+      object-fit: contain;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2);
+    }
+    .sign-platform .sign-actions { margin-top: var(--space-4); }
     .sign-pad-ok {
       margin: var(--space-4) 0 var(--space-2);
       font-family: var(--font-sans);
       font-weight: 650;
       color: var(--primary-hover);
-    }
-    .sign-pad-preview {
-      display: block;
-      width: 100%;
-      max-height: 8rem;
-      object-fit: contain;
-      background: var(--bg-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
     }
     .pay-overlay {
       position: fixed;
@@ -445,7 +463,7 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-lg);
       text-align: center;
-      animation: pf-in 480ms var(--ease-out) both;
+      animation: pf-in 480ms var(--ease-out);
     }
     .pay-modal h2 {
       margin: 0;
@@ -484,13 +502,9 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       .sign-actions .btn,
       .sign-blocked .btn { width: 100%; justify-content: center; }
     }
-    .sign-pad:focus-visible {
-      outline: 2px solid var(--primary-border);
-      outline-offset: 2px;
-    }
   `],
 })
-export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class SignComponent implements OnInit, OnDestroy {
   caseId = 0;
   minutaUrl: SafeResourceUrl | null = null;
   busy = false;
@@ -506,21 +520,18 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
   payingPlatform = false;
   payStage: PayStage = '';
   platformSignatureDataUrl = '';
-  padDirty = false;
-  @ViewChild('signPad') signPad?: ElementRef<HTMLCanvasElement>;
+  assetReady = false;
+  readonly signatureFileName = 'sello-qr.png';
   readonly esignFeeLabel = `$${(ESIGN_FEE_CENTS / 100).toFixed(2)}`;
   readonly signatureChannelLabel = signatureChannelLabel;
   readonly payStages: { id: Exclude<PayStage, ''>; label: string; rank: number }[] = [
     { id: 'preparing', label: 'Preparando pago', rank: 0 },
     { id: 'processing', label: 'Procesando…', rank: 1 },
     { id: 'approved', label: 'Pago aprobado', rank: 2 },
-    { id: 'signed', label: 'Firma registrada', rank: 3 },
+    { id: 'signed', label: 'Archivo listo', rank: 3 },
   ];
   private destroyed = false;
   private subs: { unsubscribe: () => void }[] = [];
-  private padCtx: CanvasRenderingContext2D | null = null;
-  private padDrawing = false;
-  private padPrepared = false;
   private payTimers: ReturnType<typeof setTimeout>[] = [];
 
   constructor(
@@ -542,15 +553,24 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
     return this.payStages.find((s) => s.id === this.payStage)?.label || 'Procesando cobro de firma…';
   }
 
+  get stampSrc(): string {
+    if (this.assetReady && this.platformSignatureDataUrl) return this.platformSignatureDataUrl;
+    if (this.mode === 'upload') return '';
+    const url = this.signature?.image_url as string | undefined;
+    if (url && this.signature?.channel === 'platform' && !this.isPdf(url)) return url;
+    return '';
+  }
+
   get finaleCopy(): string {
     if (this.signature?.channel === 'platform') {
-      return `LegalStation aplicó la firma electrónica. Cobro aparte de ${this.esignFeeLabel} (demo Payphone). El abogado revisa y confirma.`;
+      return `El QR ${this.signatureFileName} quedó en tu expediente y sobre la minuta. Cobro aparte de ${this.esignFeeLabel} (Payphone de prueba). El abogado revisa y confirma.`;
     }
     return 'El abogado lo revisará y confirmará para continuar a notaría virtual.';
   }
 
   ngOnInit(): void {
     this.caseId = Number(this.route.snapshot.paramMap.get('id'));
+    this.platformSignatureDataUrl = qrPngDataUrl(esignQrPayload(this.caseId));
     this.subs.push(
       this.api.getCase(this.caseId).pipe(
         switchMap((d) => {
@@ -613,84 +633,6 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.subs.forEach((s) => s.unsubscribe());
   }
 
-  ngAfterViewChecked(): void {
-    if (this.mode !== 'upload' || this.platformSignatureDataUrl) return;
-    const canvas = this.signPad?.nativeElement;
-    if (!canvas || this.padPrepared) return;
-    this.preparePad(canvas);
-  }
-
-  private preparePad(canvas: HTMLCanvasElement): void {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const ratio = window.devicePixelRatio || 1;
-    const cssW = canvas.clientWidth || 640;
-    const cssH = canvas.clientHeight || 176;
-    canvas.width = Math.round(cssW * ratio);
-    canvas.height = Math.round(cssH * ratio);
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.fillStyle = '#f7f7f5';
-    ctx.fillRect(0, 0, cssW, cssH);
-    ctx.strokeStyle = '#2f6f68';
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    this.padCtx = ctx;
-    this.padPrepared = true;
-    this.padDirty = false;
-  }
-
-  private padPoint(e: PointerEvent): { x: number; y: number } | null {
-    const canvas = this.signPad?.nativeElement;
-    if (!canvas) return null;
-    const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  }
-
-  onPadDown(e: PointerEvent): void {
-    const ctx = this.padCtx;
-    const p = this.padPoint(e);
-    if (!ctx || !p) return;
-    e.preventDefault();
-    this.signPad?.nativeElement.setPointerCapture(e.pointerId);
-    this.padDrawing = true;
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-  }
-
-  onPadMove(e: PointerEvent): void {
-    if (!this.padDrawing || !this.padCtx) return;
-    const p = this.padPoint(e);
-    if (!p) return;
-    this.padCtx.lineTo(p.x, p.y);
-    this.padCtx.stroke();
-    this.padDirty = true;
-  }
-
-  onPadUp(): void {
-    this.padDrawing = false;
-  }
-
-  clearPlatformPad(): void {
-    this.platformSignatureDataUrl = '';
-    this.padPrepared = false;
-    this.padDirty = false;
-    this.padCtx = null;
-    this.error = '';
-  }
-
-  confirmPlatformPad(): void {
-    const canvas = this.signPad?.nativeElement;
-    if (!canvas || !this.padDirty) {
-      this.error = 'Dibuja tu firma antes de confirmar.';
-      return;
-    }
-    this.platformSignatureDataUrl = canvas.toDataURL('image/png');
-    this.padPrepared = false;
-    this.padCtx = null;
-    this.error = '';
-  }
-
   onFile(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     this.selectedFile = input.files?.[0] ?? null;
@@ -744,7 +686,10 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.payingPlatform = false;
     this.payStage = '';
     this.clearPayTimers();
-    this.clearPlatformPad();
+    this.assetReady = false;
+    if (!this.platformSignatureDataUrl) {
+      this.platformSignatureDataUrl = qrPngDataUrl(esignQrPayload(this.caseId));
+    }
   }
 
   submit(): void {
@@ -771,7 +716,7 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   submitPlatform(): void {
-    if (this.busy) return;
+    if (this.busy || !this.platformSignatureDataUrl) return;
     this.busy = true;
     this.payingPlatform = true;
     this.payStage = 'preparing';
@@ -780,35 +725,68 @@ export class SignComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.payTimers.push(setTimeout(() => { if (!this.destroyed) this.payStage = 'processing'; }, 500));
     this.payTimers.push(setTimeout(() => { if (!this.destroyed) this.payStage = 'approved'; }, 1100));
     this.payTimers.push(setTimeout(() => { if (!this.destroyed) this.payStage = 'signed'; }, 1700));
-    this.payTimers.push(setTimeout(() => this.sendPlatformSign(), 2200));
+    this.payTimers.push(setTimeout(() => this.unlockSignatureFile(), 2200));
   }
 
-  private clearPayTimers(): void {
-    this.payTimers.forEach((t) => clearTimeout(t));
-    this.payTimers = [];
+  downloadSignature(): void {
+    const href = this.platformSignatureDataUrl || (this.signature?.image_url as string | undefined);
+    if (!href) return;
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = this.signatureFileName;
+    a.rel = 'noopener';
+    a.click();
   }
 
-  private sendPlatformSign(): void {
-    if (this.destroyed) return;
-    this.subs.push(this.api.sign(this.caseId, null, 'platform').subscribe({
+  applyToMinuta(): void {
+    if (this.busy || !this.platformSignatureDataUrl) return;
+    const file = this.dataUrlToPngFile(this.platformSignatureDataUrl);
+    if (!file) {
+      this.error = 'No se pudo leer el QR.';
+      return;
+    }
+    this.busy = true;
+    this.error = '';
+    this.subs.push(this.api.sign(this.caseId, file, 'platform').subscribe({
       next: (res) => {
         if (this.destroyed) return;
-        this.clearPayTimers();
         this.busy = false;
-        this.payingPlatform = false;
-        this.payStage = '';
         this.signature = res;
         this.mode = 'done';
         this.selectedFile = null;
       },
       error: (e) => {
         if (this.destroyed) return;
-        this.clearPayTimers();
         this.busy = false;
-        this.payingPlatform = false;
-        this.payStage = '';
-        this.error = e?.error?.error || 'Error al cobrar la firma de plataforma';
+        this.error = e?.error?.error || 'Error al aplicar el QR a la minuta';
       },
     }));
+  }
+
+  private unlockSignatureFile(): void {
+    if (this.destroyed) return;
+    this.clearPayTimers();
+    this.busy = false;
+    this.payingPlatform = false;
+    this.payStage = '';
+    this.assetReady = true;
+  }
+
+  private dataUrlToPngFile(dataUrl: string): File | null {
+    const parts = dataUrl.split(',');
+    if (parts.length < 2) return null;
+    try {
+      const bin = atob(parts[1]);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new File([bytes], this.signatureFileName, { type: 'image/png' });
+    } catch {
+      return null;
+    }
+  }
+
+  private clearPayTimers(): void {
+    this.payTimers.forEach((t) => clearTimeout(t));
+    this.payTimers = [];
   }
 }

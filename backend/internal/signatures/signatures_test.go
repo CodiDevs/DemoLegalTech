@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/codidevs/divorcio360/internal/auth"
@@ -164,6 +165,44 @@ func TestSignPlatformAppliesFixtureAndCharges(t *testing.T) {
 	}
 	if !bytes.Contains(b, []byte("demo-esign")) {
 		t.Fatalf("stored file missing fixture bytes: %q", b)
+	}
+}
+
+func TestSignPlatformStoresDrawnPng(t *testing.T) {
+	svc, user, caseID := newSignEnv(t)
+	var buf bytes.Buffer
+	mw := multipart.NewWriter(&buf)
+	if err := mw.WriteField("channel", ChannelPlatform); err != nil {
+		t.Fatal(err)
+	}
+	fw, err := mw.CreateFormFile("file", "firma-legalstation.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fw.Write([]byte("png-asset")); err != nil {
+		t.Fatal(err)
+	}
+	if err := mw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	rec := postSign(t, svc, user, caseID, &buf, mw.FormDataContentType())
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status %d body=%s", rec.Code, rec.Body.String())
+	}
+	var sg Signature
+	if err := json.Unmarshal(rec.Body.Bytes(), &sg); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(sg.ImageURL, ".png") {
+		t.Fatalf("image_url=%q want png", sg.ImageURL)
+	}
+	stored := filepath.Base(sg.ImageURL)
+	b, err := os.ReadFile(filepath.Join(svc.UploadDir, stored))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(b) != "png-asset" {
+		t.Fatalf("stored=%q", b)
 	}
 }
 

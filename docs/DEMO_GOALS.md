@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Sello QR LegalStation | `cliente@demo.ec` → `/firma/:id`: QR (no rúbrica), pagar $15, Descargar o Aplicar a la minuta | 2026-09-15 |
 | done | Despacho Facturación + Modelos + Servicios | `abogado@demo.ec` → Licencia: tabla de planes (no 3-up); Modelos: Familia no FAMILIA; Servicios: tabs sin 2/2/0 ni slug | 2026-09-15 |
 | done | Despacho Resumen + expediente destilado | `abogado@demo.ec` → `/abogado/fase2/admin`: Te toca, no 4 KPIs; Detenidos → bandeja con filtro de etapa; `/abogado/caso/6` etapas con nombre, Q cerrado, un primary; Asistente H1 + icono search | 2026-09-15 |
 | done | Despacho /abogado (chrome + bandeja folio) | `abogado@demo.ec` → `/abogado`: sin Cómo funciona/Precios ni footer; filas con verbo; filtro Revisión dice “Hay N en la bandeja” | 2026-09-15 |
@@ -68,6 +69,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Sello QR LegalStation
+La firma electrónica del SaaS no es una rúbrica dibujada. Es un QR (`sello-qr.png`) de verificación: se paga $15, se descarga o se aplica a la minuta. El QR queda sobre el PDF.
+
+**Demo:** `cliente@demo.ec` → `/firma/:id` con minuta → Pagar $15 y obtener QR → Descargar y/o Aplicar a la minuta.
 
 ### 2026-09-15 — Despacho Facturación + Modelos + Servicios
 Licencia deja el 3-up SaaS: una tabla (precio, operadores, casos, asistente, SATJE). Modelos: categoría en Inter normal, chips cuadrados. Servicios: tabs Todos/Publicados/Borradores; conteo solo en el masthead; sin `/slug` en la tarjeta.

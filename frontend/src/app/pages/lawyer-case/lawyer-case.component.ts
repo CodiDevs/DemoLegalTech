@@ -166,13 +166,14 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
             @if (tab === 'firmas') {
               <h2>Documentos firmados del cliente</h2>
               @if (ws.signatures.length) {
-                <p class="muted">Revisa el documento (subido por el cliente o firma LegalStation) antes de confirmar en el panel derecho (estado 05).</p>
+                <p class="muted">Revisa el sello (subido por el cliente o QR LegalStation) antes de confirmar en el panel derecho (estado 05).</p>
                 @for (s of ws.signatures; track s.id) {
                   <div class="sig">
                     @if (isPdfSig(s.image_url)) {
                       <a class="btn btn-ghost" [href]="s.image_url" target="_blank">Ver documento firmado</a>
                     } @else {
-                      <img [src]="s.image_url" alt="documento firmado del cliente" />
+                      <img [src]="s.image_url" alt="sello QR del cliente" />
+                      <a class="btn btn-ghost" [href]="s.image_url" download>Descargar QR</a>
                     }
                     <p class="muted">{{ sigChannel(s) }} · IP {{ s.ip }} · {{ s.signed_at | date:'medium' }}</p>
                   </div>
@@ -561,6 +562,12 @@ type Tab = 'resumen' | 'docs' | 'minuta' | 'firmas' | 'historial';
     .thumb.partida { background: var(--warning-subtle); color: var(--text); border: 1px solid var(--border); }
     .doc-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
+    .sig {
+      display: grid;
+      justify-items: start;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+    }
     .sig img {
       max-width: 180px;
       border: 1px solid var(--border);

@@ -95,7 +95,7 @@ export function buildCheckoutCart(
     },
     {
       id: 'esign',
-      label: 'Firma electrónica LegalStation',
+      label: 'Sello QR LegalStation',
       referenceCents: ESIGN_FEE_CENTS,
       applies: true,
       includedInPackage: false,
