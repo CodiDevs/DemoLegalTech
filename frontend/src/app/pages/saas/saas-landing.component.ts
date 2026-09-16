@@ -31,7 +31,7 @@ import {
         lede="El cuestionario abre el expediente. Documentos y firma siguen en el mismo folio."
         primaryCta="Iniciar un trámite"
         [pickService]="true"
-        secondaryCta="Acceso profesional"
+        secondaryCta="Acceso"
         [showSecondary]="true"
       />
 
