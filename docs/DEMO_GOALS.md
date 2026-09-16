@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Divorcio360 hero sin folio pin | `/productos/divorcio360`: H1 + CTAs. Sin círculo, sin mock de etapas | 2026-09-16 |
 | done | Escritorio con cifras de ejemplo | `abogado@demo.ec` → **Escritorio**: libros Tu práctica + La página (honorarios, visitas, barras de la semana) y debajo el folio que te toca. Cifras inventadas, rotuladas de ejemplo | 2026-09-16 |
 | done | Escritorio (dashboard) vs Facturación B2B | `abogado@demo.ec` → rail **Escritorio** (`/abogado/fase2/admin`: folio que te toca + Detenidos) y **Facturación B2B** (cobros). No se mezclan | 2026-09-16 |
 | done | Resumen y Facturación B2B son módulos distintos | `abogado@demo.ec` → rail: Escritorio (`/abogado/fase2/admin`, Te toca) y Facturación B2B (`/abogado/fase2/billing`, cobros). No es un tab. Bandeja sigue con Detenidos | 2026-09-16 |

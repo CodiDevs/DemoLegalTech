@@ -302,6 +302,19 @@ interface ProductSwitcherItem {
       min-height: 100dvh;
     }
 
+    /* ponytail: un solo scroll. El flex item no puede medir el contenido
+       del despacho o html y .lawyer-main scrollean juntos. */
+    :host:has(app-lawyer-shell) {
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+    }
+
+    :host:has(app-lawyer-shell) main {
+      min-height: 0;
+      overflow: hidden;
+    }
+
     .skip-link {
       position: absolute;
       top: var(--space-2);
@@ -861,6 +874,18 @@ interface ProductSwitcherItem {
 
     /* ---------- Responsive ---------- */
 
+    @media (max-width: 860px) {
+      :host:has(app-lawyer-shell) {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+      }
+
+      :host:has(app-lawyer-shell) main {
+        overflow: visible;
+      }
+    }
+
     @media (max-width: 820px) {
       .header-nav { display: none; }
       .menu-trigger { display: inline-flex; }
@@ -958,7 +983,7 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   get brand(): { home: string; name: string; sub: string; mark: 'logo' | '360' } {
     return {
-      home: this.isLawyerWorkspace ? '/abogado' : '/',
+      home: '/',
       name: 'LegalStation',
       sub: '',
       mark: 'logo',

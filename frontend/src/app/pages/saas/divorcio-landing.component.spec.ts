@@ -31,11 +31,11 @@ describe('DivorcioLandingComponent', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
   });
 
-  it('renderiza un solo mock de expediente en el hero', () => {
+  it('no pinta mock de expediente en el hero', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
 
-    expect(root.querySelectorAll('.hsvr-mock').length).toBe(1);
+    expect(root.querySelector('.hsvr-mock')).toBeNull();
     expect(root.querySelector('.ps-mock-ui')).toBeNull();
     expect(root.querySelector('.clc')).toBeNull();
   });

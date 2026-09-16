@@ -81,7 +81,6 @@ describe('product-sites.data', () => {
         ctaTitle: site.ctaTitle,
         workflow: site.workflow,
         values: site.values,
-        gallery: site.gallery.map((item) => item.alt),
         plans: site.plans,
         docTypes: site.docTypes,
         questionnaire: site.questionnaire,

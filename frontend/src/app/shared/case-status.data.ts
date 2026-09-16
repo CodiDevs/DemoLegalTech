@@ -21,9 +21,6 @@ export interface CaseStatusEntry {
   readonly filterLabel: string;
 }
 
-/** Orden canónico del motor de 10 estados (una sola lista en el repo). */
-export const CASE_STATUS_CODES = CASE_STATUS_KEYS;
-
 export const CASE_STATUS: Record<string, CaseStatusEntry> = {
   '01': {
     short: 'Recepción',
@@ -95,7 +92,7 @@ export const CASE_STATUS_SHORT: Record<string, string> = Object.fromEntries(
 /** Opciones del filtro de estado del abogado (incluye el comodín). */
 export const CASE_STATUS_FILTER_OPTIONS: { id: string; label: string }[] = [
   { id: '', label: 'Todos los estados' },
-  ...CASE_STATUS_CODES.map((code) => ({ id: code as string, label: CASE_STATUS[code].filterLabel })),
+  ...CASE_STATUS_KEYS.map((code) => ({ id: code as string, label: CASE_STATUS[code].filterLabel })),
 ];
 
 export function caseShort(code: string | undefined | null, fallback = ''): string {
@@ -131,4 +128,51 @@ export function caseNeedsLawyer(code: string | undefined | null): boolean {
     default:
       return false;
   }
+}
+
+export interface HoldStage {
+  stage_code: string;
+  stage: string;
+  count: number;
+  avg_days: number;
+}
+
+export interface CaseHoldInput {
+  status: string;
+  days_in_status?: number;
+  updated_at?: string;
+  created_at?: string;
+}
+
+export function caseDaysIn(c: CaseHoldInput): number | null {
+  if (typeof c.days_in_status === 'number') return c.days_in_status;
+  const t = Date.parse(c.updated_at || c.created_at || '');
+  if (!t) return null;
+  return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+}
+
+export function caseHolds(cases: CaseHoldInput[]): HoldStage[] {
+  const by = new Map<string, { count: number; days: number }>();
+  for (const c of cases) {
+    if (!CASE_STATUS[c.status] || c.status === '10') continue;
+    const cur = by.get(c.status) || { count: 0, days: 0 };
+    cur.count += 1;
+    cur.days += caseDaysIn(c) ?? 0;
+    by.set(c.status, cur);
+  }
+  return [...by.entries()]
+    .map(([code, v]) => ({
+      stage_code: code,
+      stage: caseShort(code, code),
+      count: v.count,
+      avg_days: v.count ? v.days / v.count : 0,
+    }))
+    .sort((a, b) => b.avg_days - a.avg_days || b.count - a.count);
+}
+
+export function holdWait(h: HoldStage): string {
+  const d = Math.round(h.avg_days);
+  if (d <= 0) return 'Hoy';
+  if (d === 1) return '1 día';
+  return `${d} días`;
 }

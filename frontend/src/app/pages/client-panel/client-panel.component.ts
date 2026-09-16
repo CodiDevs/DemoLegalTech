@@ -1223,19 +1223,6 @@ export class ClientPanelComponent implements OnInit {
     return buildProductSteps(this.deskCase, this.product);
   }
 
-  /** @deprecated alias for specs */
-  get divorcioCase(): CaseItem | null {
-    return this.deskCaseFor('divorcio360');
-  }
-
-  get divorcioTimeline() {
-    return buildProductSteps(this.divorcioCase, 'divorcio360');
-  }
-
-  get divorcioStep(): ProductDeskStepId {
-    return this.product === 'divorcio360' ? this.deskStep : currentProductStep(this.divorcioCase, 'divorcio360');
-  }
-
   setFilter(id: Filter): void {
     this.filter = id;
   }
@@ -1260,11 +1247,6 @@ export class ClientPanelComponent implements OnInit {
     this.deskStep = id;
   }
 
-  /** @deprecated */
-  selectDivorcioStep(id: ProductDeskStepId): void {
-    this.selectDeskStep(id);
-  }
-
   openDesk(c: CaseItem): void {
     const product = normalizeProductId(c.product);
     if (!this.isDeskProduct(product)) return;
@@ -1272,10 +1254,6 @@ export class ClientPanelComponent implements OnInit {
     this.product = product;
     this.deskCaseId = c.id;
     this.deskStep = currentProductStep(c, product);
-  }
-
-  openDivorcio(c: CaseItem): void {
-    this.openDesk(c);
   }
 
   onDeskCaseChanged(c: CaseItem): void {

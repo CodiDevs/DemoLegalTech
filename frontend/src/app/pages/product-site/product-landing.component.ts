@@ -8,7 +8,6 @@ import {
 } from '../../shared/product-sites.data';
 import { AuthService } from '../../core/auth.service';
 import { IconComponent } from '../../shared/icon.component';
-import { CinematicSceneComponent } from '../../shared/motion/cinematic-scene.component';
 import { DemoCaseWindowComponent, DemoCaseMode } from '../../shared/demo/demo-case-window.component';
 
 const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signature'];
@@ -19,7 +18,6 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
   imports: [
     RouterLink,
     IconComponent,
-    CinematicSceneComponent,
     DemoCaseWindowComponent,
   ],
   template: `
@@ -31,7 +29,7 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
           <span>{{ site.name }}</span>
         </nav>
 
-        <app-cinematic-scene sceneId="hero" [act]="1" theme="cream">
+        <section class="cine-scene lp-reveal" id="hero" data-act="1" data-theme="cream">
           <div class="pl-hero">
             <div class="pl-hero-copy">
               <h1>{{ headline }}</h1>
@@ -44,9 +42,9 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
               <app-demo-case-window mode="overview" />
             </div>
           </div>
-        </app-cinematic-scene>
+        </section>
 
-        <app-cinematic-scene sceneId="flujo" [act]="2" theme="cream">
+        <section class="cine-scene lp-reveal" id="flujo" data-act="2" data-theme="cream">
           <h2 class="cine-title">Cuestionario, pago, documentos y firma.</h2>
           <div class="ls-journey">
             <div class="pl-flow-switch">
@@ -62,9 +60,9 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
               <app-demo-case-window [mode]="flowMode" [activeStep]="journeyFocus + 1" />
             </div>
           </div>
-        </app-cinematic-scene>
+        </section>
 
-        <app-cinematic-scene sceneId="precios" [act]="2" theme="cream">
+        <section class="cine-scene lp-reveal" id="precios" data-act="2" data-theme="cream">
           <div class="dv-price-stage">
             <p class="amount">\${{ site.price }}</p>
             <h2 class="cine-title">{{ ctaTitle }}</h2>
@@ -72,9 +70,9 @@ const FLOW_MODES: DemoCaseMode[] = ['overview', 'payment', 'documents', 'signatu
             <a [routerLink]="primaryAction.path" class="lp-btn lp-btn-primary lp-cta-primary">
               {{ primaryAction.label }}
             </a>
-            <a routerLink="/" class="lp-cta-ghost">Volver a LegalStation</a>
+            <a routerLink="/" class="lp-btn lp-btn-outline lp-btn-lg">Volver a LegalStation</a>
           </div>
-        </app-cinematic-scene>
+        </section>
       </div>
     }
   `,

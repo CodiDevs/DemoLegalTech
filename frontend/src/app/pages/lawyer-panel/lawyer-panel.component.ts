@@ -7,22 +7,17 @@ import { IconComponent } from '../../shared/icon.component';
 import {
   CASE_STATUS,
   CASE_STATUS_FILTER_OPTIONS,
+  caseDaysIn,
   caseFilterLabel,
+  caseHolds,
   caseLawyerHint,
   caseNeedsLawyer,
-  caseShort,
+  holdWait,
 } from '../../shared/case-status.data';
 import { getProductDisplayName, LEGALSTATION_CATALOG } from '../../shared/product-sites.data';
 import { WorkspaceHeadComponent } from './workspace-head.component';
 
 const PAGE_SIZE = 10;
-
-interface HoldStage {
-  stage_code: string;
-  stage: string;
-  count: number;
-  avg_days: number;
-}
 
 @Component({
   selector: 'app-lawyer-panel',
@@ -663,31 +658,11 @@ export class LawyerPanelComponent implements OnInit {
     return !!(this.statusFilter || this.serviceFilter || this.query.trim());
   }
 
-  get holds(): HoldStage[] {
-    const by = new Map<string, { count: number; days: number }>();
-    for (const c of this.cases) {
-      if (!CASE_STATUS[c.status] || c.status === '10') continue;
-      const cur = by.get(c.status) || { count: 0, days: 0 };
-      cur.count += 1;
-      cur.days += this.daysIn(c) ?? 0;
-      by.set(c.status, cur);
-    }
-    return [...by.entries()]
-      .map(([code, v]) => ({
-        stage_code: code,
-        stage: caseShort(code, code),
-        count: v.count,
-        avg_days: v.count ? v.days / v.count : 0,
-      }))
-      .sort((a, b) => b.avg_days - a.avg_days || b.count - a.count);
+  get holds() {
+    return caseHolds(this.cases);
   }
 
-  holdWait(h: HoldStage): string {
-    const d = Math.round(h.avg_days);
-    if (d <= 0) return 'Hoy';
-    if (d === 1) return '1 día';
-    return `${d} días`;
-  }
+  readonly holdWait = holdWait;
 
   get statusFilterLabel(): string {
     return caseFilterLabel(this.statusFilter, 'este estado');
@@ -736,7 +711,7 @@ export class LawyerPanelComponent implements OnInit {
   }
 
   waitLabel(c: CaseItem): string {
-    const days = this.daysIn(c);
+    const days = caseDaysIn(c);
     if (days === null) return 'En esta etapa';
     if (days <= 0) return 'Hoy';
     if (days === 1) return '1 día aquí';
@@ -747,12 +722,5 @@ export class LawyerPanelComponent implements OnInit {
     if (this.page > this.totalPages) {
       this.page = this.totalPages;
     }
-  }
-
-  private daysIn(c: CaseItem): number | null {
-    if (typeof c.days_in_status === 'number') return c.days_in_status;
-    const t = Date.parse(c.updated_at || c.created_at || '');
-    if (!t) return null;
-    return Math.max(0, Math.floor((Date.now() - t) / 86400000));
   }
 }

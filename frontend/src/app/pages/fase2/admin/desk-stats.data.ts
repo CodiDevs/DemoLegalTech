@@ -1,7 +1,5 @@
 /** Libro de cifras ficticias del escritorio. Demo: no es tráfico ni caja reales. */
 
-export const DESK_WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
-
 export interface DeskBar {
   label: string;
   value: number;

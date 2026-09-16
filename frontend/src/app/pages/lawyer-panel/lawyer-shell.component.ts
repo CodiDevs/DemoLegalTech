@@ -82,8 +82,6 @@ export class LawyerShellComponent implements OnInit {
     { path: '/abogado/fase2/admin', label: 'Escritorio', icon: 'chart', lawyerOnly: true },
     { path: '/abogado/fase2/templates', label: 'Modelos de documentos', icon: 'file-text', lawyerOnly: true },
     { path: '/abogado/fase2/ai', label: 'Asistente de revisión', icon: 'search', lawyerOnly: true },
-    // Temporalmente retirado: Causas judiciales (SATJE)
-    // { path: '/abogado/fase2/satje', label: 'Causas judiciales', icon: 'scale', lawyerOnly: true },
     { path: '/abogado/fase2/billing', label: 'Facturación B2B', icon: 'credit-card' },
   ];
 

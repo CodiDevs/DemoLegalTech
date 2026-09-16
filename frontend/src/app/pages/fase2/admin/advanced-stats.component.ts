@@ -2,19 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../../core/api.service';
 import { IconComponent } from '../../../shared/icon.component';
-import { CASE_STATUS, caseLawyerHint, caseNeedsLawyer, caseShort } from '../../../shared/case-status.data';
+import { CASE_STATUS, caseDaysIn, caseHolds, caseLawyerHint, caseNeedsLawyer, HoldStage, holdWait } from '../../../shared/case-status.data';
 import { getProductDisplayName } from '../../../shared/product-sites.data';
 import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
 import { barMax, barPct, DESK_DEMO, DeskBar, DeskBook } from './desk-stats.data';
 
 const STACK_CAP = 4;
-
-interface HoldStage {
-  stage_code: string;
-  stage: string;
-  count: number;
-  avg_days: number;
-}
 
 @Component({
   selector: 'app-advanced-stats',
@@ -681,23 +674,8 @@ export class AdvancedStatsComponent implements OnInit {
     return this.deskCases.length ? 'También en el escritorio' : 'En espera';
   }
 
-  get holds(): HoldStage[] {
-    const by = new Map<string, { count: number; days: number }>();
-    for (const c of this.cases) {
-      if (!CASE_STATUS[c.status] || c.status === '10') continue;
-      const cur = by.get(c.status) || { count: 0, days: 0 };
-      cur.count += 1;
-      cur.days += this.daysIn(c) ?? 0;
-      by.set(c.status, cur);
-    }
-    return [...by.entries()]
-      .map(([code, v]) => ({
-        stage_code: code,
-        stage: caseShort(code, code),
-        count: v.count,
-        avg_days: v.count ? v.days / v.count : 0,
-      }))
-      .sort((a, b) => b.avg_days - a.avg_days || b.count - a.count);
+  get holds() {
+    return caseHolds(this.cases);
   }
 
   get holdCaseCount(): number {
@@ -732,12 +710,7 @@ export class AdvancedStatsComponent implements OnInit {
     return code ? { estado: code } : {};
   }
 
-  holdWait(h: HoldStage): string {
-    const d = Math.round(h.avg_days);
-    if (d <= 0) return 'Hoy';
-    if (d === 1) return '1 día';
-    return `${d} días`;
-  }
+  readonly holdWait = holdWait;
 
   hint(c: CaseItem): string {
     return caseLawyerHint(c.status, c.status_label || 'Abrir el expediente.');
@@ -752,7 +725,7 @@ export class AdvancedStatsComponent implements OnInit {
   }
 
   waitLabel(c: CaseItem): string {
-    const days = this.daysIn(c);
+    const days = caseDaysIn(c);
     if (days === null) return 'En esta etapa';
     if (days <= 0) return 'Hoy';
     if (days === 1) return '1 día aquí';
@@ -761,7 +734,7 @@ export class AdvancedStatsComponent implements OnInit {
 
   isLate(c: CaseItem): boolean {
     if (c.sla_warning) return true;
-    const days = this.daysIn(c);
+    const days = caseDaysIn(c);
     return days !== null && days >= 5;
   }
 
@@ -769,16 +742,9 @@ export class AdvancedStatsComponent implements OnInit {
     return [...list].sort((a, b) => {
       const sla = Number(!!b.sla_warning) - Number(!!a.sla_warning);
       if (sla) return sla;
-      const days = (this.daysIn(b) ?? 0) - (this.daysIn(a) ?? 0);
+      const days = (caseDaysIn(b) ?? 0) - (caseDaysIn(a) ?? 0);
       if (days) return days;
       return b.id - a.id;
     });
-  }
-
-  private daysIn(c: CaseItem): number | null {
-    if (typeof c.days_in_status === 'number') return c.days_in_status;
-    const t = Date.parse(c.updated_at || c.created_at || '');
-    if (!t) return null;
-    return Math.max(0, Math.floor((Date.now() - t) / 86400000));
   }
 }

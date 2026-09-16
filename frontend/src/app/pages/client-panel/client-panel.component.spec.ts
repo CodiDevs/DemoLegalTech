@@ -121,13 +121,13 @@ describe('ClientPanelComponent expediente layout', () => {
     panel.setProduct('divorcio360');
 
     expect(panel.product).toBe('divorcio360');
-    expect(panel.divorcioCase?.id).toBe(signable.id);
-    expect(panel.divorcioStep).toBe('sign');
-    expect(panel.divorcioTimeline.map((s) => s.id)).toEqual([
+    expect(panel.deskCase?.id).toBe(signable.id);
+    expect(panel.deskStep).toBe('sign');
+    expect(panel.deskTimeline.map((s) => s.id)).toEqual([
       'pay', 'docs', 'call', 'sign', 'notary',
     ]);
-    expect(panel.divorcioTimeline.find((s) => s.id === 'sign')?.state).toBe('current');
-    expect(panel.divorcioTimeline.find((s) => s.id === 'pay')?.state).toBe('done');
+    expect(panel.deskTimeline.find((s) => s.id === 'sign')?.state).toBe('current');
+    expect(panel.deskTimeline.find((s) => s.id === 'pay')?.state).toBe('done');
   });
 
   it('Traslado360 abre el mismo escritorio in-panel', () => {
@@ -152,7 +152,7 @@ describe('ClientPanelComponent expediente layout', () => {
     const panel = makePanel([signable]);
     panel.activateCase(signable);
     expect(panel.product).toBe('divorcio360');
-    expect(panel.divorcioStep).toBe('sign');
+    expect(panel.deskStep).toBe('sign');
   });
 
   it('activateCase de traslado entra al escritorio', () => {

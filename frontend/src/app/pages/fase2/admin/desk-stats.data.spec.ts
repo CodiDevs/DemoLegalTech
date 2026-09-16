@@ -1,4 +1,4 @@
-import { barMax, barPct, DESK_DEMO, DESK_WEEKDAYS } from './desk-stats.data';
+import { barMax, barPct, DESK_DEMO } from './desk-stats.data';
 
 describe('desk-stats.data', () => {
   it('tiene dos libros de ejemplo con semana de 7 días', () => {
@@ -6,7 +6,6 @@ describe('desk-stats.data', () => {
     expect(DESK_DEMO.site.title).toBe('La página');
     expect(DESK_DEMO.practice.bars.length).toBe(7);
     expect(DESK_DEMO.site.bars.length).toBe(7);
-    expect(DESK_WEEKDAYS.length).toBe(7);
     expect(DESK_DEMO.practice.rows.some((r) => r.lead && r.value.includes('$'))).toBeTrue();
     expect(DESK_DEMO.site.rows[0].value).toBe('1.158');
   });

@@ -1,44 +1,23 @@
-import {
-  Component,
-  ElementRef,
-  Input,
-  ViewChild,
-} from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import {
-  PRODUCT_SITES,
   getDivorcioFormAction,
   getMarketingPrimaryAction,
 } from '../../shared/product-sites.data';
-import { DemoDocumentStackComponent } from '../../shared/demo/demo-document-stack.component';
-import { ScrollSceneDirective } from '../../shared/motion/scroll-scene.directive';
-
-export function activeStepFromProgress(progress: number, count: number): number {
-  if (count <= 1) return 0;
-  const t = Math.min(1, Math.max(0, progress));
-  return Math.round(t * (count - 1));
-}
-
-function syncMockSteps(steps: Element[], progress: number): void {
-  if (!steps.length) return;
-  const idx = activeStepFromProgress(progress, steps.length);
-  steps.forEach((el, i) => el.classList.toggle('active', i === idx));
-}
 
 @Component({
   selector: 'app-hero-scroll-video-pin-reveal',
   standalone: true,
-  imports: [RouterLink, DemoDocumentStackComponent, ScrollSceneDirective],
+  imports: [RouterLink],
   template: `
-    <div class="hsvr-root" #root>
-      <section class="hsvr-benefit" #benefitRef>
+    <div class="hsvr-root">
+      <section class="hsvr-benefit">
         <div class="hsvr-benefit-inner">
           <p class="hsvr-brand">Divorcio360</p>
           <div class="hsvr-headline-wrap">
             <h1
               class="hsvr-headline"
-              #paraRef
               aria-label="Mutuo acuerdo. Un expediente claro."
             >
               @for (word of headlineWords; track word) {
@@ -49,64 +28,22 @@ function syncMockSteps(steps: Element[], progress: number): void {
 
           <p class="hsvr-sub">{{ subText }}</p>
 
-          <div class="hsvr-cta">
-            <div class="hsvr-cta-row">
+          @if (sessionAction || formAction) {
+            <div class="hsvr-cta">
               @if (sessionAction) {
                 <a [routerLink]="sessionAction.path" class="hsvr-btn hsvr-btn-outline">
                   {{ sessionAction.label }}
                 </a>
               }
-              <a href="#flujo" class="hsvr-btn hsvr-btn-outline">Cómo funciona</a>
+              @if (formAction) {
+                <a
+                  [routerLink]="formAction.path"
+                  [queryParams]="formAction.query"
+                  class="hsvr-btn hsvr-btn-primary hsvr-cta-primary"
+                >{{ formAction.label }}</a>
+              }
             </div>
-            @if (formAction) {
-              <a
-                [routerLink]="formAction.path"
-                [queryParams]="formAction.query"
-                class="hsvr-btn hsvr-btn-primary hsvr-cta-primary"
-              >{{ formAction.label }}</a>
-            }
-          </div>
-        </div>
-
-        <div class="hsvr-video-section">
-          <div
-            class="hsvr-video-wrap"
-            #videoWrapperRef
-            appScrollScene
-            [appScrollScenePin]="true"
-            appScrollSceneEnd="+=260%"
-            (sceneProgress)="onPinProgress($event)"
-          >
-            <div class="hsvr-video-underlay" #underlayRef aria-hidden="true"></div>
-            <div class="hsvr-video-box" #videoBoxRef>
-              <div class="hsvr-cover" #coverRef aria-hidden="true"></div>
-              <app-demo-document-stack class="hsvr-orbit" variant="orbit" />
-              <p
-                class="hsvr-video-headline"
-                [attr.aria-label]="videoOverlayLabel"
-              >
-                @for (word of videoOverlayWords; track word) {
-                  <span class="video-reveal-word">{{ word }}</span>
-                }
-              </p>
-              <div class="hsvr-mock" #mockRef aria-hidden="true">
-                <div class="hsvr-mock-bar">
-                  <strong>{{ site.name }}</strong>
-                </div>
-                <div class="hsvr-mock-body">
-                  @for (s of site.workflow; track s.n) {
-                    <div class="hsvr-mock-step" [class.active]="s.n === 1">
-                      <span class="hsvr-mock-num">{{ s.n }}</span>
-                      <div>
-                        <strong>{{ s.title }}</strong>
-                        <small>{{ s.screen }}</small>
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
+          }
         </div>
       </section>
     </div>
@@ -121,11 +58,7 @@ function syncMockSteps(steps: Element[], progress: number): void {
 
     .hsvr-root,
     .hsvr-benefit,
-    .hsvr-benefit-inner,
-    .hsvr-video-section,
-    .hsvr-video-wrap,
-    .hsvr-video-underlay,
-    .hsvr-video-box {
+    .hsvr-benefit-inner {
       background: var(--surface-inverse);
     }
 
@@ -138,21 +71,18 @@ function syncMockSteps(steps: Element[], progress: number): void {
     .hsvr-benefit {
       position: relative;
       width: 100%;
-      padding-bottom: 1rem;
     }
 
     .hsvr-benefit-inner {
       min-height: min(42rem, calc(100svh - var(--header-height)));
       max-width: 64rem;
       margin: 0 auto;
-      padding: clamp(3.5rem, 8vw, 6rem) 1.25rem 3rem;
+      padding: clamp(3.5rem, 8vw, 6rem) 1.25rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      position: relative;
-      z-index: 2;
     }
 
     .hsvr-brand {
@@ -215,17 +145,6 @@ function syncMockSteps(steps: Element[], progress: number): void {
       gap: 0.75rem;
     }
 
-    .hsvr-cta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      justify-content: center;
-    }
-
-    .hsvr-cta-primary {
-      align-self: center;
-    }
-
     .hsvr-btn {
       display: inline-flex;
       align-items: center;
@@ -264,195 +183,15 @@ function syncMockSteps(steps: Element[], progress: number): void {
       outline: 2px solid var(--primary-border);
       outline-offset: 3px;
     }
-
-    .hsvr-video-section {
-      position: relative;
-      width: 100%;
-    }
-
-    .hsvr-video-wrap {
-      width: 100%;
-      height: 100svh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hsvr-video-underlay {
-      position: absolute;
-      inset: -8%;
-      z-index: 1;
-      background:
-        radial-gradient(ellipse 70% 50% at 50% 40%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 62%);
-      pointer-events: none;
-      will-change: transform;
-    }
-
-    .hsvr-video-box {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.25rem;
-      z-index: 2;
-      padding: clamp(1.25rem, 4vw, 2.5rem) 1.25rem 3.5rem;
-      box-sizing: border-box;
-      clip-path: circle(10% at 50% 50%);
-    }
-
-    .hsvr-cover {
-      position: absolute;
-      inset: 18%;
-      border-radius: 50%;
-      background: #2f6f68;
-      z-index: 1;
-      pointer-events: none;
-      transform: scale(1);
-      transform-origin: 50% 50%;
-    }
-
-    .hsvr-orbit {
-      position: absolute;
-      inset: 8% 12%;
-      z-index: 1;
-      opacity: 0.55;
-      pointer-events: none;
-    }
-
-    .hsvr-mock {
-      position: relative;
-      z-index: 3;
-      width: min(36rem, calc(100% - 3rem));
-      border-radius: var(--radius-lg);
-      border: 1px solid color-mix(in srgb, var(--primary-border) 38%, transparent);
-      background: color-mix(in srgb, var(--surface-inverse) 88%, var(--primary));
-      box-shadow: none;
-      overflow: hidden;
-      transform: scale(0.3);
-      transform-origin: 50% 50%;
-    }
-
-    .hsvr-mock-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.75rem 1rem;
-      background: color-mix(in srgb, var(--surface-inverse) 70%, black);
-      border-bottom: 1px solid color-mix(in srgb, var(--text-inverse) 8%, transparent);
-    }
-
-    .hsvr-mock-bar strong {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: color-mix(in srgb, var(--text-inverse) 55%, transparent);
-    }
-
-    .hsvr-mock-body {
-      display: grid;
-      gap: 0.45rem;
-      padding: 0.85rem;
-    }
-
-    .hsvr-mock-step {
-      display: grid;
-      grid-template-columns: 2rem 1fr;
-      gap: 0.75rem;
-      align-items: center;
-      padding: 0.55rem 0.75rem;
-      border-radius: var(--radius-md);
-      background: color-mix(in srgb, var(--text-inverse) 4%, transparent);
-      border: 1px solid color-mix(in srgb, var(--text-inverse) 8%, transparent);
-      color: var(--text-inverse);
-      transition:
-        border-color var(--dur-base) var(--ease),
-        background var(--dur-base) var(--ease);
-    }
-
-    .hsvr-mock-step.active {
-      border-color: var(--primary);
-      background: color-mix(in srgb, var(--primary) 16%, transparent);
-    }
-
-    .hsvr-mock-num {
-      width: 1.75rem;
-      height: 1.75rem;
-      border-radius: var(--radius-full);
-      display: grid;
-      place-items: center;
-      font-size: 0.72rem;
-      font-weight: 700;
-      background: color-mix(in srgb, var(--primary) 22%, transparent);
-      color: var(--primary-border);
-    }
-
-    .hsvr-mock-step small {
-      display: block;
-      color: color-mix(in srgb, var(--text-inverse) 50%, transparent);
-      font-size: 0.72rem;
-    }
-
-    .hsvr-video-headline {
-      margin: 0;
-      max-width: 16ch;
-      font-family: var(--font-display);
-      font-size: clamp(1.35rem, 3.2vw, 2.35rem);
-      font-weight: 600;
-      line-height: 1.12;
-      letter-spacing: -0.03em;
-      color: var(--text-inverse);
-      text-align: center;
-      text-wrap: balance;
-      flex-shrink: 0;
-    }
-
-    :host ::ng-deep .video-reveal-word,
-    .video-reveal-word {
-      display: inline-block;
-      transform-origin: center center;
-      margin-right: 0.2em;
-      opacity: 0;
-    }
-
-    :host ::ng-deep .pin-spacer {
-      background-color: var(--surface-inverse) !important;
-    }
-
-    @media (max-width: 639.9px) {
-      .hsvr-video-box { clip-path: circle(22% at 50% 50%); }
-      .hsvr-mock { width: min(100% - 1.5rem, 28rem); }
-    }
   `],
 })
 export class HeroScrollVideoPinRevealComponent {
-  @Input() authQuery: Record<string, string> = {
-    product: 'divorcio360',
-    returnUrl: '/productos/divorcio360',
-  };
   @Input() subText =
     'Evalúa si tu caso encaja. Luego documentos, consulta, firma y cierre en un solo expediente.';
-
-  readonly site = PRODUCT_SITES['divorcio360'];
-
-  @ViewChild('videoBoxRef') videoBoxRef?: ElementRef<HTMLElement>;
-  @ViewChild('underlayRef') underlayRef?: ElementRef<HTMLElement>;
-  @ViewChild('coverRef') coverRef?: ElementRef<HTMLElement>;
-  @ViewChild('mockRef') mockRef?: ElementRef<HTMLElement>;
 
   headlineWords = [
     'Mutuo', 'acuerdo.', 'Un', 'expediente', 'claro.',
   ];
-
-  videoOverlayWords = [
-    'Cada', 'etapa,', 'visible.',
-  ];
-
-  videoOverlayLabel = 'Cada etapa, visible';
 
   constructor(public auth: AuthService) {}
 
@@ -464,39 +203,5 @@ export class HeroScrollVideoPinRevealComponent {
 
   get formAction() {
     return getDivorcioFormAction(this.auth.user()?.role ?? null);
-  }
-
-  onPinProgress(progress: number): void {
-    const t = Math.min(1, Math.max(0, progress));
-    const box = this.videoBoxRef?.nativeElement;
-    const cover = this.coverRef?.nativeElement;
-    const mock = this.mockRef?.nativeElement;
-    const underlay = this.underlayRef?.nativeElement;
-    const startR = window.matchMedia('(max-width: 639.9px)').matches
-      ? 22
-      : window.matchMedia('(max-width: 1023.9px)').matches
-        ? 14
-        : 10;
-    if (box) {
-      box.style.clipPath = `circle(${startR + t * (150 - startR)}% at 50% 50%)`;
-      const words = Array.from(box.querySelectorAll<HTMLElement>('.video-reveal-word'));
-      words.forEach((el, i) => {
-        const local = Math.min(1, Math.max(0, (t - 0.28 - i * 0.08) / 0.35));
-        el.style.opacity = String(local);
-        el.style.transform = `translateY(${(1 - local) * 18}%)`;
-      });
-      syncMockSteps(Array.from(box.querySelectorAll('.hsvr-mock-step')), t);
-    }
-    if (cover) {
-      cover.style.transform = `scale(${1 + t * 11})`;
-      cover.style.opacity = String(1 - t);
-    }
-    if (mock) {
-      const s = 0.3 + Math.min(1, Math.max(0, (t - 0.18) / 0.82)) * 0.7;
-      mock.style.transform = `scale(${s})`;
-    }
-    if (underlay) {
-      underlay.style.transform = `translateY(${-6 + t * 14}%)`;
-    }
   }
 }

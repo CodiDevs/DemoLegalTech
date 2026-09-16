@@ -180,14 +180,3 @@ export function productSideDesc(product: string): string {
   if (product === 'divorcio360') return 'Un expediente · mutuo acuerdo';
   return getProductDisplayName(product);
 }
-
-/* --- Back-compat aliases used by existing divorcio specs --- */
-export type DivorcioStepId = ProductDeskStepId;
-export type DivorcioStepState = ProductDeskStepState;
-export type DivorcioStep = ProductDeskStep;
-export const pickDivorcioCase = (cases: CaseItem[]) => pickProductCase(cases, 'divorcio360');
-export const divorcioStepState = productStepState;
-export const buildDivorcioSteps = (c: CaseItem | null) => buildProductSteps(c, 'divorcio360');
-export const currentDivorcioStep = (c: CaseItem | null) => currentProductStep(c, 'divorcio360');
-export const divorcioDocSlots = productDocSlots;
-export const divorcioStepTitle = productStepTitle;

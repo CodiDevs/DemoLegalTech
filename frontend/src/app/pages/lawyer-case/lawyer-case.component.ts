@@ -7,7 +7,8 @@ import { ConfirmService } from '../../core/confirm.service';
 import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { IconComponent } from '../../shared/icon.component';
 import { signatureChannelLabel } from '../../shared/esign';
-import { CASE_STATUS_CODES, caseFilterLabel, caseShort } from '../../shared/case-status.data';
+import { CASE_STATUS_KEYS } from '../../shared/case-progress.model';
+import { caseFilterLabel, caseShort } from '../../shared/case-status.data';
 
 const Q_LABELS: Record<string, string> = {
   both_want_divorce: 'Ambos desean divorciarse',
@@ -680,7 +681,7 @@ export class LawyerCaseComponent implements OnInit {
   tab: Tab = 'resumen';
   viewedDocIds = new Set<number>();
   qRows: { key: string; label: string; value: string }[] = [];
-  readonly stateKeys = CASE_STATUS_CODES;
+  readonly stateKeys = CASE_STATUS_KEYS;
   readonly caseStatusLabel = caseFilterLabel;
   tabDefs: { id: Tab; label: string }[] = [
     { id: 'resumen', label: 'Resumen' },

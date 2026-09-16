@@ -164,7 +164,7 @@ describe('ShellComponent marketing navigation', () => {
     expect(flow.showSiteFooter).toBeFalse();
   });
 
-  it('en /abogado oculta nav y pie de marketing y la marca vuelve a la bandeja', () => {
+  it('en /abogado oculta nav y pie de marketing y la marca va a inicio', () => {
     const lawyer = makeShell('abogado');
     (lawyer as unknown as { router: Router }).router = {
       url: '/abogado',
@@ -175,7 +175,7 @@ describe('ShellComponent marketing navigation', () => {
     expect(lawyer.showProductSwitcher).toBeFalse();
     expect(lawyer.navLinks).toEqual([]);
     expect(lawyer.showSiteFooter).toBeFalse();
-    expect(lawyer.brand.home).toBe('/abogado');
+    expect(lawyer.brand.home).toBe('/');
   });
 
   it('trata /abogado/caso/:id como workspace', () => {

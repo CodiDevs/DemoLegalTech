@@ -886,22 +886,6 @@
 
   &.divorcio-landing .lp-cta-primary { color: var(--lp-accent-deep); }
 
-  .lp-cta-ghost {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--control-height-lg);
-    padding: 0 var(--space-6);
-    border-radius: var(--radius-md);
-    border: 1px solid rgb(255 255 255 / 0.55);
-    color: white;
-    font-weight: 600;
-    text-decoration: none;
-    background: transparent;
-    transition: background var(--dur-fast) var(--ease);
-  }
-
-  .lp-cta-ghost:hover { background: rgb(255 255 255 / 0.08); }
-
   .lp-cta-band {
     text-align: center;
     padding: 4.5rem 0;

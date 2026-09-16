@@ -1,5 +1,4 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { GalleryItem } from '../pages/saas/elastic-gallery.component';
 import { ProgressStep } from './progress-steps.component';
 import { ProductFlowTheme } from './product-flow-shell.component';
 
@@ -48,7 +47,6 @@ export interface ProductSiteConfig {
   ctaTitle: string;
   workflow: { n: number; title: string; desc: string; screen: string }[];
   values?: { title: string; desc: string }[];
-  gallery: GalleryItem[];
   docTypes: { type: string; label: string }[];
   flowSteps: ProgressStep[];
   questionnaire: QuestionField[];
@@ -133,10 +131,6 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
         desc: 'Cada etapa muestra qué falta y quién debe realizar la siguiente acción.',
       },
     ],
-    gallery: [
-      { id: '01', title: 'Cuestionario Divorcio360', category: 'Cuestionario', src: '/demo-scenes/legal-draft-demo.svg', alt: 'Minuta de ejemplo' },
-      { id: '02', title: 'Expediente', category: 'Línea de estados', src: '/demo-scenes/identity-demo.svg', alt: 'Identidad de ejemplo' },
-    ],
     docTypes: [
       { type: 'cedula', label: 'Cédula de identidad' },
       { type: 'partida', label: 'Partida de matrimonio' },
@@ -189,12 +183,6 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 4, title: 'Consulta', desc: 'Videollamada con abogado revisando el caso.', screen: 'Consulta' },
       { n: 5, title: 'Firma', desc: 'Minuta y firma electrónica con evidencia.', screen: 'Firma' },
       { n: 6, title: 'Notaría', desc: 'Reunión virtual con notario y cierre.', screen: 'Notaría' },
-    ],
-    gallery: [
-      { id: '01', title: 'Cuestionario Traslado360', category: 'Cuestionario', src: '/demo-scenes/legal-draft-demo.svg', alt: 'Formulario traslado' },
-      { id: '02', title: 'Pago único', category: 'Pago', src: '/demo-scenes/signature-demo.svg', alt: 'Pago trámite' },
-      { id: '03', title: 'Expediente trazable', category: 'Línea de estados', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Expediente' },
-      { id: '04', title: 'Reunión notarial', category: 'Notaría', src: '/demo-scenes/legal-seal-demo.svg', alt: 'Videollamada notario' },
     ],
     docTypes: [
       { type: 'matricula', label: 'Matrícula vehicular' },
@@ -251,12 +239,6 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 4, title: 'Consulta', desc: 'Revisión jurídica por videollamada.', screen: 'Consulta' },
       { n: 5, title: 'Firma', desc: 'Escritura y firma electrónica documental.', screen: 'Firma' },
       { n: 6, title: 'Notaría', desc: 'Reunión virtual y registro.', screen: 'Notaría' },
-    ],
-    gallery: [
-      { id: '01', title: 'Cuestionario BienRaiz360', category: 'Cuestionario', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Formulario inmueble' },
-      { id: '02', title: 'Honorario único', category: 'Precios', src: '/demo-scenes/signature-demo.svg', alt: 'Pago único' },
-      { id: '03', title: 'Línea de estados del expediente', category: 'Expediente', src: '/demo-scenes/marriage-record-demo.svg', alt: 'Estados trámite' },
-      { id: '04', title: 'Consulta abogado', category: 'Consulta', src: '/demo-scenes/legal-seal-demo.svg', alt: 'Videollamada' },
     ],
     docTypes: [
       { type: 'titulo', label: 'Escritura o título del inmueble' },
@@ -316,7 +298,6 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 3, title: 'Enviar', desc: 'Sobre de firma a las partes.', screen: 'Envío' },
       { n: 4, title: 'Auditoría', desc: 'Evidencia y trazabilidad.', screen: 'Auditoría' },
     ],
-    gallery: [],
     docTypes: [{ type: 'documento', label: 'Documento a firmar' }],
     flowSteps: [
       { id: 'q', label: 'Evaluación' },
@@ -361,7 +342,6 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 1, title: 'Evaluar', desc: 'Tipo de operación y volumen.', screen: 'Registro' },
       { n: 2, title: 'Configurar', desc: 'Bandeja y plazos.', screen: 'Configuración' },
     ],
-    gallery: [],
     docTypes: [],
     flowSteps: [{ id: 'q', label: 'Evaluación' }, { id: 'setup', label: 'Configuración' }],
     questionnaire: [
@@ -399,7 +379,6 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 1, title: 'Evaluar', desc: 'Alcance de datos personales.', screen: 'Registro' },
       { n: 2, title: 'Implementar', desc: 'Políticas y consentimiento.', screen: 'Configuración' },
     ],
-    gallery: [],
     docTypes: [],
     flowSteps: [{ id: 'q', label: 'Evaluación' }],
     questionnaire: [
@@ -433,7 +412,6 @@ export const PRODUCT_SITES: Record<string, ProductSiteConfig> = {
       { n: 1, title: 'Evaluar', desc: 'Tipo de acto notarial.', screen: 'Registro' },
       { n: 2, title: 'Agendar', desc: 'Notaría y fecha.', screen: 'Agenda' },
     ],
-    gallery: [],
     docTypes: [],
     flowSteps: [{ id: 'q', label: 'Evaluación' }],
     questionnaire: [
