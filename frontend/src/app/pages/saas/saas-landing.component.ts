@@ -27,8 +27,8 @@ import {
     <div class="landing-page legalstation-landing">
       <!-- 1. Hero Minimalista -->
       <app-marketing-hero
-        primaryCta="Iniciar Divorcio360"
-        primaryRoute="/cuestionario"
+        primaryCta="Iniciar un trámite"
+        [pickService]="true"
         secondaryCta="Acceso profesional"
         [showSecondary]="true"
       />

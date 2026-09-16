@@ -32,24 +32,47 @@ async function renderHero(role: User['role'] | null): Promise<ComponentFixture<M
 describe('MarketingHeroComponent CTA', () => {
   afterEach(() => TestBed.resetTestingModule());
 
-  it('deja el CTA primario como la accion de la pagina en todos los roles', async () => {
+  it('en home el CTA abre el catálogo de trámites, no el cuestionario', async () => {
     const guest = await renderHero(null);
-    const guestCta = (guest.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
-    expect(guestCta?.getAttribute('href')).toBe('/cuestionario');
-    expect((guest.nativeElement as HTMLElement).querySelector('a[href="#"]')).toBeNull();
+    const root = guest.nativeElement as HTMLElement;
+    const btn = root.querySelector('.mk-cta .btn-primary') as HTMLButtonElement | null;
+    expect(btn?.tagName).toBe('BUTTON');
+    expect(btn?.getAttribute('href')).toBeNull();
+    expect(btn?.textContent).toContain('Iniciar un trámite');
+    expect(root.querySelector('#mk-service-menu')).toBeNull();
+
+    btn?.click();
+    guest.detectChanges();
+    const items = Array.from(root.querySelectorAll('#mk-service-menu a')) as HTMLAnchorElement[];
+    expect(items.map((a) => a.querySelector('strong')?.textContent?.trim())).toEqual([
+      'Divorcio360',
+      'Traslado360',
+      'BienRaiz360',
+    ]);
+    expect(items[0].getAttribute('href')).toBe('/cuestionario');
+    expect(items[1].getAttribute('href')).toBe('/productos/traslado360/cuestionario');
+    expect(items[2].getAttribute('href')).toBe('/productos/bienraiz360/cuestionario');
+    expect(root.textContent).not.toContain('SignDesk');
     guest.destroy();
 
     const cliente = await renderHero('cliente');
-    const clienteCta = (cliente.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
-    expect(clienteCta?.getAttribute('href')).toBe('/cuestionario');
-    expect(clienteCta?.textContent).toContain('Abrir Divorcio360');
+    expect((cliente.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary')?.tagName).toBe('BUTTON');
     cliente.destroy();
 
     const abogado = await renderHero('abogado');
-    const abogadoCta = (abogado.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
-    expect(abogadoCta?.getAttribute('href')).toBe('/cuestionario');
+    expect((abogado.nativeElement as HTMLElement).querySelector('a.mk-cta-btn[href="/cuestionario"]')).toBeNull();
     expect((abogado.nativeElement as HTMLElement).textContent).not.toContain('Ver Fase 2');
     abogado.destroy();
+  });
+
+  it('si pickService está apagado, el CTA sigue yendo al cuestionario', async () => {
+    const fixture = await renderHero(null);
+    fixture.componentInstance.pickService = false;
+    fixture.detectChanges();
+    const cta = (fixture.nativeElement as HTMLElement).querySelector('.mk-cta .btn-primary');
+    expect(cta?.tagName).toBe('A');
+    expect(cta?.getAttribute('href')).toBe('/cuestionario');
+    fixture.destroy();
   });
 
   it('muestra poster/fallback y oculta el video si falla la carga', async () => {
