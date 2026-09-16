@@ -1,15 +1,16 @@
 import { Component, Input } from '@angular/core';
 import { IconComponent } from '../../shared/icon.component';
-import { AUTH_COPY } from './auth-copy.data';
+import { ColophonComponent } from '../../shared/colophon.component';
+import { AUTH_COPY, AUTH_NEXT_STEPS } from './auth-copy.data';
 
 @Component({
   selector: 'app-auth-layout',
   standalone: true,
-  imports: [IconComponent],
+  imports: [IconComponent, ColophonComponent],
   template: `
     <div class="al-canvas" [class.al--ready]="ready" [class.al--solo]="!showPanel">
       <div class="al-stage">
-        <section class="al-card al-form-pane">
+        <section class="al-form-pane">
           <div class="al-form-inner">
             <header class="al-brand">
               <img
@@ -30,23 +31,21 @@ import { AUTH_COPY } from './auth-copy.data';
               <app-icon name="lock" [size]="14" />
               {{ copy.lockNote }}
             </p>
+
+            <app-colophon density="folio" />
           </div>
         </section>
 
         @if (showPanel) {
-          <aside class="al-card al-visual" aria-hidden="true">
-            <img
-              class="al-visual-img"
-              [src]="panelImage"
-              width="1600"
-              height="1200"
-              alt=""
-              decoding="async"
-            />
-            <div class="al-visual-scrim"></div>
-            <div class="al-visual-copy">
-              <p class="al-visual-line">Tus trámites, sin salir de casa</p>
-            </div>
+          <aside class="al-acta" aria-hidden="true">
+            <ol>
+              @for (step of nextSteps; track step.title) {
+                <li>
+                  <p class="al-acta-title">{{ step.title }}</p>
+                  <p class="al-acta-body">{{ step.body }}</p>
+                </li>
+              }
+            </ol>
           </aside>
         }
       </div>
@@ -55,25 +54,24 @@ import { AUTH_COPY } from './auth-copy.data';
   styles: [`
     :host { display: block; }
 
-    /* Lienzo: margen chico para que se lean las cartas */
     .al-canvas {
       display: grid;
       place-items: stretch;
       min-height: calc(100dvh - var(--header-height, 3.75rem));
       padding: clamp(0.65rem, 1.6vw, 1rem);
-      background: var(--bg, #f7f6f3);
+      background: var(--bg);
       box-sizing: border-box;
     }
 
-    /* Escenario: dos cartas casi a pantalla completa */
     .al-stage {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: clamp(0.55rem, 1.1vw, 0.85rem);
+      gap: clamp(1.5rem, 4vw, 3.5rem);
       width: 100%;
-      max-width: 92rem;
+      max-width: 64rem;
       margin-inline: auto;
       min-height: calc(100dvh - var(--header-height, 3.75rem) - 2 * clamp(0.65rem, 1.6vw, 1rem));
+      align-items: center;
     }
 
     .al--solo .al-stage {
@@ -84,21 +82,13 @@ import { AUTH_COPY } from './auth-copy.data';
       align-content: center;
     }
 
-    /* Carta compartida */
-    .al-card {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl, 20px);
-      box-shadow: var(--shadow-md);
-      overflow: hidden;
-      min-width: 0;
-      min-height: 0;
-    }
-
     .al-form-pane {
       display: grid;
       place-items: center;
-      padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3.25rem);
-      background: var(--surface, #fff);
+      padding: clamp(1.25rem, 3vw, 2rem) 0;
+      background: none;
+      border: 0;
+      box-shadow: none;
     }
 
     .al-form-inner {
@@ -120,7 +110,7 @@ import { AUTH_COPY } from './auth-copy.data';
     .al--ready .al-brand {
       opacity: 1;
       transform: none;
-      transition: opacity 280ms var(--ease, ease), transform 280ms var(--ease, ease);
+      transition: opacity var(--dur-cine) var(--ease-out), transform var(--dur-cine) var(--ease-out);
     }
 
     .al-mark {
@@ -147,8 +137,8 @@ import { AUTH_COPY } from './auth-copy.data';
       opacity: 1;
       transform: none;
       transition:
-        opacity 320ms var(--ease, ease) 50ms,
-        transform 320ms var(--ease, ease) 50ms;
+        opacity var(--dur-cine) var(--ease-out) 50ms,
+        transform var(--dur-cine) var(--ease-out) 50ms;
     }
 
     .al-secure {
@@ -161,57 +151,49 @@ import { AUTH_COPY } from './auth-copy.data';
       color: var(--text-muted);
     }
 
-    .al-visual {
-      position: relative;
-      background: #1a2e2c;
+    .al-form-inner > app-colophon {
+      text-align: center;
     }
 
-    .al-visual-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      display: block;
+    .al-acta {
+      padding: clamp(1.5rem, 4vw, 2.5rem) 0;
+      border-left: 1px solid var(--border);
+      padding-left: clamp(1.5rem, 4vw, 2.75rem);
     }
 
-    .al-visual-scrim {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        160deg,
-        color-mix(in srgb, var(--primary) 28%, transparent) 0%,
-        rgb(15 25 24 / 0.25) 45%,
-        rgb(15 25 24 / 0.55) 100%
-      );
-      pointer-events: none;
-    }
-
-    .al-visual-copy {
-      position: absolute;
-      left: clamp(1.5rem, 4vw, 2.75rem);
-      right: clamp(1.5rem, 4vw, 2.75rem);
-      bottom: clamp(1.75rem, 5vw, 3rem);
-      color: #fff;
-      z-index: 1;
-    }
-
-    .al-visual-line {
+    .al-acta ol {
+      list-style: none;
       margin: 0;
-      max-width: 16ch;
-      font-family: var(--font-display);
-      font-size: clamp(1.55rem, 2.8vw, 2.15rem);
-      font-weight: 600;
-      letter-spacing: -0.03em;
-      line-height: 1.2;
-      text-wrap: balance;
+      padding: 0;
+      display: grid;
+      gap: var(--space-6);
+    }
+
+    .al-acta li {
+      padding: 0;
+    }
+
+    .al-acta-title {
+      margin: 0 0 var(--space-1);
+      font-family: var(--font-sans);
+      font-size: var(--text-sm);
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .al-acta-body {
+      margin: 0;
+      max-width: 36ch;
+      font-size: var(--text-sm);
+      line-height: 1.55;
+      color: var(--text-secondary);
     }
 
     @media (max-width: 900px) {
       .al-canvas {
         padding: 0;
-        background: var(--surface, #fff);
+        background: var(--bg);
       }
 
       .al-stage,
@@ -222,13 +204,7 @@ import { AUTH_COPY } from './auth-copy.data';
         min-height: calc(100dvh - var(--header-height, 3.75rem));
       }
 
-      .al-card {
-        border: 0;
-        border-radius: 0;
-        box-shadow: none;
-      }
-
-      .al-visual {
+      .al-acta {
         display: none;
       }
 
@@ -240,10 +216,10 @@ import { AUTH_COPY } from './auth-copy.data';
   `],
 })
 export class AuthLayoutComponent {
-  /** Right visual panel (desktop). Hidden on mobile. */
   @Input() showPanel = true;
   @Input() ready = true;
   @Input() panelImage = '/images/auth-panel.jpg';
 
   readonly copy = AUTH_COPY;
+  readonly nextSteps = AUTH_NEXT_STEPS;
 }

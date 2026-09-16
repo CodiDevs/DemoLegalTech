@@ -91,7 +91,7 @@ describe('CheckoutComponent', () => {
     fixture.detectChanges();
     const text = (fixture.nativeElement as HTMLElement).textContent || '';
     expect(text).toContain('Gastos notariales');
-    expect(text).toContain('Se paga por separado');
+    expect(text).toContain('aparte');
     expect(text).toContain('$349.00');
     expect(text).toContain('Sello QR LegalStation');
     expect(text).toContain('No incluye gastos notariales');

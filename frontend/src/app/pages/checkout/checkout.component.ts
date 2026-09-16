@@ -24,93 +24,73 @@ type PaymentStep = 'idle' | 'processing' | 'success';
       subtitle="Un solo cobro. Sin suscripción mensual."
     >
       @if (caseItem) {
-        <div
-          class="checkout-grid ck-vault"
+        <article
+          class="ck-acta"
           [class.is-dimmed]="isModalOpen"
           [attr.inert]="isModalOpen ? '' : null"
         >
-          <div class="checkout-col ck-card-stage">
-            <div class="pf-card lp-lift checkout-form ck-card-face">
-              <div class="pf-field">
-                <label>Titular</label>
-                <input [(ngModel)]="holder" [disabled]="formLocked" />
-              </div>
-              <div class="pf-field">
-                <label>Correo</label>
-                <input [value]="email" disabled />
-              </div>
-              <div class="pf-field">
-                <label>Tarjeta</label>
-                <input [(ngModel)]="card" placeholder="4242 4242 4242 4242" [disabled]="formLocked" />
-              </div>
-              <div class="pf-row">
-                <div class="pf-field">
-                  <label>Vence</label>
-                  <input [(ngModel)]="exp" placeholder="12/28" [disabled]="formLocked" />
-                </div>
-                <div class="pf-field">
-                  <label>CVV</label>
-                  <input [(ngModel)]="cvv" placeholder="123" [disabled]="formLocked" />
-                </div>
-              </div>
-              @if (error) { <p class="pf-err">{{ error }}</p> }
-              <button
-                class="btn btn-primary btn-lg btn-block"
-                type="button"
-                (click)="pay()"
-                [disabled]="formLocked"
-              >
-                Pagar con Payphone
-              </button>
+          <div class="ck-acta-fields">
+            <div class="pf-field">
+              <label>Titular</label>
+              <input [(ngModel)]="holder" [disabled]="formLocked" />
             </div>
+            <div class="pf-field">
+              <label>Correo</label>
+              <input [value]="email" disabled />
+            </div>
+            <div class="pf-field">
+              <label>Tarjeta</label>
+              <input [(ngModel)]="card" placeholder="4242 4242 4242 4242" [disabled]="formLocked" />
+            </div>
+            <div class="pf-row">
+              <div class="pf-field">
+                <label>Vence</label>
+                <input [(ngModel)]="exp" placeholder="12/28" [disabled]="formLocked" />
+              </div>
+              <div class="pf-field">
+                <label>CVV</label>
+                <input [(ngModel)]="cvv" placeholder="123" [disabled]="formLocked" />
+              </div>
+            </div>
+            @if (error) { <p class="pf-err">{{ error }}</p> }
+            <button
+              class="btn btn-primary btn-lg btn-block"
+              type="button"
+              (click)="pay()"
+              [disabled]="formLocked"
+            >
+              Pagar con Payphone
+            </button>
           </div>
 
-          <div class="checkout-col checkout-aside">
-            <div class="pf-card lp-lift order-summary">
-              <div class="cart-head">
-                <h2>Expediente de cobro</h2>
-                <span class="cart-badge">{{ productName }}</span>
-              </div>
-
-              <ul class="cart-items ck-folios" aria-label="Ítems del carrito">
-                @for (line of cart.lines; track line.id) {
-                  <li class="cart-item ck-folio" [class.is-external]="line.billedSeparately">
-                    <span class="cart-item-name">{{ line.label }}</span>
-                    <div class="cart-item-price">
-                      @if (line.billedSeparately) {
-                        <span class="cart-external">Se paga por separado</span>
-                        <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
-                      } @else if (line.includedInPackage) {
-                        <span class="cart-included">Incluido</span>
-                        <span class="cart-ref">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
-                      } @else {
-                        <span class="cart-amount">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
-                      }
-                    </div>
-                  </li>
-                }
-              </ul>
-
-              @if (cart.discountCents > 0) {
-                <div class="cart-row cart-discount">
-                  <span>Extras incluidos en tu paquete</span>
-                  <span>−\${{ cart.discountCents / 100 | number:'1.2-2' }}</span>
-                </div>
+          <aside class="ck-honorarios" aria-label="Honorarios">
+            <p class="ck-honorarios-kicker">Honorarios</p>
+            <p class="ck-honorarios-product">{{ productName }}</p>
+            <ul class="ck-honorarios-lines">
+              @for (line of cart.lines; track line.id) {
+                <li [class.is-external]="line.billedSeparately">
+                  <span>{{ line.label }}</span>
+                  @if (line.billedSeparately) {
+                    <span class="tabular">aparte</span>
+                  } @else if (line.includedInPackage) {
+                    <span class="tabular">incluido</span>
+                  } @else {
+                    <span class="tabular">\${{ line.referenceCents / 100 | number:'1.2-2' }}</span>
+                  }
+                </li>
               }
-
-              <div class="cart-row cart-meta">
-                <span>Expediente #{{ caseItem.id }}</span>
-                <span>{{ caseItem.status_label }}</span>
-              </div>
-
-              <div class="cart-total">
-                <span>Total a pagar</span>
-                <strong>\${{ cart.totalCents / 100 | number:'1.2-2' }} USD</strong>
-              </div>
-              <p class="pf-muted cart-note">Pago único · Sin suscripción. No incluye gastos notariales ni firma electrónica de plataforma.</p>
-            </div>
-          </div>
-        </div>
+            </ul>
+            @if (cart.discountCents > 0) {
+              <p class="ck-honorarios-note">Extras del paquete, sin cobro extra.</p>
+            }
+            <p class="ck-honorarios-meta">Expediente #{{ caseItem.id }} · {{ caseItem.status_label }}</p>
+            <p class="ck-honorarios-total">
+              <span>Total</span>
+              <strong class="tabular">\${{ cart.totalCents / 100 | number:'1.2-2' }}</strong>
+            </p>
+            <p class="ck-honorarios-note">Pago único. No incluye gastos notariales ni sello QR.</p>
+          </aside>
+        </article>
       }
     </app-product-flow-shell>
 
@@ -145,7 +125,7 @@ type PaymentStep = 'idle' | 'processing' | 'success';
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
                 </div>
-                <h2 id="pay-modal-success">¡Gracias!</h2>
+                <h2 id="pay-modal-success">Pago registrado</h2>
                 <p class="pay-modal-sub">Tu comprobante se emitió correctamente</p>
               </div>
 
@@ -173,145 +153,103 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     }
   `,
   styles: [`
-    .checkout-grid {
+    .ck-acta {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-6);
+      grid-template-columns: minmax(0, 1.2fr) minmax(11rem, 15rem);
+      gap: clamp(1.75rem, 4vw, 3.5rem);
       align-items: start;
-      transition: filter var(--dur-base) var(--ease);
+      max-width: 46rem;
+      animation: pf-in var(--dur-cine) var(--ease-out) both;
+      transition: filter var(--dur-base) var(--ease-out);
     }
 
-    .checkout-grid.is-dimmed {
+    .ck-acta.is-dimmed {
       pointer-events: none;
       user-select: none;
     }
 
-    .checkout-form { display: grid; gap: var(--space-3); }
+    .ck-acta-fields { display: grid; gap: var(--space-3); }
     .btn-block { width: 100%; justify-content: center; }
 
-    .checkout-aside {
-      display: flex;
-      justify-content: center;
-      position: sticky;
-      top: calc(var(--header-height) + var(--space-4));
+    .ck-honorarios {
+      padding-left: var(--space-5);
+      border-left: 1px solid var(--border);
+      font-family: var(--font-sans);
+      font-variant-numeric: tabular-nums;
     }
 
-    .order-summary { display: grid; gap: var(--space-4); width: 100%; }
-
-    .cart-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--space-3);
-    }
-
-    .order-summary h2 {
-      margin: 0;
-      font-size: var(--text-lg);
-      font-weight: 650;
-    }
-
-    .cart-badge {
-      flex-shrink: 0;
-      padding: 0.2rem 0.55rem;
-      border-radius: var(--radius-full);
-      background: var(--lp-accent-soft, var(--primary-subtle));
-      color: var(--lp-accent, var(--primary));
+    .ck-honorarios-kicker {
+      margin: 0 0 var(--space-1);
       font-size: var(--text-xs);
-      font-weight: 600;
+      font-weight: 500;
+      color: var(--text-muted);
     }
 
-    .cart-items {
+    .ck-honorarios-product {
+      margin: 0 0 var(--space-4);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ck-honorarios-lines {
       list-style: none;
       margin: 0;
       padding: 0;
       display: grid;
-      gap: var(--space-3);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding-block: var(--space-3);
+      gap: var(--space-2);
     }
 
-    .cart-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-3);
-    }
-
-    .cart-item-name {
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: var(--text);
-      line-height: var(--leading-snug);
-      min-width: 0;
-    }
-
-    .cart-item-price {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.1rem;
-      flex-shrink: 0;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .cart-amount {
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .cart-included {
-      font-size: var(--text-xs);
-      font-weight: 600;
-      color: var(--success);
-    }
-
-    .cart-external {
-      font-size: var(--text-xs);
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .cart-ref {
-      font-size: var(--text-xs);
-      color: var(--text-muted);
-      text-decoration: line-through;
-    }
-
-    .cart-row {
+    .ck-honorarios-lines li {
       display: flex;
       justify-content: space-between;
       gap: var(--space-3);
-      font-size: var(--text-sm);
+      font-size: var(--text-xs);
       color: var(--text-secondary);
     }
 
-    .cart-discount {
-      color: var(--success);
-      font-weight: 500;
+    .ck-honorarios-lines li.is-external { color: var(--text-muted); }
+
+    .ck-honorarios-meta {
+      margin: var(--space-4) 0 var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
     }
 
-    .cart-meta {
-      padding-top: var(--space-2);
-      border-top: 1px solid var(--border);
-    }
-
-    .cart-total {
+    .ck-honorarios-total {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
+      margin: 0;
       padding-top: var(--space-2);
+      border-top: 1px solid var(--border);
+      font-size: var(--text-sm);
     }
 
-    .cart-total strong {
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
+    .ck-honorarios-total strong {
+      font-size: var(--text-lg);
+      font-weight: 650;
+      color: var(--text);
     }
 
-    .cart-note { margin: 0; font-size: var(--text-xs); }
+    .ck-honorarios-note {
+      margin: var(--space-3) 0 0;
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 720px) {
+      .ck-acta {
+        grid-template-columns: 1fr;
+      }
+      .ck-honorarios {
+        padding-left: 0;
+        padding-top: var(--space-5);
+        border-left: 0;
+        border-top: 1px solid var(--border);
+      }
+    }
 
     /* ---------- Overlay modal ---------- */
 
@@ -465,11 +403,6 @@ type PaymentStep = 'idle' | 'processing' | 'success';
     @keyframes shimmer {
       0% { transform: translateX(-100%); }
       100% { transform: translateX(100%); }
-    }
-
-    @media (max-width: 860px) {
-      .checkout-grid { grid-template-columns: 1fr; }
-      .checkout-aside { position: static; }
     }
   `],
 })

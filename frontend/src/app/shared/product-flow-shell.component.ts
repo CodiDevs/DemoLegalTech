@@ -2,13 +2,14 @@ import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProgressStepsComponent, ProgressStep } from './progress-steps.component';
 import { IconComponent } from './icon.component';
+import { ColophonComponent } from './colophon.component';
 
 export type ProductFlowTheme = 'divorcio' | 'legalstation' | 'traslado' | 'bienraiz';
 
 @Component({
   selector: 'app-product-flow-shell',
   standalone: true,
-  imports: [RouterLink, ProgressStepsComponent, IconComponent],
+  imports: [RouterLink, ProgressStepsComponent, IconComponent, ColophonComponent],
   template: `
     <div class="landing-page product-flow" [class]="'theme-' + theme">
       <div class="lp-shell">
@@ -36,6 +37,7 @@ export type ProductFlowTheme = 'divorcio' | 'legalstation' | 'traslado' | 'bienr
           <app-progress-steps [steps]="steps" [activeIndex]="activeStep" />
         }
         <ng-content />
+        <app-colophon density="folio" />
       </div>
     </div>
   `,

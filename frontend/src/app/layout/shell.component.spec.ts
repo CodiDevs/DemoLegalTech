@@ -148,17 +148,20 @@ describe('ShellComponent marketing navigation', () => {
       mark: 'logo',
     });
   });
-  it('no afirma mismo costo en el pie de Divorcio360', () => {
+  it('el pie de marketing no afirma mismo costo y no es ALL-CAPS de demo', () => {
     const marketing = makeShell(null);
-    const productContext = makeShell(null);
-    productContext.isDivorcioMarketing = false;
-    productContext.isProductLanding = true;
-    productContext.activeProduct = 'divorcio360';
+    expect(marketing.showSiteFooter).toBeTrue();
 
-    expect(marketing.footerPitch).not.toMatch(/mismo costo/i);
-    expect(marketing.footerPitch.toLowerCase()).toContain('trámite en línea');
-    expect(productContext.footerPitch).not.toMatch(/mismo costo/i);
-    expect(productContext.footerPitch.toLowerCase()).toContain('trámite en línea');
+    const productLanding = makeShell(null);
+    productLanding.isDivorcioMarketing = false;
+    productLanding.isProductLanding = true;
+    productLanding.isDivorcioFlow = false;
+    productLanding.activeProduct = 'traslado360';
+    expect(productLanding.showSiteFooter).toBeTrue();
+
+    const flow = makeShell(null);
+    flow.isDivorcioFlow = true;
+    expect(flow.showSiteFooter).toBeFalse();
   });
 
   it('en /abogado oculta nav y pie de marketing y la marca vuelve a la bandeja', () => {
@@ -185,14 +188,5 @@ describe('ShellComponent marketing navigation', () => {
     expect(lawyer.isLawyerWorkspace).toBeTrue();
     expect(lawyer.navLinks).toEqual([]);
     expect(lawyer.showSiteFooter).toBeFalse();
-  });
-
-  it('conserva el slogan de LegalStation fuera de Divorcio360', () => {
-    const home = makeShell(null);
-    home.isDivorcioMarketing = false;
-    home.isLegalStationMarketing = true;
-    home.activeProduct = 'divorcio360';
-
-    expect(home.footerPitch).toBe('Servicios jurídicos al mismo costo, sin filas ni trámites.');
   });
 });

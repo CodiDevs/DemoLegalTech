@@ -115,13 +115,13 @@ describe('SignComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('.sign-pad')).toBeNull();
     expect(root.querySelector('.sign-qr')).not.toBeNull();
-    expect(root.textContent).toContain('Sello QR LegalStation');
+    expect(root.textContent).toContain('Sello QR');
     expect(root.textContent).toContain('No es una rúbrica');
     expect(root.textContent).toContain('Pagar $15.00 y obtener QR');
     expect(root.textContent).not.toContain('Limpiar');
     expect(root.textContent).not.toContain('Confirmar');
-    const steps = root.querySelector('.sign-steps') as HTMLElement;
-    expect(getComputedStyle(steps).pointerEvents).toBe('none');
+    expect(root.querySelector('.sign-steps')).toBeNull();
+    expect(root.querySelector('.pf-card')).toBeNull();
     expect(fixture.componentInstance.signatureFileName).toBe('sello-qr.png');
     expect(fixture.componentInstance.platformSignatureDataUrl.startsWith('data:image/png')).toBeTrue();
   });
@@ -164,7 +164,7 @@ describe('SignComponent', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('$15.00');
-    expect(root.textContent).toContain('Sello QR LegalStation');
+    expect(root.textContent).toContain('Sello QR');
     const cmp = fixture.componentInstance;
     cmp.submitPlatform();
     expect(api.sign).not.toHaveBeenCalled();

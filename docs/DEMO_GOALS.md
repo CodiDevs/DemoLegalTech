@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Lenguaje visual P0 + colofón CodiDevs | `/` H1 «Expedientes civiles, resueltos.» + catálogo Divorcio protagonista + pie «Hecho por CodiDevs». Traslado/BienRaiz misma cámara. `/cuestionario` folio + colofón. Checkout una acta. Firma: QR sin tarjeta. `/auth` tres líneas. `/cliente` y `/abogado` sello en el rail | 2026-09-15 |
 | done | Cuestionario se guarda en el navegador | `/cuestionario` responde 2 → Inicio → vuelve: sigue en la misma pregunta | 2026-09-15 |
 | done | Rail del despacho hover | `abogado@demo.ec` → `/abogado`: folio quieto; hover revela texto; candado Fijar deja el menú abierto (F5 lo recuerda) | 2026-09-15 |
 | done | Bandeja fusiona Resumen + cobros en licencia | `abogado@demo.ec` → `/abogado`: Detenidos filtra la lista. Sin Resumen en el rail. Facturación: Cobros de trámites (cobrado/pendiente + filas), no 4 KPIs | 2026-09-15 |
@@ -77,6 +78,12 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Lenguaje visual P0 + colofón CodiDevs
+Una cámara en todo el recorrido cliente: cream, Fraunces en H1, teal, motion `--dur-cine`. El cierre es «Hecho por CodiDevs» (Inter + Fraunces), no un span ALL-CAPS.
+
+**Demo:** `/` 3 s — titular corto, Divorcio más aire, estaciones rail+título, colofón de marketing. `/productos/divorcio360` y `/productos/traslado360` misma gramática (escena + DemoCaseWindow). `/cuestionario` y `/productos/traslado360/cuestionario`: sellos Sí/No, sin Paso N, colofón folio. Checkout una hoja con honorarios al margen. Upload renglones. Firma: QR como sello. `cliente@demo.ec` → `/cliente` y `abogado@demo.ec` → `/abogado`: sello CodiDevs al pie del rail.
+
 
 ### 2026-09-15 — Cuestionario se guarda en el navegador
 Cada respuesta del cuestionario (Divorcio360 y Traslado/BienRaíz) queda en `localStorage`. Cerrar la pestaña o ir a otra página no borra el avance. El expediente creado sí limpia el borrador.

@@ -13,6 +13,7 @@ import {
   writeLocalJson,
 } from '../../core/local-json';
 import { IconComponent, IconName } from '../../shared/icon.component';
+import { ColophonComponent } from '../../shared/colophon.component';
 import { MeetingSchedulerComponent } from '../../shared/meeting-scheduler.component';
 import { setActiveProduct } from '../../shared/product-sites.data';
 import {
@@ -49,7 +50,7 @@ interface DivorcioDraft {
 @Component({
   selector: 'app-questionnaire',
   standalone: true,
-  imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent],
+  imports: [FormsModule, RouterLink, IconComponent, MeetingSchedulerComponent, ColophonComponent],
   template: `
     <div class="landing-page product-flow theme-divorcio">
       <div class="form-stage" aria-hidden="true">
@@ -212,7 +213,6 @@ interface DivorcioDraft {
         <!-- ============ Revisión ============ -->
         @if (stage === 'review') {
           <section class="ob-sheet ob-folios" [class.ob-sheet--back]="direction === -1">
-            <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
             <h1>Revisa tus respuestas</h1>
             <p class="ob-hint">Toca cualquier respuesta si quieres cambiarla.</p>
 
@@ -263,8 +263,6 @@ interface DivorcioDraft {
         <!-- ============ Resultado ============ -->
         @if (stage === 'result' && result) {
           <section [class]="'ob-sheet ob-verdict is-' + result.code + (direction === -1 ? ' ob-sheet--back' : '')">
-            <span class="ob-icon"><app-icon [name]="resultIcon" [size]="26" /></span>
-
             <h1>{{ result.title }}</h1>
             <p class="ob-message">{{ result.message }}</p>
 
@@ -346,6 +344,7 @@ interface DivorcioDraft {
             </button>
           </div>
         }
+        <app-colophon density="folio" />
       </div>
     </div>
   `,

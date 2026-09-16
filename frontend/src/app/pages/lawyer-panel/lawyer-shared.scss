@@ -166,6 +166,23 @@
   outline-offset: 2px;
 }
 
+.lawyer-sidebar app-colophon {
+  margin-top: var(--space-3);
+  padding-inline: var(--space-3);
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+  transition:
+    opacity 280ms var(--ease-out),
+    transform 400ms var(--ease-out);
+}
+
+.lawyer-workspace.is-open .lawyer-sidebar app-colophon {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
 .lawyer-main {
   display: flex;
   flex-direction: column;
@@ -235,7 +252,9 @@
   .lawyer-sidebar nav a span,
   .lawyer-workspace.is-open .lawyer-sidebar nav a span,
   .rail-pin span,
-  .lawyer-workspace.is-open .rail-pin span {
+  .lawyer-workspace.is-open .rail-pin span,
+  .lawyer-sidebar app-colophon,
+  .lawyer-workspace.is-open .lawyer-sidebar app-colophon {
     height: auto;
     margin: 0 0 var(--space-2);
     padding-inline: var(--space-3);

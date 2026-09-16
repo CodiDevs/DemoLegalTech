@@ -68,7 +68,7 @@ Siempre on. Ver `.cursor/rules/demo-motion.mdc`.
 - **Semántica de la pregunta**: las opciones son un `radiogroup` (`role="radio"` + `aria-checked`, con las flechas moviendo el foco) y el progreso es una lista real: los pasos respondidos son botones navegables, el actual un marcador con `aria-current="step"` y los futuros marcadores pasivos, nunca botones deshabilitados. El paso mide 44px de alto aunque su marca visible siga en 4–6px.
 - **El progreso accesible dice lo mismo que la marca visible**: "Paso 12 de 12, sección Identidad".
 - **La tinta del progreso**: la barra marca los pasos hechos **y el actual**. La marca vive en la barra misma (`is-filled`) y no en el estado del item, porque con el estado la regla perdía la cascada y el paso actual quedaba sin llenar. El paso respondido es un botón superpuesto a la barra (`position: absolute`), nunca un envoltorio: envolverla colapsaba su caja a 0×0.
-- **Alcance**: todo esto vive bajo `.landing-page.product-flow.theme-divorcio` y `body.divorcio-flow-mode`. Los cuestionarios de Traslado360 y BienRaiz360 comparten `.ob-*` y no cambian.
+- **Alcance**: todo esto vive bajo `.landing-page.product-flow` (cualquier `theme-*`) y `body.divorcio-flow-mode`. Traslado360 y BienRaiz360 heredan el mismo folio: sin icono, sin «Paso N de N» visible, Sí/No como sellos Fraunces.
 
 ## Checklist antes de UI nueva
 

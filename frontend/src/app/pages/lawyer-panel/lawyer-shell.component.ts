@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IconComponent } from '../../shared/icon.component';
+import { ColophonComponent } from '../../shared/colophon.component';
 import { AuthService } from '../../core/auth.service';
 
 const RAIL_PIN_KEY = 'd360_lawyer_rail_pinned';
@@ -16,7 +17,7 @@ interface WorkspaceNavItem {
 @Component({
   selector: 'app-lawyer-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent, ColophonComponent],
   template: `
     <div class="lawyer-workspace" [class.is-open]="railOpen">
       <aside
@@ -62,6 +63,7 @@ interface WorkspaceNavItem {
           <app-icon [name]="railPinned ? 'lock' : 'unlock'" [size]="16" />
           <span>{{ railPinned ? 'Fijado' : 'Fijar' }}</span>
         </button>
+        <app-colophon density="despacho" />
       </aside>
       <div class="lawyer-main">
         <router-outlet />

@@ -69,11 +69,11 @@ interface HeroAction {
             </div>
 
             <h1 class="mk-brand-name">
-              {{ titleLine1 || 'Cuestionario, documentos, firma y ya estás divorciado!' }}
+              {{ titleLine1 || 'Expedientes civiles, resueltos.' }}
             </h1>
 
             <p class="mk-slogan">
-              {{ lede || 'Nunca fué tan fácil y rápido divorciarte!' }}
+              {{ lede || 'El cuestionario abre el expediente. Documentos y firma siguen en el mismo folio.' }}
             </p>
 
             <div class="mk-cta">

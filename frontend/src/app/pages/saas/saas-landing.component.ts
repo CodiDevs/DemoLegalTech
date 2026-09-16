@@ -27,6 +27,8 @@ import {
     <div class="landing-page legalstation-landing">
       <!-- 1. Hero Minimalista -->
       <app-marketing-hero
+        titleLine1="Expedientes civiles, resueltos."
+        lede="El cuestionario abre el expediente. Documentos y firma siguen en el mismo folio."
         primaryCta="Iniciar un trámite"
         [pickService]="true"
         secondaryCta="Acceso profesional"
@@ -42,17 +44,19 @@ import {
 
           <div class="catalog-grid">
             @for (p of liveProducts; track p.id) {
-              <article class="catalog-card">
+              <article class="catalog-card" [class.is-lead]="p.id === 'divorcio360'">
                 <div class="card-top">
                   <div class="card-tag">{{ productCategory(p.id) }}</div>
                   <h3 class="card-title">{{ p.name }}</h3>
                   <p class="card-tagline">{{ p.tagline }}</p>
 
-                  <ul class="card-features">
-                    @for (f of p.features; track f) {
-                      <li>{{ f }}</li>
-                    }
-                  </ul>
+                  @if (p.id === 'divorcio360') {
+                    <ul class="card-features">
+                      @for (f of p.features; track f) {
+                        <li>{{ f }}</li>
+                      }
+                    </ul>
+                  }
                 </div>
 
                 <div class="card-bottom">
@@ -61,10 +65,12 @@ import {
                   </div>
                   <a
                     [routerLink]="p.route"
-                    class="btn btn-secondary w-full product-btn"
+                    class="btn w-full product-btn"
+                    [class.btn-primary]="p.id === 'divorcio360'"
+                    [class.btn-secondary]="p.id !== 'divorcio360'"
                     (click)="armProduct(p)"
                   >
-                    <span>Iniciar expediente</span>
+                    <span>{{ p.id === 'divorcio360' ? 'Abrir Divorcio360' : 'Ver trámite' }}</span>
                     <app-icon name="arrow-right" [size]="14" />
                   </a>
                 </div>
@@ -97,14 +103,8 @@ import {
                     <span class="step-rail" aria-hidden="true">
                       <span class="step-dot"></span>
                     </span>
-                    <span class="step-num tabular">0{{ step.n }}</span>
                     <div class="step-text">
-                      <div class="step-head-row">
-                        <strong class="step-title">{{ step.title }}</strong>
-                        @if (journeyFocus === i) {
-                          <span class="step-ref tabular">{{ step.badge }}</span>
-                        }
-                      </div>
+                      <strong class="step-title">{{ step.title }}</strong>
                       @if (journeyFocus === i) {
                         <p class="step-desc">{{ step.desc }}</p>
                       }
@@ -213,7 +213,7 @@ import {
               @for (svc of servicePlans; track svc.id) {
                 <article class="plan-card" [class.is-featured]="svc.featured">
                   @if (svc.featured) {
-                    <span class="plan-featured-badge">Referencia</span>
+                    <p class="plan-mark">Referencia</p>
                   }
                   <div class="plan-head">
                     <span class="plan-tag">{{ svc.tag }}</span>
@@ -249,7 +249,7 @@ import {
               @for (plan of plans; track plan.name) {
                 <article class="plan-card" [class.is-featured]="plan.featured">
                   @if (plan.featured) {
-                    <span class="plan-featured-badge">Recomendado</span>
+                    <p class="plan-mark">Recomendado</p>
                   }
                   <div class="plan-head">
                     <span class="plan-tag">{{ plan.tag }}</span>
@@ -357,8 +357,9 @@ import {
     /* Catálogo */
     .catalog-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.92fr) minmax(0, 0.92fr);
       gap: var(--space-5);
+      align-items: stretch;
     }
 
     .catalog-card {
@@ -371,13 +372,20 @@ import {
       justify-content: space-between;
       gap: var(--space-5);
       box-shadow: var(--shadow-sm);
-      transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+      transition:
+        border-color 280ms var(--ease-out),
+        box-shadow 280ms var(--ease-out);
+    }
+
+    .catalog-card.is-lead {
+      padding: var(--space-6);
+      border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+      background: color-mix(in srgb, var(--primary) 5%, var(--surface));
     }
 
     .catalog-card:hover {
-      border-color: var(--border-strong);
+      border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
       box-shadow: var(--shadow-md);
-      transform: translateY(-2px);
     }
 
     .card-tag {
@@ -395,6 +403,10 @@ import {
       letter-spacing: -0.02em;
       color: var(--text);
       margin: 0 0 var(--space-2);
+    }
+
+    .catalog-card.is-lead .card-title {
+      font-size: var(--text-2xl);
     }
 
     .card-tagline {
@@ -451,6 +463,10 @@ import {
     }
 
     @media (max-width: 900px) {
+      .catalog-grid {
+        grid-template-columns: 1fr;
+      }
+
       .stations-pinned-track {
         height: auto;
       }
@@ -516,7 +532,7 @@ import {
     .journey-step-btn {
       position: relative;
       display: grid;
-      grid-template-columns: 12px auto 1fr;
+      grid-template-columns: 12px 1fr;
       align-items: start;
       column-gap: var(--space-3);
       padding: var(--space-3) 0;
@@ -526,7 +542,6 @@ import {
       cursor: pointer;
       font-family: inherit;
       width: 100%;
-      transition: transform 280ms var(--ease-out);
     }
 
     .step-rail {
@@ -569,30 +584,10 @@ import {
       box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
     }
 
-    .step-num {
-      font-size: var(--text-xs);
-      font-weight: 650;
-      color: var(--text-muted);
-      padding-top: 0.2rem;
-      letter-spacing: 0.04em;
-      transition: color 280ms var(--ease-out);
-    }
-
-    .journey-step-btn.is-active .step-num {
-      color: var(--primary);
-    }
-
     .step-text {
       flex: 1;
       min-width: 0;
       padding-bottom: var(--space-1);
-    }
-
-    .step-head-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: var(--space-3);
     }
 
     .step-title {
@@ -610,20 +605,12 @@ import {
       font-weight: 650;
     }
 
-    .step-ref {
-      font-size: var(--text-xs);
-      font-weight: 600;
-      color: var(--primary);
-      white-space: nowrap;
-      animation: stepMetaIn 360ms var(--ease-out) both;
-    }
-
     .step-desc {
       margin: var(--space-1) 0 0;
       font-size: var(--text-sm);
       color: var(--text-secondary);
       line-height: 1.5;
-      max-width: 22ch;
+      max-width: 28ch;
       animation: stepMetaIn 420ms var(--ease-out) both;
     }
 
@@ -808,7 +795,7 @@ import {
       gap: var(--space-5);
       box-shadow: var(--shadow-sm);
       position: relative;
-      transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+      transition: border-color 280ms var(--ease-out), box-shadow 280ms var(--ease-out);
     }
 
     .plan-card.is-featured {
@@ -817,16 +804,13 @@ import {
       box-shadow: var(--shadow-md);
     }
 
-    .plan-featured-badge {
-      position: absolute;
-      top: -11px;
-      right: var(--space-5);
+    .plan-mark {
+      margin: 0 0 var(--space-2);
+      font-family: var(--font-sans);
       font-size: var(--text-xs);
-      font-weight: 600;
-      padding: 2px 10px;
-      background: var(--primary);
-      color: var(--text-on-primary);
-      border-radius: var(--radius-full);
+      font-weight: 550;
+      letter-spacing: 0.01em;
+      color: var(--primary);
     }
 
     .plan-tag {

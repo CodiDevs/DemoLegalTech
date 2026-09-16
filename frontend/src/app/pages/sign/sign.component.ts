@@ -22,27 +22,16 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       [title]="mode === 'done' ? 'Firma registrada' : 'Firma tu minuta'"
     >
       @if (signBlocked) {
-        <div class="pf-card lp-lift sign-blocked">
+        <div class="sign-blocked">
           <p class="pf-err">{{ signBlocked }}</p>
           @if (signHint) { <p class="pf-muted">{{ signHint }}</p> }
           <a class="btn btn-secondary" [routerLink]="['/caso', caseId]">Volver al expediente</a>
         </div>
       } @else {
-        <ol class="sign-steps">
-          <li class="done">Revisar minuta</li>
-          <li [class.active]="mode === 'upload'" [class.done]="mode === 'done'">Elegir cómo firmar</li>
-          <li [class.active]="mode === 'done'" [class.done]="mode === 'done'">Confirmación</li>
-        </ol>
-
         <div class="sign-layout sign-stage" [class.is-sending]="busy" [class.is-done]="mode === 'done'" [class.has-minuta]="!!minutaUrl && (mode !== 'done' || !!stampSrc)">
           @if (minutaUrl && (mode !== 'done' || stampSrc)) {
-            <section class="pf-card lp-lift sign-minuta">
-              <div class="sign-section-head">
-                @if (mode !== 'done') {
-                  <span class="pf-badge">Paso 1</span>
-                }
-                <h2>Vista previa de la minuta</h2>
-              </div>
+            <section class="sign-minuta">
+              <h2>Minuta</h2>
               <div class="sign-minuta-stage">
                 <iframe class="pf-preview-frame sign-frame" [src]="minutaUrl" title="Minuta"></iframe>
                 @if (stampSrc) {
@@ -53,12 +42,32 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
           }
 
           @if (mode === 'upload') {
-            <section class="pf-card lp-lift sign-upload-wrap">
-              <div class="sign-section-head">
-                <span class="pf-badge">Paso 2</span>
-                <h2>Cómo firmar</h2>
-              </div>
-              <h3 class="sign-path-title">Ya tengo el documento firmado</h3>
+            <section class="sign-seal-col">
+              <h2 class="sign-path-title">Sello QR</h2>
+              <p class="sign-platform-price">{{ esignFeeLabel }} USD</p>
+              <p class="pf-muted">No es una rúbrica. Es un QR de verificación. Lo descargas o lo aplicas a esta minuta. Cobro aparte.</p>
+              @if (platformSignatureDataUrl) {
+                <img class="sign-qr" [src]="platformSignatureDataUrl" alt="QR de firma electrónica" />
+                <p class="sign-file-name">{{ signatureFileName }}</p>
+              }
+              @if (!assetReady) {
+                <div class="sign-actions">
+                  <button class="btn btn-primary" type="button" (click)="submitPlatform()" [disabled]="busy || !platformSignatureDataUrl">
+                    {{ payingPlatform ? 'Cobrando…' : 'Pagar ' + esignFeeLabel + ' y obtener QR' }}
+                  </button>
+                </div>
+              } @else {
+                <p class="sign-pad-ok">Archivo listo</p>
+                <div class="sign-actions">
+                  <button class="btn btn-secondary" type="button" (click)="downloadSignature()">Descargar</button>
+                  <button class="btn btn-primary" type="button" (click)="applyToMinuta()" [disabled]="busy">
+                    {{ busy ? 'Aplicando…' : 'Aplicar a la minuta' }}
+                  </button>
+                </div>
+              }
+
+              <p class="sign-or" aria-hidden="true">o</p>
+              <h3 class="sign-path-title">Documento ya firmado</h3>
               <label
                 class="up-dropzone"
                 [class.has-file]="!!selectedFile"
@@ -81,35 +90,10 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
                   {{ busy && !payingPlatform ? 'Enviando…' : 'Enviar documento firmado' }}
                 </button>
               </div>
-              <p class="sign-or" aria-hidden="true">o</p>
-              <div class="sign-platform">
-                <h3 class="sign-path-title">Sello QR LegalStation</h3>
-                <p class="sign-platform-price">{{ esignFeeLabel }} USD</p>
-                <p class="pf-muted">No es una rúbrica. Es un QR de verificación. Lo descargas o lo aplicas a esta minuta. Cobro aparte (Payphone de prueba).</p>
-                @if (platformSignatureDataUrl) {
-                  <img class="sign-qr" [src]="platformSignatureDataUrl" alt="QR de firma electrónica" />
-                  <p class="sign-file-name">{{ signatureFileName }}</p>
-                }
-                @if (!assetReady) {
-                  <div class="sign-actions">
-                    <button class="btn btn-primary" type="button" (click)="submitPlatform()" [disabled]="busy || !platformSignatureDataUrl">
-                      {{ payingPlatform ? 'Cobrando…' : 'Pagar ' + esignFeeLabel + ' y obtener QR' }}
-                    </button>
-                  </div>
-                } @else {
-                  <p class="sign-pad-ok">Archivo listo</p>
-                  <div class="sign-actions">
-                    <button class="btn btn-secondary" type="button" (click)="downloadSignature()">Descargar</button>
-                    <button class="btn btn-primary" type="button" (click)="applyToMinuta()" [disabled]="busy">
-                      {{ busy ? 'Aplicando…' : 'Aplicar a la minuta' }}
-                    </button>
-                  </div>
-                }
-              </div>
               @if (error) { <p class="pf-err sign-feedback">{{ error }}</p> }
             </section>
           } @else {
-            <section class="sign-finale pf-card" aria-live="polite">
+            <section class="sign-finale" aria-live="polite">
               <img class="seal" src="/demo-scenes/legal-seal-demo.svg" width="120" height="120" alt="" />
               <div class="sign-finale-copy">
                 <h2>{{ signature?.channel === 'platform' ? 'QR aplicado' : 'Documento enviado' }}</h2>
@@ -167,67 +151,12 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
     }
   `,
   styles: [`
-    .sign-steps {
-      display: flex;
-      gap: var(--space-3);
-      list-style: none;
-      padding: 0;
-      margin: 0 0 var(--space-5);
-      flex-wrap: wrap;
-      pointer-events: none;
-      user-select: none;
-    }
-    .sign-steps li {
-      flex: 1;
-      min-width: 7rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-2);
-      text-align: center;
-      font-family: var(--font-sans);
-      font-size: var(--text-xs);
-      font-weight: 600;
-      padding: var(--space-2) 0;
-      color: var(--text-muted);
-      background: transparent;
-      border: none;
-      border-radius: 0;
-    }
-    .sign-steps li::before {
-      content: '';
-      flex-shrink: 0;
-      width: 0.55rem;
-      height: 0.55rem;
-      border-radius: 50%;
-      border: 1.5px solid var(--primary);
-    }
-    .sign-steps li.active {
-      color: var(--primary-hover);
-      background: transparent;
-      border: none;
-    }
-    .sign-steps li.active::before {
-      background: var(--primary);
-    }
-    .sign-steps li.done {
-      color: var(--primary-hover);
-      background: transparent;
-    }
-    .sign-steps li.done::before {
-      width: 0.8rem;
-      height: 0.8rem;
-      border: 0;
-      border-radius: 0;
-      background: var(--primary);
-      -webkit-mask: var(--icon-check) center / contain no-repeat;
-      mask: var(--icon-check) center / contain no-repeat;
-    }
     .sign-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
+      gap: var(--space-8);
       align-items: start;
+      animation: pf-in var(--dur-cine) var(--ease-out) both;
     }
     .sign-layout.is-done:not(.has-minuta) {
       grid-template-columns: 1fr;
@@ -342,9 +271,9 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       gap: var(--space-5);
       align-items: start;
       width: min(100%, 44rem);
-      padding: var(--space-6);
+      padding: var(--space-2) 0;
       color: var(--text);
-      animation: pf-in 560ms var(--ease-out);
+      animation: pf-in var(--dur-cine) var(--ease-out);
     }
     .sign-finale-copy {
       display: grid;
@@ -398,11 +327,20 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
       background: var(--border);
     }
     .sign-platform {
-      padding: var(--space-5);
-      border: 1px solid var(--primary);
-      border-radius: var(--radius-lg);
-      background: var(--primary-subtle);
-      animation: pf-in 560ms var(--ease-out);
+      padding: 0;
+      border: 0;
+      background: none;
+      animation: pf-in var(--dur-cine) var(--ease-out);
+    }
+    .sign-seal-col {
+      min-width: 0;
+    }
+    .sign-minuta h2,
+    .sign-seal-col .sign-path-title {
+      margin: 0 0 var(--space-3);
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      font-weight: 650;
     }
     .sign-platform .sign-path-title { margin-top: 0; }
     .sign-platform-price {
@@ -420,14 +358,13 @@ type PayStage = 'preparing' | 'processing' | 'approved' | 'signed' | '';
     }
     .sign-qr {
       display: block;
-      width: 10rem;
-      height: 10rem;
-      margin-top: var(--space-4);
+      width: 12.5rem;
+      height: 12.5rem;
+      margin: var(--space-5) 0;
       object-fit: contain;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: var(--space-2);
+      background: transparent;
+      border: 0;
+      padding: 0;
     }
     .sign-platform .sign-actions { margin-top: var(--space-4); }
     .sign-pad-ok {

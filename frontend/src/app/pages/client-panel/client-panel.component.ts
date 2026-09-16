@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService, CaseItem } from '../../core/api.service';
 import { IconComponent, IconName } from '../../shared/icon.component';
+import { ColophonComponent } from '../../shared/colophon.component';
 import { CASE_STATUS_ICONS } from '../../shared/case-progress.model';
 import { caseClientHint, caseShort } from '../../shared/case-status.data';
 import {
@@ -30,7 +31,7 @@ type Filter = 'action' | 'open' | 'done' | 'all';
 @Component({
   selector: 'app-client-panel',
   standalone: true,
-  imports: [RouterLink, IconComponent, ClientDivorcioDeskComponent],
+  imports: [RouterLink, IconComponent, ClientDivorcioDeskComponent, ColophonComponent],
   template: `
     <div class="client-workspace">
       <aside class="client-sidebar" aria-label="Servicios LegalStation">
@@ -112,6 +113,7 @@ type Filter = 'action' | 'open' | 'done' | 'all';
             }
           </nav>
         </div>
+        <app-colophon density="despacho" />
       </aside>
 
       <div class="client-main">
@@ -368,6 +370,11 @@ type Filter = 'action' | 'open' | 'done' | 'all';
         );
       border-right: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
       animation: side-in 480ms var(--ease-out) both;
+    }
+
+    .client-sidebar > app-colophon {
+      margin-top: auto;
+      padding-top: var(--space-4);
     }
 
     .side-block {
@@ -748,7 +755,7 @@ type Filter = 'action' | 'open' | 'done' | 'all';
       transition:
         transform 280ms var(--ease-out),
         box-shadow 280ms var(--ease-out),
-        border-color 200ms var(--ease);
+        border-color 200ms var(--ease-out);
     }
 
     .dossier-body {

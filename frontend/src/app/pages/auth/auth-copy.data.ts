@@ -1,24 +1,20 @@
 export type AuthMode = 'login' | 'register' | 'forgot' | 'forgot-sent';
 
 export interface AuthAsideStep {
-  icon: 'clipboard' | 'users' | 'signature' | 'lock' | 'mail';
   title: string;
   body: string;
 }
 
 export const AUTH_NEXT_STEPS: AuthAsideStep[] = [
   {
-    icon: 'clipboard',
     title: 'Responde unas preguntas',
-    body: 'Comprobamos en minutos si tu caso se puede resolver en notaría.',
+    body: 'Comprobamos si tu caso se puede resolver en notaría.',
   },
   {
-    icon: 'users',
     title: 'Hablas con un abogado',
     body: 'Videollamada para revisar tu situación y resolver dudas.',
   },
   {
-    icon: 'signature',
     title: 'Firmas sin salir de casa',
     body: 'Subes tus documentos y firmas en línea. Nosotros gestionamos la notaría.',
   },
@@ -36,7 +32,7 @@ export const AUTH_COPY = {
   forgotLead: 'Introduce tu correo y te indicaremos cómo restablecer tu contraseña.',
   forgotSentTitle: 'Revisa tu correo',
   forgotSentLead:
-    'Si existe una cuenta con ese correo, recibirás instrucciones. En esta demo no enviamos correo real: contacta a soporte@legalstation.ec si necesitas ayuda.',
+    'Si existe una cuenta con ese correo, recibirás instrucciones. En este entorno de ejemplo no se envía correo. Escribe a soporte@legalstation.ec si necesitas ayuda.',
   enter: 'Ingresar',
   entering: 'Iniciando sesión…',
   create: 'Crear cuenta',

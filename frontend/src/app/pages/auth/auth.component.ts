@@ -321,9 +321,9 @@ type Field = 'fullName' | 'phone' | 'email' | 'password' | 'lopdp';
     .demo-title {
       margin: 0 0 0.65rem;
       font-size: var(--text-xs);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
       color: var(--text-muted);
     }
 

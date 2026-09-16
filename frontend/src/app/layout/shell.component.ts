@@ -7,6 +7,7 @@ import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
 import { getActiveProduct, getProductSite, getProductQuestionnairePath, getMarketingPrimaryAction, setActiveProduct, detectProductFromPath, watchActiveProduct } from '../shared/product-sites.data';
 import { IconComponent, IconName } from '../shared/icon.component';
+import { ColophonComponent } from '../shared/colophon.component';
 
 const DIVORCIO_FLOW = ['/cuestionario', '/checkout', '/upload', '/consulta', '/firma', '/caso', '/intake', '/productos/traslado360/cuestionario', '/productos/bienraiz360/cuestionario'];
 
@@ -33,7 +34,7 @@ interface ProductSwitcherItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconComponent, ColophonComponent],
   template: `
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
@@ -290,43 +291,7 @@ interface ProductSwitcherItem {
 
     @if (showSiteFooter) {
     <footer class="site-footer">
-      <div class="shell footer-grid">
-        <div class="footer-col footer-brand">
-          <strong>{{ footerBrandName }}</strong>
-          @if (footerBrandName !== 'LegalStation') { <p class="footer-by">por LegalStation</p> }
-          <p>{{ footerPitch }}</p>
-        </div>
-
-        <div class="footer-col">
-          <h2>Productos</h2>
-          <a routerLink="/productos/divorcio360">Divorcio360</a>
-          <a routerLink="/productos/traslado360">Traslado360</a>
-          <a routerLink="/productos/bienraiz360">BienRaiz360</a>
-        </div>
-
-        <div class="footer-col">
-          <h2>Tu cuenta</h2>
-          @if (auth.isLoggedIn) {
-            <a [routerLink]="homeForRole">{{ roleHomeLabel }}</a>
-          } @else {
-            <a routerLink="/auth">Ingresar</a>
-            <a routerLink="/cuestionario">Comprobar si aplico</a>
-          }
-          <a routerLink="/">Inicio</a>
-        </div>
-
-        <div class="footer-col">
-          <h2>Ayuda</h2>
-          <a routerLink="/legal/privacidad">Política de datos</a>
-          <a routerLink="/legal/terminos">Términos de uso</a>
-          <a href="mailto:soporte@legalstation.ec">soporte&#64;legalstation.ec</a>
-        </div>
-      </div>
-
-      <div class="shell footer-bottom">
-        <span>ESTO ES UNA DEMO Y NO REPRESENTA EL PRODUCTO FINAL</span>
-        <span>Hecho por CodiDevs</span>
-      </div>
+      <app-colophon density="marketing" />
     </footer>
     }
   `,
@@ -889,89 +854,12 @@ interface ProductSwitcherItem {
 
     .site-footer {
       margin-top: var(--space-8);
-      padding-top: var(--space-7);
-      background: var(--bg-subtle);
+      padding-block: var(--space-7) var(--space-8);
+      background: var(--bg);
       border-top: 1px solid var(--border);
-      color: var(--text-secondary);
-      font-size: var(--text-sm);
-    }
-
-    /* En autenticación el pie se reduce para que el formulario quepa en pantalla */
-    .site-footer.is-compact {
-      margin-top: 0;
-      padding-top: 0;
-      background: transparent;
-    }
-
-    .site-footer.is-compact .footer-bottom {
-      border-top: 0;
-      padding-block: var(--space-4);
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1.6fr repeat(3, 1fr);
-      gap: var(--space-6) var(--space-5);
-      padding-bottom: var(--space-6);
-    }
-
-    .footer-col {
-      display: grid;
-      gap: var(--space-2);
-      align-content: start;
-    }
-
-    .footer-col h2 {
-      margin: 0 0 var(--space-1);
-      font-size: var(--text-xs);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: var(--tracking-wide);
-      color: var(--text);
-    }
-
-    .footer-brand strong {
-      font-size: var(--text-lg);
-      font-weight: 650;
-      color: var(--text);
-    }
-
-    .footer-by {
-      margin: 0;
-      font-size: var(--text-xs);
-      font-weight: 500;
-      color: var(--text-muted);
-    }
-
-    .footer-brand p {
-      margin: 0;
-      max-width: 32ch;
-      line-height: var(--leading-normal);
-    }
-
-    .footer-col a {
-      color: inherit;
-      text-decoration: none;
-      font-size: var(--text-sm);
-    }
-
-    .footer-col a:hover { color: var(--primary); text-decoration: underline; }
-
-    .footer-bottom {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: var(--space-2);
-      padding: var(--space-4) var(--container-pad) var(--space-6);
-      border-top: 1px solid var(--border);
-      font-size: var(--text-xs);
     }
 
     /* ---------- Responsive ---------- */
-
-    @media (max-width: 900px) {
-      .footer-grid { grid-template-columns: 1fr 1fr; }
-    }
 
     @media (max-width: 820px) {
       .header-nav { display: none; }
@@ -981,7 +869,6 @@ interface ProductSwitcherItem {
     }
 
     @media (max-width: 560px) {
-      .footer-grid { grid-template-columns: 1fr; }
       .brand-text small { display: none; }
     }
   `]
@@ -1131,20 +1018,6 @@ export class ShellComponent implements OnInit, OnDestroy {
   get productDisplayName(): string {
     if (this.activeProduct === 'divorcio360') return 'Divorcio360';
     return this.productSite?.name || 'LegalStation';
-  }
-
-  get footerBrandName(): string {
-    return 'LegalStation';
-  }
-
-  get footerPitch(): string {
-    if (this.isDivorcioMarketing || (this.isProductContext && this.activeProduct === 'divorcio360')) {
-      return 'Trámite en línea, sin filas ni desplazamientos. Recorre el expediente desde casa.';
-    }
-    if (this.isProductContext) {
-      return 'Al mismo costo que presencial, sin filas ni desplazamientos. Todo el trámite desde casa.';
-    }
-    return 'Servicios jurídicos al mismo costo, sin filas ni trámites.';
   }
 
   /* ---------- Notificaciones ---------- */
@@ -1365,8 +1238,8 @@ export class ShellComponent implements OnInit, OnDestroy {
 
     this.isDivorcioFlow = !this.isAuthPage && (
       DIVORCIO_FLOW.some((p) => path.startsWith(p)) ||
-      path.startsWith('/productos/traslado360') ||
-      path.startsWith('/productos/bienraiz360') ||
+      path.startsWith('/productos/traslado360/') ||
+      path.startsWith('/productos/bienraiz360/') ||
       path.startsWith('/consulta')
     );
 

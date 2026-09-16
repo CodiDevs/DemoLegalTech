@@ -11,7 +11,8 @@ import {
   writeLocalAndSessionJson,
   writeLocalJson,
 } from '../../core/local-json';
-import { IconComponent, IconName } from '../../shared/icon.component';
+import { IconComponent } from '../../shared/icon.component';
+import { ColophonComponent } from '../../shared/colophon.component';
 import {
   getProductSite,
   ProductSiteConfig,
@@ -25,7 +26,7 @@ type Stage = 'questions' | 'review' | 'done';
 @Component({
   selector: 'app-product-questionnaire',
   standalone: true,
-  imports: [FormsModule, RouterLink, IconComponent],
+  imports: [FormsModule, RouterLink, IconComponent, ColophonComponent],
   template: `
     @if (site) {
       <div class="landing-page product-flow" [class]="'theme-' + site.theme">
@@ -62,7 +63,7 @@ type Stage = 'questions' | 'review' | 'done';
                   }
                 </div>
                 <div class="ob-progress-meta">
-                  <p class="ob-step-label">Paso {{ stepLabel }} de {{ fields.length }}</p>
+                  <p class="ob-folio">{{ site.name }}</p>
                   @if (fieldIndex > 0) {
                     <p id="ob-progress-hint" class="ob-progress-hint">Clic en un paso hecho para volver</p>
                   }
@@ -73,7 +74,6 @@ type Stage = 'questions' | 'review' | 'done';
                 <div class="ob-sheet-slot">
                   @for (f of [currentField]; track f.id) {
                     <section class="ob-sheet" [class.ob-sheet--back]="direction === -1">
-                      <span class="ob-icon"><app-icon [name]="fieldIcon(f)" [size]="22" /></span>
                       <h1>{{ f.label }}</h1>
 
                       @if (f.type === 'text') {
@@ -90,10 +90,10 @@ type Stage = 'questions' | 'review' | 'done';
                       } @else if (f.type === 'boolean') {
                         <div class="ob-choices">
                           <button type="button" class="ob-choice" [class.is-selected]="answers[f.id] === true" (click)="setBoolean(f.id, true)">
-                            <span>Sí</span><app-icon name="chevron-right" [size]="17" />
+                            <span>Sí</span>
                           </button>
                           <button type="button" class="ob-choice" [class.is-selected]="answers[f.id] === false" (click)="setBoolean(f.id, false)">
-                            <span>No</span><app-icon name="chevron-right" [size]="17" />
+                            <span>No</span>
                           </button>
                         </div>
                       } @else if (f.type === 'select') {
@@ -131,7 +131,6 @@ type Stage = 'questions' | 'review' | 'done';
 
           @if (stage === 'review') {
             <section class="ob-sheet">
-              <span class="ob-icon"><app-icon name="clipboard" [size]="22" /></span>
               <h1>Revisa tu información</h1>
 
               <ul class="ob-review">
@@ -168,7 +167,6 @@ type Stage = 'questions' | 'review' | 'done';
 
           @if (stage === 'done') {
             <section class="ob-sheet is-apto">
-              <span class="ob-icon"><app-icon name="check-circle" [size]="22" /></span>
               <h1>Expediente creado</h1>
               <p class="ob-hint">Continúa con el pago único para activar tu trámite de {{ site.name }}.</p>
               <a [routerLink]="['/checkout', caseId]" class="btn btn-primary btn-lg btn-block">
@@ -178,6 +176,7 @@ type Stage = 'questions' | 'review' | 'done';
             </section>
           }
         </div>
+        <app-colophon density="folio" />
       </div>
     }
   `,
@@ -241,13 +240,6 @@ export class ProductQuestionnaireComponent implements OnInit {
 
   get progressPct(): number {
     return Math.round((this.stepLabel / this.totalSteps) * 100);
-  }
-
-  fieldIcon(field: QuestionField): IconName {
-    if (field.type === 'boolean') return 'check-circle';
-    if (field.type === 'select') return 'clipboard';
-    if (field.id === 'city') return 'map-pin';
-    return 'pen';
   }
 
   get canContinue(): boolean {
