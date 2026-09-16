@@ -325,7 +325,7 @@ interface ProductSwitcherItem {
       </div>
 
       <div class="shell footer-bottom">
-        <span>© 2026 LegalStation</span>
+        <span>ESTO ES UNA DEMO Y NO REPRESENTA EL PRODUCTO FINAL</span>
         <span>Hecho por CodiDevs</span>
       </div>
     </footer>
