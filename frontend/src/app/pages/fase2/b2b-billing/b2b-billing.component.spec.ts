@@ -1,3 +1,6 @@
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { ApiService } from '../../../core/api.service';
 import { Fase2BillingComponent } from './b2b-billing.component';
 
@@ -18,48 +21,55 @@ describe('Fase2BillingComponent licencia', () => {
     expect(c.flagLabel(false)).toBe('No');
   });
 
-  it('cobros de trámites suman cobrado y pendiente, no un grid de KPIs', () => {
+  it('no carga cobros de trámites; eso vive en Escritorio', () => {
     const api = {
       mockBilling: () => ({ subscribe: () => undefined }),
-      listCases: () => ({ subscribe: () => undefined }),
+      listCases: () => {
+        throw new Error('listCases no pertenece a Facturación B2B');
+      },
     } as unknown as ApiService;
     const c = new Fase2BillingComponent(api);
-    c.chargesLoading = false;
-    c.charges = [
-      {
-        id: 6,
-        client_id: 1,
-        status: '03',
-        status_label: 'Revisión',
-        result: 'apto',
-        city: 'Quito',
-        paid: true,
-        amount_cents: 34900,
-        created_at: '',
-        updated_at: '',
-        product: 'divorcio360',
-        client_name: 'Carlos Mendoza',
-      },
-      {
-        id: 8,
-        client_id: 1,
-        status: '01',
-        status_label: 'Recepción',
-        result: 'apto',
-        city: 'Quito',
-        paid: false,
-        amount_cents: 19900,
-        created_at: '',
-        updated_at: '',
-        product: 'traslado360',
-        client_name: 'María Salazar',
-      },
-    ];
-    expect(c.cobradoUsd).toBe(349);
-    expect(c.pendienteUsd).toBe(199);
-    expect(c.chargeRows.map((row) => row.id)).toEqual([8, 6]);
-    expect(c.chargesAside).toContain('cobrado');
-    expect(c.chargesAside).toContain('pendiente');
-    expect(c.chargesAside).not.toContain('KPI');
+    expect(() => c.ngOnInit()).not.toThrow();
+    expect('charges' in c).toBeFalse();
+  });
+
+  it('la plantilla de licencia no incluye cobros de trámites', async () => {
+    await TestBed.configureTestingModule({
+      imports: [Fase2BillingComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ApiService,
+          useValue: {
+            mockBilling: () => of({
+              current_tenant: {
+                name: 'Bufete Ruiz',
+                plan: 'b2b-pro',
+                plan_label: 'Professional',
+                commission_pct: 85,
+                platform_pct: 15,
+                cases_used: 18,
+                cases_limit: 50,
+                suggested_client_price_usd: 349,
+              },
+              plans: [],
+              invoices: [],
+            }),
+            listCases: () => {
+              throw new Error('listCases no pertenece a Facturación B2B');
+            },
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(Fase2BillingComponent);
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+    expect(text).toContain('Licencia');
+    expect(text).toContain('Historial de facturas');
+    expect(text).not.toContain('Cobros de trámites');
+    expect(text).not.toContain('Cobrado');
+    fixture.destroy();
+    TestBed.resetTestingModule();
   });
 });

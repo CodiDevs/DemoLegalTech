@@ -1,3 +1,6 @@
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { ApiService, CaseItem } from '../../../core/api.service';
 import { AdvancedStatsComponent } from './advanced-stats.component';
 
@@ -57,10 +60,10 @@ describe('AdvancedStatsComponent escritorio', () => {
 
     expect(c.leadCase?.id).toBe(6);
     expect(c.peekCases.map((x) => x.id)).toEqual([5, 4, 3]);
-    expect(c.moreCases.map((x) => x.id)).toEqual([2, 1]);
+    expect(c.moreDeskCases.map((x) => x.id)).toEqual([2, 1]);
   });
 
-  it('si no te toca, el blotter usa folios en espera reales', () => {
+  it('si no te toca, En espera agrupa folios reales', () => {
     const c = make();
     c.cases = [
       item({ id: 9, status: '10', days_in_status: 1 }),
@@ -68,9 +71,39 @@ describe('AdvancedStatsComponent escritorio', () => {
       item({ id: 7, status: '02', days_in_status: 3 }),
     ];
     expect(c.deskCases.length).toBe(0);
-    expect(c.leadCase?.id).toBe(8);
+    expect(c.leadCase).toBeNull();
+    expect(c.waitingGroups.map((g) => g.items.map((x) => x.id))).toEqual([[8], [7]]);
     expect(c.headTitle).toBe('Nada te toca.');
     expect(c.headAside).toBe('2 en espera');
+  });
+
+  it('cobros de trámites suman cobrado y pendiente, no un grid de KPIs', () => {
+    const c = make();
+    c.cases = [
+      item({
+        id: 6,
+        status: '03',
+        paid: true,
+        amount_cents: 34900,
+        product: 'divorcio360',
+        client_name: 'Carlos Mendoza',
+      }),
+      item({
+        id: 8,
+        status: '01',
+        paid: false,
+        amount_cents: 19900,
+        product: 'traslado360',
+        client_name: 'María Salazar',
+      }),
+      item({ id: 9, status: '10', paid: true, amount_cents: 0 }),
+    ];
+    expect(c.cobradoUsd).toBe(349);
+    expect(c.pendienteUsd).toBe(199);
+    expect(c.chargeRows.map((row) => row.id)).toEqual([8, 6]);
+    expect(c.chargesAside).toContain('cobrado');
+    expect(c.chargesAside).toContain('pendiente');
+    expect(c.chargesAside).not.toContain('KPI');
   });
 
   it('cerrados solos no inventan métricas', () => {
@@ -80,6 +113,38 @@ describe('AdvancedStatsComponent escritorio', () => {
     expect(c.headTitle).toBe('Nada te toca.');
     expect(c.headAside).toBe('Nada pendiente en el escritorio');
     expect(c.holds.length).toBe(0);
+  });
+
+  it('la plantilla del escritorio muestra Cobros de trámites', async () => {
+    await TestBed.configureTestingModule({
+      imports: [AdvancedStatsComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ApiService,
+          useValue: {
+            listCases: () => of([
+              item({
+                id: 17,
+                status: '03',
+                paid: true,
+                amount_cents: 34900,
+                client_name: 'Carlos Mendoza',
+                product: 'divorcio360',
+              }),
+            ]),
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(AdvancedStatsComponent);
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+    expect(text).toContain('Cobros de trámites');
+    expect(text).toContain('Carlos Mendoza');
+    expect(text).toContain('Cobrado');
+    fixture.destroy();
+    TestBed.resetTestingModule();
   });
 
   it('Detenidos manda estado a la bandeja y cuenta casos', () => {

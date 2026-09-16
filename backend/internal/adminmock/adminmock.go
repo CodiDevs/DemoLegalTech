@@ -3,7 +3,6 @@ package adminmock
 import (
 	"database/sql"
 	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -53,44 +52,44 @@ func (s *Service) Metrics(w http.ResponseWriter, r *http.Request) {
 		},
 		"bottlenecks": []map[string]any{
 			{
-				"stage":        "Firma electrónica de las partes",
-				"stage_code":   "05",
-				"count":        8,
-				"avg_days":     6.4,
-				"impact":       "high",
-				"detail":       "Cónyuges con notificación pendiente de completar firma en notaría",
-				"action":       "Notificar partes",
-				"action_url":   "/abogado",
+				"stage":      "Firma electrónica de las partes",
+				"stage_code": "05",
+				"count":      8,
+				"avg_days":   6.4,
+				"impact":     "high",
+				"detail":     "Cónyuges con notificación pendiente de completar firma en notaría",
+				"action":     "Notificar partes",
+				"action_url": "/abogado",
 			},
 			{
-				"stage":        "Validación y revisión jurídica",
-				"stage_code":   "03",
-				"count":        5,
-				"avg_days":     3.8,
-				"impact":       "medium",
-				"detail":       "Documentos y partidas subidos esperando aprobación interna",
-				"action":       "Revisar documentos",
-				"action_url":   "/abogado",
+				"stage":      "Validación y revisión jurídica",
+				"stage_code": "03",
+				"count":      5,
+				"avg_days":   3.8,
+				"impact":     "medium",
+				"detail":     "Documentos y partidas subidos esperando aprobación interna",
+				"action":     "Revisar documentos",
+				"action_url": "/abogado",
 			},
 			{
-				"stage":        "Ingreso y despacho notarial",
-				"stage_code":   "06",
-				"count":        3,
-				"avg_days":     4.1,
-				"impact":       "medium",
-				"detail":       "Minutas concluidas en espera de asignación de turno notarial",
-				"action":       "Verificar notaría",
-				"action_url":   "/abogado",
+				"stage":      "Ingreso y despacho notarial",
+				"stage_code": "06",
+				"count":      3,
+				"avg_days":   4.1,
+				"impact":     "medium",
+				"detail":     "Minutas concluidas en espera de asignación de turno notarial",
+				"action":     "Verificar notaría",
+				"action_url": "/abogado",
 			},
 			{
-				"stage":        "Inscripción en Registro Civil",
-				"stage_code":   "09",
-				"count":        2,
-				"avg_days":     2.2,
-				"impact":       "low",
-				"detail":       "Actas notariales protocolizadas esperando marginación",
-				"action":       "Verificar registro",
-				"action_url":   "/abogado",
+				"stage":      "Inscripción en Registro Civil",
+				"stage_code": "09",
+				"count":      2,
+				"avg_days":   2.2,
+				"impact":     "low",
+				"detail":     "Actas notariales protocolizadas esperando marginación",
+				"action":     "Verificar registro",
+				"action_url": "/abogado",
 			},
 		},
 		"funnel": []map[string]any{
@@ -138,73 +137,6 @@ func (s *Service) PatchMasterTemplate(w http.ResponseWriter, r *http.Request) {
 		id, body.Version, body.Note, now,
 	)
 	write(w, map[string]any{"ok": true, "template_id": id, "version": body.Version})
-}
-
-func mockAIBrief(caseID int) (summary string, recs []string, risk string) {
-	summary = "Documentos legibles, sin inconsistencias detectadas."
-	recs = []string{"Aprobar documentos y preparar minuta"}
-	risk = "Verificar mediación si hay menores"
-	if caseID == 1 {
-		summary = "Apto vía notarial. Falta aprobación jurídica."
-		recs = []string{"Aprobar cédula y partida", "Generar minuta", "Enviar a firma"}
-	}
-	return
-}
-
-func (s *Service) AIAnalyze(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		CaseID int `json:"case_id"`
-	}
-	_ = json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body)
-	summary, recs, risk := mockAIBrief(body.CaseID)
-	write(w, map[string]any{
-		"demo": true, "case_id": body.CaseID, "summary": summary,
-		"risks":           []string{risk},
-		"recommendations": recs, "confidence": 0.87,
-		"cross_check": []map[string]any{{"field": "Cédula vs partida", "status": "ok", "detail": "Coinciden"}},
-	})
-}
-
-func (s *Service) AIChat(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		CaseID  int    `json:"case_id"`
-		Message string `json:"message"`
-	}
-	_ = json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body)
-	msg := strings.TrimSpace(body.Message)
-	if msg == "" {
-		writeErr(w, http.StatusBadRequest, "message requerido")
-		return
-	}
-	summary, recs, risk := mockAIBrief(body.CaseID)
-	write(w, map[string]any{
-		"demo": true, "case_id": body.CaseID, "reply": mockAIChatReply(msg, body.CaseID, summary, recs, risk),
-	})
-}
-
-func mockAIChatReply(msg string, caseID int, summary string, recs []string, risk string) string {
-	q := strings.ToLower(msg)
-	next := recs[0]
-	who := "este expediente"
-	if caseID > 0 {
-		who = "el expediente #" + strconv.Itoa(caseID)
-	}
-	switch {
-	case strings.Contains(q, "minuta"):
-		return "Minuta: todavía no. Primero " + strings.ToLower(next) + ". Después se genera y pasa a firma."
-	case strings.Contains(q, "menor") || strings.Contains(q, "mediac"):
-		return "Riesgo en " + who + ": " + risk + "."
-	case strings.Contains(q, "firma"):
-		return "Firma viene después de minuta. Ahora: " + next + "."
-	case strings.Contains(q, "riesgo"):
-		return risk + ". El resto del cruce (cédula vs partida) coincide."
-	case strings.Contains(q, "documento") || strings.Contains(q, "cédula") || strings.Contains(q, "cedula") || strings.Contains(q, "partida"):
-		return "Cédula y partida coinciden. Siguiente: " + next + "."
-	case strings.Contains(q, "sigue") || strings.Contains(q, "siguiente") || strings.Contains(q, "ahora"):
-		return "En " + who + " toca: " + next + "."
-	default:
-		return summary + " En " + who + " el siguiente paso es " + strings.ToLower(next) + "."
-	}
 }
 
 func (s *Service) SatjeSync(w http.ResponseWriter, r *http.Request) {

@@ -130,6 +130,16 @@ export function caseNeedsLawyer(code: string | undefined | null): boolean {
   }
 }
 
+/** Quién tiene la pelota, según la etapa. Cerrado = 10; el resto abierto sin te-toca es el cliente. */
+export type CaseBall = 'lawyer' | 'client' | 'closed';
+
+export function caseBall(code: string | undefined | null): CaseBall {
+  const key = (code || '').trim();
+  if (key === '10') return 'closed';
+  if (caseNeedsLawyer(key)) return 'lawyer';
+  return 'client';
+}
+
 export interface HoldStage {
   stage_code: string;
   stage: string;

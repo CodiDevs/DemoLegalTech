@@ -4,12 +4,14 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
-| done | API en Render + SPA en Vercel | Código listo (`render.yaml` + rewrite `/api`). Falta Apply en Render. Luego login `cliente@demo.ec` / `abogado@demo.ec` (`demo1234`) en https://legalstation.vercel.app | 2026-09-16 |
+| done | Cobros de trámites en Escritorio | `abogado@demo.ec` → rail **Escritorio**: tabla Cobros de trámites (cobrado/pendiente). **Facturación B2B** = licencia/planes, sin honorarios por caso | 2026-09-16 |
+| done | Asistente de bandeja, no OCR | `abogado@demo.ec` → Asistente de revisión: chip **¿Cuál va primero?** — ingreso/etapa/quién espera. No dice que leyó el PDF | 2026-09-16 |
+| done | API en Render + SPA en Vercel | https://legalstation.vercel.app — Ingresar `abogado@demo.ec` / `demo1234` (o `cliente@demo.ec`). `/api` va a `legalstation-api.onrender.com`. Free: primer hit tras sleep puede tardar ~45s | 2026-09-16 |
 | done | Frontend en Vercel | Abrir https://legalstation.vercel.app — home + landings | 2026-09-16 |
 | done | Divorcio360 hero sin folio pin | `/productos/divorcio360`: H1 + CTAs. Sin círculo, sin mock de etapas | 2026-09-16 |
 | done | Escritorio con cifras de ejemplo | `abogado@demo.ec` → **Escritorio**: libros Tu práctica + La página (honorarios, visitas, barras de la semana) y debajo el folio que te toca. Cifras inventadas, rotuladas de ejemplo | 2026-09-16 |
-| done | Escritorio (dashboard) vs Facturación B2B | `abogado@demo.ec` → rail **Escritorio** (`/abogado/fase2/admin`: folio que te toca + Detenidos) y **Facturación B2B** (cobros). No se mezclan | 2026-09-16 |
-| done | Resumen y Facturación B2B son módulos distintos | `abogado@demo.ec` → rail: Escritorio (`/abogado/fase2/admin`, Te toca) y Facturación B2B (`/abogado/fase2/billing`, cobros). No es un tab. Bandeja sigue con Detenidos | 2026-09-16 |
+| superseded | Escritorio (dashboard) vs Facturación B2B | Cobros de trámites pasaron a Escritorio (2026-09-16). Facturación B2B queda en licencia | 2026-09-16 |
+| superseded | Resumen y Facturación B2B son módulos distintos | Sigue aparte el rail; los cobros por trámite viven en Escritorio, no en billing | 2026-09-16 |
 | done | Lenguaje visual P0 + colofón CodiDevs | `/` H1 «Expedientes civiles, resueltos.» + catálogo Divorcio protagonista + pie «Hecho por CodiDevs». Traslado/BienRaiz misma cámara. `/cuestionario` folio + colofón. Checkout una acta. Firma: QR sin tarjeta. `/auth` tres líneas. `/cliente` y `/abogado` sello en el rail | 2026-09-15 |
 | done | Cuestionario se guarda en el navegador | `/cuestionario` responde 2 → Inicio → vuelve: sigue en la misma pregunta | 2026-09-15 |
 | done | Rail del despacho hover | `abogado@demo.ec` → `/abogado`: folio quieto; hover revela texto; candado Fijar deja el menú abierto (F5 lo recuerda) | 2026-09-15 |
@@ -84,6 +86,16 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-16 — Cobros de trámites en Escritorio
+Los honorarios por caso (tabla cobrado/pendiente) salen de Facturación B2B y vuelven al **Escritorio** (antes Resumen). Billing queda en licencia de bufete: plan, cupo, link de cliente, historial de facturas.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → rail **Escritorio** (`/abogado/fase2/admin`) → bajar a **Cobros de trámites** (`$… cobrado · $… pendiente`, un `#` abre el expediente). Rail **Facturación B2B**: planes e historial, sin esa tabla.
+
+### 2026-09-16 — Asistente de bandeja, no OCR
+El Asistente de revisión deja de fingir que lee PDFs. Responde con la bandeja: etapa, fecha de ingreso, días en estado y quién espera (abogado vs cliente). Chips: pendiente, cuál va primero, quién espera. `POST /mock/ai/analyze` y `/mock/ai/chat` usan la misma bandeja; sin cruce cédula/partida.
+
+**Demo:** `abogado@demo.ec` / `demo1234` → Asistente de revisión → **¿Cuál va primero?** (el más viejo de ingreso / fuera de plazo) → pregunta «¿Qué dice el PDF?» y comprueba que no inventa contenido.
 
 ### 2026-09-16 — Escritorio con cifras de ejemplo
 El dashboard del despacho lleva dos libros: **Tu práctica** (honorarios, neto, mix) y **La página** (visitas, trámites, cierre). Todo es ficticio, rotulado «de ejemplo». Debajo sigue el folio que te toca y Detenidos. Facturación B2B no se fusiona.

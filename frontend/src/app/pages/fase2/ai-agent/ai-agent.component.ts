@@ -6,12 +6,7 @@ import { IconComponent } from '../../../shared/icon.component';
 import { getProductDisplayName } from '../../../shared/product-sites.data';
 import { caseShort } from '../../../shared/case-status.data';
 import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
-
-interface AIResult {
-  summary: string;
-  risks: string[];
-  recommendations: string[];
-}
+import { answerDesk, briefDesk, DeskBrief } from './ai-desk';
 
 interface ChatMsg {
   role: 'user' | 'assistant';
@@ -48,25 +43,22 @@ interface ChatMsg {
       } @else {
         <div class="board">
           <aside class="brief panel">
-            @if (loading && !data) {
-              <p class="muted"><span class="spinner" aria-hidden="true"></span> Leyendo…</p>
-            } @else if (analyzeError && !data) {
-              <p class="muted">El análisis no respondió.</p>
-              <button type="button" class="btn btn-secondary" (click)="run()">Reintentar</button>
-            } @else if (data) {
-              <p class="brief-k">{{ selectedLabel }}</p>
-              @if (selectedCase; as c) {
-                <p class="muted">{{ productName(c) }} · {{ c.status_label }}</p>
+            @if (casesLoading) {
+              <p class="muted"><span class="spinner" aria-hidden="true"></span> Cargando la bandeja…</p>
+            } @else {
+              <p class="brief-k">{{ brief.kicker }}</p>
+              @if (brief.meta) {
+                <p class="muted">{{ brief.meta }}</p>
               }
-              <p class="brief-sum">{{ data.summary }}</p>
-              @if (data.risks?.[0]; as risk) {
+              <p class="brief-sum">{{ brief.summary }}</p>
+              @if (brief.late) {
                 <p class="brief-risk">
                   <app-icon name="alert-triangle" [size]="16" />
-                  {{ risk }}
+                  {{ brief.late }}
                 </p>
               }
-              @if (data.recommendations?.[0]; as next) {
-                <p class="brief-next"><strong>Siguiente.</strong> {{ next }}</p>
+              @if (brief.next) {
+                <p class="brief-next">{{ brief.next }}</p>
               }
             }
           </aside>
@@ -76,13 +68,10 @@ interface ChatMsg {
               @for (m of messages; track $index) {
                 <div class="bubble" [class.me]="m.role === 'user'">{{ m.text }}</div>
               }
-              @if (chatLoading) {
-                <div class="bubble pending" aria-live="polite">Escribiendo…</div>
-              }
             </div>
             <div class="chips" role="group" aria-label="Preguntas">
               @for (q of prompts; track q) {
-                <button type="button" class="chip" (click)="ask(q)" [disabled]="chatLoading">{{ q }}</button>
+                <button type="button" class="chip" (click)="ask(q)" [disabled]="casesLoading">{{ q }}</button>
               }
             </div>
             <form class="composer" (ngSubmit)="send()">
@@ -92,11 +81,11 @@ interface ChatMsg {
                 name="draft"
                 type="text"
                 [(ngModel)]="draft"
-                placeholder="Pregunta sobre este expediente"
+                placeholder="Pendiente, prioridad o quién espera"
                 autocomplete="off"
-                [disabled]="chatLoading"
+                [disabled]="casesLoading"
               />
-              <button class="btn btn-primary" type="submit" [disabled]="chatLoading || !draft.trim()">
+              <button class="btn btn-primary" type="submit" [disabled]="casesLoading || !draft.trim()">
                 Enviar
               </button>
             </form>
@@ -226,8 +215,6 @@ interface ChatMsg {
       color: var(--primary-active, var(--primary));
     }
 
-    .bubble.pending { color: var(--text-muted); font-style: italic; }
-
     .chips {
       display: flex;
       flex-wrap: wrap;
@@ -290,17 +277,11 @@ export class Fase2AiComponent implements OnInit {
 
   cases: CaseItem[] = [];
   selectedCaseId = 0;
-  data: AIResult | null = null;
-  loading = false;
+  casesLoading = false;
   casesError = false;
-  analyzeError = false;
   messages: ChatMsg[] = [];
   draft = '';
-  chatLoading = false;
-  readonly prompts = ['¿Qué sigue ahora?', '¿Hay menores?', '¿Listo para minuta?'];
-
-  private analyzeSeq = 0;
-  private chatSeq = 0;
+  readonly prompts = ['¿Qué está pendiente?', '¿Cuál va primero?', '¿Quién espera?'];
 
   constructor(private api: ApiService) {}
 
@@ -318,9 +299,14 @@ export class Fase2AiComponent implements OnInit {
     return `#${c.id} · ${c.client_name || 'Cliente'}`;
   }
 
+  get brief(): DeskBrief {
+    return briefDesk(this.cases, this.selectedCaseId);
+  }
+
   get headAside(): string {
-    if (this.selectedCaseId <= 0) return '';
-    return this.selectedLabel;
+    if (this.casesLoading || this.casesError) return '';
+    if (this.selectedCaseId > 0) return this.selectedLabel;
+    return 'Etapa, ingreso y quién espera';
   }
 
   productName(c: CaseItem): string {
@@ -337,6 +323,7 @@ export class Fase2AiComponent implements OnInit {
 
   loadCases(): void {
     this.casesError = false;
+    this.casesLoading = true;
     this.api.listCases().subscribe({
       next: (list) => {
         this.cases = [...list].sort((a, b) => {
@@ -345,9 +332,11 @@ export class Fase2AiComponent implements OnInit {
           return aw - bw || b.id - a.id;
         });
         this.selectedCaseId = this.pickDefaultCaseId(this.cases);
-        this.run();
+        this.casesLoading = false;
+        this.resetThread();
       },
       error: () => {
+        this.casesLoading = false;
         this.casesError = true;
       },
     });
@@ -355,28 +344,7 @@ export class Fase2AiComponent implements OnInit {
 
   onCaseChange(id: number): void {
     this.selectedCaseId = id;
-    this.messages = [];
-    this.run();
-  }
-
-  run(): void {
-    const n = ++this.analyzeSeq;
-    this.loading = true;
-    this.analyzeError = false;
-    this.api.mockAI(this.selectedCaseId).subscribe({
-      next: (d) => {
-        if (n !== this.analyzeSeq) return;
-        this.data = d;
-        this.loading = false;
-        this.messages = [{ role: 'assistant', text: this.seedText() }];
-        this.stickChat();
-      },
-      error: () => {
-        if (n !== this.analyzeSeq) return;
-        this.loading = false;
-        this.analyzeError = true;
-      },
-    });
+    this.resetThread();
   }
 
   ask(q: string): void {
@@ -386,30 +354,23 @@ export class Fase2AiComponent implements OnInit {
 
   send(): void {
     const text = this.draft.trim();
-    if (!text || this.chatLoading) return;
+    if (!text || this.casesLoading) return;
     this.draft = '';
-    this.messages = [...this.messages, { role: 'user', text }];
+    this.messages = [
+      ...this.messages,
+      { role: 'user', text },
+      { role: 'assistant', text: answerDesk(text, this.cases, this.selectedCaseId) },
+    ];
     this.stickChat();
-    const n = ++this.chatSeq;
-    this.chatLoading = true;
-    this.api.mockAIChat(this.selectedCaseId, text).subscribe({
-      next: (res) => {
-        if (n !== this.chatSeq) return;
-        this.chatLoading = false;
-        this.messages = [...this.messages, { role: 'assistant', text: res.reply || 'Sin respuesta.' }];
-        this.stickChat();
-      },
-      error: () => {
-        if (n !== this.chatSeq) return;
-        this.chatLoading = false;
-        this.messages = [...this.messages, { role: 'assistant', text: 'El asistente no respondió. Reintenta.' }];
-        this.stickChat();
-      },
-    });
   }
 
-  private seedText(): string {
-    return 'Revisé el expediente. Pregunta por minuta, menores o el siguiente paso.';
+  seedText(): string {
+    return 'Trabajo con la bandeja: etapa, ingreso y quién espera. No leo documentos.';
+  }
+
+  private resetThread(): void {
+    this.messages = [{ role: 'assistant', text: this.seedText() }];
+    this.stickChat();
   }
 
   private stickChat(): void {

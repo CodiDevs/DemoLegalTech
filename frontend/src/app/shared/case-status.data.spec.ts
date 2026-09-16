@@ -7,6 +7,7 @@ import {
   caseDaysIn,
   caseFilterLabel,
   caseHolds,
+  caseBall,
   caseLawyerHint,
   caseNeedsLawyer,
   caseShort,
@@ -66,6 +67,15 @@ describe('case-status.data', () => {
     expect(caseNeedsLawyer('02')).toBeFalse();
     expect(caseNeedsLawyer('10')).toBeFalse();
     expect(caseNeedsLawyer(null)).toBeFalse();
+  });
+
+  it('dice quién tiene la pelota', () => {
+    expect(caseBall('03')).toBe('lawyer');
+    expect(caseBall('04')).toBe('lawyer');
+    expect(caseBall('05')).toBe('client');
+    expect(caseBall('02')).toBe('client');
+    expect(caseBall('10')).toBe('closed');
+    expect(caseBall('01')).toBe('client');
   });
 
   it('agrupa detenidos por etapa abierta', () => {

@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ApiService, CaseItem } from '../../../core/api.service';
+import { ApiService } from '../../../core/api.service';
 import { DataTableComponent } from '../../../shared/data-table.component';
 import { StatusBadgeComponent } from '../../../shared/status-badge.component';
 import { IconComponent } from '../../../shared/icon.component';
-import { getProductDisplayName } from '../../../shared/product-sites.data';
 import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
 
 @Component({
@@ -40,50 +39,6 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
         <p class="muted">Precio sugerido: \${{ data.current_tenant.suggested_client_price_usd }} · Divorcio360</p>
       </div>
     }
-
-    <section class="charges" aria-labelledby="charges-title">
-      <header class="charges-head">
-        <h2 id="charges-title">Cobros de trámites</h2>
-        @if (!chargesLoading && !chargesError && chargeRows.length) {
-          <p class="charges-sum tabular">{{ chargesAside }}</p>
-        }
-      </header>
-
-      @if (chargesLoading) {
-        <p class="muted">Cargando cobros…</p>
-      } @else if (chargesError) {
-        <p class="muted">No se pudieron cargar los cobros.</p>
-      } @else if (!chargeRows.length) {
-        <p class="muted">Ningún trámite con cobro.</p>
-      } @else {
-        <div class="table-wrap">
-          <table class="plan-table charge-table">
-            <thead>
-              <tr>
-                <th>Expediente</th>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Monto</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (c of chargeRows; track c.id) {
-                <tr>
-                  <th scope="row">
-                    <a class="charge-id" [routerLink]="['/abogado/caso', c.id]">#{{ c.id }}</a>
-                  </th>
-                  <td>{{ c.client_name || 'Cliente' }}</td>
-                  <td>{{ productName(c) }}</td>
-                  <td class="tabular">{{ formatUsd(c.amount_cents / 100) }}</td>
-                  <td>{{ c.paid ? 'Cobrado' : 'Pendiente' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </section>
 
     <div class="toggle" role="group" aria-label="Periodo de la licencia">
       <button type="button" class="btn btn-ghost" [class.on]="!annual" (click)="annual = false">Mensual</button>
@@ -189,41 +144,6 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
     .link-card { margin-top: var(--space-4); }
     .link-card h2 { margin: 0 0 var(--space-2); font-size: var(--text-base); font-weight: 650; }
 
-    .charges {
-      margin-top: var(--space-6);
-      animation: charges-in 480ms var(--ease-out);
-    }
-    .charges-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: var(--space-3);
-      margin-bottom: var(--space-3);
-    }
-    .charges h2 {
-      margin: 0;
-      font-size: var(--text-base);
-      font-weight: 650;
-    }
-    .charges-sum {
-      margin: 0;
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-    .charge-table { margin-top: 0; }
-    .charge-id {
-      font-weight: 650;
-      color: var(--primary);
-      text-decoration: none;
-    }
-    .charge-id:hover { text-decoration: underline; }
-
-    @keyframes charges-in {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: none; }
-    }
-
     .share {
       display: flex;
       flex-wrap: wrap;
@@ -270,9 +190,6 @@ export class Fase2BillingComponent implements OnInit {
     { key: 'status', label: 'Estado' },
   ];
   invoiceRows: Record<string, string | number>[] = [];
-  charges: CaseItem[] = [];
-  chargesLoading = true;
-  chargesError = false;
 
   constructor(private api: ApiService) {}
 
@@ -286,53 +203,6 @@ export class Fase2BillingComponent implements OnInit {
         status: i.status,
       }));
     });
-    this.api.listCases().subscribe({
-      next: (c) => {
-        this.charges = c;
-        this.chargesLoading = false;
-        this.chargesError = false;
-      },
-      error: () => {
-        this.charges = [];
-        this.chargesLoading = false;
-        this.chargesError = true;
-      },
-    });
-  }
-
-  get chargesAside(): string {
-    return `${this.formatUsd(this.cobradoUsd)} cobrado · ${this.formatUsd(this.pendienteUsd)} pendiente`;
-  }
-
-  get cobradoUsd(): number {
-    return this.sumUsd(this.charges.filter((c) => c.paid));
-  }
-
-  get pendienteUsd(): number {
-    return this.sumUsd(this.charges.filter((c) => !c.paid));
-  }
-
-  get chargeRows(): CaseItem[] {
-    return [...this.charges]
-      .filter((c) => (c.amount_cents || 0) > 0)
-      .sort((a, b) => Number(a.paid) - Number(b.paid) || b.id - a.id);
-  }
-
-  productName(c: CaseItem): string {
-    return getProductDisplayName(c.product || 'divorcio360');
-  }
-
-  formatUsd(n: number): string {
-    if (!Number.isFinite(n)) return '-';
-    return new Intl.NumberFormat('es-EC', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(n);
-  }
-
-  private sumUsd(list: CaseItem[]): number {
-    return list.reduce((sum, c) => sum + (c.amount_cents || 0), 0) / 100;
   }
 
   get headAside(): string {
