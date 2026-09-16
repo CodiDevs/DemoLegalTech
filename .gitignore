@@ -8,6 +8,7 @@ bin/
 dist/
 .DS_Store
 node_modules/
+.vercel
 backend/data/
 backend/uploads/
 command-code-session-8c1e8a6e.html

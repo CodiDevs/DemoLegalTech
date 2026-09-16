@@ -1,0 +1,16 @@
+# https://render.com/schema/render.yaml.json
+services:
+  - type: web
+    name: legalstation-api
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_ORIGINS
+        value: https://legalstation.vercel.app,https://legalstation-vixio-s-projects.vercel.app

@@ -1,0 +1,7 @@
+data
+uploads
+*.db
+*.db-wal
+*.db-shm
+.dockerignore
+Dockerfile

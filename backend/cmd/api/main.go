@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/codidevs/divorcio360/internal/adminmock"
 	"github.com/codidevs/divorcio360/internal/auth"
@@ -26,8 +27,8 @@ import (
 
 func main() {
 	root, _ := os.Getwd()
-	dataDir := filepath.Join(root, "data")
-	uploadDir := filepath.Join(root, "uploads")
+	dataDir := env("DATA_DIR", filepath.Join(root, "data"))
+	uploadDir := env("UPLOAD_DIR", filepath.Join(root, "uploads"))
 	_ = os.MkdirAll(dataDir, 0o755)
 	_ = os.MkdirAll(uploadDir, 0o755)
 
@@ -55,7 +56,7 @@ func main() {
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:4200", "http://127.0.0.1:4200"},
+		AllowedOrigins:   corsOrigins(),
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -128,9 +129,32 @@ func main() {
 		})
 	})
 
-	addr := env("ADDR", ":8080")
+	addr := listenAddr()
 	log.Println("LegalStation API listening on", addr)
 	log.Fatal(http.ListenAndServe(addr, r))
+}
+
+func listenAddr() string {
+	if p := os.Getenv("PORT"); p != "" {
+		return "0.0.0.0:" + p
+	}
+	return env("ADDR", ":8080")
+}
+
+func corsOrigins() []string {
+	origins := []string{
+		"http://localhost:4200",
+		"http://127.0.0.1:4200",
+		"https://legalstation.vercel.app",
+		"https://legalstation-vixio-s-projects.vercel.app",
+	}
+	for _, o := range strings.Split(os.Getenv("FRONTEND_ORIGINS"), ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			origins = append(origins, o)
+		}
+	}
+	return origins
 }
 
 func env(k, def string) string {

@@ -36,7 +36,7 @@ export class AuthService {
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/v1/auth/login', { email, password }).pipe(
-      timeout(15000),
+      timeout(45000),
       tap((res) => this.persist(res)),
       catchError((err) => this.authError(err)),
     );
@@ -44,7 +44,7 @@ export class AuthService {
 
   register(payload: { email: string; password: string; full_name: string; phone?: string; lopdp_accepted?: boolean }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/v1/auth/register', payload).pipe(
-      timeout(15000),
+      timeout(45000),
       tap((res) => this.persist(res)),
       catchError((err) => this.authError(err)),
     );
