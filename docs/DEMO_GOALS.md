@@ -4,6 +4,7 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 
 | Status | Goal | How to demo | Date |
 |--------|------|-------------|------|
+| done | Despacho Facturación + Modelos + Servicios | `abogado@demo.ec` → Licencia: tabla de planes (no 3-up); Modelos: Familia no FAMILIA; Servicios: tabs sin 2/2/0 ni slug | 2026-09-15 |
 | done | Despacho Resumen + expediente destilado | `abogado@demo.ec` → `/abogado/fase2/admin`: Te toca, no 4 KPIs; Detenidos → bandeja con filtro de etapa; `/abogado/caso/6` etapas con nombre, Q cerrado, un primary; Asistente H1 + icono search | 2026-09-15 |
 | done | Despacho /abogado (chrome + bandeja folio) | `abogado@demo.ec` → `/abogado`: sin Cómo funciona/Precios ni footer; filas con verbo; filtro Revisión dice “Hay N en la bandeja” | 2026-09-15 |
 | done | Guest cuestionario, auth al cobrar | Logout → `/productos/divorcio360` → Iniciar Formulario → `/cuestionario`; resultado → cuenta para pagar | 2026-09-15 |
@@ -67,6 +68,11 @@ Checklist of shipped vertical slices for the Divorcio360 client demo.
 | done | Cierre anti-slop: estados, paleta, muertos | 10 estados desde una fuente; 6 scrims, 2 verdes y 6 acentos a tokens; 11 componentes muertos fuera | 2026-09-15 |
 
 ## Entries
+
+### 2026-09-15 — Despacho Facturación + Modelos + Servicios
+Licencia deja el 3-up SaaS: una tabla (precio, operadores, casos, asistente, SATJE). Modelos: categoría en Inter normal, chips cuadrados. Servicios: tabs Todos/Publicados/Borradores; conteo solo en el masthead; sin `/slug` en la tarjeta.
+
+**Demo:** `abogado@demo.ec` → Facturación B2B (tabla, plan actual marcado) → Modelos → Servicios.
 
 ### 2026-09-15 — Despacho Resumen + expediente destilado
 Resumen deja el teatro de 4 KPIs: una línea en el masthead y la lista **Te toca**. Detenidos es una lista quieta: clic abre la bandeja con `?estado=` de esa etapa. Expediente muestra etapas con nombre (Recepción, Revisión, Minuta…), cuestionario cerrado y filtrado (sin tenencia si no hay hijos), y un solo `btn-primary`. Asistente: H1 «Asistente», icono search en el rail.

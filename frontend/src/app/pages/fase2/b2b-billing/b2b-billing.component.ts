@@ -11,29 +11,25 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
   standalone: true,
   imports: [RouterLink, DataTableComponent, StatusBadgeComponent, IconComponent, WorkspaceHeadComponent],
   template: `
-    <app-workspace-head title="Licencia" [aside]="data?.note || ''" />
+    <app-workspace-head title="Licencia" [aside]="headAside" />
 
     @if (data?.current_tenant) {
-      <div class="panel fase2-preview-card tenant lp-lift">
+      <div class="panel tenant">
         <div>
           <h2>{{ data.current_tenant.name }}</h2>
-          <p class="muted">Plan actual: <strong>{{ data.current_tenant.plan_label || data.current_tenant.plan }}</strong></p>
-          <p class="muted">Comisión: {{ data.current_tenant.commission_pct }}% abogado · {{ data.current_tenant.platform_pct }}% plataforma</p>
+          <p class="muted">{{ data.current_tenant.plan_label || data.current_tenant.plan }} · {{ data.current_tenant.commission_pct }}% abogado · {{ data.current_tenant.platform_pct }}% plataforma</p>
         </div>
-        <div class="usage">
+        <p class="usage tabular">
           <strong>{{ data.current_tenant.cases_used }} / {{ data.current_tenant.cases_limit }}</strong>
           <span class="muted">casos este mes</span>
-          <div class="bar"><span [style.width.%]="usagePct"></span></div>
-        </div>
+        </p>
       </div>
       <div class="panel link-card">
-        <h2>Tu link para clientes</h2>
-        <p class="muted">Comparte LegalStation. El cliente paga el trámite, no la licencia del bufete.</p>
+        <h2>Link para clientes</h2>
+        <p class="muted">El cliente paga el trámite. Esta licencia es del bufete.</p>
         <div class="share">
-          <span class="share-mark" aria-hidden="true"><app-icon name="scale" [size]="18" /></span>
           <a class="share-url" [routerLink]="referralRoute" [queryParams]="referralQuery">
-            <span class="share-brand">LegalStation</span>
-            <span class="share-line">legalstation.ec{{ referralPrettyPath }}</span>
+            legalstation.ec{{ referralPrettyPath }}
           </a>
           <button type="button" class="btn btn-secondary" (click)="copyLink()">
             <app-icon [name]="copied ? 'check' : 'clipboard'" [size]="16" />
@@ -44,29 +40,44 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
       </div>
     }
 
-    <div class="toggle">
+    <div class="toggle" role="group" aria-label="Periodo de la licencia">
       <button type="button" class="btn btn-ghost" [class.on]="!annual" (click)="annual = false">Mensual</button>
       <button type="button" class="btn btn-ghost" [class.on]="annual" (click)="annual = true">Anual (-15%)</button>
     </div>
 
-    <div class="plans">
-      @for (p of data?.plans || []; track p.id) {
-        <div class="panel fase2-preview-card plan" [class.current]="p.id === data?.current_tenant?.plan">
-          <h2>{{ p.name }}</h2>
-          <p class="price">\${{ planPrice(p) }}/mes</p>
-          <ul>
-            <li>{{ p.features.users }} usuarios</li>
-            <li>{{ p.features.cases_per_month }} casos/mes</li>
-            <li>IA: {{ p.features.ai ? 'Sí' : 'No' }}</li>
-            <li>SATJE: {{ p.features.satje ? 'Sí' : 'No' }}</li>
-          </ul>
-          @if (p.id === data?.current_tenant?.plan) {
-            <app-status-badge label="Plan actual" variant="ok" />
-          } @else {
-            <button type="button" class="btn btn-primary" (click)="showUpgrade(p)">Actualizar plan</button>
+    <div class="table-wrap">
+      <table class="plan-table">
+        <thead>
+          <tr>
+            <th>Plan</th>
+            <th>Precio</th>
+            <th>Operadores</th>
+            <th>Casos</th>
+            <th>Asistente</th>
+            <th>SATJE</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of data?.plans || []; track p.id) {
+            <tr [class.is-current]="p.id === data?.current_tenant?.plan">
+              <th scope="row">{{ p.name }}</th>
+              <td class="tabular">\${{ planPrice(p) }}/mes</td>
+              <td class="tabular">{{ p.features.users }}</td>
+              <td class="tabular">{{ p.features.cases_per_month }}</td>
+              <td>{{ flagLabel(p.features.ai) }}</td>
+              <td>{{ flagLabel(p.features.satje) }}</td>
+              <td class="plan-act">
+                @if (p.id === data?.current_tenant?.plan) {
+                  <app-status-badge label="Plan actual" variant="ok" />
+                } @else {
+                  <button type="button" class="btn btn-ghost" (click)="showUpgrade(p)">Cambiar</button>
+                }
+              </td>
+            </tr>
           }
-        </div>
-      }
+        </tbody>
+      </table>
     </div>
 
     <section class="fase2-section">
@@ -77,7 +88,7 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
     @if (modal) {
       <div class="modal-backdrop" (click)="modal = ''">
         <div class="modal panel" (click)="$event.stopPropagation()">
-          <h2>Actualizar a {{ modal }}</h2>
+          <h2>Cambiar a {{ modal }}</h2>
           <p class="muted">Pasarela de prueba. En producción se integraría Payphone recurrente.</p>
           <button type="button" class="btn btn-primary" (click)="confirmUpgrade()">Confirmar cambio</button>
           <button type="button" class="btn btn-ghost" (click)="modal = ''">Cancelar</button>
@@ -87,76 +98,81 @@ import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.compon
   `,
   styleUrls: ['../fase2-shared.scss'],
   styles: [`
-    .tenant { display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; }
-    .usage { min-width: 200px; text-align: right; }
-    .usage strong { font-weight: 650; font-size: 1.5rem; display: block; }
-    .bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 0.5rem; }
-    .bar span { display: block; height: 100%; background: var(--primary); }
-    .toggle { display: flex; gap: 0.5rem; margin: 1.25rem 0; }
-    .toggle .on { background: var(--primary); color: white; border-color: var(--primary); }
-    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    .plan ul { padding-left: 1.1rem; color: var(--text-secondary); font-size: 0.9rem; }
-    .plan.current { outline: 2px solid color-mix(in srgb, var(--success) 35%, transparent); }
-    .price { font-weight: 650; font-size: 1.6rem; }
-    .modal-backdrop {
-      position: fixed; inset: 0; background: var(--overlay);
-      display: grid; place-items: center; z-index: 50; padding: 1rem;
+    .tenant {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      margin-top: var(--space-4);
+      align-items: baseline;
     }
-    .modal { max-width: 420px; width: 100%; }
-    .link-card { margin-top: 1rem; }
+    .tenant h2 { margin: 0 0 var(--space-1); font-size: var(--text-base); font-weight: 650; }
+    .usage { margin: 0; text-align: right; }
+    .usage strong { display: block; font-size: var(--text-base); font-weight: 650; }
+    .toggle { display: flex; gap: 0.5rem; margin: var(--space-5) 0 var(--space-3); }
+    .toggle .on { background: var(--primary); color: var(--text-on-primary); border-color: var(--primary); }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+    }
+    .plan-table th, .plan-table td {
+      padding: var(--space-3) var(--space-4);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .plan-table thead th {
+      font-size: var(--text-xs);
+      font-weight: 650;
+      color: var(--text-secondary);
+    }
+    .plan-table tbody tr:last-child th,
+    .plan-table tbody tr:last-child td { border-bottom: 0; }
+    .plan-table tbody th { font-weight: 650; }
+    .plan-table tr.is-current { background: var(--primary-subtle); }
+    .plan-act { text-align: right; white-space: nowrap; }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    .link-card { margin-top: var(--space-4); }
+    .link-card h2 { margin: 0 0 var(--space-2); font-size: var(--text-base); font-weight: 650; }
     .share {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      display: flex;
+      flex-wrap: wrap;
       gap: var(--space-3);
       align-items: center;
-      margin: var(--space-4) 0;
-      padding: var(--space-3) var(--space-4);
-      border: 1px solid var(--primary-border);
-      border-radius: var(--radius-lg);
-      background: var(--primary-subtle);
-    }
-    .share-mark {
-      display: grid;
-      place-items: center;
-      width: 2.25rem;
-      height: 2.25rem;
-      border-radius: var(--radius-md);
-      background: var(--primary);
-      color: #fff;
+      margin: var(--space-3) 0;
     }
     .share-url {
-      display: grid;
-      gap: 0.1rem;
       min-width: 0;
-      text-decoration: none;
-      color: inherit;
-    }
-    .share-brand {
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: var(--text-sm);
-      letter-spacing: -0.02em;
-      color: var(--primary);
-    }
-    .share-line {
       font-size: var(--text-sm);
       font-weight: 650;
-      color: var(--text);
+      color: var(--primary);
+      text-decoration: none;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .share-url:hover { text-decoration: underline; }
     .share .btn {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2);
       flex-shrink: 0;
     }
-    @media (max-width: 640px) {
-      .share { grid-template-columns: auto minmax(0, 1fr); }
-      .share .btn { grid-column: 1 / -1; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: var(--overlay);
+      display: grid; place-items: center; z-index: 50; padding: 1rem;
     }
-    @media (max-width: 900px) { .plans { grid-template-columns: 1fr; } }
+    .modal { max-width: 420px; width: 100%; }
   `]
 })
 export class Fase2BillingComponent implements OnInit {
@@ -186,6 +202,22 @@ export class Fase2BillingComponent implements OnInit {
         status: i.status,
       }));
     });
+  }
+
+  get headAside(): string {
+    const t = this.data?.current_tenant;
+    if (!t) return '';
+    const plan = t.plan_label || t.plan || '';
+    const used = t.cases_used;
+    const limit = t.cases_limit;
+    const parts: string[] = [];
+    if (plan) parts.push(String(plan));
+    if (used != null && limit != null) parts.push(`${used} de ${limit} este mes`);
+    return parts.join(' · ');
+  }
+
+  flagLabel(on: unknown): string {
+    return on ? 'Sí' : 'No';
   }
 
   get referralPrettyPath(): string {
@@ -221,12 +253,6 @@ export class Fase2BillingComponent implements OnInit {
       if (this.copyTimer) clearTimeout(this.copyTimer);
       this.copyTimer = setTimeout(() => { this.copied = false; }, 1600);
     });
-  }
-
-  get usagePct(): number {
-    const t = this.data?.current_tenant;
-    if (!t) return 0;
-    return Math.round((t.cases_used / t.cases_limit) * 100);
   }
 
   planPrice(p: any): number {

@@ -5,6 +5,7 @@ import { ConfirmService } from '../../../core/confirm.service';
 import { StatusBadgeComponent } from '../../../shared/status-badge.component';
 import { WorkspaceHeadComponent } from '../../lawyer-panel/workspace-head.component';
 import { friendlyFieldLabel, toFieldToken } from '../../../shared/template-field-labels';
+import { categoryLabel } from '../../lawyer-services/lawyer-services.model';
 
 type ModalMode = 'preview' | 'edit';
 
@@ -42,7 +43,7 @@ interface TemplateDraft {
       @for (t of templates; track t.id) {
         <article class="panel fase2-preview-card card" (click)="openPreview(t)">
           <div class="card-head">
-            <span class="cat">{{ t.category }}</span>
+            <span class="cat">{{ catLabel(t.category) }}</span>
             <app-status-badge [label]="statusLabel(t)" [variant]="statusVariant(t)" />
           </div>
           <h2>{{ t.name }}</h2>
@@ -177,7 +178,7 @@ interface TemplateDraft {
     .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.25rem; }
     .card { cursor: pointer; display: grid; gap: 0.5rem; }
     .card-head { display: flex; justify-content: space-between; align-items: center; }
-    .cat { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--primary); }
+    .cat { font-size: var(--text-xs); font-weight: 600; color: var(--text-secondary); }
     .card h2 { font-size: 1.1rem; margin: 0; }
     .card-actions { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
     .card-actions .btn { width: 100%; }
@@ -188,7 +189,7 @@ interface TemplateDraft {
       padding: 0.2rem 0.55rem;
       font-size: 0.78rem;
       font-weight: 500;
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-sm);
       background: var(--bg-subtle);
       border: 1px solid var(--border);
       color: var(--text-secondary);
@@ -279,6 +280,10 @@ export class Fase2TemplatesComponent implements OnInit {
 
   labelFor(raw: string): string {
     return friendlyFieldLabel(raw);
+  }
+
+  catLabel(raw: string): string {
+    return categoryLabel(raw);
   }
 
   isClone(t: any): boolean {
